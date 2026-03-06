@@ -1,0 +1,10 @@
+import { embedded } from 'obsidian-test';
+import test from 'node:test';
+import assert from 'node:assert';
+
+embedded((app) => {
+  test('<%= pluginName %> loads successfully', () => {
+    // The app object is the real Obsidian App instance.
+    assert.ok(app.workspace, 'Workspace should be available');
+  });
+});

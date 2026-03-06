@@ -1,0 +1,13 @@
+import { execSync } from 'node:child_process';
+import process from 'node:process';
+
+const prod = process.argv[2] !== 'dev';
+
+if (prod) {
+<%- render('compile') -%>
+  execSync('tsc -noEmit', { stdio: 'inherit' });
+}
+
+const envPrefix = prod ? 'BUILD=production ' : '';
+const watchFlag = prod ? '' : ' --watch';
+execSync(`${envPrefix}npx vite build${watchFlag}`, { stdio: 'inherit' });

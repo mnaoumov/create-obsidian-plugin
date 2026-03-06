@@ -1,0 +1,49 @@
+{
+  "name": "@mnaoumov/create-obsidian-plugin",
+  "version": "0.0.0",
+  "description": "Create Obsidian plugin from modern templates.",
+  "license": "MIT",
+  "author": "Michael Naumov <mnaoumov@gmail.com>",
+  "type": "module",
+  "bin": "dist/main.js",
+  "scripts": {
+    "build": "jiti scripts/build.ts",
+    "commit": "jiti scripts/commit.ts",
+    "lint": "jiti scripts/lint.ts",
+    "lint:fix": "jiti scripts/lint-fix.ts",
+    "prepare": "jiti scripts/prepare.ts",
+    "test": "jiti scripts/test.ts"
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
+  "dependencies": {
+    "@clack/prompts": "^1.1.0",
+    "ejs": "latest",
+    "semver": "latest"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest",
+    "@commitlint/types": "latest",
+    "@eslint/js": "^10.0.1",
+    "@tsconfig/strictest": "^2.0.6",
+    "@types/ejs": "latest",
+    "@types/semver": "latest",
+    "commitizen": "latest",
+    "cz-conventional-changelog": "latest",
+    "esbuild": "^0.25.10",
+    "eslint": "latest",
+    "globals": "^17.4.0",
+    "husky": "latest",
+    "jiti": "^2.6.1",
+    "typescript": "latest",
+    "typescript-eslint": "^8.56.1",
+    "vitest": "^4.0.18"
+  }
+}

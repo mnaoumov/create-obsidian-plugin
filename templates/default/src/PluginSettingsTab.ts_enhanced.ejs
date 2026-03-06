@@ -1,0 +1,18 @@
+import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsTabBase';
+import { SettingEx } from 'obsidian-dev-utils/obsidian/SettingEx';
+
+import type { PluginTypes } from './PluginTypes.ts';
+
+export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
+  public override display(): void {
+    super.display();
+    this.containerEl.empty();
+
+    new SettingEx(this.containerEl)
+      .setName('Text setting name')
+      .setDesc('Text setting description.')
+      .addText((text) => {
+        this.bind(text, 'textSetting');
+      });
+  }
+}

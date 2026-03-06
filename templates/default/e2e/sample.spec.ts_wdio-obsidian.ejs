@@ -1,0 +1,8 @@
+describe('<%= pluginName %>', () => {
+  it('should load the plugin', async () => {
+    // WebdriverIO + wdio-obsidian-service provides the browser object.
+    // See https://github.com/jesse-r-s-hines/wdio-obsidian-service for API docs.
+    const title = await browser.getTitle();
+    expect(title).toContain('Obsidian');
+  });
+});

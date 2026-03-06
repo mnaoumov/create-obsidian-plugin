@@ -1,0 +1,14 @@
+export const config: WebdriverIO.Config = {
+  runner: 'local',
+  framework: 'mocha',
+  specs: ['./e2e/**/*.spec.ts'],
+  services: [
+    ['obsidian', {
+      obsidianVersions: ['latest'],
+    }],
+  ],
+  mochaOpts: {
+    timeout: 60_000,
+    ui: 'bdd',
+  },
+};

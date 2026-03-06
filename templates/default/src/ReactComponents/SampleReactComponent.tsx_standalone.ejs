@@ -1,0 +1,41 @@
+import type { App } from 'obsidian';
+import type { JSX } from 'react';
+
+import {
+  createContext,
+  useContext,
+  useState
+} from 'react';
+
+export const AppContext = createContext<App>(undefined as unknown as App);
+
+export interface SampleReactComponentProps {
+  startCount: number;
+}
+
+export function SampleReactComponent(props: SampleReactComponentProps): JSX.Element {
+  const [count, setCount] = useState(props.startCount);
+  const app = useContext(AppContext);
+
+  function increment(): void {
+    setCount(count + 1);
+  }
+
+  return (
+    <>
+      <h4>Sample React Component!</h4>
+
+      <div>
+        <span>
+          My number is {count}
+          !
+        </span>
+      </div>
+
+      <button onClick={increment}>Increment</button>
+      <div>
+        Vault name: {app.vault.getName()}
+      </div>
+    </>
+  );
+}

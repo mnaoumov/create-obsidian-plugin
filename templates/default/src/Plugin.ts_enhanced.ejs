@@ -1,0 +1,52 @@
+import type { Editor } from 'obsidian';
+<%- render('import') -%>
+
+import { Notice } from 'obsidian';
+import { PluginBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginBase';
+
+import type { PluginTypes } from './PluginTypes.ts';
+
+import { PluginSettingsManager } from './PluginSettingsManager.ts';
+import { PluginSettingsTab } from './PluginSettingsTab.ts';
+<%- render('import2') -%>
+
+export class Plugin extends PluginBase<PluginTypes> {
+  protected override createSettingsManager(): PluginSettingsManager {
+    return new PluginSettingsManager(this);
+  }
+
+  protected override createSettingsTab(): null | PluginSettingsTab {
+    return new PluginSettingsTab(this);
+  }
+<%- render('class-body') -%>
+
+  protected override async onloadImpl(): Promise<void> {
+    await super.onloadImpl();
+    this.addCommand({
+      callback: this.runSampleCommand.bind(this),
+      id: 'sample',
+      name: 'Sample'
+    });
+
+    this.addCommand({
+      editorCallback: this.runSampleEditorCommand.bind(this),
+      id: 'sample-editor',
+      name: 'Sample editor'
+    });
+<%- render('onload') -%>
+  }
+
+  protected override async onunloadImpl(): Promise<void> {
+    await super.onunloadImpl();
+    new Notice('Sample plugin is being unloaded');
+  }
+<%- render('method') -%>
+
+  private runSampleCommand(): void {
+    new Notice('Sample command');
+  }
+
+  private runSampleEditorCommand(editor: Editor): void {
+    editor.replaceSelection('Sample Editor Command');
+  }
+}

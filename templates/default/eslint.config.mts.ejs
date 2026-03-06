@@ -1,0 +1,77 @@
+import eslint from '@eslint/js';
+import obsidianmd from 'eslint-plugin-obsidianmd';
+import globals from 'globals';
+import { globalIgnores } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+
+const typeScriptFiles = [
+  'src/**/*.ts',
+  'src/**/*.tsx',
+  'scripts/**/*.ts',
+  'eslint.config.mts',
+];
+
+export default tseslint.config(
+  globalIgnores([
+    '**/*.cjs',
+    '**/*.js',
+    '**/*.mjs',
+    'dist/**',
+    'main.js',
+  ]),
+  {
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+    ],
+    files: typeScriptFiles,
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/explicit-member-accessibility': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/prefer-readonly': 'error',
+      'curly': 'error',
+      'eqeqeq': 'error',
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'prefer-template': 'error',
+    },
+  },
+  ...obsidianmd.configs.recommended,
+  {
+    rules: {
+      'obsidianmd/ui/sentence-case': [
+        'error',
+        {
+          brands: [<%- render('brands') %>]
+        }
+      ]
+    }
+  },
+);

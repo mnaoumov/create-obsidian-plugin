@@ -1,0 +1,26 @@
+{
+  "name": "<%= pluginId %>",
+  "version": "0.0.0",
+  "description": "<%= pluginDescription %>",
+  "main": "main.js",
+  "keywords": [],
+  "license": "MIT",
+  "author": "<%= authorGitHubName %>",
+  "type": "module",
+  "scripts": {
+<% const scriptEntries = Object.entries(_scripts); -%>
+<% scriptEntries.forEach(([key, value], i) => { -%>
+    "<%- key %>": "<%- value %>"<%= i < scriptEntries.length - 1 ? ',' : '' %>
+<% }); -%>
+  },
+  "devDependencies": {
+<% _dependencies.forEach((dep, i) => { -%>
+    "<%- dep.packageName %>": "<%- dep.version %>"<%= i < _dependencies.length - 1 ? ',' : '' %>
+<% }); -%>
+  },
+  "overrides": {
+    "@antfu/utils": "9.2.0",
+    "boolean": "npm:dry-uninstall",
+    "dompurify": "3.0.1"
+  }
+}
