@@ -1,8 +1,6 @@
-import { select } from '@clack/prompts';
-
 import type { FeatureOption } from '../../FeatureOption.ts';
 
-import { assertNotCancelled } from '../../clack-utils.ts';
+import { promptFeature } from '../../FeatureOption.ts';
 import { Demo } from './Demo.ts';
 import { Enhanced } from './Enhanced.ts';
 import { Standalone } from './Standalone.ts';
@@ -10,11 +8,5 @@ import { Standalone } from './Standalone.ts';
 export const PRESET_OPTIONS: readonly FeatureOption[] = [new Enhanced(), new Standalone(), new Demo()];
 
 export async function promptPreset(defaultValue?: string): Promise<string> {
-  const result = await select({
-    initialValue: defaultValue ?? 'enhanced',
-    message: 'Choose a preset',
-    options: PRESET_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
-  });
-  assertNotCancelled(result);
-  return result;
+  return promptFeature(PRESET_OPTIONS, 'Choose a preset', defaultValue);
 }
