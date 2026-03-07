@@ -249,9 +249,9 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('obsidian-dev-utils');
     });
 
-    it('enhanced adds uses-obsidian-dev-utils partial', () => {
+    it('enhanced adds enhanced partial', () => {
       const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
-      expect(builder.partials.has('uses-obsidian-dev-utils')).toBe(true);
+      expect(builder.partials.has('enhanced')).toBe(true);
     });
   });
 
