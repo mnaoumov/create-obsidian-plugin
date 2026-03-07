@@ -1,3 +1,5 @@
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 
@@ -5,9 +7,42 @@ const prod = process.argv[2] !== 'dev';
 
 if (prod) {
 <%- render('compile') -%>
-  execSync('tsc -noEmit', { stdio: 'inherit' });
 }
 
+if (existsSync('.env')) {
+  process.loadEnvFile('.env');
+}
+
+const distFolder = prod ? 'dist/build' : 'dist/dev';
+
+if (existsSync(distFolder)) {
+  rmSync(distFolder, { recursive: true });
+}
+mkdirSync(distFolder, { recursive: true });
+
+copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
+
+if (!prod) {
+  writeFileSync(join(distFolder, '.hotreload'), '');
+}
+
+process.env['DIST_FOLDER'] = distFolder;
 const envPrefix = prod ? 'BUILD=production ' : '';
 const watchFlag = prod ? '' : ' --watch';
 execSync(`${envPrefix}npx vite build${watchFlag}`, { stdio: 'inherit' });
+
+if (!prod) {
+  copyToObsidianPluginsFolder(distFolder);
+}
+
+function copyToObsidianPluginsFolder(dist: string): void {
+  const obsidianConfigFolder = process.env['OBSIDIAN_CONFIG_FOLDER'] ?? '';
+  if (!obsidianConfigFolder) { return; }
+
+  const pluginFolder = join(obsidianConfigFolder, 'plugins', '<%= pluginId %>');
+  if (!existsSync(pluginFolder)) {
+    mkdirSync(pluginFolder, { recursive: true });
+  }
+  const { cpSync } = require('node:fs') as typeof import('node:fs');
+  cpSync(dist, pluginFolder, { recursive: true });
+}

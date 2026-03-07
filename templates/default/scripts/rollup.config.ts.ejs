@@ -1,4 +1,5 @@
 import { builtinModules } from 'node:module';
+import process from 'node:process';
 
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -7,6 +8,7 @@ import typescript from '@rollup/plugin-typescript';
 <%- render('import') -%>
 
 const prod = process.env['BUILD'] === 'production';
+const distFolder = process.env['DIST_FOLDER'] ?? (prod ? 'dist/build' : 'dist/dev');
 
 const EXTERNAL = [
   'obsidian',
@@ -30,7 +32,7 @@ const EXTERNAL = [
 export default {
   input: 'src/main.ts',
   output: {
-    file: 'main.js',
+    file: `${distFolder}/main.js`,
     format: 'cjs',
     sourcemap: prod ? false : 'inline',
     exports: 'default',
