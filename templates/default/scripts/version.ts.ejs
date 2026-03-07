@@ -1,50 +1,271 @@
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import process from 'node:process';
+import { createInterface } from 'node:readline/promises';
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, unlinkSync, writeFileSync, copyFileSync } from 'node:fs';
 
 interface Manifest {
   minAppVersion: string;
   version: string;
 }
 
-interface ObsidianRelease {
-  name: string;
+interface PackageJson {
+  version?: string;
 }
 
-const targetVersion = process.env['npm_package_version'];
-if (!targetVersion) {
-  throw new Error('npm_package_version not set');
+interface PackageLockJson {
+  packages?: Record<string, { version?: string }>;
+  version?: string;
 }
 
-const isBeta = targetVersion.includes('beta');
+const versionUpdateType = process.argv[2];
 
-if (isBeta) {
-  // For beta: copy manifest.json to manifest-beta.json and set beta version
-  copyFileSync('manifest.json', 'manifest-beta.json');
-  const manifestBeta = JSON.parse(readFileSync('manifest-beta.json', 'utf8')) as Manifest;
-  manifestBeta.version = targetVersion;
-  writeFileSync('manifest-beta.json', JSON.stringify(manifestBeta, null, '\t'));
-} else {
-  // For stable: fetch latest Obsidian version and update minAppVersion
-  const response = await fetch('https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest');
-  const release = await response.json() as Partial<ObsidianRelease>;
-  const latestObsidianVersion = release.name;
+if (!versionUpdateType) {
+  throw new Error('Usage: jiti scripts/version.ts <major|minor|patch|beta|x.y.z>');
+}
 
-  const manifest = JSON.parse(readFileSync('manifest.json', 'utf8')) as Manifest;
-  if (latestObsidianVersion) {
-    manifest.minAppVersion = latestObsidianVersion;
+validate(versionUpdateType);
+checkInstalled('git --version', 'Git is not installed. Please install it from https://git-scm.com/');
+checkRepoClean();
+checkInstalled('gh --version', 'GitHub CLI is not installed. Please install it from https://cli.github.com/');
+
+runScript('format:check');
+runScript('spellcheck');
+runScript('lint:md');
+runScript('build');
+runScript('lint');
+runScriptOptional('test');
+
+const newVersion = getNewVersion(versionUpdateType);
+updateVersionInFiles(newVersion);
+updateVersionInFilesForPlugin(newVersion);
+await updateChangelog(newVersion);
+addUpdatedFilesToGit(newVersion);
+addGitTag(newVersion);
+gitPush();
+await publishGitHubRelease(newVersion);
+
+function validate(type: string): void {
+  if (!['major', 'minor', 'patch', 'beta'].includes(type) && !/^\d+\.\d+\.\d+(?:-[\w\d.-]+)?$/.test(type)) {
+    throw new Error("Invalid version update type. Please use 'major', 'minor', 'patch', 'beta', or 'x.y.z[-suffix]' format.");
   }
-  manifest.version = targetVersion;
-  writeFileSync('manifest.json', JSON.stringify(manifest, null, '\t'));
+}
 
-  // update versions.json with target version and minAppVersion
-  const versions = JSON.parse(readFileSync('versions.json', 'utf8')) as Record<string, string>;
-  versions[targetVersion] = manifest.minAppVersion;
-  writeFileSync('versions.json', JSON.stringify(versions, null, '\t'));
-
-  // remove manifest-beta.json if it exists
-  if (existsSync('manifest-beta.json')) {
-    unlinkSync('manifest-beta.json');
+function checkInstalled(command: string, errorMessage: string): void {
+  try {
+    execSync(command, { stdio: 'pipe' });
+  } catch {
+    throw new Error(errorMessage);
   }
 }
 
-execSync('git add manifest.json versions.json manifest-beta.json', { stdio: 'inherit' });
+function checkRepoClean(): void {
+  const stdout = execSync('git status --porcelain --untracked-files=all', { encoding: 'utf-8' });
+  if (stdout.trim()) {
+    throw new Error('Git repository is not clean. Please commit or stash your changes before releasing.');
+  }
+}
+
+function runScript(name: string): void {
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { scripts?: Record<string, string> };
+  if (pkg.scripts?.[name]) {
+    execSync(`npm run ${name}`, { stdio: 'inherit' });
+  }
+}
+
+function runScriptOptional(name: string): void {
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { scripts?: Record<string, string> };
+  if (pkg.scripts?.[name]) {
+    execSync(`npm run ${name}`, { stdio: 'inherit' });
+  }
+}
+
+function getNewVersion(type: string): string {
+  if (/^\d+\.\d+\.\d+(?:-[\w\d.-]+)?$/.test(type)) {
+    return type;
+  }
+
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as PackageJson;
+  const currentVersion = pkg.version ?? '0.0.0';
+  const match = /^(?<Major>\d+)\.(?<Minor>\d+)\.(?<Patch>\d+)(?:-beta\.(?<Beta>\d+))?$/.exec(currentVersion);
+  if (!match?.groups) {
+    throw new Error(`Invalid current version format: ${currentVersion}`);
+  }
+
+  let major = Number(match.groups['Major']);
+  let minor = Number(match.groups['Minor']);
+  let patch = Number(match.groups['Patch']);
+  let beta = Number(match.groups['Beta'] ?? '');
+
+  switch (type) {
+    case 'beta':
+      if (beta === 0) { patch++; }
+      beta++;
+      break;
+    case 'major':
+      major++;
+      minor = 0;
+      patch = 0;
+      beta = 0;
+      break;
+    case 'minor':
+      minor++;
+      patch = 0;
+      beta = 0;
+      break;
+    case 'patch':
+      if (beta === 0) { patch++; } else { beta = 0; }
+      break;
+  }
+
+  return `${String(major)}.${String(minor)}.${String(patch)}${beta > 0 ? `-beta.${String(beta)}` : ''}`;
+}
+
+function updateVersionInFiles(version: string): void {
+  editJson<PackageJson>('package.json', (pkg) => { pkg.version = version; });
+  editJsonIfExists<PackageLockJson>('package-lock.json', (lock) => {
+    lock.version = version;
+    const defaultPkg = lock.packages?.[''];
+    if (defaultPkg) { defaultPkg.version = version; }
+  });
+  editJsonIfExists<PackageLockJson>('npm-shrinkwrap.json', (lock) => {
+    lock.version = version;
+    const defaultPkg = lock.packages?.[''];
+    if (defaultPkg) { defaultPkg.version = version; }
+  });
+}
+
+function updateVersionInFilesForPlugin(version: string): void {
+  if (version.includes('beta')) {
+    copyFileSync('manifest.json', 'manifest-beta.json');
+    editJson<Manifest>('manifest-beta.json', (m) => { m.version = version; });
+  } else {
+    const response = fetchSync('https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest');
+    const latestObsidianVersion = (JSON.parse(response) as { name?: string }).name;
+
+    editJson<Manifest>('manifest.json', (m) => {
+      if (latestObsidianVersion) { m.minAppVersion = latestObsidianVersion; }
+      m.version = version;
+    });
+
+    editJson<Record<string, string>>('versions.json', (v) => {
+      const manifest = JSON.parse(readFileSync('manifest.json', 'utf-8')) as Manifest;
+      v[version] = manifest.minAppVersion;
+    });
+
+    if (existsSync('manifest-beta.json')) {
+      rmSync('manifest-beta.json');
+    }
+  }
+
+  const distBuild = 'dist/build';
+  if (!existsSync(distBuild)) {
+    mkdirSync(distBuild, { recursive: true });
+  }
+  copyFileSync('manifest.json', join(distBuild, 'manifest.json'));
+}
+
+async function updateChangelog(version: string): Promise<void> {
+  const changelogPath = 'CHANGELOG.md';
+  let previousLines: string[] = [];
+  if (existsSync(changelogPath)) {
+    const content = readFileSync(changelogPath, 'utf-8');
+    previousLines = content.split('\n').slice(2);
+    if (previousLines.at(-1) === '') { previousLines.pop(); }
+  }
+
+  const lastTag = (previousLines[0] ?? '').replace('## ', '');
+  const commitRange = lastTag ? `${lastTag}..HEAD` : 'HEAD';
+  const commitMessagesStr = execSync(`git log ${commitRange} --format=%B --first-parent -z`, { encoding: 'utf-8' });
+  const commitMessages = commitMessagesStr.split('\0').filter(Boolean).map((s) => s.split(/\r?\n/).filter(Boolean).join(' '));
+
+  let changelog = `# CHANGELOG\n\n## ${version}\n\n`;
+  for (const msg of commitMessages) { changelog += `- ${msg}\n`; }
+  if (previousLines.length > 0) {
+    changelog += '\n';
+    for (const line of previousLines) { changelog += `${line}\n`; }
+  }
+  writeFileSync(changelogPath, changelog, 'utf-8');
+
+  try {
+    execSync('code --version', { stdio: 'pipe' });
+    console.log(`Please update ${changelogPath}. Close Visual Studio Code when done...`);
+    execSync(`code -w ${changelogPath}`, { stdio: 'inherit' });
+  } catch {
+    const rl = createInterface(process.stdin, process.stdout);
+    await rl.question(`Please update ${changelogPath}. Press Enter when done...`);
+    rl.close();
+  }
+}
+
+function addUpdatedFilesToGit(version: string): void {
+  execSync('git add --all', { stdio: 'pipe' });
+  execSync(`git commit -m "chore: release ${version}" --allow-empty`, { stdio: 'pipe' });
+}
+
+function addGitTag(version: string): void {
+  execSync(`git tag -a ${version} -m ${version} --force`, { stdio: 'pipe' });
+}
+
+function gitPush(): void {
+  execSync('git push --follow-tags --force', { stdio: 'pipe' });
+}
+
+async function publishGitHubRelease(version: string): Promise<void> {
+  const buildFolder = 'dist/build';
+  const files: string[] = [];
+  if (existsSync(buildFolder)) {
+    const { readdirSync } = await import('node:fs');
+    for (const f of readdirSync(buildFolder)) {
+      files.push(join(buildFolder, f));
+    }
+  }
+
+  const releaseNotes = getReleaseNotes(version);
+
+  execSync([
+    'gh', 'release', 'create', version,
+    ...files,
+    '--title', `v${version}`,
+    ...(version.includes('beta') ? ['--prerelease'] : []),
+    '--notes-file', '-'
+  ].join(' '), {
+    input: releaseNotes,
+    stdio: ['pipe', 'inherit', 'inherit']
+  });
+}
+
+function getReleaseNotes(version: string): string {
+  const changelogPath = 'CHANGELOG.md';
+  let releaseNotes = '';
+  if (existsSync(changelogPath)) {
+    const content = readFileSync(changelogPath, 'utf-8');
+    const escaped = version.replaceAll('.', '\\.');
+    const match = new RegExp(`\n## ${escaped}\n\n((.|\n)+?)\n\n##`).exec(content);
+    if (match?.[1]) { releaseNotes = `${match[1]}\n\n`; }
+  }
+
+  const tags = execSync('git tag --sort=-creatordate', { encoding: 'utf-8' }).split(/\r?\n/);
+  const previousVersion = tags[1];
+  const repoUrl = execSync('gh repo view --json url -q .url', { encoding: 'utf-8' }).trim();
+  const changesUrl = previousVersion
+    ? `${repoUrl}/compare/${previousVersion}...${version}`
+    : `${repoUrl}/commits/${version}`;
+
+  releaseNotes += `**Full Changelog**: ${changesUrl}`;
+  return releaseNotes;
+}
+
+function editJson<T>(filePath: string, editFn: (data: T) => void): void {
+  const data = JSON.parse(readFileSync(filePath, 'utf-8')) as T;
+  editFn(data);
+  writeFileSync(filePath, JSON.stringify(data, null, '\t') + '\n');
+}
+
+function editJsonIfExists<T>(filePath: string, editFn: (data: T) => void): void {
+  if (existsSync(filePath)) { editJson(filePath, editFn); }
+}
+
+function fetchSync(url: string): string {
+  return execSync(`node -e "fetch('${url}').then(r=>r.text()).then(t=>process.stdout.write(t))"`, { encoding: 'utf-8' });
+}
