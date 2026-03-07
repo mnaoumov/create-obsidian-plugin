@@ -17,7 +17,12 @@ export class Vue extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('vue')
-      .addPackage(getBuildPlugin(answers.buildSystem));
+      .addPackage(getBuildPlugin(answers.buildSystem))
+      .addFiles([
+        'src/VueComponents/SampleVueComponent.d.ts',
+        'src/VueComponents/SampleVueComponent.vue',
+        'src/Views/SampleVueView.ts'
+      ]);
   }
 }
 

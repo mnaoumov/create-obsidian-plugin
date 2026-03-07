@@ -85,6 +85,7 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
 const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: readonly FeatureOption[] }[] = [
   { answerKey: 'framework', demoValue: 'react', options: FRAMEWORK_OPTIONS },
   { answerKey: 'framework', demoValue: 'svelte', options: FRAMEWORK_OPTIONS },
+  { answerKey: 'framework', demoValue: 'vue', options: FRAMEWORK_OPTIONS },
   { answerKey: 'editorExtensions', demoValue: 'codemirror', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'linter', demoValue: 'eslint', options: LINTER_OPTIONS },
   { answerKey: 'markdownLinter', demoValue: 'markdownlint', options: MARKDOWN_LINTER_OPTIONS },
