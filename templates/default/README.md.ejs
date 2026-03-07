@@ -15,6 +15,28 @@ To install the latest beta release of this plugin (regardless if it is available
 2. Click [Install via BRAT](https://intradeus.github.io/http-protocol-redirector?r=obsidian://brat?plugin=https://github.com/<%= authorGitHubName %>/obsidian-<%= pluginId %>).
 3. An Obsidian pop-up window should appear. In the window, click the `Add plugin` button once and wait a few seconds for the plugin to install.
 <%- render('preset') -%>
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Copy `dist/main.js`, `dist/manifest.json`, and `dist/styles.css` to your vault's `.obsidian/plugins/<%= pluginId %>/` directory, or set the `OBSIDIAN_CONFIG_FOLDER` variable in `.env` to auto-copy on build.
+
+### Available Scripts
+
+- `npm run dev` — Build in watch mode for development
+- `npm run build` — Production build
+- `npm run version` — Bump version and update `manifest.json` / `versions.json`<% if (_scripts['lint']) { %>
+- `npm run lint` — Run linter<% } %><% if (_scripts['format']) { %>
+- `npm run format` — Format code<% } %><% if (_scripts['test']) { %>
+- `npm test` — Run tests<% } %>
+
+### Configuration
+
+This project was scaffolded with [`create-obsidian-plugin`](https://github.com/mnaoumov/create-obsidian-plugin). Run `npx @mnaoumov/create-obsidian-plugin` again in the project directory to update configuration.
 <%- render('support') -%>
 
 ## License
