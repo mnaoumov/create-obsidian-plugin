@@ -7,7 +7,6 @@ import { basename } from 'node:path';
 
 import type { Answers } from './Answers.ts';
 
-import { buildDerivedBooleans } from './Answers.ts';
 import { promptApiSubset } from './features/ApiSubset/index.ts';
 import { promptBuildSystem } from './features/BuildSystem/index.ts';
 import { promptCssMode } from './features/CssMode/index.ts';
@@ -78,7 +77,6 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
 
   return {
     ...features,
-    ...buildDerivedBooleans(features),
     authorGitHubName: metadata.authorGitHubName,
     authorName: metadata.authorName,
     currentYear: new Date().getFullYear(),

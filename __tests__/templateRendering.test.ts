@@ -33,17 +33,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     formatter: 'none',
     framework: 'none',
     fundingUrl: '',
-    hasCspell: false,
-    hasCss: false,
-    hasE2eTests: false,
-    hasEditorExtensions: false,
-    hasEslint: false,
-    hasMarkdownLint: false,
-    hasPrettier: false,
-    hasScss: false,
-    hasTests: false,
-    hasWasm: false,
-    isDesktopOnly: false,
     linter: 'none',
     markdownLinter: 'none',
     packageManager: 'npm',
@@ -53,7 +42,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     pluginName: 'My Plugin',
     pluginShortName: 'MyPlugin',
     preset: 'standalone',
-    shouldEnableUnofficialInternalObsidianApi: false,
     spellChecker: 'none',
     testRunner: 'none',
     wasmSupport: 'none',
@@ -124,21 +112,21 @@ describe('copyTemplates', () => {
   });
 
   it('renders EJS templates in package.json scripts', () => {
-    copyTemplates(makeAnswers({ hasEslint: true, linter: 'eslint' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ linter: 'eslint' }), targetDir, '1.0.0', null);
     const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as { scripts: Record<string, string> };
     expect(pkg.scripts['lint']).toBe('jiti scripts/lint.ts');
     expect(pkg.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
   });
 
   it('creates eslint config when eslint is selected', () => {
-    copyTemplates(makeAnswers({ hasEslint: true, linter: 'eslint' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ linter: 'eslint' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'eslint.config.mts'))).toBe(true);
     expect(existsSync(join(targetDir, 'scripts/lint.ts'))).toBe(true);
     expect(existsSync(join(targetDir, 'scripts/lint-fix.ts'))).toBe(true);
   });
 
   it('does not create eslint config when eslint is not selected', () => {
-    copyTemplates(makeAnswers({ hasEslint: false, linter: 'none' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ linter: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'eslint.config.mts'))).toBe(false);
     expect(existsSync(join(targetDir, 'scripts/lint.ts'))).toBe(false);
   });
@@ -175,7 +163,7 @@ describe('copyTemplates', () => {
   });
 
   it('creates format scripts for prettier', () => {
-    copyTemplates(makeAnswers({ formatter: 'prettier', hasPrettier: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ formatter: 'prettier' }), targetDir, '1.0.0', null);
     const format = readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8');
     expect(format).toContain('prettier --write');
     const formatCheck = readFileSync(join(targetDir, 'scripts/format-check.ts'), 'utf-8');
@@ -183,7 +171,7 @@ describe('copyTemplates', () => {
   });
 
   it('creates format scripts for dprint', () => {
-    copyTemplates(makeAnswers({ formatter: 'dprint', hasPrettier: false }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ formatter: 'dprint' }), targetDir, '1.0.0', null);
     const format = readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8');
     expect(format).toContain('dprint fmt');
     const formatCheck = readFileSync(join(targetDir, 'scripts/format-check.ts'), 'utf-8');
@@ -191,7 +179,7 @@ describe('copyTemplates', () => {
   });
 
   it('creates test scripts for vitest', () => {
-    copyTemplates(makeAnswers({ hasTests: true, testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
     expect(test).toContain('vitest run');
     const testWatch = readFileSync(join(targetDir, 'scripts/test-watch.ts'), 'utf-8');
@@ -199,20 +187,20 @@ describe('copyTemplates', () => {
   });
 
   it('creates test scripts for jest', () => {
-    copyTemplates(makeAnswers({ hasTests: true, testRunner: 'jest' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ testRunner: 'jest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
     expect(test).toContain('jest');
     expect(existsSync(join(targetDir, 'scripts/test-watch.ts'))).toBe(false);
   });
 
   it('creates spellcheck script for cspell', () => {
-    copyTemplates(makeAnswers({ hasCspell: true, spellChecker: 'cspell' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ spellChecker: 'cspell' }), targetDir, '1.0.0', null);
     const spellcheck = readFileSync(join(targetDir, 'scripts/spellcheck.ts'), 'utf-8');
     expect(spellcheck).toContain('cspell');
   });
 
   it('creates markdownlint scripts', () => {
-    copyTemplates(makeAnswers({ hasMarkdownLint: true, markdownLinter: 'markdownlint' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint' }), targetDir, '1.0.0', null);
     const lintMd = readFileSync(join(targetDir, 'scripts/lint-md.ts'), 'utf-8');
     expect(lintMd).toContain('markdownlint-cli2 .');
     expect(lintMd).not.toContain('--fix');
