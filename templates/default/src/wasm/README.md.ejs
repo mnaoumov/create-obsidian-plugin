@@ -1,0 +1,27 @@
+# WASM Support
+
+This plugin is configured with WASM support. Place your `.wasm` files in this directory.
+
+## Getting Started
+
+### Option 1: Rust (via wasm-pack)
+
+1. Install [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+2. Create a Rust project: `wasm-pack new my-wasm`
+3. Build: `wasm-pack build --target web`
+4. Copy the `.wasm` output to this directory
+
+### Option 2: AssemblyScript
+
+1. Install: `npm install assemblyscript`
+2. Create `assembly/index.ts` with your code
+3. Build: `npx asc assembly/index.ts --outFile src/wasm/module.wasm`
+
+## Usage
+
+```typescript
+import wasmModule from './wasm/module.wasm';
+
+const instance = await WebAssembly.instantiate(wasmModule);
+const { add } = instance.exports as { add(a: number, b: number): number };
+```
