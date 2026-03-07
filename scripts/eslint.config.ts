@@ -4,6 +4,7 @@ import type { Linter } from 'eslint';
 
 import commentsConfigs from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import eslint from '@eslint/js';
+// eslint-disable-next-line import-x/no-rename-default -- The default export name `plugin` is too generic.
 import stylistic from '@stylistic/eslint-plugin';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { flatConfigs as eslintPluginImportXFlatConfigs } from 'eslint-plugin-import-x';
@@ -14,6 +15,7 @@ import {
   globalIgnores
 } from 'eslint/config';
 import globals from 'globals';
+// eslint-disable-next-line import-x/no-rename-default -- The default export name `_default` is too generic.
 import tseslint from 'typescript-eslint';
 
 const typeScriptFiles = [
@@ -48,6 +50,7 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
 function getEslintCommentsConfigs(): Linter.Config[] {
   return defineConfig([
     {
+      // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard API usage.
       extends: [commentsConfigs.recommended],
       files: typeScriptFiles,
       rules: {
@@ -371,7 +374,9 @@ function getTseslintConfigs(tsconfigRootDir: string): Linter.Config[] {
   return defineConfig([
     {
       extends: [
+        // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard API usage.
         ...tseslint.configs.strictTypeChecked,
+        // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard API usage.
         ...tseslint.configs.stylisticTypeChecked
       ],
       files: typeScriptFiles,
