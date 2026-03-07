@@ -43,7 +43,7 @@
     "cz-conventional-changelog": "latest",
     "dprint": "latest",
     "esbuild": "latest",
-    "eslint": "^9",
+    "eslint": "latest",
     "eslint-import-resolver-typescript": "latest",
     "eslint-plugin-import-x": "latest",
     "eslint-plugin-modules-newlines": "latest",
