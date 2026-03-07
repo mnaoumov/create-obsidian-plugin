@@ -29,10 +29,8 @@ Copy `dist/main.js`, `dist/manifest.json`, and `dist/styles.css` to your vault's
 
 - `npm run dev` — Build in watch mode for development
 - `npm run build` — Production build
-- `npm run version` — Bump version and update `manifest.json` / `versions.json`<% if (_scripts['lint']) { %>
-- `npm run lint` — Run linter<% } %><% if (_scripts['format']) { %>
-- `npm run format` — Format code<% } %><% if (_scripts['test']) { %>
-- `npm test` — Run tests<% } %>
+- `npm run version` — Bump version and update `manifest.json` / `versions.json`
+<%- render('scripts') -%>
 
 ### Configuration
 
