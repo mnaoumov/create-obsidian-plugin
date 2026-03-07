@@ -229,4 +229,4 @@ async function runUpdate(currentVersion: string): Promise<void> {
   outro('Project updated successfully!');
 }
 
-main().catch(console.error);
+await main();
