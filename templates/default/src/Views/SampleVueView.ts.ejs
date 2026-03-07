@@ -1,0 +1,34 @@
+import type { App as VueApp } from 'vue';
+
+import { ItemView } from 'obsidian';
+import { createApp } from 'vue';
+
+import SampleVueComponent from '../VueComponents/SampleVueComponent.vue';
+
+export const SAMPLE_VUE_VIEW_TYPE = '<%= pluginId %>-SampleVueView';
+
+export class SampleVueView extends ItemView {
+  private vueApp: null | VueApp = null;
+
+  public override getDisplayText(): string {
+    return 'Sample Vue view';
+  }
+
+  public override getViewType(): string {
+    return SAMPLE_VUE_VIEW_TYPE;
+  }
+
+  public override async onClose(): Promise<void> {
+    this.vueApp?.unmount();
+    await Promise.resolve();
+  }
+
+  public override async onOpen(): Promise<void> {
+    const START_COUNT = 10;
+    this.vueApp = createApp(SampleVueComponent, {
+      startCount: START_COUNT
+    });
+    this.vueApp.mount(this.contentEl);
+    await Promise.resolve();
+  }
+}

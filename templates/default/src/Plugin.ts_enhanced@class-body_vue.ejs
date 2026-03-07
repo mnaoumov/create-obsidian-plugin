@@ -1,0 +1,6 @@
+
+  protected override async onLayoutReady(): Promise<void> {
+    await super.onLayoutReady();
+    new Notice('This is executed after all plugins are loaded');
+    await this.openView(SAMPLE_VUE_VIEW_TYPE);
+  }

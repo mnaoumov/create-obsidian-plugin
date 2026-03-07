@@ -1,0 +1,25 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const props = defineProps<{
+  startCount: number;
+}>();
+
+const count = ref(props.startCount);
+
+function increment(): void {
+  count.value += 1;
+}
+</script>
+
+<template>
+  <h4>Sample Vue Component!</h4>
+
+  <div>
+    <span>My number is {{ count }}!</span>
+  </div>
+
+  <button @click="increment">
+    Increment
+  </button>
+</template>
