@@ -1,8 +1,30 @@
 import { execSync } from 'node:child_process';
+import { globSync } from 'node:fs';
 import process from 'node:process';
 
 try {
   execSync('markdownlint-cli2 .', { stdio: 'inherit' });
 } catch {
   process.exit(1);
+}
+
+const mdFiles = globSync('**/*.md', {
+  exclude: ['.git/**', 'dist/**', 'node_modules/**']
+});
+
+if (mdFiles.length > 0) {
+  try {
+    execSync([
+      'linkinator',
+      ...mdFiles,
+      '--retry',
+      '--retry-errors',
+      '--retry-errors-count', '3',
+      '--retry-errors-jitter', '5',
+      '--url-rewrite-search', 'https://www\\.npmjs\\.com/package/',
+      '--url-rewrite-replace', 'https://registry.npmjs.org/'
+    ].join(' '), { stdio: 'inherit' });
+  } catch {
+    process.exit(1);
+  }
 }

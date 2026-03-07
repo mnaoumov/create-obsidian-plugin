@@ -12,6 +12,7 @@ export class Markdownlint extends FeatureOption {
       .addPackage('markdownlint')
       .addPackage('markdownlint-cli2')
       .addPackage('markdownlint-rule-relative-links')
+      .addPackage('linkinator')
       .addScript('lint:md')
       .addScript('lint:md:fix')
       .addFiles([
