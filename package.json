@@ -9,6 +9,8 @@
   "scripts": {
     "build": "jiti scripts/build.ts",
     "commit": "jiti scripts/commit.ts",
+    "format": "jiti scripts/format.ts",
+    "format:check": "jiti scripts/format-check.ts",
     "lint": "jiti scripts/lint.ts",
     "lint:fix": "jiti scripts/lint-fix.ts",
     "prepare": "jiti scripts/prepare.ts",
@@ -39,6 +41,7 @@
     "@types/semver": "latest",
     "commitizen": "latest",
     "cz-conventional-changelog": "latest",
+    "dprint": "latest",
     "esbuild": "latest",
     "eslint": "^9",
     "eslint-import-resolver-typescript": "latest",

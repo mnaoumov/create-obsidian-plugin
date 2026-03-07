@@ -1,7 +1,7 @@
 import {
- describe,
-expect,
-it
+  describe,
+  expect,
+  it
 } from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
@@ -97,7 +97,15 @@ describe('buildTemplate', () => {
         { formatter: 'none', linter: 'none', markdownLinter: 'none', preset: 'standalone', spellChecker: 'none' },
         { preset: 'enhanced' },
         { framework: 'none', linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest' },
-        { apiSubset: 'with-unofficial', buildSystem: 'vite', cssMode: 'scss', e2eTestRunner: 'playwright', editorExtensions: 'codemirror', framework: 'svelte', testRunner: 'vitest' }
+        {
+          apiSubset: 'with-unofficial',
+          buildSystem: 'vite',
+          cssMode: 'scss',
+          e2eTestRunner: 'playwright',
+          editorExtensions: 'codemirror',
+          framework: 'svelte',
+          testRunner: 'vitest'
+        }
       ];
 
       for (const overrides of presets) {

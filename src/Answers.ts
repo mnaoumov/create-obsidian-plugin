@@ -78,7 +78,23 @@ export interface PackageJson {
   version?: string;
 }
 
-export function buildDerivedBooleans(features: AnswerFeatures): Pick<Answers, 'hasCspell' | 'hasCss' | 'hasE2eTests' | 'hasEditorExtensions' | 'hasEslint' | 'hasMarkdownLint' | 'hasPrettier' | 'hasScss' | 'hasTests' | 'hasWasm' | 'isDesktopOnly' | 'shouldEnableUnofficialInternalObsidianApi'> {
+export function buildDerivedBooleans(
+  features: AnswerFeatures
+): Pick<
+  Answers,
+  | 'hasCspell'
+  | 'hasCss'
+  | 'hasE2eTests'
+  | 'hasEditorExtensions'
+  | 'hasEslint'
+  | 'hasMarkdownLint'
+  | 'hasPrettier'
+  | 'hasScss'
+  | 'hasTests'
+  | 'hasWasm'
+  | 'isDesktopOnly'
+  | 'shouldEnableUnofficialInternalObsidianApi'
+> {
   return {
     hasCspell: features.spellChecker === 'cspell',
     hasCss: features.cssMode !== 'none',

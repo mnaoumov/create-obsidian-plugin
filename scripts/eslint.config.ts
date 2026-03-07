@@ -289,12 +289,6 @@ function getImportXConfigs(): Linter.Config[] {
       rules: {
         'import-x/no-nodejs-modules': 'off'
       }
-    },
-    {
-      files: ['eslint.config.mts', 'commitlint.config.ts', 'vitest.config.ts'],
-      rules: {
-        'import-x/no-default-export': 'off'
-      }
     }
   ]);
 }

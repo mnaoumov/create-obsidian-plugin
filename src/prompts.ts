@@ -101,81 +101,87 @@ function makePluginName(pluginId: string): string {
 async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetadata> {
   const metadata = await group(
     {
-      authorGitHubName: () => text({
-        defaultValue: defaults?.authorGitHubName ?? 'johndoe',
-        message: 'Your GitHub username',
-        placeholder: defaults?.authorGitHubName ?? 'johndoe',
-        validate(value): string | undefined {
-          if (!value) {
-            return 'Should not be empty';
+      authorGitHubName: () =>
+        text({
+          defaultValue: defaults?.authorGitHubName ?? 'johndoe',
+          message: 'Your GitHub username',
+          placeholder: defaults?.authorGitHubName ?? 'johndoe',
+          validate(value): string | undefined {
+            if (!value) {
+              return 'Should not be empty';
+            }
+            return undefined;
           }
-          return undefined;
-        }
-      }),
-      authorName: () => text({
-        defaultValue: defaults?.authorName ?? 'John Doe',
-        message: 'Your full name',
-        placeholder: defaults?.authorName ?? 'John Doe',
-        validate(value): string | undefined {
-          if (!value) {
-            return 'Should not be empty';
+        }),
+      authorName: () =>
+        text({
+          defaultValue: defaults?.authorName ?? 'John Doe',
+          message: 'Your full name',
+          placeholder: defaults?.authorName ?? 'John Doe',
+          validate(value): string | undefined {
+            if (!value) {
+              return 'Should not be empty';
+            }
+            return undefined;
           }
-          return undefined;
-        }
-      }),
-      fundingUrl: () => text({
-        defaultValue: defaults?.fundingUrl ?? '',
-        message: 'Funding URL (leave empty if not needed)',
-        placeholder: 'https://buymeacoffee.com/...'
-      }),
-      pluginDescription: () => text({
-        defaultValue: defaults?.pluginDescription ?? 'Does something awesome.',
-        message: 'Plugin description',
-        placeholder: defaults?.pluginDescription ?? 'Does something awesome.',
-        validate(value): string | undefined {
-          if (!value) {
-            return 'Should not be empty';
+        }),
+      fundingUrl: () =>
+        text({
+          defaultValue: defaults?.fundingUrl ?? '',
+          message: 'Funding URL (leave empty if not needed)',
+          placeholder: 'https://buymeacoffee.com/...'
+        }),
+      pluginDescription: () =>
+        text({
+          defaultValue: defaults?.pluginDescription ?? 'Does something awesome.',
+          message: 'Plugin description',
+          placeholder: defaults?.pluginDescription ?? 'Does something awesome.',
+          validate(value): string | undefined {
+            if (!value) {
+              return 'Should not be empty';
+            }
+            if (!value.endsWith('.')) {
+              return 'Should end with a dot';
+            }
+            return undefined;
           }
-          if (!value.endsWith('.')) {
-            return 'Should end with a dot';
+        }),
+      pluginId: () =>
+        text({
+          defaultValue: defaults?.pluginId ?? basename(process.cwd()).replace(/^obsidian-/, ''),
+          message: 'Plugin id (lowercase, hyphens allowed)',
+          placeholder: defaults?.pluginId ?? 'my-awesome-plugin',
+          validate(value): string | undefined {
+            if (!value) {
+              return 'Should not be empty';
+            }
+            if (!/^[a-z0-9-]+$/.test(value)) {
+              return 'Should contain only lowercase English letters, digits and hyphens';
+            }
+            if (!/^[a-z]/.test(value)) {
+              return 'Should start with a letter';
+            }
+            if (!/[a-z0-9]$/.test(value)) {
+              return 'Should end with a letter or digit';
+            }
+            if (value.startsWith('obsidian-')) {
+              return 'Should not start with "obsidian-"';
+            }
+            return undefined;
           }
-          return undefined;
-        }
-      }),
-      pluginId: () => text({
-        defaultValue: defaults?.pluginId ?? basename(process.cwd()).replace(/^obsidian-/, ''),
-        message: 'Plugin id (lowercase, hyphens allowed)',
-        placeholder: defaults?.pluginId ?? 'my-awesome-plugin',
-        validate(value): string | undefined {
-          if (!value) {
-            return 'Should not be empty';
+        }),
+      pluginName: ({ results }) =>
+        text({
+          defaultValue: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
+          message: 'Plugin display name',
+          placeholder: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
+          validate(value): string | undefined {
+            if (!value) {
+              return 'Should not be empty';
+            }
+            return undefined;
           }
-          if (!/^[a-z0-9-]+$/.test(value)) {
-            return 'Should contain only lowercase English letters, digits and hyphens';
-          }
-          if (!/^[a-z]/.test(value)) {
-            return 'Should start with a letter';
-          }
-          if (!/[a-z0-9]$/.test(value)) {
-            return 'Should end with a letter or digit';
-          }
-          if (value.startsWith('obsidian-')) {
-            return 'Should not start with "obsidian-"';
-          }
-          return undefined;
-        }
-      }),
-      pluginName: ({ results }) => text({
-        defaultValue: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
-        message: 'Plugin display name',
-        placeholder: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
-        validate(value): string | undefined {
-          if (!value) {
-            return 'Should not be empty';
-          }
-          return undefined;
-        }
-      })
+        })
     },
     {
       onCancel() {
@@ -185,14 +191,7 @@ async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetada
     }
   );
 
-  return {
-    authorGitHubName: metadata.authorGitHubName,
-    authorName: metadata.authorName,
-    fundingUrl: metadata.fundingUrl,
-    pluginDescription: metadata.pluginDescription,
-    pluginId: metadata.pluginId,
-    pluginName: metadata.pluginName
-  };
+  return metadata as PluginMetadata;
 }
 
 async function promptTooling(preset: string, defaults?: Partial<Answers>): Promise<ToolingOptions> {

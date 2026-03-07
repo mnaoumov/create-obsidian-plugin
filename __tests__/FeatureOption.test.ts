@@ -1,15 +1,15 @@
 import {
- describe,
-expect,
-it
+  describe,
+  expect,
+  it
 } from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
 import type { TemplateBuilder } from '../src/TemplateBuilder.ts';
 
 import {
- FeatureOption,
-resolveFeature
+  FeatureOption,
+  resolveFeature
 } from '../src/FeatureOption.ts';
 
 class ConfiguringFeature extends FeatureOption {
