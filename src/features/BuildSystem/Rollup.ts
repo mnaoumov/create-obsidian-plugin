@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class Rollup extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'rollup', promptLabel: 'Rollup', promptHint: 'Flexible with plugin ecosystem' });
+  public constructor() {
+    super({ promptHint: 'Flexible with plugin ecosystem', promptLabel: 'Rollup', settingValue: 'rollup' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@rollup/plugin-commonjs')
       .addPackage('@rollup/plugin-node-resolve')
@@ -15,7 +16,7 @@ export class Rollup extends FeatureOption {
       .addPackage('rollup')
       .addFiles([
         'rollup.config.mjs',
-        'scripts/rollup.config.ts',
+        'scripts/rollup.config.ts'
       ]);
   }
 }

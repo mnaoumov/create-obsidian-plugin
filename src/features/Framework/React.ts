@@ -1,18 +1,19 @@
 import type { Answers } from '../../Answers.ts';
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
+
+import { FeatureOption } from '../../FeatureOption.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   rollup: '@rollup/plugin-babel',
-  vite: '@vitejs/plugin-react',
+  vite: '@vitejs/plugin-react'
 };
 
 export class React extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'react', promptLabel: 'React', promptHint: 'Component-based UI with JSX' });
+  public constructor() {
+    super({ promptHint: 'Component-based UI with JSX', promptLabel: 'React', settingValue: 'react' });
   }
 
-  override configure(builder: TemplateBuilder, answers: Answers): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('@types/react')
       .addPackage('@types/react-dom')
@@ -20,7 +21,7 @@ export class React extends FeatureOption {
       .addPackage('react-dom')
       .addFiles([
         'src/ReactComponents/SampleReactComponent.tsx',
-        'src/Views/SampleReactView.tsx',
+        'src/Views/SampleReactView.tsx'
       ]);
 
     const plugin = BUILD_PLUGINS[answers.buildSystem];

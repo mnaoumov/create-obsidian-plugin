@@ -1,7 +1,7 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
+import { FeatureOption } from '../../FeatureOption.ts';
 
 export class None extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'none', promptLabel: 'None', promptHint: 'No Markdown linting' });
+  public constructor() {
+    super({ promptHint: 'No Markdown linting', promptLabel: 'None', settingValue: 'none' });
   }
 }

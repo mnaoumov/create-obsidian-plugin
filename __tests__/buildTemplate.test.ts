@@ -1,46 +1,53 @@
-import { describe, expect, it } from 'vitest';
+import {
+ describe,
+expect,
+it
+} from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
+
 import { buildTemplate } from '../src/templates.ts';
+
+const CURRENT_YEAR = 2026;
 
 function makeAnswers(overrides: Partial<Answers> = {}): Answers {
   return {
+    apiSubset: 'official',
+    authorGitHubName: 'user',
+    authorName: 'User',
+    buildSystem: 'esbuild',
+    cssMode: 'none',
+    currentYear: CURRENT_YEAR,
+    e2eTestRunner: 'none',
+    editorExtensions: 'none',
+    formatter: 'prettier',
+    framework: 'none',
+    fundingUrl: '',
+    hasCspell: true,
+    hasCss: false,
+    hasE2eTests: false,
+    hasEditorExtensions: false,
+    hasEslint: true,
+    hasMarkdownLint: true,
+    hasPrettier: true,
+    hasScss: false,
+    hasTests: false,
+    hasWasm: false,
+    isDesktopOnly: false,
+    linter: 'eslint',
+    markdownLinter: 'markdownlint',
+    packageManager: 'npm',
+    platformSupport: 'desktop-and-mobile',
+    pluginDescription: 'A test plugin.',
     pluginId: 'test',
     pluginName: 'Test',
     pluginShortName: 'Test',
-    pluginDescription: 'A test plugin.',
-    authorGitHubName: 'user',
-    authorName: 'User',
-    currentYear: 2026,
-    fundingUrl: '',
     preset: 'enhanced',
-    buildSystem: 'esbuild',
-    framework: 'none',
-    formatter: 'prettier',
-    testRunner: 'none',
-    e2eTestRunner: 'none',
-    wasmSupport: 'none',
-    apiSubset: 'official',
-    cssMode: 'none',
-    editorExtensions: 'none',
-    linter: 'eslint',
-    markdownLinter: 'markdownlint',
-    spellChecker: 'cspell',
-    packageManager: 'npm',
-    platformSupport: 'desktop-and-mobile',
-    isDesktopOnly: false,
-    hasCss: false,
-    hasScss: false,
-    hasEslint: true,
-    hasPrettier: true,
-    hasCspell: true,
-    hasMarkdownLint: true,
-    hasEditorExtensions: false,
-    hasWasm: false,
-    hasTests: false,
-    hasE2eTests: false,
     shouldEnableUnofficialInternalObsidianApi: false,
-    ...overrides,
+    spellChecker: 'cspell',
+    testRunner: 'none',
+    wasmSupport: 'none',
+    ...overrides
   };
 }
 
@@ -87,10 +94,10 @@ describe('buildTemplate', () => {
   describe('no .ejs in registered files', () => {
     it('never registers files with .ejs extension', () => {
       const presets: Partial<Answers>[] = [
-        { preset: 'standalone', linter: 'none', formatter: 'none', spellChecker: 'none', markdownLinter: 'none' },
+        { formatter: 'none', linter: 'none', markdownLinter: 'none', preset: 'standalone', spellChecker: 'none' },
         { preset: 'enhanced' },
-        { preset: 'demo', framework: 'none', testRunner: 'vitest', linter: 'none', spellChecker: 'none', markdownLinter: 'none' },
-        { buildSystem: 'vite', framework: 'svelte', testRunner: 'vitest', e2eTestRunner: 'playwright', editorExtensions: 'codemirror', cssMode: 'scss', apiSubset: 'with-unofficial' },
+        { framework: 'none', linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest' },
+        { apiSubset: 'with-unofficial', buildSystem: 'vite', cssMode: 'scss', e2eTestRunner: 'playwright', editorExtensions: 'codemirror', framework: 'svelte', testRunner: 'vitest' }
       ];
 
       for (const overrides of presets) {
@@ -221,7 +228,7 @@ describe('buildTemplate', () => {
 
   describe('framework feature', () => {
     it('adds svelte packages and build plugin', () => {
-      const builder = buildTemplate(makeAnswers({ framework: 'svelte', buildSystem: 'esbuild' }));
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'esbuild', framework: 'svelte' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('svelte');
       expect(depNames).toContain('svelte-check');
@@ -229,7 +236,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds react packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ framework: 'react', buildSystem: 'vite' }));
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', framework: 'react' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('react');
       expect(depNames).toContain('react-dom');
@@ -279,12 +286,12 @@ describe('buildTemplate', () => {
   describe('demo preset', () => {
     it('activates override features even when not selected', () => {
       const builder = buildTemplate(makeAnswers({
-        preset: 'demo',
         framework: 'none',
         linter: 'none',
-        spellChecker: 'none',
         markdownLinter: 'none',
-        testRunner: 'vitest',
+        preset: 'demo',
+        spellChecker: 'none',
+        testRunner: 'vitest'
       }));
       // Demo should activate react, svelte, eslint, markdownlint, cspell, scss, codemirror
       const depNames = builder.dependencies.map((d) => d.packageName);
@@ -306,8 +313,8 @@ describe('buildTemplate', () => {
     it('every script follows jiti scripts/{name}.ts pattern', () => {
       const configs: Partial<Answers>[] = [
         {},
-        { testRunner: 'vitest', e2eTestRunner: 'playwright' },
-        { preset: 'standalone', formatter: 'dprint', testRunner: 'jest' },
+        { e2eTestRunner: 'playwright', testRunner: 'vitest' },
+        { formatter: 'dprint', preset: 'standalone', testRunner: 'jest' }
       ];
 
       for (const overrides of configs) {

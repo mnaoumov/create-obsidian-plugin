@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class Jest extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'jest', promptLabel: 'Jest', promptHint: 'Feature-rich, widely adopted' });
+  public constructor() {
+    super({ promptHint: 'Feature-rich, widely adopted', promptLabel: 'Jest', settingValue: 'jest' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@types/jest')
       .addPackage('jest')
@@ -15,7 +16,7 @@ export class Jest extends FeatureOption {
       .addFiles([
         'jest.config.ts',
         'src/__tests__/sample.test.ts',
-        'scripts/test.ts',
+        'scripts/test.ts'
       ]);
   }
 }

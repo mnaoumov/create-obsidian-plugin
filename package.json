@@ -23,7 +23,7 @@
     "package.json"
   ],
   "dependencies": {
-    "@clack/prompts": "^1.1.0",
+    "@clack/prompts": "latest",
     "ejs": "latest",
     "semver": "latest"
   },
@@ -31,19 +31,25 @@
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
     "@commitlint/types": "latest",
-    "@eslint/js": "^10.0.1",
-    "@tsconfig/strictest": "^2.0.6",
+    "@eslint-community/eslint-plugin-eslint-comments": "latest",
+    "@eslint/js": "latest",
+    "@stylistic/eslint-plugin": "latest",
+    "@tsconfig/strictest": "latest",
     "@types/ejs": "latest",
     "@types/semver": "latest",
     "commitizen": "latest",
     "cz-conventional-changelog": "latest",
-    "esbuild": "^0.25.10",
-    "eslint": "latest",
-    "globals": "^17.4.0",
+    "esbuild": "latest",
+    "eslint": "^9",
+    "eslint-import-resolver-typescript": "latest",
+    "eslint-plugin-import-x": "latest",
+    "eslint-plugin-modules-newlines": "latest",
+    "eslint-plugin-perfectionist": "latest",
+    "globals": "latest",
     "husky": "latest",
-    "jiti": "^2.6.1",
+    "jiti": "latest",
     "typescript": "latest",
-    "typescript-eslint": "^8.56.1",
-    "vitest": "^4.0.18"
+    "typescript-eslint": "latest",
+    "vitest": "latest"
   }
 }

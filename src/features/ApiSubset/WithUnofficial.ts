@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class WithUnofficial extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'with-unofficial', promptLabel: 'Official + Unofficial', promptHint: 'Includes internal undocumented APIs (for experienced devs)' });
+  public constructor() {
+    super({ promptHint: 'Includes internal undocumented APIs (for experienced devs)', promptLabel: 'Official + Unofficial', settingValue: 'with-unofficial' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder.addPackage('obsidian-typings', 'obsidian-public-latest');
   }
 }

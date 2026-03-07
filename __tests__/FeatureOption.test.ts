@@ -1,22 +1,30 @@
-import { describe, expect, it } from 'vitest';
+import {
+ describe,
+expect,
+it
+} from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
-import { FeatureOption, resolveFeature } from '../src/FeatureContribution.ts';
 import type { TemplateBuilder } from '../src/TemplateBuilder.ts';
 
-class TestFeature extends FeatureOption {
-  constructor(value: string) {
-    super({ settingValue: value, promptLabel: value, promptHint: '' });
+import {
+ FeatureOption,
+resolveFeature
+} from '../src/FeatureOption.ts';
+
+class ConfiguringFeature extends FeatureOption {
+  public constructor() {
+    super({ promptHint: '', promptLabel: 'Configuring', settingValue: 'configuring' });
+  }
+
+  public override configure(builder: TemplateBuilder, _answers: Answers): void {
+    builder.addPackage('test-pkg').addScript('test');
   }
 }
 
-class ConfiguringFeature extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'configuring', promptLabel: 'Configuring', promptHint: '' });
-  }
-
-  override configure(builder: TemplateBuilder, _answers: Answers): void {
-    builder.addPackage('test-pkg').addScript('test');
+class TestFeature extends FeatureOption {
+  public constructor(value: string) {
+    super({ promptHint: '', promptLabel: value, settingValue: value });
   }
 }
 
@@ -49,8 +57,8 @@ describe('resolveFeature', () => {
 });
 
 describe('Feature configure integration', () => {
-  it('feature can add packages and scripts to builder', () => {
-    const { TemplateBuilder: RealBuilder } = require('../src/TemplateBuilder.ts') as typeof import('../src/TemplateBuilder.ts');
+  it('feature can add packages and scripts to builder', async () => {
+    const { TemplateBuilder: RealBuilder } = await import('../src/TemplateBuilder.ts');
     const builder = new RealBuilder();
     const feature = new ConfiguringFeature();
     feature.configure(builder, {} as Answers);

@@ -1,49 +1,63 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import {
+ existsSync,
+mkdtempSync,
+readFileSync,
+rmSync
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it, afterEach, beforeEach } from 'vitest';
+import {
+ afterEach,
+beforeEach,
+describe,
+expect,
+it
+} from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
+
 import { copyTemplates } from '../src/templates.ts';
+
+const CURRENT_YEAR = 2026;
 
 function makeAnswers(overrides: Partial<Answers> = {}): Answers {
   return {
+    apiSubset: 'official',
+    authorGitHubName: 'testuser',
+    authorName: 'Test User',
+    buildSystem: 'esbuild',
+    cssMode: 'none',
+    currentYear: CURRENT_YEAR,
+    e2eTestRunner: 'none',
+    editorExtensions: 'none',
+    formatter: 'none',
+    framework: 'none',
+    fundingUrl: '',
+    hasCspell: false,
+    hasCss: false,
+    hasE2eTests: false,
+    hasEditorExtensions: false,
+    hasEslint: false,
+    hasMarkdownLint: false,
+    hasPrettier: false,
+    hasScss: false,
+    hasTests: false,
+    hasWasm: false,
+    isDesktopOnly: false,
+    linter: 'none',
+    markdownLinter: 'none',
+    packageManager: 'npm',
+    platformSupport: 'desktop-and-mobile',
+    pluginDescription: 'A test plugin.',
     pluginId: 'my-plugin',
     pluginName: 'My Plugin',
     pluginShortName: 'MyPlugin',
-    pluginDescription: 'A test plugin.',
-    authorGitHubName: 'testuser',
-    authorName: 'Test User',
-    currentYear: 2026,
-    fundingUrl: '',
     preset: 'standalone',
-    buildSystem: 'esbuild',
-    framework: 'none',
-    formatter: 'none',
-    testRunner: 'none',
-    e2eTestRunner: 'none',
-    wasmSupport: 'none',
-    apiSubset: 'official',
-    cssMode: 'none',
-    editorExtensions: 'none',
-    linter: 'none',
-    markdownLinter: 'none',
-    spellChecker: 'none',
-    packageManager: 'npm',
-    platformSupport: 'desktop-and-mobile',
-    isDesktopOnly: false,
-    hasCss: false,
-    hasScss: false,
-    hasEslint: false,
-    hasPrettier: false,
-    hasCspell: false,
-    hasMarkdownLint: false,
-    hasEditorExtensions: false,
-    hasWasm: false,
-    hasTests: false,
-    hasE2eTests: false,
     shouldEnableUnofficialInternalObsidianApi: false,
-    ...overrides,
+    spellChecker: 'none',
+    testRunner: 'none',
+    wasmSupport: 'none',
+    ...overrides
   };
 }
 
@@ -55,7 +69,7 @@ describe('copyTemplates', () => {
   });
 
   afterEach(() => {
-    rmSync(targetDir, { recursive: true, force: true });
+    rmSync(targetDir, { force: true, recursive: true });
   });
 
   it('creates package.json with correct metadata', () => {
@@ -110,21 +124,21 @@ describe('copyTemplates', () => {
   });
 
   it('renders EJS templates in package.json scripts', () => {
-    copyTemplates(makeAnswers({ linter: 'eslint', hasEslint: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasEslint: true, linter: 'eslint' }), targetDir, '1.0.0', null);
     const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as { scripts: Record<string, string> };
     expect(pkg.scripts['lint']).toBe('jiti scripts/lint.ts');
     expect(pkg.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
   });
 
   it('creates eslint config when eslint is selected', () => {
-    copyTemplates(makeAnswers({ linter: 'eslint', hasEslint: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasEslint: true, linter: 'eslint' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'eslint.config.mts'))).toBe(true);
     expect(existsSync(join(targetDir, 'scripts/lint.ts'))).toBe(true);
     expect(existsSync(join(targetDir, 'scripts/lint-fix.ts'))).toBe(true);
   });
 
   it('does not create eslint config when eslint is not selected', () => {
-    copyTemplates(makeAnswers({ linter: 'none', hasEslint: false }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasEslint: false, linter: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'eslint.config.mts'))).toBe(false);
     expect(existsSync(join(targetDir, 'scripts/lint.ts'))).toBe(false);
   });
@@ -133,7 +147,7 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ buildSystem: 'esbuild' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('esbuild');
-    expect(buildScript).toContain("const prod = process.argv[2] !== 'dev'");
+    expect(buildScript).toContain('const prod = process.argv[2] !== \'dev\'');
   });
 
   it('renders build script from rollup partial', () => {
@@ -151,8 +165,8 @@ describe('copyTemplates', () => {
   it('creates dev.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const devScript = readFileSync(join(targetDir, 'scripts/dev.ts'), 'utf-8');
-    expect(devScript).toContain("process.argv[2] = 'dev'");
-    expect(devScript).toContain("import('./build.ts')");
+    expect(devScript).toContain('process.argv[2] = \'dev\'');
+    expect(devScript).toContain('import(\'./build.ts\')');
   });
 
   it('creates version.ts script', () => {
@@ -177,7 +191,7 @@ describe('copyTemplates', () => {
   });
 
   it('creates test scripts for vitest', () => {
-    copyTemplates(makeAnswers({ testRunner: 'vitest', hasTests: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasTests: true, testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
     expect(test).toContain('vitest run');
     const testWatch = readFileSync(join(targetDir, 'scripts/test-watch.ts'), 'utf-8');
@@ -185,20 +199,20 @@ describe('copyTemplates', () => {
   });
 
   it('creates test scripts for jest', () => {
-    copyTemplates(makeAnswers({ testRunner: 'jest', hasTests: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasTests: true, testRunner: 'jest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
     expect(test).toContain('jest');
     expect(existsSync(join(targetDir, 'scripts/test-watch.ts'))).toBe(false);
   });
 
   it('creates spellcheck script for cspell', () => {
-    copyTemplates(makeAnswers({ spellChecker: 'cspell', hasCspell: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasCspell: true, spellChecker: 'cspell' }), targetDir, '1.0.0', null);
     const spellcheck = readFileSync(join(targetDir, 'scripts/spellcheck.ts'), 'utf-8');
     expect(spellcheck).toContain('cspell');
   });
 
   it('creates markdownlint scripts', () => {
-    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', hasMarkdownLint: true }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ hasMarkdownLint: true, markdownLinter: 'markdownlint' }), targetDir, '1.0.0', null);
     const lintMd = readFileSync(join(targetDir, 'scripts/lint-md.ts'), 'utf-8');
     expect(lintMd).toContain('markdownlint-cli2 .');
     expect(lintMd).not.toContain('--fix');
@@ -212,9 +226,9 @@ describe('copyTemplates', () => {
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
   });
 
-  it('does not produce empty files', () => {
+  it('does not produce empty files', async () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
-    const { readdirSync, statSync } = require('node:fs') as typeof import('node:fs');
+    const { readdirSync, statSync } = await import('node:fs') as typeof import('node:fs');
 
     function walk(dir: string): string[] {
       const results: string[] = [];

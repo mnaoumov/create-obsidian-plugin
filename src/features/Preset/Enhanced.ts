@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class Enhanced extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'enhanced', promptLabel: 'Enhanced', promptHint: 'Recommended. Uses obsidian-dev-utils for settings, linting, and more' });
+  public constructor() {
+    super({ promptHint: 'Recommended. Uses obsidian-dev-utils for settings, linting, and more', promptLabel: 'Enhanced', settingValue: 'enhanced' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@tsconfig/strictest')
       .addPackage('obsidian-dev-utils')
@@ -15,7 +16,7 @@ export class Enhanced extends FeatureOption {
         'src/PluginSettings.ts',
         'src/PluginSettingsManager.ts',
         'src/PluginSettingsTab.ts',
-        'src/PluginTypes.ts',
+        'src/PluginTypes.ts'
       ])
       .addPartial('non-standalone');
   }
