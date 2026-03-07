@@ -192,7 +192,8 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ testRunner: 'jest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
     expect(test).toContain('jest');
-    expect(existsSync(join(targetDir, 'scripts/test-watch.ts'))).toBe(false);
+    const testWatch = readFileSync(join(targetDir, 'scripts/test-watch.ts'), 'utf-8');
+    expect(testWatch).toContain('jest --watch');
   });
 
   it('creates spellcheck script for cspell', () => {
