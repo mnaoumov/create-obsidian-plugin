@@ -14,6 +14,8 @@ import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
 import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
 import { promptFormatter } from './features/Formatter/index.ts';
 import { promptFramework } from './features/Framework/index.ts';
+import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
+import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
 import { promptLinter } from './features/Linter/index.ts';
 import { promptMarkdownLinter } from './features/MarkdownLinter/index.ts';
 import { promptPackageManager } from './features/PackageManager/index.ts';
@@ -38,6 +40,8 @@ interface ToolingOptions {
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
+  gitHubFunding: string;
+  gitHubIssueTemplates: string;
   linter: string;
   markdownLinter: string;
   spellChecker: string;
@@ -124,7 +128,7 @@ async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetada
         text({
           defaultValue: defaults?.fundingUrl ?? '',
           message: 'Funding URL (leave empty if not needed)',
-          placeholder: 'https://buymeacoffee.com/...'
+          placeholder: 'https://buymeacoffee.com/johndoe'
         }),
       pluginDescription: () =>
         text({
@@ -200,6 +204,8 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
   let testRunner = 'vitest';
   let e2eTestRunner = 'none';
   let apiSubset = 'official';
+  let gitHubIssueTemplates = 'bug-and-feature';
+  let gitHubFunding = 'funding-yml';
 
   if (preset !== 'demo') {
     linter = await promptLinter(defaults?.linter);
@@ -211,6 +217,8 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
     cssMode = await promptCssMode(defaults?.cssMode);
     wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
+    gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
+    gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
 
     if (preset === 'enhanced') {
       apiSubset = await promptApiSubset(defaults?.apiSubset);
@@ -223,6 +231,8 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     e2eTestRunner,
     editorExtensions,
     formatter,
+    gitHubFunding,
+    gitHubIssueTemplates,
     linter,
     markdownLinter,
     spellChecker,

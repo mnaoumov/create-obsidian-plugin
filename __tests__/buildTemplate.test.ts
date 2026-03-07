@@ -23,6 +23,8 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     formatter: 'prettier',
     framework: 'none',
     fundingUrl: '',
+    gitHubFunding: 'funding-yml',
+    gitHubIssueTemplates: 'bug-and-feature',
     linter: 'eslint',
     markdownLinter: 'markdownlint',
     packageManager: 'npm',
@@ -89,7 +91,7 @@ describe('buildTemplate', () => {
           apiSubset: 'with-unofficial',
           buildSystem: 'vite',
           cssMode: 'scss',
-          e2eTestRunner: 'playwright',
+          e2eTestRunner: 'wdio-obsidian',
           editorExtensions: 'codemirror',
           framework: 'svelte',
           testRunner: 'vitest'
@@ -181,12 +183,6 @@ describe('buildTemplate', () => {
   });
 
   describe('e2e test runner feature', () => {
-    it('adds test:e2e script for playwright', () => {
-      const builder = buildTemplate(makeAnswers({ e2eTestRunner: 'playwright' }));
-      expect(builder.scripts['test:e2e']).toBe('jiti scripts/test-e2e.ts');
-      expect([...builder.templateFiles]).toContain('playwright.config.ts');
-    });
-
     it('adds test:e2e script for wdio-obsidian', () => {
       const builder = buildTemplate(makeAnswers({ e2eTestRunner: 'wdio-obsidian' }));
       expect(builder.scripts['test:e2e']).toBe('jiti scripts/test-e2e.ts');
@@ -309,7 +305,7 @@ describe('buildTemplate', () => {
     it('every script follows jiti scripts/{name}.ts pattern', () => {
       const configs: Partial<Answers>[] = [
         {},
-        { e2eTestRunner: 'playwright', testRunner: 'vitest' },
+        { e2eTestRunner: 'wdio-obsidian', testRunner: 'vitest' },
         { formatter: 'dprint', preset: 'standalone', testRunner: 'jest' }
       ];
 

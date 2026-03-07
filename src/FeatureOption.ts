@@ -22,8 +22,8 @@ export abstract class FeatureOption {
     this.promptHint = config.promptHint;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- Base no-op; subclasses override.
   public configure(_builder: TemplateBuilder, _answers: Answers): void {}
-
 }
 
 export async function promptFeature(options: readonly FeatureOption[], message: string, defaultValue?: string): Promise<string> {

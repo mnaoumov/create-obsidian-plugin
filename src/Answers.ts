@@ -17,6 +17,8 @@ export interface Answers {
   formatter: string;
   framework: string;
   fundingUrl: string;
+  gitHubFunding: string;
+  gitHubIssueTemplates: string;
   linter: string;
   markdownLinter: string;
   packageManager: string;

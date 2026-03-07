@@ -33,6 +33,8 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     formatter: 'none',
     framework: 'none',
     fundingUrl: '',
+    gitHubFunding: 'funding-yml',
+    gitHubIssueTemplates: 'bug-and-feature',
     linter: 'none',
     markdownLinter: 'none',
     packageManager: 'npm',
