@@ -23,17 +23,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     formatter: 'prettier',
     framework: 'none',
     fundingUrl: '',
-    hasCspell: true,
-    hasCss: false,
-    hasE2eTests: false,
-    hasEditorExtensions: false,
-    hasEslint: true,
-    hasMarkdownLint: true,
-    hasPrettier: true,
-    hasScss: false,
-    hasTests: false,
-    hasWasm: false,
-    isDesktopOnly: false,
     linter: 'eslint',
     markdownLinter: 'markdownlint',
     packageManager: 'npm',
@@ -43,7 +32,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     pluginName: 'Test',
     pluginShortName: 'Test',
     preset: 'enhanced',
-    shouldEnableUnofficialInternalObsidianApi: false,
     spellChecker: 'cspell',
     testRunner: 'none',
     wasmSupport: 'none',
@@ -265,9 +253,9 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('obsidian-dev-utils');
     });
 
-    it('enhanced adds non-standalone partial', () => {
+    it('enhanced adds uses-obsidian-dev-utils partial', () => {
       const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
-      expect(builder.partials.has('non-standalone')).toBe(true);
+      expect(builder.partials.has('uses-obsidian-dev-utils')).toBe(true);
     });
   });
 
