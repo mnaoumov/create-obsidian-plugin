@@ -13,10 +13,12 @@ export class Jest extends FeatureOption {
       .addPackage('jest')
       .addPackage('ts-jest')
       .addScript('test')
+      .addScript('test:watch')
       .addFiles([
         'jest.config.ts',
         'src/__tests__/sample.test.ts',
-        'scripts/test.ts'
+        'scripts/test.ts',
+        'scripts/test-watch.ts'
       ]);
   }
 }

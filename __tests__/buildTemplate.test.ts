@@ -170,10 +170,10 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).toContain('scripts/test-watch.ts');
     });
 
-    it('adds jest scripts without test:watch', () => {
+    it('adds jest scripts with test:watch', () => {
       const builder = buildTemplate(makeAnswers({ testRunner: 'jest' }));
       expect(builder.scripts['test']).toBe('jiti scripts/test.ts');
-      expect(builder.scripts['test:watch']).toBeUndefined();
+      expect(builder.scripts['test:watch']).toBe('jiti scripts/test-watch.ts');
     });
 
     it('does not add test scripts when none', () => {
