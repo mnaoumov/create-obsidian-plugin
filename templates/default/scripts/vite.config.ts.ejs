@@ -1,7 +1,11 @@
 import { builtinModules } from 'node:module';
+import process from 'node:process';
 
 import { defineConfig } from 'vite';
 <%- render('import') -%>
+
+const prod = process.env['BUILD'] === 'production';
+const distFolder = process.env['DIST_FOLDER'] ?? (prod ? 'dist/build' : 'dist/dev');
 
 const EXTERNAL = [
   'obsidian',
@@ -43,9 +47,9 @@ if you want to view the source, please visit the github repository of this plugi
 `,
       },
     },
-    sourcemap: process.env['BUILD'] !== 'production' ? 'inline' : false,
-    minify: process.env['BUILD'] === 'production',
-    outDir: '.',
+    sourcemap: prod ? false : 'inline',
+    minify: prod,
+    outDir: distFolder,
     emptyOutDir: false,
   },
 });
