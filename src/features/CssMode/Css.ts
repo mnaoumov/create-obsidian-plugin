@@ -8,6 +8,6 @@ export class Css extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder): void {
-    builder.addFiles(['src/styles/main.scss']);
+    builder.addFiles(['src/styles/main.css']);
   }
 }
