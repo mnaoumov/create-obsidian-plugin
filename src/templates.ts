@@ -28,6 +28,8 @@ import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
 import { FRAMEWORK_OPTIONS } from './features/Framework/index.ts';
+import { GITHUB_FUNDING_OPTIONS } from './features/GitHubFunding/index.ts';
+import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/GitHubIssueTemplates/index.ts';
 import { LINTER_OPTIONS } from './features/Linter/index.ts';
 import { MARKDOWN_LINTER_OPTIONS } from './features/MarkdownLinter/index.ts';
 import { PRESET_OPTIONS } from './features/Preset/index.ts';
@@ -43,10 +45,6 @@ const BASE_TEMPLATE_FILES = [
   '.env',
   '.gitattributes',
   '.gitignore',
-  '.github/FUNDING.yml',
-  '.github/ISSUE_TEMPLATE/bug_report.yml',
-  '.github/ISSUE_TEMPLATE/config.yml',
-  '.github/ISSUE_TEMPLATE/feature_request.yml',
   '.npmrc',
   'LICENSE',
   'README.md',
@@ -78,6 +76,8 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'e2eTestRunner', options: E2E_TEST_RUNNER_OPTIONS },
   { answerKey: 'editorExtensions', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'cssMode', options: CSS_MODE_OPTIONS },
+  { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
+  { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
   { answerKey: 'wasmSupport', options: WASM_SUPPORT_OPTIONS },
   { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS }
 ];
@@ -181,7 +181,6 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
     const destinationPath = getDestinationPath(registeredPath, answers);
     const fullDestinationPath = join(targetDir, destinationPath);
     const ejsPath = join(templatesDir, `${registeredPath}.ejs`);
-    const plainPath = join(templatesDir, registeredPath);
 
     let rendered: string;
     if (existsSync(ejsPath)) {
@@ -192,8 +191,6 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
       } catch {
         rendered = readFileSync(ejsPath, 'utf-8');
       }
-    } else if (existsSync(plainPath)) {
-      rendered = readFileSync(plainPath, 'utf-8');
     } else {
       currentTemplatePath = `${registeredPath}.ejs`;
       rendered = (templateContext['render'] as (section?: string) => string)();
