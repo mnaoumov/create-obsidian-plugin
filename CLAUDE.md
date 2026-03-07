@@ -46,6 +46,10 @@ Not always-include, not `<% if`. Uses `has-funding` partial — conditionally ad
 
 Researched all major `create-*` packages. Only create-vue and create-nuxt-app use a template engine (both EJS). The rest use plain file copying. EJS is the only engine used in practice by major scaffolding tools.
 
+## Workflow
+
+- Commit after each logical step. Do not batch unrelated changes into a single commit.
+
 ## Code Style
 
 - TypeScript strict mode
