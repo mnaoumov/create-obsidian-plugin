@@ -15,7 +15,12 @@ export class Wasm extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addPackage(getWasmPlugin(answers.buildSystem));
+    builder
+      .addPackage(getWasmPlugin(answers.buildSystem))
+      .addFiles([
+        'src/wasm.d.ts',
+        'src/wasm/README.md'
+      ]);
   }
 }
 
