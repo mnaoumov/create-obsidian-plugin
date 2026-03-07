@@ -29,7 +29,13 @@ export class React extends FeatureOption {
       builder.addPackage(plugin);
     }
     if (answers.buildSystem === 'rollup') {
-      builder.addPackage('@babel/preset-react');
+      builder
+        .addPackage('@babel/core')
+        .addPackage('@babel/preset-react')
+        .addFiles([
+          'babel.config.mjs',
+          'scripts/babel.config.ts'
+        ]);
     }
   }
 }
