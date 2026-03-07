@@ -6,9 +6,7 @@ export enum Mode {
 }
 
 export interface Answers {
-  // Feature settings (plain strings matching settingValue on FeatureOption classes)
   apiSubset: string;
-  // Metadata
   authorGitHubName: string;
   authorName: string;
   buildSystem: string;

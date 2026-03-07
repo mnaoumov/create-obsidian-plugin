@@ -48,12 +48,10 @@ interface ToolingOptions {
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   const preset = await promptPreset(defaults?.preset);
 
-  // Build system (not for Demo)
   const buildSystem = preset === 'demo'
     ? 'esbuild'
     : await promptBuildSystem(defaults?.buildSystem);
 
-  // UI framework (not for Demo)
   const framework = preset === 'demo'
     ? 'none'
     : await promptFramework(defaults?.framework);
@@ -63,7 +61,6 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
   const packageManager = await promptPackageManager(defaults?.packageManager);
   const platformSupport = await promptPlatformSupport(defaults?.platformSupport);
 
-  // Plugin metadata
   const metadata = await promptMetadata(defaults);
 
   const features = {
