@@ -29,7 +29,7 @@ import { assertNotCancelled } from './clack-utils.ts';
 import {
   getInstallCommand,
   getRunCommand
-} from './features/PackageManager.ts';
+} from './features/PackageManager/index.ts';
 import { promptAnswers } from './prompts.ts';
 import {
   copyTemplates,
