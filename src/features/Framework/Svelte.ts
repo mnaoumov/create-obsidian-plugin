@@ -1,28 +1,37 @@
 import type { Answers } from '../../Answers.ts';
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
+
+import { FeatureOption } from '../../FeatureOption.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   esbuild: 'esbuild-svelte',
   rollup: 'rollup-plugin-svelte',
-  vite: '@sveltejs/vite-plugin-svelte',
+  vite: '@sveltejs/vite-plugin-svelte'
 };
 
 export class Svelte extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'svelte', promptLabel: 'Svelte', promptHint: 'Lightweight reactive components' });
+  public constructor() {
+    super({ promptHint: 'Lightweight reactive components', promptLabel: 'Svelte', settingValue: 'svelte' });
   }
 
-  override configure(builder: TemplateBuilder, answers: Answers): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('svelte')
       .addPackage('svelte-check')
       .addPackage('svelte-preprocess')
-      .addPackage(BUILD_PLUGINS[answers.buildSystem]!)
+      .addPackage(getBuildPlugin(answers.buildSystem))
       .addFiles([
         'src/SvelteComponents/SampleSvelteComponent.d.ts',
         'src/SvelteComponents/SampleSvelteComponent.svelte',
-        'src/Views/SampleSvelteView.ts',
+        'src/Views/SampleSvelteView.ts'
       ]);
   }
+}
+
+function getBuildPlugin(buildSystem: string): string {
+  const plugin = BUILD_PLUGINS[buildSystem];
+  if (!plugin) {
+    throw new Error(`Unsupported build system for Svelte: ${buildSystem}`);
+  }
+  return plugin;
 }

@@ -11,17 +11,17 @@ export interface FeatureOptionConfig {
 }
 
 export abstract class FeatureOption {
-  readonly promptHint: string;
-  readonly promptLabel: string;
-  readonly settingValue: string;
+  public readonly promptHint: string;
+  public readonly promptLabel: string;
+  public readonly settingValue: string;
 
-  constructor(config: FeatureOptionConfig) {
+  public constructor(config: FeatureOptionConfig) {
     this.settingValue = config.settingValue;
     this.promptLabel = config.promptLabel;
     this.promptHint = config.promptHint;
   }
 
-  configure(_builder: TemplateBuilder, _answers: Answers): void {
+  public configure(_builder: TemplateBuilder, _answers: Answers): void {
     // Default: no-op. Override in subclasses.
   }
 }

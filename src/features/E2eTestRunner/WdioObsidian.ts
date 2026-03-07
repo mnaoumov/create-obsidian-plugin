@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class WdioObsidian extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'wdio-obsidian', promptLabel: 'wdio-obsidian', promptHint: 'WebdriverIO service for Obsidian, multi-version & CI/CD' });
+  public constructor() {
+    super({ promptHint: 'WebdriverIO service for Obsidian, multi-version & CI/CD', promptLabel: 'wdio-obsidian', settingValue: 'wdio-obsidian' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@wdio/cli')
       .addPackage('@wdio/mocha-framework')
@@ -15,7 +16,7 @@ export class WdioObsidian extends FeatureOption {
       .addFiles([
         'wdio.conf.ts',
         'e2e/sample.spec.ts',
-        'scripts/test-e2e.ts',
+        'scripts/test-e2e.ts'
       ]);
   }
 }

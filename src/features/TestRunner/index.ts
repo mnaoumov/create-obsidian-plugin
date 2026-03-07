@@ -1,7 +1,8 @@
 import { select } from '@clack/prompts';
 
+import type { FeatureOption } from '../../FeatureOption.ts';
+
 import { assertNotCancelled } from '../../clack-utils.ts';
-import type { FeatureOption } from '../../FeatureContribution.ts';
 import { Jest } from './Jest.ts';
 import { None } from './None.ts';
 import { Vitest } from './Vitest.ts';
@@ -12,7 +13,7 @@ export async function promptTestRunner(defaultValue?: string): Promise<string> {
   const result = await select({
     initialValue: defaultValue ?? 'vitest',
     message: 'Unit testing',
-    options: TEST_RUNNER_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue })),
+    options: TEST_RUNNER_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
   });
   assertNotCancelled(result);
   return result;

@@ -1,7 +1,8 @@
 import { select } from '@clack/prompts';
 
+import type { FeatureOption } from '../../FeatureOption.ts';
+
 import { assertNotCancelled } from '../../clack-utils.ts';
-import type { FeatureOption } from '../../FeatureContribution.ts';
 import { CodeMirror } from './CodeMirror.ts';
 import { None } from './None.ts';
 
@@ -11,7 +12,7 @@ export async function promptEditorExtensions(defaultValue?: string): Promise<str
   const result = await select({
     initialValue: defaultValue ?? 'none',
     message: 'Editor extensions',
-    options: EDITOR_EXTENSIONS_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue })),
+    options: EDITOR_EXTENSIONS_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
   });
   assertNotCancelled(result);
   return result;

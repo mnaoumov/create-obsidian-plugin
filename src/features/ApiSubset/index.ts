@@ -1,7 +1,8 @@
 import { select } from '@clack/prompts';
 
+import type { FeatureOption } from '../../FeatureOption.ts';
+
 import { assertNotCancelled } from '../../clack-utils.ts';
-import type { FeatureOption } from '../../FeatureContribution.ts';
 import { Official } from './Official.ts';
 import { WithUnofficial } from './WithUnofficial.ts';
 
@@ -11,7 +12,7 @@ export async function promptApiSubset(defaultValue?: string): Promise<string> {
   const result = await select({
     initialValue: defaultValue ?? 'official',
     message: 'Obsidian API subset',
-    options: API_SUBSET_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue })),
+    options: API_SUBSET_OPTIONS.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
   });
   assertNotCancelled(result);
   return result;

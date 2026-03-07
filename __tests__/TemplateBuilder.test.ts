@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import {
+ describe,
+expect,
+it
+} from 'vitest';
 
-import { Dependency, TemplateBuilder } from '../src/TemplateBuilder.ts';
+import {
+ Dependency,
+TemplateBuilder
+} from '../src/TemplateBuilder.ts';
 
 describe('Dependency', () => {
   it('defaults version to latest', () => {
@@ -28,7 +35,7 @@ describe('TemplateBuilder', () => {
       builder.addPackage('foo', '1.0.0');
       builder.addPackage('foo', '2.0.0');
       expect(builder.dependencies).toHaveLength(1);
-      expect(builder.dependencies[0]!.version).toBe('2.0.0');
+      expect(builder.dependencies[0]?.version).toBe('2.0.0');
     });
 
     it('sorts dependencies alphabetically', () => {

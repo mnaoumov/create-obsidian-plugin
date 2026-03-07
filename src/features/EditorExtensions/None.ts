@@ -1,7 +1,7 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
+import { FeatureOption } from '../../FeatureOption.ts';
 
 export class None extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'none', promptLabel: 'None', promptHint: 'No editor extensions' });
+  public constructor() {
+    super({ promptHint: 'No editor extensions', promptLabel: 'None', settingValue: 'none' });
   }
 }

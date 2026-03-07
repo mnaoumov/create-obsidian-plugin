@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class Standalone extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'standalone', promptLabel: 'Standalone', promptHint: 'Standalone plugin without obsidian-dev-utils dependency' });
+  public constructor() {
+    super({ promptHint: 'Standalone plugin without obsidian-dev-utils dependency', promptLabel: 'Standalone', settingValue: 'standalone' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder.addFiles(['src/settings.ts']);
   }
 }

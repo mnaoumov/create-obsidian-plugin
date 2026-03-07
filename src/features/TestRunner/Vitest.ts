@@ -1,12 +1,13 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
 import type { TemplateBuilder } from '../../TemplateBuilder.ts';
 
+import { FeatureOption } from '../../FeatureOption.ts';
+
 export class Vitest extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'vitest', promptLabel: 'Vitest', promptHint: 'Fast, Vite-native, ESM-first' });
+  public constructor() {
+    super({ promptHint: 'Fast, Vite-native, ESM-first', promptLabel: 'Vitest', settingValue: 'vitest' });
   }
 
-  override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('vitest')
       .addScript('test')
@@ -15,7 +16,7 @@ export class Vitest extends FeatureOption {
         'vitest.config.ts',
         'src/__tests__/sample.test.ts',
         'scripts/test.ts',
-        'scripts/test-watch.ts',
+        'scripts/test-watch.ts'
       ]);
   }
 }

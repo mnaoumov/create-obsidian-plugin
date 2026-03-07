@@ -1,7 +1,7 @@
-import { FeatureOption } from '../../FeatureContribution.ts';
+import { FeatureOption } from '../../FeatureOption.ts';
 
 export class Official extends FeatureOption {
-  constructor() {
-    super({ settingValue: 'official', promptLabel: 'Official API', promptHint: 'Stable, documented API only' });
+  public constructor() {
+    super({ promptHint: 'Stable, documented API only', promptLabel: 'Official API', settingValue: 'official' });
   }
 }

@@ -1,11 +1,3 @@
-import { execSync } from 'node:child_process';
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync
-} from 'node:fs';
-import { join } from 'node:path';
-
 import {
   cancel,
   confirm,
@@ -15,32 +7,37 @@ import {
   outro,
   spinner
 } from '@clack/prompts';
+import { execSync } from 'node:child_process';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync
+} from 'node:fs';
+import { join } from 'node:path';
 import { compare } from 'semver';
 
-import type { Answers, PackageJson } from './Answers.ts';
-import { CONFIG_FILE_NAME, Mode } from './Answers.ts';
+import type {
+ Answers,
+PackageJson
+} from './Answers.ts';
+
+import {
+ CONFIG_FILE_NAME,
+Mode
+} from './Answers.ts';
 import { assertNotCancelled } from './clack-utils.ts';
-import { getInstallCommand, getRunCommand } from './features/PackageManager.ts';
+import {
+ getInstallCommand,
+getRunCommand
+} from './features/PackageManager.ts';
 import { promptAnswers } from './prompts.ts';
-import { copyTemplates, getScriptDir, loadConfig } from './templates.ts';
+import {
+ copyTemplates,
+getScriptDir,
+loadConfig
+} from './templates.ts';
 
-async function main(): Promise<void> {
-  const packageJsonPath = join(getScriptDir(), '..', 'package.json');
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
-  const currentVersion = packageJson.version ?? '0.0.0';
-
-  intro(`create-obsidian-plugin v${currentVersion}`);
-
-  await checkForUpdates(currentVersion);
-
-  const mode = await detectMode();
-
-  if (mode === Mode.Create) {
-    await runCreate(currentVersion);
-  } else {
-    await runUpdate(currentVersion);
-  }
-}
+const JSON_INDENT_SPACES = 2;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
   try {
@@ -71,6 +68,24 @@ async function latestVersion(packageName: string): Promise<string> {
   return json['version'] as string;
 }
 
+async function main(): Promise<void> {
+  const packageJsonPath = join(getScriptDir(), '..', 'package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
+  const currentVersion = packageJson.version ?? '0.0.0';
+
+  intro(`create-obsidian-plugin v${currentVersion}`);
+
+  await checkForUpdates(currentVersion);
+
+  const mode = await detectMode();
+
+  if (mode === Mode.Create) {
+    await runCreate(currentVersion);
+  } else {
+    await runUpdate(currentVersion);
+  }
+}
+
 async function runCreate(currentVersion: string): Promise<void> {
   const answers = await promptAnswers();
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
@@ -97,7 +112,7 @@ async function runCreate(currentVersion: string): Promise<void> {
   const pm = answers.packageManager;
   const nextSteps = [
     `cd obsidian-${answers.pluginId}`,
-    ...(!existsSync(join(targetDir, 'node_modules')) ? [getInstallCommand(pm)] : []),
+    ...(existsSync(join(targetDir, 'node_modules')) ? [] : [getInstallCommand(pm)]),
     getRunCommand(pm, 'dev')
   ];
 
@@ -138,7 +153,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     try {
       execSync('git init', { cwd: targetDir, stdio: 'pipe' });
       execSync('git add -A', { cwd: targetDir, stdio: 'pipe' });
-      execSync(`git commit -m "Initial commit from create-obsidian-plugin"`, { cwd: targetDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit from create-obsidian-plugin"', { cwd: targetDir, stdio: 'pipe' });
       s.stop('Git repository initialized with initial commit.');
     } catch {
       s.stop('Failed to initialize git. Run `git init` manually.');
@@ -208,10 +223,10 @@ async function runUpdate(currentVersion: string): Promise<void> {
   const newConfig = loadConfig(targetDir);
   if (newConfig) {
     const configWithAnswers = { ...newConfig, answers };
-    writeFileSync(configPath, JSON.stringify(configWithAnswers, null, 2) + '\n');
+    writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
   }
 
   outro('Project updated successfully!');
 }
 
-void main();
+main().catch(console.error);
