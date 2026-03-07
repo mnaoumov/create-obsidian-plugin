@@ -18,6 +18,6 @@ export class Enhanced extends FeatureOption {
         'src/PluginSettingsTab.ts',
         'src/PluginTypes.ts'
       ])
-      .addPartial('uses-obsidian-dev-utils');
+      .addPartial('enhanced');
   }
 }

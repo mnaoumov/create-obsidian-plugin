@@ -21,6 +21,6 @@ export class Demo extends FeatureOption {
         'src/PluginTypes.ts',
         'src/Views/SampleView.ts'
       ])
-      .addPartial('uses-obsidian-dev-utils');
+      .addPartial('enhanced');
   }
 }
