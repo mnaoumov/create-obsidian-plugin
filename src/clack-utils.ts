@@ -1,6 +1,6 @@
 import {
- cancel,
-isCancel
+  cancel,
+  isCancel
 } from '@clack/prompts';
 
 export function assertNotCancelled<T>(value: symbol | T): asserts value is T {

@@ -17,24 +17,24 @@ import { join } from 'node:path';
 import { compare } from 'semver';
 
 import type {
- Answers,
-PackageJson
+  Answers,
+  PackageJson
 } from './Answers.ts';
 
 import {
- CONFIG_FILE_NAME,
-Mode
+  CONFIG_FILE_NAME,
+  Mode
 } from './Answers.ts';
 import { assertNotCancelled } from './clack-utils.ts';
 import {
- getInstallCommand,
-getRunCommand
+  getInstallCommand,
+  getRunCommand
 } from './features/PackageManager.ts';
 import { promptAnswers } from './prompts.ts';
 import {
- copyTemplates,
-getScriptDir,
-loadConfig
+  copyTemplates,
+  getScriptDir,
+  loadConfig
 } from './templates.ts';
 
 const JSON_INDENT_SPACES = 2;

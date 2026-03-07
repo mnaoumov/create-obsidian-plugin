@@ -1,12 +1,12 @@
 import {
- describe,
-expect,
-it
+  describe,
+  expect,
+  it
 } from 'vitest';
 
 import {
- Dependency,
-TemplateBuilder
+  Dependency,
+  TemplateBuilder
 } from '../src/TemplateBuilder.ts';
 
 describe('Dependency', () => {

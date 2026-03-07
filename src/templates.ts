@@ -14,8 +14,8 @@ import {
 import { fileURLToPath } from 'node:url';
 
 import type {
- Answers,
-GeneratorConfig
+  Answers,
+  GeneratorConfig
 } from './Answers.ts';
 import type { FeatureOption } from './FeatureOption.ts';
 
