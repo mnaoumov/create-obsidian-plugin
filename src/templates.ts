@@ -154,7 +154,7 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
       let result = '';
       for (const partial of partials) {
         const partialPath = section
-          ? `${basePath}_${section}_${partial}.ejs`
+          ? `${basePath}@${section}_${partial}.ejs`
           : `${basePath}_${partial}.ejs`;
         const fullPath = join(templatesDir, partialPath);
         if (!existsSync(fullPath)) {
