@@ -1,5 +1,6 @@
-import { execSync } from 'node:child_process';
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
+import { join } from 'node:path';
 import process from 'node:process';
 
 import esbuild from 'esbuild';
@@ -9,7 +10,23 @@ const prod = process.argv[2] !== 'dev';
 
 if (prod) {
 <%- render('compile') -%>
-  execSync('tsc -noEmit', { stdio: 'inherit' });
+}
+
+if (existsSync('.env')) {
+  process.loadEnvFile('.env');
+}
+
+const distFolder = prod ? 'dist/build' : 'dist/dev';
+
+if (existsSync(distFolder)) {
+  rmSync(distFolder, { recursive: true });
+}
+mkdirSync(distFolder, { recursive: true });
+
+copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
+
+if (!prod) {
+  writeFileSync(join(distFolder, '.hotreload'), '');
 }
 
 const banner = `/*
@@ -47,7 +64,7 @@ const context = await esbuild.context({
   keepNames: true,
   logLevel: 'info',
   minify: prod,
-  outfile: 'main.js',
+  outfile: join(distFolder, 'main.js'),
   platform: 'node',
   sourcemap: prod ? false : 'inline',
   target: 'esnext',
@@ -55,6 +72,7 @@ const context = await esbuild.context({
 <%- render('options') -%>
   plugins: [
 <%- render('plugin') -%>
+    copyToObsidianPluginsFolderPlugin(prod, distFolder),
   ],
 });
 
@@ -63,4 +81,30 @@ if (prod) {
   process.exit(0);
 } else {
   await context.watch();
+}
+
+function copyToObsidianPluginsFolderPlugin(isProduction: boolean, dist: string): esbuild.Plugin {
+  return {
+    name: 'copy-to-obsidian-plugins-folder',
+    setup(build): void {
+      build.onEnd(async () => {
+        if (isProduction) {
+          return;
+        }
+
+        const obsidianConfigFolder = process.env['OBSIDIAN_CONFIG_FOLDER'] ?? '';
+        if (!obsidianConfigFolder) {
+          return;
+        }
+
+        const pluginFolder = join(obsidianConfigFolder, 'plugins', '<%= pluginId %>');
+        if (!existsSync(pluginFolder)) {
+          mkdirSync(pluginFolder, { recursive: true });
+        }
+
+        const { cpSync } = await import('node:fs');
+        cpSync(dist, pluginFolder, { recursive: true });
+      });
+    },
+  };
 }
