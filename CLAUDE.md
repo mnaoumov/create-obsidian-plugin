@@ -19,9 +19,10 @@
 
 The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, or `obsidian-dev-utils`. These are only used in the *generated* plugin projects.
 
-### Generated scripts must be fully self-contained
+### Two-tier script strategy
 
-Each generated script (build, lint, format, version, etc.) must contain the full implementation logic. The obsidian-dev-utils CLI is being removed — generated plugins must not depend on it for script execution. Reference implementations live in `F:\dev\projects\!obsidian\obsidian-dev-utils\src\ScriptUtils\`.
+- **Enhanced/demo presets** (uses-obsidian-dev-utils): one-liner wrapper scripts that call `obsidian-dev-utils <command>`. Updates propagate via `npm update`.
+- **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
 
 ### Root configs are thin wrappers
 
