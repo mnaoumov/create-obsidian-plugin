@@ -8,7 +8,7 @@
 
 - `src/` — Core generator logic (TemplateBuilder, features, prompts, templates)
 - `src/features/` — Feature modules (BuildSystem, Formatter, Linter, TestRunner, etc.)
-- `templates/default/` — EJS and plain template files
+- `templates/default/` — EJS template files (all must have `.ejs` extension)
 - `scripts/` — All build/lint/test logic lives here
 - `__tests__/` — Unit tests (vitest)
 - `dist/` — Built output (published to npm, not tracked in git)
@@ -18,6 +18,10 @@
 ### No obsidian ecosystem dependencies in the generator
 
 The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, or `obsidian-dev-utils`. These are only used in the *generated* plugin projects.
+
+### Generated scripts must be fully self-contained
+
+Each generated script (build, lint, format, version, etc.) must contain the full implementation logic. The obsidian-dev-utils CLI is being removed — generated plugins must not depend on it for script execution. Reference implementations live in `F:\dev\projects\!obsidian\obsidian-dev-utils\src\ScriptUtils\`.
 
 ### Root configs are thin wrappers
 
@@ -29,12 +33,12 @@ All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `c
 
 ### addFiles uses array syntax, no .ejs suffix
 
-`addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk first, then `{path}`, then auto-render from partials.
+`addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.
 
 ### Partial template composition
 
 - `_` in filename basename = partial (skipped in main render loop)
-- `render(section?)` auto-discovers partials by convention: `{basePath}_{partial}.ejs` or `{basePath}_{section}_{partial}.ejs`
+- `render(section)` auto-discovers partials by convention: `{basePath}_{section}_{partial}.ejs` — always use a section name
 - `buildTemplate()` auto-adds feature setting values as partials after `configure()`
 - Virtual templates: if no file exists on disk, `render()` composes from partials
 
