@@ -6,11 +6,8 @@ import type { TemplateBuilder } from './TemplateBuilder.ts';
 import { assertNotCancelled } from './clack-utils.ts';
 
 export interface FeatureOptionConfig {
-  /** Short description shown next to the label in the prompt */
   promptHint: string;
-  /** Display name shown in the prompt */
   promptLabel: string;
-  /** Serialized value stored in config and used for dispatch */
   settingValue: string;
 }
 
@@ -25,9 +22,8 @@ export abstract class FeatureOption {
     this.promptHint = config.promptHint;
   }
 
-  public configure(_builder: TemplateBuilder, _answers: Answers): void {
-    // Default: no-op. Override in subclasses.
-  }
+  public configure(_builder: TemplateBuilder, _answers: Answers): void {}
+
 }
 
 export async function promptFeature(options: readonly FeatureOption[], message: string, defaultValue?: string): Promise<string> {

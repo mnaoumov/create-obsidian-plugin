@@ -82,7 +82,6 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS }
 ];
 
-// Demo preset overrides: activate these feature values even if the user chose something else
 const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: readonly FeatureOption[] }[] = [
   { answerKey: 'framework', demoValue: 'react', options: FRAMEWORK_OPTIONS },
   { answerKey: 'framework', demoValue: 'svelte', options: FRAMEWORK_OPTIONS },
@@ -96,7 +95,6 @@ const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: re
 export function buildTemplate(answers: Answers): TemplateBuilder {
   const builder = new TemplateBuilder();
 
-  // Base files and dependencies
   builder
     .addFiles(BASE_TEMPLATE_FILES)
     .addPackage('@types/node', '25.0.3')
@@ -113,7 +111,6 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     builder.addPartial('has-funding');
   }
 
-  // Let each feature configure the builder, auto-adding its settingValue as a partial
   for (const registry of FEATURE_REGISTRIES) {
     const value = String(answers[registry.answerKey]);
     const option = resolveFeature(registry.options, value);
@@ -121,7 +118,6 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     builder.addPartial(value);
   }
 
-  // Demo preset: also configure features that are "off" in answers
   if (answers.preset === 'demo') {
     for (const override of DEMO_OVERRIDES) {
       if (String(answers[override.answerKey]) !== override.demoValue) {
@@ -199,7 +195,6 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
     } else if (existsSync(plainPath)) {
       rendered = readFileSync(plainPath, 'utf-8');
     } else {
-      // Virtual template — auto-render from partials
       currentTemplatePath = `${registeredPath}.ejs`;
       rendered = (templateContext['render'] as (section?: string) => string)();
     }
