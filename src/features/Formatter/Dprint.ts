@@ -13,6 +13,7 @@ export class Dprint extends FeatureOption {
       .addScript('format')
       .addScript('format:check')
       .addFiles([
+        'dprint.json',
         'scripts/format.ts',
         'scripts/format-check.ts'
       ]);

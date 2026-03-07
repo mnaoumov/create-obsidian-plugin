@@ -13,6 +13,8 @@ export class Prettier extends FeatureOption {
       .addScript('format')
       .addScript('format:check')
       .addFiles([
+        'prettier.config.mjs',
+        'scripts/prettier.config.ts',
         'scripts/format.ts',
         'scripts/format-check.ts'
       ]);
