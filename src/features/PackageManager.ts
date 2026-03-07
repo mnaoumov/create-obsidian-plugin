@@ -3,7 +3,7 @@ import { select } from '@clack/prompts';
 import { assertNotCancelled } from '../clack-utils.ts';
 
 export function getInstallCommand(pm: string): string {
-  return pm === 'npm' ? 'npm install' : `${pm} install`;
+  return `${pm} install`;
 }
 
 export function getRunCommand(pm: string, script: string): string {
