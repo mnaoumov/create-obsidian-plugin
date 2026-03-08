@@ -73,7 +73,22 @@ async function main(): Promise<void> {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
   const currentVersion = packageJson.version ?? '0.0.0';
 
-  const banner = `\n    \x1b[35m╱╲\x1b[0m\n   \x1b[35m╱  ╲\x1b[0m       \x1b[1m@mnaoumov/create-obsidian-plugin\x1b[0m\n  \x1b[35m╱ ◆  ╲\x1b[0m      v${currentVersion}\n \x1b[35m╱      ╲\x1b[0m\n\x1b[35m╱________╲\x1b[0m     Scaffold modern Obsidian plugins\n`;
+  const m = '\x1b[35m';
+  const r = '\x1b[0m';
+  const b = '\x1b[1m';
+  const banner = `
+       ${m}▗▄▟██${r}
+     ${m}▄█████▛ █▄${r}    ${b}@mnaoumov/create-obsidian-plugin${r}
+    ${m}▐█████▛ ▟███${r}   v${currentVersion}
+    ${m}▐████▛ ▟████▌${r}
+   ${m}▗ ▜███▎▐█████▌${r}
+  ${m}▗█▙ ▜██▎▐██████${r}  Scaffold modern Obsidian plugins
+ ${m}▗███▙ ▜█▙ ▜█████▙${r}
+ ${m}▝██████ ██████▄ ▜█▘${r}
+  ${m}▀████▛ ███████▙ ▘${r}
+    ${m}▀█▛ ▟████████▌${r}
+       ${m}▝▀▀▀▀████▀${r}
+`;
   process.stdout.write(banner);
   intro('Let\'s build an Obsidian plugin!');
 
