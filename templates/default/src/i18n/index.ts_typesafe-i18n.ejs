@@ -1,0 +1,11 @@
+import type { BaseTranslation } from 'typesafe-i18n';
+
+import { i18n } from 'typesafe-i18n';
+
+import en from './en/index.ts';
+
+const { t: translate } = i18n<BaseTranslation>('en', { en });
+
+export function t(key: string): string {
+  return translate(key);
+}
