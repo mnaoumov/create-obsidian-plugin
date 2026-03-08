@@ -73,7 +73,7 @@ async function main(): Promise<void> {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
   const currentVersion = packageJson.version ?? '0.0.0';
 
-  intro(`create-obsidian-plugin v${currentVersion}`);
+  intro(`@mnaoumov/create-obsidian-plugin v${currentVersion}`);
 
   await checkForUpdates(currentVersion);
 
