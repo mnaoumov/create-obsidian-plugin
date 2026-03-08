@@ -107,7 +107,7 @@ function getDefaultTooling(preset: string): ToolingOptions {
     commitLinting: 'conventional-commits',
     e2eTestRunner: 'none',
     editorExtensions: preset === 'demo' ? 'codemirror' : 'none',
-    formatter: 'prettier',
+    formatter: 'dprint',
     gitHubActions: 'ci-and-release',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
@@ -116,7 +116,7 @@ function getDefaultTooling(preset: string): ToolingOptions {
     linter: 'eslint',
     markdownLinter: 'markdownlint',
     spellChecker: 'cspell',
-    styling: preset === 'demo' ? 'scss' : 'none',
+    styling: 'scss',
     testRunner: 'vitest',
     wasmSupport: 'none'
   };

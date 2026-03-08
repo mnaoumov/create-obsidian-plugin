@@ -153,8 +153,11 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     try {
       execSync(installCmd, { cwd: targetDir, stdio: 'pipe' });
       s.stop('Dependencies installed.');
-    } catch {
+    } catch (error: unknown) {
       s.stop(`Failed to install dependencies. Run \`${installCmd}\` manually.`);
+      if (error instanceof Error && 'stderr' in error) {
+        log.error(String(error.stderr));
+      }
     }
   }
 
