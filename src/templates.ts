@@ -26,6 +26,7 @@ import { BUILD_SYSTEM_OPTIONS } from './features/BuildSystem/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
+import { GITHUB_ACTIONS_OPTIONS } from './features/GitHubActions/index.ts';
 import { GITHUB_FUNDING_OPTIONS } from './features/GitHubFunding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/GitHubIssueTemplates/index.ts';
 import { LINTER_OPTIONS } from './features/Linter/index.ts';
@@ -73,6 +74,7 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'e2eTestRunner', options: E2E_TEST_RUNNER_OPTIONS },
   { answerKey: 'editorExtensions', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'styling', options: STYLING_OPTIONS },
+  { answerKey: 'gitHubActions', options: GITHUB_ACTIONS_OPTIONS },
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
   { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
   { answerKey: 'wasmSupport', options: WASM_SUPPORT_OPTIONS },

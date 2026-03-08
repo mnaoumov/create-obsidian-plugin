@@ -12,6 +12,7 @@ import { promptBuildSystem } from './features/BuildSystem/index.ts';
 import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
 import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
 import { promptFormatter } from './features/Formatter/index.ts';
+import { promptGitHubActions } from './features/GitHubActions/index.ts';
 import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
 import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
 import { promptLinter } from './features/Linter/index.ts';
@@ -39,6 +40,7 @@ interface ToolingOptions {
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
+  gitHubActions: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
   linter: string;
@@ -204,6 +206,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
   let testRunner = 'vitest';
   let e2eTestRunner = 'none';
   let apiSubset = 'official';
+  let gitHubActions = 'ci-and-release';
   let gitHubIssueTemplates = 'bug-and-feature';
   let gitHubFunding = 'funding-yml';
 
@@ -217,6 +220,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
     styling = await promptStyling(defaults?.styling);
     wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
+    gitHubActions = await promptGitHubActions(defaults?.gitHubActions);
     gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
     gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
 
@@ -230,6 +234,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     e2eTestRunner,
     editorExtensions,
     formatter,
+    gitHubActions,
     gitHubFunding,
     gitHubIssueTemplates,
     linter,
