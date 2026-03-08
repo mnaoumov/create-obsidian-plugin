@@ -57,6 +57,29 @@ interface ToolingOptions {
   wasmSupport: string;
 }
 
+export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
+  const preset = defaults?.preset ?? 'enhanced';
+  const pluginId = defaults?.pluginId ?? basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin';
+  const tooling = getDefaultTooling(preset);
+
+  return {
+    ...tooling,
+    authorGitHubName: defaults?.authorGitHubName ?? 'johndoe',
+    authorName: defaults?.authorName ?? 'John Doe',
+    bundler: defaults?.bundler ?? 'esbuild',
+    currentYear: new Date().getFullYear(),
+    fundingUrl: defaults?.fundingUrl ?? '',
+    packageManager: defaults?.packageManager ?? 'npm',
+    platformSupport: defaults?.platformSupport ?? 'desktop-only',
+    pluginDescription: defaults?.pluginDescription ?? 'Does something awesome.',
+    pluginId,
+    pluginName: defaults?.pluginName ?? makePluginName(pluginId),
+    pluginShortName: extractWords(pluginId).join(''),
+    preset,
+    uiFramework: defaults?.uiFramework ?? 'none'
+  };
+}
+
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   const preset = await promptPreset(defaults?.preset);
 

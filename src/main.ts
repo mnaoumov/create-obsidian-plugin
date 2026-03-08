@@ -30,7 +30,10 @@ import {
   getInstallCommand,
   getRunCommand
 } from './features/PackageManager/index.ts';
-import { promptAnswers } from './prompts.ts';
+import {
+  getDefaultAnswers,
+  promptAnswers
+} from './prompts.ts';
 import {
   copyTemplates,
   getScriptDir,
@@ -92,19 +95,21 @@ async function main(): Promise<void> {
   process.stdout.write(banner);
   intro('Let\'s build an Obsidian plugin!');
 
+  const useDefaults = process.argv.includes('--yes') || process.argv.includes('-y');
+
   await checkForUpdates(currentVersion);
 
   const mode = await detectMode();
 
   if (mode === Mode.Create) {
-    await runCreate(currentVersion);
+    await runCreate(currentVersion, useDefaults);
   } else {
     await runUpdate(currentVersion);
   }
 }
 
-async function runCreate(currentVersion: string): Promise<void> {
-  const answers = await promptAnswers();
+async function runCreate(currentVersion: string, useDefaults: boolean): Promise<void> {
+  const answers = useDefaults ? getDefaultAnswers() : await promptAnswers();
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
 
   if (existsSync(targetDir)) {
@@ -124,7 +129,9 @@ async function runCreate(currentVersion: string): Promise<void> {
   copyTemplates(answers, targetDir, currentVersion, null);
   s.stop('Plugin scaffolded.');
 
-  await runPostScaffold(targetDir, answers);
+  if (!useDefaults) {
+    await runPostScaffold(targetDir, answers);
+  }
 
   const pm = answers.packageManager;
   const nextSteps = [
