@@ -144,14 +144,16 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
   const partials = builder.partials;
 
   let currentTemplatePath = '';
+  let renderRoot = '';
 
   const templateContext: Record<string, unknown> = {
     ...answers,
     _dependencies: builder.dependencies,
     _scripts: builder.scripts,
     render(section?: string): string {
-      const basePath = currentTemplatePath.replace(/\.ejs$/, '');
+      const basePath = (renderRoot || currentTemplatePath).replace(/\.ejs$/, '');
       const previousTemplatePath = currentTemplatePath;
+      const previousRenderRoot = renderRoot;
       let result = '';
       for (const partial of partials) {
         const partialPath = section
@@ -162,10 +164,14 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
           continue;
         }
         currentTemplatePath = partialPath;
+        if (!renderRoot) {
+          renderRoot = partialPath;
+        }
         // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard EJS API.
         result += ejs.render(readFileSync(fullPath, 'utf-8'), templateContext);
       }
       currentTemplatePath = previousTemplatePath;
+      renderRoot = previousRenderRoot;
       return result;
     }
   };
