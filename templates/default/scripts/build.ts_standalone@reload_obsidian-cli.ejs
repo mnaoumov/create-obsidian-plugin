@@ -1,6 +1,6 @@
-  try {
-    const { execSync: exec } = require('node:child_process') as typeof import('node:child_process');
-    exec('obsidian plugin:reload id=<%= pluginId %>', { stdio: 'ignore' });
-  } catch {
-    // Obsidian CLI may not be available
-  }
+try {
+  const { execSync: exec } = require('node:child_process') as typeof import('node:child_process');
+  exec('obsidian plugin:reload id=<%= pluginId %>', { stdio: 'ignore' });
+} catch {
+  // Obsidian CLI may not be available
+}
