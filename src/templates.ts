@@ -152,7 +152,7 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
     ...answers,
     _dependencies: builder.dependencies,
     _scripts: builder.scripts,
-    render(section?: string, indent = ''): string {
+    render(section?: string, indentLevel = 0): string {
       const basePath = (renderRoot || currentTemplatePath).replace(/\.ejs$/, '');
       const previousTemplatePath = currentTemplatePath;
       const previousRenderRoot = renderRoot;
@@ -171,7 +171,8 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
         }
         // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard EJS API.
         let rendered = ejs.render(readFileSync(fullPath, 'utf-8'), templateContext);
-        if (indent) {
+        if (indentLevel > 0) {
+          const indent = '  '.repeat(indentLevel);
           rendered = rendered.replaceAll('\n', `\n${indent}`);
         }
         result += rendered;
