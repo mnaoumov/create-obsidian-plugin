@@ -16,6 +16,7 @@ import { promptFormatter } from './features/Formatter/index.ts';
 import { promptGitHubActions } from './features/GitHubActions/index.ts';
 import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
 import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
+import { promptHotReload } from './features/HotReload/index.ts';
 import { promptInternationalization } from './features/Internationalization/index.ts';
 import { promptLinter } from './features/Linter/index.ts';
 import { promptMarkdownLinter } from './features/MarkdownLinter/index.ts';
@@ -46,6 +47,7 @@ interface ToolingOptions {
   gitHubActions: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
+  hotReload: string;
   internationalization: string;
   linter: string;
   markdownLinter: string;
@@ -97,6 +99,27 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
 
 function extractWords(pluginId: string): string[] {
   return pluginId.split('-').map((w) => (w[0] ?? '').toUpperCase() + w.slice(1));
+}
+
+function getDefaultTooling(preset: string): ToolingOptions {
+  return {
+    apiSubset: 'official',
+    commitLinting: 'conventional-commits',
+    e2eTestRunner: 'none',
+    editorExtensions: preset === 'demo' ? 'codemirror' : 'none',
+    formatter: 'prettier',
+    gitHubActions: 'ci-and-release',
+    gitHubFunding: 'funding-yml',
+    gitHubIssueTemplates: 'bug-and-feature',
+    hotReload: 'hot-reload-plugin',
+    internationalization: 'none',
+    linter: 'eslint',
+    markdownLinter: 'markdownlint',
+    spellChecker: 'cspell',
+    styling: preset === 'demo' ? 'scss' : 'none',
+    testRunner: 'vitest',
+    wasmSupport: 'none'
+  };
 }
 
 function makePluginName(pluginId: string): string {
@@ -200,58 +223,31 @@ async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetada
 }
 
 async function promptTooling(preset: string, defaults?: Partial<Answers>): Promise<ToolingOptions> {
-  let linter = 'eslint';
-  let formatter = 'prettier';
-  let spellChecker = 'cspell';
-  let markdownLinter = 'markdownlint';
-  let editorExtensions = preset === 'demo' ? 'codemirror' : 'none';
-  let styling = preset === 'demo' ? 'scss' : 'none';
-  let wasmSupport = 'none';
-  let testRunner = 'vitest';
-  let e2eTestRunner = 'none';
-  let apiSubset = 'official';
-  let commitLinting = 'conventional-commits';
-  let internationalization = 'none';
-  let gitHubActions = 'ci-and-release';
-  let gitHubIssueTemplates = 'bug-and-feature';
-  let gitHubFunding = 'funding-yml';
+  const tooling = getDefaultTooling(preset);
 
-  if (preset !== 'demo') {
-    linter = await promptLinter(defaults?.linter);
-    formatter = await promptFormatter(defaults?.formatter);
-    spellChecker = await promptSpellChecker(defaults?.spellChecker);
-    markdownLinter = await promptMarkdownLinter(defaults?.markdownLinter);
-    testRunner = await promptTestRunner(defaults?.testRunner);
-    e2eTestRunner = await promptE2eTestRunner(defaults?.e2eTestRunner);
-    editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
-    styling = await promptStyling(defaults?.styling);
-    wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
-    commitLinting = await promptCommitLinting(defaults?.commitLinting);
-    internationalization = await promptInternationalization(defaults?.internationalization);
-    gitHubActions = await promptGitHubActions(defaults?.gitHubActions);
-    gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
-    gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
-
-    if (preset === 'enhanced') {
-      apiSubset = await promptApiSubset(defaults?.apiSubset);
-    }
+  if (preset === 'demo') {
+    return tooling;
   }
 
-  return {
-    apiSubset,
-    commitLinting,
-    e2eTestRunner,
-    editorExtensions,
-    formatter,
-    gitHubActions,
-    gitHubFunding,
-    gitHubIssueTemplates,
-    internationalization,
-    linter,
-    markdownLinter,
-    spellChecker,
-    styling,
-    testRunner,
-    wasmSupport
-  };
+  tooling.linter = await promptLinter(defaults?.linter);
+  tooling.formatter = await promptFormatter(defaults?.formatter);
+  tooling.spellChecker = await promptSpellChecker(defaults?.spellChecker);
+  tooling.markdownLinter = await promptMarkdownLinter(defaults?.markdownLinter);
+  tooling.testRunner = await promptTestRunner(defaults?.testRunner);
+  tooling.e2eTestRunner = await promptE2eTestRunner(defaults?.e2eTestRunner);
+  tooling.editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
+  tooling.styling = await promptStyling(defaults?.styling);
+  tooling.wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
+  tooling.commitLinting = await promptCommitLinting(defaults?.commitLinting);
+  tooling.hotReload = await promptHotReload(defaults?.hotReload);
+  tooling.internationalization = await promptInternationalization(defaults?.internationalization);
+  tooling.gitHubActions = await promptGitHubActions(defaults?.gitHubActions);
+  tooling.gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
+  tooling.gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
+
+  if (preset === 'enhanced') {
+    tooling.apiSubset = await promptApiSubset(defaults?.apiSubset);
+  }
+
+  return tooling;
 }

@@ -19,6 +19,7 @@ export interface Answers {
   gitHubActions: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
+  hotReload: string;
   internationalization: string;
   linter: string;
   markdownLinter: string;
