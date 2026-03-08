@@ -10,8 +10,8 @@ export class Eslint extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@eslint/js')
-      .addPackage('eslint-plugin-obsidianmd', '0.1.9')
-      .addPackage('globals', '14.0.0')
+      .addPackage('eslint-plugin-obsidianmd')
+      .addPackage('globals')
       .addPackage('typescript-eslint')
       .addScript('lint')
       .addScript('lint:fix')
