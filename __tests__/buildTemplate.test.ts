@@ -25,6 +25,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     gitHubActions: 'ci-and-release',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
+    internationalization: 'none',
     linter: 'eslint',
     markdownLinter: 'markdownlint',
     packageManager: 'npm',
@@ -379,6 +380,33 @@ describe('buildTemplate', () => {
       const files = [...builder.templateFiles];
       expect(files).toContain('src/styles/main.module.css');
       expect(files).toContain('src/styles/css-modules.d.ts');
+    });
+  });
+
+  describe('internationalization feature', () => {
+    it('adds i18next files and dependency', () => {
+      const builder = buildTemplate(makeAnswers({ internationalization: 'i18next' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('i18next');
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/i18n/index.ts');
+      expect(files).toContain('src/i18n/locales/en.json');
+    });
+
+    it('adds typesafe-i18n files and dependency', () => {
+      const builder = buildTemplate(makeAnswers({ internationalization: 'typesafe-i18n' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('typesafe-i18n');
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/i18n/index.ts');
+      expect(files).toContain('src/i18n/en/index.ts');
+      expect(files).toContain('.typesafe-i18n.json');
+    });
+
+    it('adds no files for none', () => {
+      const builder = buildTemplate(makeAnswers({ internationalization: 'none' }));
+      const files = [...builder.templateFiles];
+      expect(files).not.toContain('src/i18n/index.ts');
     });
   });
 

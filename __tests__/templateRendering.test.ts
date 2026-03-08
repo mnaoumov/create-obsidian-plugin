@@ -35,6 +35,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     gitHubActions: 'none',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
+    internationalization: 'none',
     linter: 'none',
     markdownLinter: 'none',
     packageManager: 'npm',

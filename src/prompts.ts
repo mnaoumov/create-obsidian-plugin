@@ -16,6 +16,7 @@ import { promptFormatter } from './features/Formatter/index.ts';
 import { promptGitHubActions } from './features/GitHubActions/index.ts';
 import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
 import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
+import { promptInternationalization } from './features/Internationalization/index.ts';
 import { promptLinter } from './features/Linter/index.ts';
 import { promptMarkdownLinter } from './features/MarkdownLinter/index.ts';
 import { promptPackageManager } from './features/PackageManager/index.ts';
@@ -45,6 +46,7 @@ interface ToolingOptions {
   gitHubActions: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
+  internationalization: string;
   linter: string;
   markdownLinter: string;
   spellChecker: string;
@@ -209,6 +211,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
   let e2eTestRunner = 'none';
   let apiSubset = 'official';
   let commitLinting = 'conventional-commits';
+  let internationalization = 'none';
   let gitHubActions = 'ci-and-release';
   let gitHubIssueTemplates = 'bug-and-feature';
   let gitHubFunding = 'funding-yml';
@@ -224,6 +227,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     styling = await promptStyling(defaults?.styling);
     wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
     commitLinting = await promptCommitLinting(defaults?.commitLinting);
+    internationalization = await promptInternationalization(defaults?.internationalization);
     gitHubActions = await promptGitHubActions(defaults?.gitHubActions);
     gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
     gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
@@ -242,6 +246,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     gitHubActions,
     gitHubFunding,
     gitHubIssueTemplates,
+    internationalization,
     linter,
     markdownLinter,
     spellChecker,

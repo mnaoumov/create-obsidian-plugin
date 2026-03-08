@@ -30,6 +30,7 @@ import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/GitHubActions/index.ts';
 import { GITHUB_FUNDING_OPTIONS } from './features/GitHubFunding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/GitHubIssueTemplates/index.ts';
+import { INTERNATIONALIZATION_OPTIONS } from './features/Internationalization/index.ts';
 import { LINTER_OPTIONS } from './features/Linter/index.ts';
 import { MARKDOWN_LINTER_OPTIONS } from './features/MarkdownLinter/index.ts';
 import { PRESET_OPTIONS } from './features/Preset/index.ts';
@@ -76,6 +77,7 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'editorExtensions', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'styling', options: STYLING_OPTIONS },
   { answerKey: 'commitLinting', options: COMMIT_LINTING_OPTIONS },
+  { answerKey: 'internationalization', options: INTERNATIONALIZATION_OPTIONS },
   { answerKey: 'gitHubActions', options: GITHUB_ACTIONS_OPTIONS },
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
   { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
