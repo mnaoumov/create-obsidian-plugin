@@ -353,6 +353,33 @@ describe('buildTemplate', () => {
     });
   });
 
+  describe('styling feature', () => {
+    it('adds postcss packages and files', () => {
+      const builder = buildTemplate(makeAnswers({ styling: 'postcss' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('postcss');
+      expect(depNames).toContain('autoprefixer');
+      expect([...builder.templateFiles]).toContain('postcss.config.mjs');
+      expect([...builder.templateFiles]).toContain('scripts/postcss.config.ts');
+    });
+
+    it('adds tailwind packages and files', () => {
+      const builder = buildTemplate(makeAnswers({ styling: 'tailwind' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('tailwindcss');
+      expect(depNames).toContain('postcss');
+      expect([...builder.templateFiles]).toContain('tailwind.config.ts');
+      expect([...builder.templateFiles]).toContain('scripts/tailwind.config.ts');
+    });
+
+    it('adds css modules files', () => {
+      const builder = buildTemplate(makeAnswers({ styling: 'css-modules' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/styles/main.module.css');
+      expect(files).toContain('src/styles/css-modules.d.ts');
+    });
+  });
+
   describe('demo preset', () => {
     it('activates override features even when not selected', () => {
       const builder = buildTemplate(makeAnswers({
