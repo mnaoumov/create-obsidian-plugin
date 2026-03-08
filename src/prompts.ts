@@ -13,7 +13,6 @@ import { promptCssMode } from './features/CssMode/index.ts';
 import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
 import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
 import { promptFormatter } from './features/Formatter/index.ts';
-import { promptFramework } from './features/Framework/index.ts';
 import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
 import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
 import { promptLinter } from './features/Linter/index.ts';
@@ -23,6 +22,7 @@ import { promptPlatformSupport } from './features/PlatformSupport/index.ts';
 import { promptPreset } from './features/Preset/index.ts';
 import { promptSpellChecker } from './features/SpellChecker/index.ts';
 import { promptTestRunner } from './features/TestRunner/index.ts';
+import { promptUiFramework } from './features/UiFramework/index.ts';
 import { promptWasmSupport } from './features/WasmSupport/index.ts';
 
 interface PluginMetadata {
@@ -56,9 +56,9 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
     ? 'esbuild'
     : await promptBuildSystem(defaults?.buildSystem);
 
-  const framework = preset === 'demo'
+  const uiFramework = preset === 'demo'
     ? 'none'
-    : await promptFramework(defaults?.framework);
+    : await promptUiFramework(defaults?.uiFramework);
 
   const tooling = await promptTooling(preset, defaults);
 
@@ -70,10 +70,10 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
   const features = {
     ...tooling,
     buildSystem,
-    framework,
     packageManager,
     platformSupport,
-    preset
+    preset,
+    uiFramework
   };
 
   return {

@@ -27,7 +27,6 @@ import { CSS_MODE_OPTIONS } from './features/CssMode/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
-import { FRAMEWORK_OPTIONS } from './features/Framework/index.ts';
 import { GITHUB_FUNDING_OPTIONS } from './features/GitHubFunding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/GitHubIssueTemplates/index.ts';
 import { LINTER_OPTIONS } from './features/Linter/index.ts';
@@ -35,6 +34,7 @@ import { MARKDOWN_LINTER_OPTIONS } from './features/MarkdownLinter/index.ts';
 import { PRESET_OPTIONS } from './features/Preset/index.ts';
 import { SPELL_CHECKER_OPTIONS } from './features/SpellChecker/index.ts';
 import { TEST_RUNNER_OPTIONS } from './features/TestRunner/index.ts';
+import { UI_FRAMEWORK_OPTIONS } from './features/UiFramework/index.ts';
 import { WASM_SUPPORT_OPTIONS } from './features/WasmSupport/index.ts';
 import { TemplateBuilder } from './TemplateBuilder.ts';
 
@@ -64,7 +64,7 @@ interface FeatureRegistry {
 const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'preset', options: PRESET_OPTIONS },
   { answerKey: 'buildSystem', options: BUILD_SYSTEM_OPTIONS },
-  { answerKey: 'framework', options: FRAMEWORK_OPTIONS },
+  { answerKey: 'uiFramework', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'linter', options: LINTER_OPTIONS },
   { answerKey: 'formatter', options: FORMATTER_OPTIONS },
   { answerKey: 'spellChecker', options: SPELL_CHECKER_OPTIONS },
@@ -80,9 +80,9 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
 ];
 
 const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: readonly FeatureOption[] }[] = [
-  { answerKey: 'framework', demoValue: 'react', options: FRAMEWORK_OPTIONS },
-  { answerKey: 'framework', demoValue: 'svelte', options: FRAMEWORK_OPTIONS },
-  { answerKey: 'framework', demoValue: 'vue', options: FRAMEWORK_OPTIONS },
+  { answerKey: 'uiFramework', demoValue: 'react', options: UI_FRAMEWORK_OPTIONS },
+  { answerKey: 'uiFramework', demoValue: 'svelte', options: UI_FRAMEWORK_OPTIONS },
+  { answerKey: 'uiFramework', demoValue: 'vue', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'editorExtensions', demoValue: 'codemirror', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'linter', demoValue: 'eslint', options: LINTER_OPTIONS },
   { answerKey: 'markdownLinter', demoValue: 'markdownlint', options: MARKDOWN_LINTER_OPTIONS },
@@ -247,7 +247,9 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   if (!existsSync(configPath)) {
     return null;
   }
-  return JSON.parse(readFileSync(configPath, 'utf-8')) as unknown as GeneratorConfig;
+  const config = JSON.parse(readFileSync(configPath, 'utf-8')) as unknown as GeneratorConfig;
+  migrateConfig(config);
+  return config;
 }
 
 function getDestinationPath(templatePath: string, answers: Answers): string {
@@ -283,6 +285,17 @@ function logUpdateSummary(updated: string[], created: string[], skipped: string[
 
   if (updated.length === 0 && created.length === 0) {
     log.info('Everything is already up to date.');
+  }
+}
+
+function migrateConfig(config: GeneratorConfig): void {
+  if (!config.answers) {
+    return;
+  }
+  const raw = config.answers as unknown as Record<string, unknown>;
+  if (raw['framework'] && !raw['uiFramework']) {
+    raw['uiFramework'] = raw['framework'];
+    delete raw['framework'];
   }
 }
 

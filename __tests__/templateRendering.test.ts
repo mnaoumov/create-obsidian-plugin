@@ -31,7 +31,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     e2eTestRunner: 'none',
     editorExtensions: 'none',
     formatter: 'none',
-    framework: 'none',
     fundingUrl: '',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
@@ -46,6 +45,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     preset: 'standalone',
     spellChecker: 'none',
     testRunner: 'none',
+    uiFramework: 'none',
     wasmSupport: 'none',
     ...overrides
   };

@@ -21,7 +21,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     e2eTestRunner: 'none',
     editorExtensions: 'none',
     formatter: 'prettier',
-    framework: 'none',
     fundingUrl: '',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
@@ -36,6 +35,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     preset: 'enhanced',
     spellChecker: 'cspell',
     testRunner: 'none',
+    uiFramework: 'none',
     wasmSupport: 'none',
     ...overrides
   };
@@ -86,15 +86,15 @@ describe('buildTemplate', () => {
       const presets: Partial<Answers>[] = [
         { formatter: 'none', linter: 'none', markdownLinter: 'none', preset: 'standalone', spellChecker: 'none' },
         { preset: 'enhanced' },
-        { framework: 'none', linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest' },
+        { linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest', uiFramework: 'none' },
         {
           apiSubset: 'with-unofficial',
           buildSystem: 'vite',
           cssMode: 'scss',
           e2eTestRunner: 'wdio-obsidian',
           editorExtensions: 'codemirror',
-          framework: 'svelte',
-          testRunner: 'vitest'
+          testRunner: 'vitest',
+          uiFramework: 'svelte'
         }
       ];
 
@@ -218,9 +218,9 @@ describe('buildTemplate', () => {
     });
   });
 
-  describe('framework feature', () => {
+  describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'esbuild', framework: 'svelte' }));
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'esbuild', uiFramework: 'svelte' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('svelte');
       expect(depNames).toContain('svelte-check');
@@ -228,7 +228,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds react packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', framework: 'react' }));
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'react' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('react');
       expect(depNames).toContain('react-dom');
@@ -278,12 +278,12 @@ describe('buildTemplate', () => {
   describe('demo preset', () => {
     it('activates override features even when not selected', () => {
       const builder = buildTemplate(makeAnswers({
-        framework: 'none',
         linter: 'none',
         markdownLinter: 'none',
         preset: 'demo',
         spellChecker: 'none',
-        testRunner: 'vitest'
+        testRunner: 'vitest',
+        uiFramework: 'none'
       }));
       // Demo should activate react, svelte, eslint, markdownlint, cspell, scss, codemirror
       const depNames = builder.dependencies.map((d) => d.packageName);

@@ -15,7 +15,6 @@ export interface Answers {
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
-  framework: string;
   fundingUrl: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
@@ -30,6 +29,7 @@ export interface Answers {
   preset: string;
   spellChecker: string;
   testRunner: string;
+  uiFramework: string;
   wasmSupport: string;
 }
 
