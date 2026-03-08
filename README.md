@@ -4,7 +4,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/mnaoumov/create-obsidian-plugin)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
 [![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/create-obsidian-plugin/total)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
 
-Create and update Obsidian plugins from modern templates.
+An npm scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin projects from modern templates. Supports creating new plugins and updating existing ones.
 
 ## Create a new plugin
 
@@ -30,16 +30,138 @@ The updater will:
 - Skip files you've customized (with a warning)
 - Create any new files added to the template
 
-## Features of the generated template
+## Feature options
 
-- [Obsidian Extended Typings](https://github.com/Fevol/obsidian-typings/) for internal [Obsidian](https://obsidian.md/) API.
-- Code style is forced via [`ESLint`](https://eslint.org/).
-- Spell checking is forced via [`CSpell`](https://cspell.org/).
-- Code formatting is forced via [`dprint`](https://dprint.dev/).
-- CLI commands and code helpers from [Obsidian Dev Utils](https://github.com/mnaoumov/obsidian-dev-utils).
-- Supports [Svelte](https://svelte.dev/) components.
-- Supports [React](https://react.dev) components.
-- Supports [SASS](https://sass-lang.com/) for CSS pre-processing.
+The wizard lets you pick and choose from the following categories:
+
+### Presets
+
+| Option | Description |
+|--------|-------------|
+| **Standalone** | Self-contained scripts with no external runtime dependencies |
+| **Enhanced** | One-liner wrapper scripts powered by [obsidian-dev-utils](https://github.com/mnaoumov/obsidian-dev-utils) |
+| **Demo** | Full-featured demo showcasing all capabilities |
+
+### Build systems
+
+| Option | Description |
+|--------|-------------|
+| **esbuild** | Fast bundler with plugin ecosystem |
+| **Rollup** | Tree-shaking bundler with rich plugin system |
+| **Vite** | Modern dev server and build tool |
+| **Webpack** | Widely-used bundler with loaders and plugins |
+| **Parcel** | Zero-config bundler |
+
+### UI frameworks
+
+| Option | Description |
+|--------|-------------|
+| **React** | Component library with JSX |
+| **Preact** | Lightweight React alternative |
+| **Svelte** | Compiler-based reactive framework |
+| **Vue** | Progressive framework with SFC support |
+| **Solid** | Fine-grained reactive framework |
+| **Lit** | Web components with decorators |
+| **None** | Vanilla TypeScript |
+
+### Linters
+
+| Option | Description |
+|--------|-------------|
+| **ESLint** | Industry standard for JavaScript/TypeScript |
+| **Biome** | Fast all-in-one toolchain |
+| **None** | No linting |
+
+### Formatters
+
+| Option | Description |
+|--------|-------------|
+| **Prettier** | Opinionated code formatter |
+| **dprint** | Fast formatter written in Rust |
+| **Biome** | Integrated formatting via Biome |
+| **None** | No formatting |
+
+### Styling
+
+| Option | Description |
+|--------|-------------|
+| **CSS** | Plain CSS |
+| **SCSS** | Sass preprocessor |
+| **PostCSS** | CSS transformations with plugins |
+| **Tailwind CSS** | Utility-first CSS framework |
+| **CSS Modules** | Scoped CSS with type declarations |
+| **None** | No styling setup |
+
+### Test runners
+
+| Option | Description |
+|--------|-------------|
+| **Vitest** | Fast Vite-native test runner |
+| **Jest** | Full-featured test framework |
+| **None** | No unit testing |
+
+### E2E test runners
+
+| Option | Description |
+|--------|-------------|
+| **wdio-obsidian** | WebdriverIO with Obsidian service |
+| **obsidian-test** | Embedded Obsidian test runner |
+| **None** | No E2E testing |
+
+### Editor extensions
+
+| Option | Description |
+|--------|-------------|
+| **CodeMirror** | StateField, ViewPlugin, Widget, EditorSuggest samples |
+| **None** | No editor extensions |
+
+### Commit linting
+
+| Option | Description |
+|--------|-------------|
+| **Conventional Commits** | commitlint + husky + lint-staged |
+| **None** | No commit linting |
+
+### Hot reload
+
+| Option | Description |
+|--------|-------------|
+| **Hot Reload Plugin** | Creates `.hotreload` marker for [pjeby/hot-reload](https://github.com/pjeby/hot-reload) |
+| **None** | No hot reload support |
+
+### Internationalization
+
+| Option | Description |
+|--------|-------------|
+| **i18next** | Popular i18n framework with JSON translations |
+| **typesafe-i18n** | Type-safe i18n with auto-generated types |
+| **None** | No internationalization |
+
+### Additional options
+
+- **Spell checker**: CSpell or none
+- **Markdown linter**: markdownlint or none
+- **GitHub Actions**: CI + Release, CI only, or none
+- **GitHub issue templates**: Bug and feature templates or none
+- **GitHub funding**: FUNDING.yml or none
+- **WASM support**: WebAssembly module support or none
+- **Platform support**: Desktop and mobile, desktop only, or mobile only
+- **API subset**: Official API or with unofficial typings
+- **Package manager**: npm, pnpm, yarn, or bun
+
+## Configuration file
+
+The `.create-obsidian-plugin.json` file stores:
+
+- `generatorVersion` — version of the generator that created the project
+- `fileHashes` — SHA-256 hashes of generated files for update detection
+
+## Architecture
+
+- **EJS templates** with a partial-based composition system
+- **Logicless templates** — no `<% if %>` conditionals; conditional content via partials
+- **Two-tier scripts** — standalone has full inline scripts; enhanced wraps obsidian-dev-utils
+- **Root configs are thin wrappers** — actual logic lives in `scripts/`
 
 ## Sample output
 
