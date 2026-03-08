@@ -1,13 +1,13 @@
 import {
   cancel,
   group,
-  select,
-  text
+  select
 } from '@clack/prompts';
 import { basename } from 'node:path';
 
 import type { Answers } from './Answers.ts';
 
+import { text } from './clack-text.ts';
 import { assertNotCancelled } from './clack-utils.ts';
 import { promptApiSubset } from './features/ApiSubset/index.ts';
 import { promptBundler } from './features/Bundler/index.ts';

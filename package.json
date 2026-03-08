@@ -25,6 +25,7 @@
     "package.json"
   ],
   "dependencies": {
+    "@clack/core": "latest",
     "@clack/prompts": "latest",
     "ejs": "latest",
     "semver": "latest"
