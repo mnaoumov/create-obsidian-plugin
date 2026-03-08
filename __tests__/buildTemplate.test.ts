@@ -303,6 +303,15 @@ describe('buildTemplate', () => {
       expect(files).toContain('src/SolidComponents/SampleSolidComponent.tsx');
       expect(files).toContain('src/Views/SampleSolidView.tsx');
     });
+
+    it('adds lit packages and files', () => {
+      const builder = buildTemplate(makeAnswers({ uiFramework: 'lit' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('lit');
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/LitElements/SampleLitElement.ts');
+      expect(files).toContain('src/Views/SampleLitView.ts');
+    });
   });
 
   describe('preset feature', () => {

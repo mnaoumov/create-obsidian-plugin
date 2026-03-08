@@ -1,0 +1,30 @@
+import { ItemView } from 'obsidian';
+
+import '../LitElements/SampleLitElement.ts';
+
+export const SAMPLE_LIT_VIEW_TYPE = '<%= pluginId %>-SampleLitView';
+
+export class SampleLitView extends ItemView {
+  public override getDisplayText(): string {
+    return 'Sample Lit view';
+  }
+
+  public override getViewType(): string {
+    return SAMPLE_LIT_VIEW_TYPE;
+  }
+
+  public override async onClose(): Promise<void> {
+    this.contentEl.empty();
+    await Promise.resolve();
+  }
+
+  public override async onOpen(): Promise<void> {
+    const START_COUNT = 10;
+    const el = document.createElement('sample-lit-element');
+    el.setAttribute('count', String(START_COUNT));
+    el.setAttribute('vaultName', this.app.vault.getName());
+    this.contentEl.appendChild(el);
+
+    await Promise.resolve();
+  }
+}
