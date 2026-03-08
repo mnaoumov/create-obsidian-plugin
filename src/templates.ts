@@ -50,9 +50,6 @@ const BASE_TEMPLATE_FILES = [
   'README.md',
   'manifest.json',
   'package.json',
-  'scripts/build.ts',
-  'scripts/dev.ts',
-  'scripts/version.ts',
   'src/Plugin.ts',
   'src/main.ts',
   'tsconfig.json',
@@ -103,9 +100,6 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     .addPackage('obsidian')
     .addPackage('tslib')
     .addPackage('typescript')
-    .addScript('dev')
-    .addScript('build')
-    .addScript('version')
     .addPartial('common');
 
   if (answers.fundingUrl) {

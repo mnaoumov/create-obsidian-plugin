@@ -13,7 +13,13 @@ export class Demo extends FeatureOption {
       .addPackage('moment', '2.29.4')
       .addPackage('obsidian-dev-utils')
       .addPackage('type-fest')
+      .addScript('dev')
+      .addScript('build')
+      .addScript('version')
       .addFiles([
+        'scripts/build.ts',
+        'scripts/dev.ts',
+        'scripts/version.ts',
         'src/Modals/SampleModal.ts',
         'src/PluginSettings.ts',
         'src/PluginSettingsManager.ts',

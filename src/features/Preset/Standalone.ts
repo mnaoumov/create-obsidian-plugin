@@ -8,6 +8,15 @@ export class Standalone extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder): void {
-    builder.addFiles(['src/settings.ts']);
+    builder
+      .addScript('dev')
+      .addScript('build')
+      .addScript('version')
+      .addFiles([
+        'scripts/build.ts',
+        'scripts/dev.ts',
+        'scripts/version.ts',
+        'src/settings.ts'
+      ]);
   }
 }
