@@ -1,6 +1,7 @@
 import type {
   Editor,
   MarkdownPostProcessorContext,
+  MenuItem,
   ObsidianProtocolData,
   TAbstractFile
 } from 'obsidian';
@@ -10,6 +11,7 @@ import type { ReadonlyDeep } from 'type-fest';
 
 import {
   MarkdownView,
+  Menu,
   Notice
 } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/Async';
@@ -26,6 +28,7 @@ import { sampleStateField } from './EditorExtensions/SampleStateField.ts';
 import { sampleViewPlugin } from './EditorExtensions/SampleViewPlugin.ts';
 import { SampleEditorSuggest } from './EditorSuggests/SampleEditorSuggest.ts';
 import { SampleModal } from './Modals/SampleModal.ts';
+import { SampleSuggestModal } from './Modals/SampleSuggestModal.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
 import {
@@ -90,6 +93,9 @@ export class Plugin extends PluginBase<PluginTypes> {
 
     this.registerEvent(this.app.vault.on('create', this.handleSampleEvent.bind(this)));
 
+    this.registerEvent(this.app.workspace.on('file-menu', this.handleFileMenu.bind(this)));
+    this.registerEvent(this.app.workspace.on('editor-menu', this.handleEditorMenu.bind(this)));
+
     this.registerExtensions(['sample-extension-1', 'sample-extension-2'], SAMPLE_VIEW_TYPE);
 
     this.registerHoverLinkSource(SAMPLE_VIEW_TYPE, {
@@ -137,6 +143,28 @@ export class Plugin extends PluginBase<PluginTypes> {
   protected override async onunloadImpl(): Promise<void> {
     await super.onunloadImpl();
     new Notice('Sample plugin is being unloaded');
+  }
+
+  private handleEditorMenu(menu: Menu, editor: Editor): void {
+    menu.addItem((item: MenuItem) => {
+      item
+        .setTitle('Sample editor action')
+        .setIcon('pencil')
+        .onClick(() => {
+          new Notice(`Editor has ${String(editor.lineCount())} lines`);
+        });
+    });
+  }
+
+  private handleFileMenu(menu: Menu, file: TAbstractFile): void {
+    menu.addItem((item: MenuItem) => {
+      item
+        .setTitle('Sample file action')
+        .setIcon('file-text')
+        .onClick(() => {
+          new Notice(`File: ${file.name}`);
+        });
+    });
   }
 
   private handleSampleCodeBlockProcessor(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
@@ -205,6 +233,12 @@ export class Plugin extends PluginBase<PluginTypes> {
       callback: convertAsyncToSync(this.showSelectItem.bind(this)),
       id: 'show-select-item-modal',
       name: 'Show select item modal'
+    });
+
+    this.addCommand({
+      callback: this.showSuggestModal.bind(this),
+      id: 'show-suggest-modal',
+      name: 'Show suggest modal'
     });
   }
 
@@ -277,5 +311,9 @@ export class Plugin extends PluginBase<PluginTypes> {
       itemTextFunc: (item) => item,
       placeholder: 'Sample select item placeholder'
     });
+  }
+
+  private showSuggestModal(): void {
+    new SampleSuggestModal(this.app).open();
   }
 }

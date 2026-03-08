@@ -21,6 +21,7 @@ export class Demo extends FeatureOption {
         'scripts/dev.ts',
         'scripts/version.ts',
         'src/Modals/SampleModal.ts',
+        'src/Modals/SampleSuggestModal.ts',
         'src/PluginSettings.ts',
         'src/PluginSettingsManager.ts',
         'src/PluginSettingsTab.ts',
