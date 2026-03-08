@@ -102,7 +102,7 @@ function copyToObsidianPluginsFolderPlugin(isProduction: boolean, dist: string):
 
         const { cpSync } = await import('node:fs');
         cpSync(dist, pluginFolder, { recursive: true });
-<%- render('reload') -%>
+<%- render('reload', '        ') -%>
       });
     },
   };
