@@ -141,6 +141,15 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('typescript-eslint');
     });
 
+    it('adds biome scripts and files', () => {
+      const builder = buildTemplate(makeAnswers({ linter: 'biome' }));
+      expect(builder.scripts['lint']).toBe('jiti scripts/lint.ts');
+      expect(builder.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
+      expect([...builder.templateFiles]).toContain('biome.json');
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('@biomejs/biome');
+    });
+
     it('does not add lint scripts when linter is none', () => {
       const builder = buildTemplate(makeAnswers({ linter: 'none' }));
       expect(builder.scripts['lint']).toBeUndefined();
