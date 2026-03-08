@@ -1,0 +1,7 @@
+import type { Config } from 'lint-staged';
+
+const config: Config = {
+  '*.{ts,tsx,mts}': [<%- render('ts-commands') -%>],
+<%- render('extra-patterns') -%>};
+
+export default config;

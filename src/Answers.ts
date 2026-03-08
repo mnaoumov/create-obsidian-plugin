@@ -10,6 +10,7 @@ export interface Answers {
   authorGitHubName: string;
   authorName: string;
   buildSystem: string;
+  commitLinting: string;
   currentYear: number;
   e2eTestRunner: string;
   editorExtensions: string;

@@ -26,6 +26,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     authorGitHubName: 'testuser',
     authorName: 'Test User',
     buildSystem: 'esbuild',
+    commitLinting: 'none',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
     editorExtensions: 'none',
@@ -269,6 +270,24 @@ describe('copyTemplates', () => {
   it('creates release.yml for ci-and-release', () => {
     copyTemplates(makeAnswers({ gitHubActions: 'ci-and-release' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(true);
+  });
+
+  it('creates commitlint config for conventional-commits', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/commitlint.config.ts'), 'utf-8');
+    expect(config).toContain('@commitlint/config-conventional');
+  });
+
+  it('creates lint-staged config with eslint command', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', linter: 'eslint' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/lintstagedrc.ts'), 'utf-8');
+    expect(config).toContain('eslint --fix');
+  });
+
+  it('creates lint-staged config with prettier command', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'prettier' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/lintstagedrc.ts'), 'utf-8');
+    expect(config).toContain('prettier --write');
   });
 
   it('does not create workflow files when gitHubActions is none', () => {
