@@ -174,6 +174,15 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('dprint');
       expect(depNames).not.toContain('prettier');
     });
+
+    it('adds biome formatter scripts and files', () => {
+      const builder = buildTemplate(makeAnswers({ formatter: 'biome' }));
+      expect(builder.scripts['format']).toBe('jiti scripts/format.ts');
+      expect(builder.scripts['format:check']).toBe('jiti scripts/format-check.ts');
+      expect([...builder.templateFiles]).toContain('biome.json');
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('@biomejs/biome');
+    });
   });
 
   describe('test runner feature', () => {
