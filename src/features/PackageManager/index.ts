@@ -6,7 +6,7 @@ import { Npm } from './Npm.ts';
 import { Pnpm } from './Pnpm.ts';
 import { Yarn } from './Yarn.ts';
 
-export const PACKAGE_MANAGER_OPTIONS: readonly FeatureOption[] = [new Npm(), new Pnpm(), new Yarn(), new Bun()];
+export const PACKAGE_MANAGER_OPTIONS: readonly FeatureOption[] = [new Bun(), new Npm(), new Pnpm(), new Yarn()];
 
 export function getInstallCommand(pm: string): string {
   return `${pm} install`;
