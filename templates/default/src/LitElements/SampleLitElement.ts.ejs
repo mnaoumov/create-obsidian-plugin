@@ -1,0 +1,36 @@
+import { LitElement, css, html } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
+@customElement('sample-lit-element')
+export class SampleLitElement extends LitElement {
+  static override styles = css`
+    :host {
+      display: block;
+      padding: 16px;
+    }
+    button {
+      cursor: pointer;
+    }
+  `;
+
+  @property({ type: Number })
+  public count = 0;
+
+  @property({ type: String })
+  public vaultName = '';
+
+  override render(): unknown {
+    return html`
+      <h4>Sample Lit Element!</h4>
+      <div>
+        <span>My number is ${this.count}!</span>
+      </div>
+      <button @click=${this.increment}>Increment</button>
+      <div>Vault name: ${this.vaultName}</div>
+    `;
+  }
+
+  private increment(): void {
+    this.count++;
+  }
+}
