@@ -1,10 +1,23 @@
-import { embedded } from 'obsidian-test';
-import test from 'node:test';
 import assert from 'node:assert';
+import test from 'node:test';
+
+import { embedded } from 'obsidian-test';
 
 embedded((app) => {
   test('<%= pluginName %> loads successfully', () => {
-    // The app object is the real Obsidian App instance.
     assert.ok(app.workspace, 'Workspace should be available');
+  });
+
+  test('plugin is registered', () => {
+    const pluginId = '<%= pluginId %>';
+    const manifest = app.plugins.manifests[pluginId];
+    assert.ok(manifest, `Plugin "${pluginId}" should have a manifest`);
+    assert.strictEqual(manifest.id, pluginId);
+  });
+
+  test('sample command exists', () => {
+    const commands = app.commands.listCommands();
+    const sampleCommand = commands.find((cmd) => cmd.id === '<%= pluginId %>:sample');
+    assert.ok(sampleCommand, 'Sample command should be registered');
   });
 });

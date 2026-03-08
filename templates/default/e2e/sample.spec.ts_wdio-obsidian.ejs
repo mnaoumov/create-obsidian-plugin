@@ -1,8 +1,21 @@
 describe('<%= pluginName %>', () => {
-  it('should load the plugin', async () => {
-    // WebdriverIO + wdio-obsidian-service provides the browser object.
-    // See https://github.com/jesse-r-s-hines/wdio-obsidian-service for API docs.
+  it('should load Obsidian', async () => {
     const title = await browser.getTitle();
     expect(title).toContain('Obsidian');
+  });
+
+  it('should have the plugin enabled', async () => {
+    const result = await browser.executeObsidian(({ app }) => {
+      return app.plugins.manifests['<%= pluginId %>']?.id;
+    });
+    expect(result).toBe('<%= pluginId %>');
+  });
+
+  it('should register the sample command', async () => {
+    const result = await browser.executeObsidian(({ app }) => {
+      const commands = app.commands.listCommands();
+      return commands.some((cmd) => cmd.id === '<%= pluginId %>:sample');
+    });
+    expect(result).toBe(true);
   });
 });
