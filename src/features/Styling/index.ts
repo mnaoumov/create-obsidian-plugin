@@ -11,5 +11,5 @@ import { Tailwind } from './Tailwind.ts';
 export const STYLING_OPTIONS: readonly FeatureOption[] = [new None(), new Css(), new CssModules(), new PostCss(), new Scss(), new Tailwind()];
 
 export async function promptStyling(savedValue?: string): Promise<string> {
-  return promptFeature({ defaultOption: new None(), message: 'Styling', options: STYLING_OPTIONS, savedValue });
+  return promptFeature({ defaultOption: new Scss(), message: 'Styling', options: STYLING_OPTIONS, savedValue });
 }
