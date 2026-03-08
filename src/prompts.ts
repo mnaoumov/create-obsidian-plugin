@@ -1,12 +1,14 @@
 import {
   cancel,
   group,
+  select,
   text
 } from '@clack/prompts';
 import { basename } from 'node:path';
 
 import type { Answers } from './Answers.ts';
 
+import { assertNotCancelled } from './clack-utils.ts';
 import { promptApiSubset } from './features/ApiSubset/index.ts';
 import { promptBundler } from './features/Bundler/index.ts';
 import { promptCommitLinting } from './features/CommitLinting/index.ts';
@@ -58,43 +60,47 @@ interface ToolingOptions {
 }
 
 export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
-  const preset = defaults?.preset ?? 'enhanced';
-  const pluginId = defaults?.pluginId ?? basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin';
-  const tooling = getDefaultTooling(preset);
-
-  return {
-    ...tooling,
-    authorGitHubName: defaults?.authorGitHubName ?? 'johndoe',
-    authorName: defaults?.authorName ?? 'John Doe',
-    bundler: defaults?.bundler ?? 'esbuild',
-    currentYear: new Date().getFullYear(),
-    fundingUrl: defaults?.fundingUrl ?? '',
-    packageManager: defaults?.packageManager ?? 'npm',
-    platformSupport: defaults?.platformSupport ?? 'desktop-only',
-    pluginDescription: defaults?.pluginDescription ?? 'Does something awesome.',
-    pluginId,
-    pluginName: defaults?.pluginName ?? makePluginName(pluginId),
-    pluginShortName: extractWords(pluginId).join(''),
-    preset,
-    uiFramework: defaults?.uiFramework ?? 'none'
-  };
+  const pluginId = defaults?.pluginId ?? (basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin');
+  const base = getDefaultAnswersBase(pluginId);
+  if (!defaults) {
+    return base;
+  }
+  const overrides: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(defaults) as [string, unknown][]) {
+    if (value !== undefined) {
+      overrides[key] = value;
+    }
+  }
+  return { ...base, ...overrides as Partial<Answers> };
 }
 
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   const preset = await promptPreset(defaults?.preset);
 
-  const bundler = preset === 'demo'
-    ? 'esbuild'
-    : await promptBundler(defaults?.bundler);
+  const toolingMode = preset === 'demo'
+    ? 'defaults'
+    : await promptToolingMode();
 
-  const uiFramework = preset === 'demo'
-    ? 'none'
-    : await promptUiFramework(defaults?.uiFramework);
+  let bundler: string;
+  let uiFramework: string;
+  let tooling: ToolingOptions;
+  let packageManager: string;
+  let platformSupport: string;
 
-  const tooling = await promptTooling(preset, defaults);
-
-  const packageManager = await promptPackageManager(defaults?.packageManager);
-  const platformSupport = await promptPlatformSupport(defaults?.platformSupport);
+  if (toolingMode === 'customize') {
+    bundler = await promptBundler(defaults?.bundler);
+    uiFramework = await promptUiFramework(defaults?.uiFramework);
+    tooling = await promptTooling(preset, defaults);
+    packageManager = await promptPackageManager(defaults?.packageManager);
+    platformSupport = await promptPlatformSupport(defaults?.platformSupport);
+  } else {
+    const defaultAnswers = getDefaultAnswers(defaults);
+    bundler = preset === 'demo' ? 'esbuild' : defaultAnswers.bundler;
+    uiFramework = preset === 'demo' ? 'none' : defaultAnswers.uiFramework;
+    tooling = getDefaultTooling(preset);
+    packageManager = defaultAnswers.packageManager;
+    platformSupport = defaultAnswers.platformSupport;
+  }
 
   const metadata = await promptMetadata(defaults);
 
@@ -122,6 +128,25 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
 
 function extractWords(pluginId: string): string[] {
   return pluginId.split('-').map((w) => (w[0] ?? '').toUpperCase() + w.slice(1));
+}
+
+function getDefaultAnswersBase(pluginId: string): Answers {
+  return {
+    ...getDefaultTooling('enhanced'),
+    authorGitHubName: 'johndoe',
+    authorName: 'John Doe',
+    bundler: 'esbuild',
+    currentYear: new Date().getFullYear(),
+    fundingUrl: '',
+    packageManager: 'npm',
+    platformSupport: 'desktop-only',
+    pluginDescription: 'Does something awesome.',
+    pluginId,
+    pluginName: makePluginName(pluginId),
+    pluginShortName: extractWords(pluginId).join(''),
+    preset: 'enhanced',
+    uiFramework: 'none'
+  };
 }
 
 function getDefaultTooling(preset: string): ToolingOptions {
@@ -273,4 +298,17 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
   }
 
   return tooling;
+}
+
+async function promptToolingMode(): Promise<string> {
+  const result = await select({
+    initialValue: 'defaults',
+    message: 'Tooling',
+    options: [
+      { hint: 'ESLint, dprint, SCSS, Vitest, and more', label: 'Use recommended defaults', value: 'defaults' },
+      { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' }
+    ]
+  });
+  assertNotCancelled(result);
+  return result;
 }
