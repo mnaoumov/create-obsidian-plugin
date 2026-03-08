@@ -21,6 +21,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     editorExtensions: 'none',
     formatter: 'prettier',
     fundingUrl: '',
+    gitHubActions: 'ci-and-release',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
     linter: 'eslint',
@@ -377,6 +378,29 @@ describe('buildTemplate', () => {
       const files = [...builder.templateFiles];
       expect(files).toContain('src/styles/main.module.css');
       expect(files).toContain('src/styles/css-modules.d.ts');
+    });
+  });
+
+  describe('gitHubActions feature', () => {
+    it('adds ci and release workflows for ci-and-release', () => {
+      const builder = buildTemplate(makeAnswers({ gitHubActions: 'ci-and-release' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('.github/workflows/ci.yml');
+      expect(files).toContain('.github/workflows/release.yml');
+    });
+
+    it('adds only ci workflow for ci', () => {
+      const builder = buildTemplate(makeAnswers({ gitHubActions: 'ci' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('.github/workflows/ci.yml');
+      expect(files).not.toContain('.github/workflows/release.yml');
+    });
+
+    it('adds no workflows for none', () => {
+      const builder = buildTemplate(makeAnswers({ gitHubActions: 'none' }));
+      const files = [...builder.templateFiles];
+      expect(files).not.toContain('.github/workflows/ci.yml');
+      expect(files).not.toContain('.github/workflows/release.yml');
     });
   });
 

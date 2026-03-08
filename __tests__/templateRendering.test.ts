@@ -31,6 +31,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     editorExtensions: 'none',
     formatter: 'none',
     fundingUrl: '',
+    gitHubActions: 'none',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
     linter: 'none',
@@ -245,6 +246,35 @@ describe('copyTemplates', () => {
     expect(lintMd).not.toContain('--fix');
     const lintMdFix = readFileSync(join(targetDir, 'scripts/lint-md-fix.ts'), 'utf-8');
     expect(lintMdFix).toContain('markdownlint-cli2 --fix');
+  });
+
+  it('creates ci.yml with eslint step when eslint is selected', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'ci', linter: 'eslint' }), targetDir, '1.0.0', null);
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect(ci).toContain('npm run lint');
+  });
+
+  it('creates ci.yml with biome step when biome linter is selected', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'ci', linter: 'biome' }), targetDir, '1.0.0', null);
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect(ci).toContain('npm run lint');
+  });
+
+  it('creates ci.yml with vitest step when vitest is selected', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'ci', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect(ci).toContain('npm test');
+  });
+
+  it('creates release.yml for ci-and-release', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'ci-and-release' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(true);
+  });
+
+  it('does not create workflow files when gitHubActions is none', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'none' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, '.github/workflows/ci.yml'))).toBe(false);
+    expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(false);
   });
 
   it('writes generator config file', () => {

@@ -15,6 +15,7 @@ export interface Answers {
   editorExtensions: string;
   formatter: string;
   fundingUrl: string;
+  gitHubActions: string;
   gitHubFunding: string;
   gitHubIssueTemplates: string;
   linter: string;
