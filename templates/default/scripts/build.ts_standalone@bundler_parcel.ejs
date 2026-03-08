@@ -40,5 +40,5 @@ function copyToObsidianPluginsFolder(dist: string): void {
   }
   const { cpSync } = require('node:fs') as typeof import('node:fs');
   cpSync(dist, pluginFolder, { recursive: true });
-<%- render('reload', 1) -%>
+<%- render({ section: 'reload', indentLevel: 1 }) -%>
 }

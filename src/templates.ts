@@ -65,6 +65,11 @@ interface FeatureRegistry {
   options: readonly FeatureOption[];
 }
 
+interface RenderOptions {
+  indentLevel?: number;
+  section?: string;
+}
+
 const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'preset', options: PRESET_OPTIONS },
   { answerKey: 'buildSystem', options: BUILD_SYSTEM_OPTIONS },
@@ -152,7 +157,10 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
     ...answers,
     _dependencies: builder.dependencies,
     _scripts: builder.scripts,
-    render(section?: string, indentLevel = 0): string {
+    render(options?: RenderOptions | string): string {
+      const { indentLevel, section } = typeof options === 'string'
+        ? { indentLevel: 0, section: options }
+        : { indentLevel: 0, section: undefined, ...options };
       const basePath = (renderRoot || currentTemplatePath).replace(/\.ejs$/, '');
       const previousTemplatePath = currentTemplatePath;
       const previousRenderRoot = renderRoot;
