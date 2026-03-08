@@ -1,0 +1,46 @@
+import { ItemView } from 'obsidian';
+import { render } from 'solid-js/web';
+
+import type { SampleSolidComponentProps } from '../SolidComponents/SampleSolidComponent.tsx';
+
+import {
+  AppContext,
+  SampleSolidComponent
+} from '../SolidComponents/SampleSolidComponent.tsx';
+
+export const SAMPLE_SOLID_VIEW_TYPE = '<%= pluginId %>-SampleSolidView';
+
+export class SampleSolidView extends ItemView {
+  private dispose: (() => void) | null = null;
+
+  public override getDisplayText(): string {
+    return 'Sample Solid view';
+  }
+
+  public override getViewType(): string {
+    return SAMPLE_SOLID_VIEW_TYPE;
+  }
+
+  public override async onClose(): Promise<void> {
+    this.dispose?.();
+    await Promise.resolve();
+  }
+
+  public override async onOpen(): Promise<void> {
+    const START_COUNT = 10;
+    const props: SampleSolidComponentProps = {
+      startCount: START_COUNT
+    };
+
+    this.dispose = render(
+      () => (
+        <AppContext.Provider value={this.app}>
+          <SampleSolidComponent {...props} />
+        </AppContext.Provider>
+      ),
+      this.contentEl
+    );
+
+    await Promise.resolve();
+  }
+}
