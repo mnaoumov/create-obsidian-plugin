@@ -208,6 +208,14 @@ describe('copyTemplates', () => {
     expect(formatCheck).toContain('dprint check');
   });
 
+  it('creates format scripts for biome', () => {
+    copyTemplates(makeAnswers({ formatter: 'biome' }), targetDir, '1.0.0', null);
+    const format = readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8');
+    expect(format).toContain('biome format --write');
+    const formatCheck = readFileSync(join(targetDir, 'scripts/format-check.ts'), 'utf-8');
+    expect(formatCheck).toContain('biome format');
+  });
+
   it('creates test scripts for vitest', () => {
     copyTemplates(makeAnswers({ testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
