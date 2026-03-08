@@ -1,0 +1,43 @@
+import type { App } from 'obsidian';
+import type { JSX } from 'preact';
+
+import {
+  createContext,
+} from 'preact';
+import {
+  useContext,
+  useState
+} from 'preact/hooks';
+
+export const AppContext = createContext<App>(undefined as unknown as App);
+
+export interface SamplePreactComponentProps {
+  startCount: number;
+}
+
+export function SamplePreactComponent(props: SamplePreactComponentProps): JSX.Element {
+  const [count, setCount] = useState(props.startCount);
+  const app = useContext(AppContext);
+
+  function increment(): void {
+    setCount(count + 1);
+  }
+
+  return (
+    <>
+      <h4>Sample Preact Component!</h4>
+
+      <div>
+        <span>
+          My number is {count}
+          !
+        </span>
+      </div>
+
+      <button onClick={increment}>Increment</button>
+      <div>
+        Vault name: {app.vault.getName()}
+      </div>
+    </>
+  );
+}

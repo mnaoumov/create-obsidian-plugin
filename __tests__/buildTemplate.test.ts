@@ -275,6 +275,20 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('react-dom');
       expect(depNames).toContain('@vitejs/plugin-react');
     });
+
+    it('adds preact packages and build plugin for vite', () => {
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'preact' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('preact');
+      expect(depNames).toContain('@preact/preset-vite');
+    });
+
+    it('adds preact component files', () => {
+      const builder = buildTemplate(makeAnswers({ uiFramework: 'preact' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/PreactComponents/SamplePreactComponent.tsx');
+      expect(files).toContain('src/Views/SamplePreactView.tsx');
+    });
   });
 
   describe('preset feature', () => {

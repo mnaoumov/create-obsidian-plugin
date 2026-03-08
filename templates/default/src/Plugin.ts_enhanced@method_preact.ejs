@@ -1,0 +1,4 @@
+
+  private async openView(viewType: string): Promise<void> {
+    await this.app.workspace.ensureSideLeaf(viewType, 'right');
+  }

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp:*)",
+      "Bash(for f in build.ts_esbuild@import_*.ejs build.ts_esbuild@plugin_*.ejs build.ts_esbuild@options_*.ejs)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//f/dev/projects/!obsidian/create-obsidian-plugin/templates/default/scripts/**)",
+      "Bash(done)",
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ]
+  }
+}
