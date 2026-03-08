@@ -5,6 +5,7 @@ import { FeatureOption } from '../../FeatureOption.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   esbuild: 'esbuild-svelte',
+  parcel: '@parcel/transformer-svelte',
   rollup: 'rollup-plugin-svelte',
   vite: '@sveltejs/vite-plugin-svelte',
   webpack: 'svelte-loader'
