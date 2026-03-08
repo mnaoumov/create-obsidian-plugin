@@ -21,7 +21,7 @@ export class Svelte extends FeatureOption {
       .addPackage('svelte')
       .addPackage('svelte-check')
       .addPackage('svelte-preprocess')
-      .addPackage(getBuildPlugin(answers.buildSystem))
+      .addPackage(getBuildPlugin(answers.bundler))
       .addFiles([
         'src/SvelteComponents/SampleSvelteComponent.d.ts',
         'src/SvelteComponents/SampleSvelteComponent.svelte',
@@ -30,10 +30,10 @@ export class Svelte extends FeatureOption {
   }
 }
 
-function getBuildPlugin(buildSystem: string): string {
-  const plugin = BUILD_PLUGINS[buildSystem];
+function getBuildPlugin(bundler: string): string {
+  const plugin = BUILD_PLUGINS[bundler];
   if (!plugin) {
-    throw new Error(`Unsupported build system for Svelte: ${buildSystem}`);
+    throw new Error(`Unsupported bundler for Svelte: ${bundler}`);
   }
   return plugin;
 }

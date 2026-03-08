@@ -15,7 +15,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     apiSubset: 'official',
     authorGitHubName: 'user',
     authorName: 'User',
-    buildSystem: 'esbuild',
+    bundler: 'esbuild',
     commitLinting: 'conventional-commits',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
@@ -93,7 +93,7 @@ describe('buildTemplate', () => {
         { linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest', uiFramework: 'none' },
         {
           apiSubset: 'with-unofficial',
-          buildSystem: 'vite',
+          bundler: 'vite',
           e2eTestRunner: 'wdio-obsidian',
           editorExtensions: 'codemirror',
           styling: 'scss',
@@ -101,7 +101,7 @@ describe('buildTemplate', () => {
           uiFramework: 'svelte'
         },
         {
-          buildSystem: 'webpack',
+          bundler: 'webpack',
           styling: 'scss',
           uiFramework: 'vue'
         }
@@ -222,15 +222,15 @@ describe('buildTemplate', () => {
     });
   });
 
-  describe('build system feature', () => {
+  describe('bundler feature', () => {
     it('adds esbuild dependency for esbuild', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'esbuild' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('esbuild');
     });
 
     it('adds rollup files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'rollup' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'rollup' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('rollup');
       expect([...builder.templateFiles]).toContain('rollup.config.mjs');
@@ -238,14 +238,14 @@ describe('buildTemplate', () => {
     });
 
     it('adds vite files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('vite');
       expect([...builder.templateFiles]).toContain('vite.config.ts');
     });
 
     it('adds webpack files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'webpack' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'webpack' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('webpack');
       expect(depNames).toContain('webpack-cli');
@@ -255,7 +255,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds parcel files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'parcel' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'parcel' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('parcel');
       expect(depNames).toContain('@parcel/config-default');
@@ -265,7 +265,7 @@ describe('buildTemplate', () => {
 
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'esbuild', uiFramework: 'svelte' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'svelte' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('svelte');
       expect(depNames).toContain('svelte-check');
@@ -273,7 +273,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds react packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'react' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'react' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('react');
       expect(depNames).toContain('react-dom');
@@ -281,7 +281,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds preact packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'preact' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'preact' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('preact');
       expect(depNames).toContain('@preact/preset-vite');
@@ -295,7 +295,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds solid packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'solid' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'solid' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('solid-js');
       expect(depNames).toContain('vite-plugin-solid');

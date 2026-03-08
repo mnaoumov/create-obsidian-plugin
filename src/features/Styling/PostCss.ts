@@ -17,13 +17,13 @@ export class PostCss extends FeatureOption {
         'scripts/postcss.config.ts',
         'src/styles/main.css'
       ]);
-    if (answers.buildSystem === 'esbuild') {
+    if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-postcss');
     }
-    if (answers.buildSystem === 'rollup') {
+    if (answers.bundler === 'rollup') {
       builder.addPackage('rollup-plugin-postcss');
     }
-    if (answers.buildSystem === 'webpack') {
+    if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')

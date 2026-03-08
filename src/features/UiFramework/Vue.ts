@@ -19,7 +19,7 @@ export class Vue extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('vue')
-      .addPackage(getBuildPlugin(answers.buildSystem))
+      .addPackage(getBuildPlugin(answers.bundler))
       .addFiles([
         'src/VueComponents/SampleVueComponent.d.ts',
         'src/VueComponents/SampleVueComponent.vue',
@@ -28,10 +28,10 @@ export class Vue extends FeatureOption {
   }
 }
 
-function getBuildPlugin(buildSystem: string): string {
-  const plugin = BUILD_PLUGINS[buildSystem];
+function getBuildPlugin(bundler: string): string {
+  const plugin = BUILD_PLUGINS[bundler];
   if (!plugin) {
-    throw new Error(`Unsupported build system for Vue: ${buildSystem}`);
+    throw new Error(`Unsupported bundler for Vue: ${bundler}`);
   }
   return plugin;
 }

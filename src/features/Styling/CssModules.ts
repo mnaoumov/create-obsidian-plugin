@@ -14,7 +14,7 @@ export class CssModules extends FeatureOption {
         'src/styles/main.module.css',
         'src/styles/css-modules.d.ts'
       ]);
-    if (answers.buildSystem === 'webpack') {
+    if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin');

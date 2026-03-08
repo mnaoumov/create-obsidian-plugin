@@ -16,7 +16,7 @@ export class Wasm extends FeatureOption {
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
-      .addPackage(getWasmPlugin(answers.buildSystem))
+      .addPackage(getWasmPlugin(answers.bundler))
       .addFiles([
         'src/wasm.d.ts',
         'src/wasm/README.md'
@@ -24,10 +24,10 @@ export class Wasm extends FeatureOption {
   }
 }
 
-function getWasmPlugin(buildSystem: string): string {
-  const plugin = WASM_PLUGINS[buildSystem];
+function getWasmPlugin(bundler: string): string {
+  const plugin = WASM_PLUGINS[bundler];
   if (!plugin) {
-    throw new Error(`Unsupported build system for WASM: ${buildSystem}`);
+    throw new Error(`Unsupported bundler for WASM: ${bundler}`);
   }
   return plugin;
 }
