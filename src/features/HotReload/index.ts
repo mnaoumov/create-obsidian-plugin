@@ -7,6 +7,6 @@ import { ObsidianCli } from './ObsidianCli.ts';
 
 export const HOT_RELOAD_OPTIONS: readonly FeatureOption[] = [new None(), new ObsidianCli(), new HotReloadPlugin()];
 
-export async function promptHotReload(defaultValue?: string): Promise<string> {
-  return promptFeature(HOT_RELOAD_OPTIONS, 'Hot reload', defaultValue ?? 'obsidian-cli');
+export async function promptHotReload(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new ObsidianCli(), message: 'Hot reload', options: HOT_RELOAD_OPTIONS, savedValue });
 }

@@ -6,6 +6,6 @@ import { None } from './None.ts';
 
 export const MARKDOWN_LINTER_OPTIONS: readonly FeatureOption[] = [new None(), new Markdownlint()];
 
-export async function promptMarkdownLinter(defaultValue?: string): Promise<string> {
-  return promptFeature(MARKDOWN_LINTER_OPTIONS, 'Markdown linter', defaultValue ?? 'markdownlint');
+export async function promptMarkdownLinter(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new Markdownlint(), message: 'Markdown linter', options: MARKDOWN_LINTER_OPTIONS, savedValue });
 }

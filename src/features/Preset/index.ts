@@ -7,6 +7,6 @@ import { Standalone } from './Standalone.ts';
 
 export const PRESET_OPTIONS: readonly FeatureOption[] = [new Enhanced(), new Standalone(), new Demo()];
 
-export async function promptPreset(defaultValue?: string): Promise<string> {
-  return promptFeature(PRESET_OPTIONS, 'Choose a preset', defaultValue);
+export async function promptPreset(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new Enhanced(), message: 'Choose a preset', options: PRESET_OPTIONS, savedValue });
 }

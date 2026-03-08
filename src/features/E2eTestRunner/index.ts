@@ -7,6 +7,6 @@ import { WdioObsidian } from './WdioObsidian.ts';
 
 export const E2E_TEST_RUNNER_OPTIONS: readonly FeatureOption[] = [new None(), new ObsidianTest(), new WdioObsidian()];
 
-export async function promptE2eTestRunner(defaultValue?: string): Promise<string> {
-  return promptFeature(E2E_TEST_RUNNER_OPTIONS, 'E2E testing', defaultValue);
+export async function promptE2eTestRunner(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new None(), message: 'E2E testing', options: E2E_TEST_RUNNER_OPTIONS, savedValue });
 }

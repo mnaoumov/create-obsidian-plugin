@@ -6,6 +6,6 @@ import { None } from './None.ts';
 
 export const EDITOR_EXTENSIONS_OPTIONS: readonly FeatureOption[] = [new None(), new CodeMirror()];
 
-export async function promptEditorExtensions(defaultValue?: string): Promise<string> {
-  return promptFeature(EDITOR_EXTENSIONS_OPTIONS, 'Editor extensions', defaultValue);
+export async function promptEditorExtensions(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new None(), message: 'Editor extensions', options: EDITOR_EXTENSIONS_OPTIONS, savedValue });
 }

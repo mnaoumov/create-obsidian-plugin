@@ -7,6 +7,6 @@ import { None } from './None.ts';
 
 export const GITHUB_ACTIONS_OPTIONS: readonly FeatureOption[] = [new None(), new CiAndRelease(), new CiWorkflow()];
 
-export async function promptGitHubActions(defaultValue?: string): Promise<string> {
-  return promptFeature(GITHUB_ACTIONS_OPTIONS, 'GitHub Actions', defaultValue ?? 'ci-and-release');
+export async function promptGitHubActions(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new CiAndRelease(), message: 'GitHub Actions', options: GITHUB_ACTIONS_OPTIONS, savedValue });
 }

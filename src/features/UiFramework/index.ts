@@ -11,6 +11,6 @@ import { Vue } from './Vue.ts';
 
 export const UI_FRAMEWORK_OPTIONS: readonly FeatureOption[] = [new None(), new Lit(), new Preact(), new React(), new Solid(), new Svelte(), new Vue()];
 
-export async function promptUiFramework(defaultValue?: string): Promise<string> {
-  return promptFeature(UI_FRAMEWORK_OPTIONS, 'UI framework', defaultValue);
+export async function promptUiFramework(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new None(), message: 'UI framework', options: UI_FRAMEWORK_OPTIONS, savedValue });
 }
