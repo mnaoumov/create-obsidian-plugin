@@ -9,7 +9,6 @@ import type { Answers } from './Answers.ts';
 
 import { promptApiSubset } from './features/ApiSubset/index.ts';
 import { promptBuildSystem } from './features/BuildSystem/index.ts';
-import { promptCssMode } from './features/CssMode/index.ts';
 import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
 import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
 import { promptFormatter } from './features/Formatter/index.ts';
@@ -21,6 +20,7 @@ import { promptPackageManager } from './features/PackageManager/index.ts';
 import { promptPlatformSupport } from './features/PlatformSupport/index.ts';
 import { promptPreset } from './features/Preset/index.ts';
 import { promptSpellChecker } from './features/SpellChecker/index.ts';
+import { promptStyling } from './features/Styling/index.ts';
 import { promptTestRunner } from './features/TestRunner/index.ts';
 import { promptUiFramework } from './features/UiFramework/index.ts';
 import { promptWasmSupport } from './features/WasmSupport/index.ts';
@@ -36,7 +36,6 @@ interface PluginMetadata {
 
 interface ToolingOptions {
   apiSubset: string;
-  cssMode: string;
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
@@ -45,6 +44,7 @@ interface ToolingOptions {
   linter: string;
   markdownLinter: string;
   spellChecker: string;
+  styling: string;
   testRunner: string;
   wasmSupport: string;
 }
@@ -199,7 +199,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
   let spellChecker = 'cspell';
   let markdownLinter = 'markdownlint';
   let editorExtensions = preset === 'demo' ? 'codemirror' : 'none';
-  let cssMode = preset === 'demo' ? 'scss' : 'none';
+  let styling = preset === 'demo' ? 'scss' : 'none';
   let wasmSupport = 'none';
   let testRunner = 'vitest';
   let e2eTestRunner = 'none';
@@ -215,7 +215,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     testRunner = await promptTestRunner(defaults?.testRunner);
     e2eTestRunner = await promptE2eTestRunner(defaults?.e2eTestRunner);
     editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
-    cssMode = await promptCssMode(defaults?.cssMode);
+    styling = await promptStyling(defaults?.styling);
     wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
     gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
     gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
@@ -227,7 +227,6 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
 
   return {
     apiSubset,
-    cssMode,
     e2eTestRunner,
     editorExtensions,
     formatter,
@@ -236,6 +235,7 @@ async function promptTooling(preset: string, defaults?: Partial<Answers>): Promi
     linter,
     markdownLinter,
     spellChecker,
+    styling,
     testRunner,
     wasmSupport
   };

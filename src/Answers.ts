@@ -10,7 +10,6 @@ export interface Answers {
   authorGitHubName: string;
   authorName: string;
   buildSystem: string;
-  cssMode: string;
   currentYear: number;
   e2eTestRunner: string;
   editorExtensions: string;
@@ -28,6 +27,7 @@ export interface Answers {
   pluginShortName: string;
   preset: string;
   spellChecker: string;
+  styling: string;
   testRunner: string;
   uiFramework: string;
   wasmSupport: string;

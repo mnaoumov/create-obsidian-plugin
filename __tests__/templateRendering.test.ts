@@ -26,7 +26,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     authorGitHubName: 'testuser',
     authorName: 'Test User',
     buildSystem: 'esbuild',
-    cssMode: 'none',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
     editorExtensions: 'none',
@@ -44,6 +43,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     pluginShortName: 'MyPlugin',
     preset: 'standalone',
     spellChecker: 'none',
+    styling: 'none',
     testRunner: 'none',
     uiFramework: 'none',
     wasmSupport: 'none',
@@ -150,6 +150,19 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ buildSystem: 'vite' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('vite');
+  });
+
+  it('renders build script from webpack partial', () => {
+    copyTemplates(makeAnswers({ buildSystem: 'webpack' }), targetDir, '1.0.0', null);
+    const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(buildScript).toContain('webpack');
+  });
+
+  it('creates webpack config with render sections', () => {
+    copyTemplates(makeAnswers({ buildSystem: 'webpack' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
+    expect(config).toContain('ts-loader');
+    expect(config).toContain('libraryTarget');
   });
 
   it('creates dev.ts script', () => {

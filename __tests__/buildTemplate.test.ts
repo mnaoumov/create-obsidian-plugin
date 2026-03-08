@@ -16,7 +16,6 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     authorGitHubName: 'user',
     authorName: 'User',
     buildSystem: 'esbuild',
-    cssMode: 'none',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
     editorExtensions: 'none',
@@ -34,6 +33,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     pluginShortName: 'Test',
     preset: 'enhanced',
     spellChecker: 'cspell',
+    styling: 'none',
     testRunner: 'none',
     uiFramework: 'none',
     wasmSupport: 'none',
@@ -90,11 +90,16 @@ describe('buildTemplate', () => {
         {
           apiSubset: 'with-unofficial',
           buildSystem: 'vite',
-          cssMode: 'scss',
           e2eTestRunner: 'wdio-obsidian',
           editorExtensions: 'codemirror',
+          styling: 'scss',
           testRunner: 'vitest',
           uiFramework: 'svelte'
+        },
+        {
+          buildSystem: 'webpack',
+          styling: 'scss',
+          uiFramework: 'vue'
         }
       ];
 
@@ -215,6 +220,16 @@ describe('buildTemplate', () => {
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('vite');
       expect([...builder.templateFiles]).toContain('vite.config.ts');
+    });
+
+    it('adds webpack files and dependencies', () => {
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'webpack' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('webpack');
+      expect(depNames).toContain('webpack-cli');
+      expect(depNames).toContain('ts-loader');
+      expect([...builder.templateFiles]).toContain('webpack.config.ts');
+      expect([...builder.templateFiles]).toContain('scripts/webpack.config.ts');
     });
   });
 

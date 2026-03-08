@@ -23,7 +23,6 @@ import { CONFIG_FILE_NAME } from './Answers.ts';
 import { resolveFeature } from './FeatureOption.ts';
 import { API_SUBSET_OPTIONS } from './features/ApiSubset/index.ts';
 import { BUILD_SYSTEM_OPTIONS } from './features/BuildSystem/index.ts';
-import { CSS_MODE_OPTIONS } from './features/CssMode/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
@@ -33,6 +32,7 @@ import { LINTER_OPTIONS } from './features/Linter/index.ts';
 import { MARKDOWN_LINTER_OPTIONS } from './features/MarkdownLinter/index.ts';
 import { PRESET_OPTIONS } from './features/Preset/index.ts';
 import { SPELL_CHECKER_OPTIONS } from './features/SpellChecker/index.ts';
+import { STYLING_OPTIONS } from './features/Styling/index.ts';
 import { TEST_RUNNER_OPTIONS } from './features/TestRunner/index.ts';
 import { UI_FRAMEWORK_OPTIONS } from './features/UiFramework/index.ts';
 import { WASM_SUPPORT_OPTIONS } from './features/WasmSupport/index.ts';
@@ -72,7 +72,7 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'testRunner', options: TEST_RUNNER_OPTIONS },
   { answerKey: 'e2eTestRunner', options: E2E_TEST_RUNNER_OPTIONS },
   { answerKey: 'editorExtensions', options: EDITOR_EXTENSIONS_OPTIONS },
-  { answerKey: 'cssMode', options: CSS_MODE_OPTIONS },
+  { answerKey: 'styling', options: STYLING_OPTIONS },
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
   { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
   { answerKey: 'wasmSupport', options: WASM_SUPPORT_OPTIONS },
@@ -87,7 +87,7 @@ const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: re
   { answerKey: 'linter', demoValue: 'eslint', options: LINTER_OPTIONS },
   { answerKey: 'markdownLinter', demoValue: 'markdownlint', options: MARKDOWN_LINTER_OPTIONS },
   { answerKey: 'spellChecker', demoValue: 'cspell', options: SPELL_CHECKER_OPTIONS },
-  { answerKey: 'cssMode', demoValue: 'scss', options: CSS_MODE_OPTIONS }
+  { answerKey: 'styling', demoValue: 'scss', options: STYLING_OPTIONS }
 ];
 
 export function buildTemplate(answers: Answers): TemplateBuilder {
@@ -296,6 +296,10 @@ function migrateConfig(config: GeneratorConfig): void {
   if (raw['framework'] && !raw['uiFramework']) {
     raw['uiFramework'] = raw['framework'];
     delete raw['framework'];
+  }
+  if (raw['cssMode'] && !raw['styling']) {
+    raw['styling'] = raw['cssMode'];
+    delete raw['cssMode'];
   }
 }
 
