@@ -1,0 +1,41 @@
+import type { App } from 'obsidian';
+import type { JSX } from 'solid-js';
+
+import {
+  createContext,
+  createSignal,
+  useContext
+} from 'solid-js';
+
+export const AppContext = createContext<App>(undefined as unknown as App);
+
+export interface SampleSolidComponentProps {
+  startCount: number;
+}
+
+export function SampleSolidComponent(props: SampleSolidComponentProps): JSX.Element {
+  const [count, setCount] = createSignal(props.startCount);
+  const app = useContext(AppContext)!;
+
+  function increment(): void {
+    setCount(count() + 1);
+  }
+
+  return (
+    <>
+      <h4>Sample Solid Component!</h4>
+
+      <div>
+        <span>
+          My number is {count()}
+          !
+        </span>
+      </div>
+
+      <button onClick={increment}>Increment</button>
+      <div>
+        Vault name: {app.vault.getName()}
+      </div>
+    </>
+  );
+}

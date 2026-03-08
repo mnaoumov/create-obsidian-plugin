@@ -289,6 +289,20 @@ describe('buildTemplate', () => {
       expect(files).toContain('src/PreactComponents/SamplePreactComponent.tsx');
       expect(files).toContain('src/Views/SamplePreactView.tsx');
     });
+
+    it('adds solid packages and build plugin for vite', () => {
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'vite', uiFramework: 'solid' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('solid-js');
+      expect(depNames).toContain('vite-plugin-solid');
+    });
+
+    it('adds solid component files', () => {
+      const builder = buildTemplate(makeAnswers({ uiFramework: 'solid' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('src/SolidComponents/SampleSolidComponent.tsx');
+      expect(files).toContain('src/Views/SampleSolidView.tsx');
+    });
   });
 
   describe('preset feature', () => {
