@@ -23,6 +23,7 @@ import { CONFIG_FILE_NAME } from './Answers.ts';
 import { resolveFeature } from './FeatureOption.ts';
 import { API_SUBSET_OPTIONS } from './features/ApiSubset/index.ts';
 import { BUILD_SYSTEM_OPTIONS } from './features/BuildSystem/index.ts';
+import { COMMIT_LINTING_OPTIONS } from './features/CommitLinting/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
@@ -74,6 +75,7 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'e2eTestRunner', options: E2E_TEST_RUNNER_OPTIONS },
   { answerKey: 'editorExtensions', options: EDITOR_EXTENSIONS_OPTIONS },
   { answerKey: 'styling', options: STYLING_OPTIONS },
+  { answerKey: 'commitLinting', options: COMMIT_LINTING_OPTIONS },
   { answerKey: 'gitHubActions', options: GITHUB_ACTIONS_OPTIONS },
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
   { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },

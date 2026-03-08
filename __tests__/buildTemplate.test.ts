@@ -16,6 +16,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     authorGitHubName: 'user',
     authorName: 'User',
     buildSystem: 'esbuild',
+    commitLinting: 'conventional-commits',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
     editorExtensions: 'none',
@@ -401,6 +402,35 @@ describe('buildTemplate', () => {
       const files = [...builder.templateFiles];
       expect(files).not.toContain('.github/workflows/ci.yml');
       expect(files).not.toContain('.github/workflows/release.yml');
+    });
+  });
+
+  describe('commitLinting feature', () => {
+    it('adds commitlint and husky files for conventional-commits', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits' }));
+      const files = [...builder.templateFiles];
+      expect(files).toContain('commitlint.config.ts');
+      expect(files).toContain('scripts/commitlint.config.ts');
+      expect(files).toContain('.husky/commit-msg');
+      expect(files).toContain('.husky/pre-commit');
+      expect(files).toContain('.lintstagedrc.mjs');
+      expect(files).toContain('scripts/lintstagedrc.ts');
+    });
+
+    it('adds commitlint and husky dependencies', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('@commitlint/cli');
+      expect(depNames).toContain('@commitlint/config-conventional');
+      expect(depNames).toContain('husky');
+      expect(depNames).toContain('lint-staged');
+    });
+
+    it('adds no files for none', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'none' }));
+      const files = [...builder.templateFiles];
+      expect(files).not.toContain('commitlint.config.ts');
+      expect(files).not.toContain('.husky/commit-msg');
     });
   });
 
