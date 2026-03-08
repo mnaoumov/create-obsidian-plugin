@@ -40,7 +40,7 @@ class TextPromptWithCompletion extends TextPrompt {
     if (this.userInput || !this.completionValue) {
       return false;
     }
-    return key.name === 'tab' || key.name === 'right';
+    return key.name === 'tab' || key.name === 'right' || key.name === 'end';
   }
 }
 
