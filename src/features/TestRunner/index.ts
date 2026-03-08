@@ -5,7 +5,7 @@ import { Jest } from './Jest.ts';
 import { None } from './None.ts';
 import { Vitest } from './Vitest.ts';
 
-export const TEST_RUNNER_OPTIONS: readonly FeatureOption[] = [new Vitest(), new Jest(), new None()];
+export const TEST_RUNNER_OPTIONS: readonly FeatureOption[] = [new None(), new Vitest(), new Jest()];
 
 export async function promptTestRunner(defaultValue?: string): Promise<string> {
   return promptFeature(TEST_RUNNER_OPTIONS, 'Unit testing', defaultValue);
