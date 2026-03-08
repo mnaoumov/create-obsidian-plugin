@@ -108,7 +108,7 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
 
   builder
     .addFiles(BASE_TEMPLATE_FILES)
-    .addPackage('@types/node', '25.0.3')
+    .addPackage('@types/node')
     .addPackage('jiti')
     .addPackage('obsidian')
     .addPackage('tslib')

@@ -21,6 +21,9 @@ export class Scss extends FeatureOption {
     if (plugin) {
       builder.addPackage(plugin);
     }
+    if (answers.bundler === 'esbuild') {
+      builder.addPackage('sass-embedded');
+    }
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
