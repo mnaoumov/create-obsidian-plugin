@@ -6,7 +6,8 @@ import { FeatureOption } from '../../FeatureOption.ts';
 const BUILD_PLUGINS: Record<string, string> = {
   esbuild: 'esbuild-plugin-vue3',
   rollup: 'rollup-plugin-vue',
-  vite: '@vitejs/plugin-vue'
+  vite: '@vitejs/plugin-vue',
+  webpack: 'vue-loader'
 };
 
 export class Vue extends FeatureOption {

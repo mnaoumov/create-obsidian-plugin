@@ -5,7 +5,8 @@ import { FeatureOption } from '../../FeatureOption.ts';
 
 const SCSS_PLUGINS: Partial<Record<string, string>> = {
   esbuild: 'esbuild-sass-plugin',
-  rollup: 'rollup-plugin-scss'
+  rollup: 'rollup-plugin-scss',
+  webpack: 'sass-loader'
 };
 
 export class Scss extends FeatureOption {
@@ -19,6 +20,12 @@ export class Scss extends FeatureOption {
     const plugin = SCSS_PLUGINS[answers.buildSystem];
     if (plugin) {
       builder.addPackage(plugin);
+    }
+    if (answers.buildSystem === 'webpack') {
+      builder
+        .addPackage('css-loader')
+        .addPackage('mini-css-extract-plugin')
+        .addPackage('sass');
     }
   }
 }
