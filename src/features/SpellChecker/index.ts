@@ -7,5 +7,5 @@ import { None } from './None.ts';
 export const SPELL_CHECKER_OPTIONS: readonly FeatureOption[] = [new None(), new Cspell()];
 
 export async function promptSpellChecker(defaultValue?: string): Promise<string> {
-  return promptFeature(SPELL_CHECKER_OPTIONS, 'Spell checker', defaultValue);
+  return promptFeature(SPELL_CHECKER_OPTIONS, 'Spell checker', defaultValue ?? 'cspell');
 }

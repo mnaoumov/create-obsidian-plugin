@@ -7,5 +7,5 @@ import { None } from './None.ts';
 export const COMMIT_LINTING_OPTIONS: readonly FeatureOption[] = [new None(), new ConventionalCommits()];
 
 export async function promptCommitLinting(defaultValue?: string): Promise<string> {
-  return promptFeature(COMMIT_LINTING_OPTIONS, 'Commit linting', defaultValue);
+  return promptFeature(COMMIT_LINTING_OPTIONS, 'Commit linting', defaultValue ?? 'conventional-commits');
 }
