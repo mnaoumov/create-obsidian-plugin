@@ -22,10 +22,7 @@ mkdirSync(distFolder, { recursive: true });
 
 copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
 
-if (!prod) {
-  writeFileSync(join(distFolder, '.hotreload'), '');
-}
-
+<%- render('hot-reload') -%>
 process.env['DIST_FOLDER'] = distFolder;
 const envPrefix = prod ? 'BUILD=production ' : '';
 const watchFlag = prod ? '' : ' --watch';

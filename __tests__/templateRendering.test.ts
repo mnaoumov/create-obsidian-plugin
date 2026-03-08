@@ -35,6 +35,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     gitHubActions: 'none',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
+    hotReload: 'hot-reload-plugin',
     internationalization: 'none',
     linter: 'none',
     markdownLinter: 'none',
@@ -248,6 +249,18 @@ describe('copyTemplates', () => {
     expect(lintMd).not.toContain('--fix');
     const lintMdFix = readFileSync(join(targetDir, 'scripts/lint-md-fix.ts'), 'utf-8');
     expect(lintMdFix).toContain('markdownlint-cli2 --fix');
+  });
+
+  it('includes .hotreload write in build script when hot-reload-plugin is selected', () => {
+    copyTemplates(makeAnswers({ hotReload: 'hot-reload-plugin' }), targetDir, '1.0.0', null);
+    const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(buildScript).toContain('.hotreload');
+  });
+
+  it('excludes .hotreload write from build script when hot reload is none', () => {
+    copyTemplates(makeAnswers({ hotReload: 'none' }), targetDir, '1.0.0', null);
+    const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(buildScript).not.toContain('.hotreload');
   });
 
   it('creates ci.yml with eslint step when eslint is selected', () => {

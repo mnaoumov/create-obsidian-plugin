@@ -22,10 +22,7 @@ mkdirSync(distFolder, { recursive: true });
 
 copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
 
-if (!prod) {
-  writeFileSync(join(distFolder, '.hotreload'), '');
-}
-
+<%- render('hot-reload') -%>
 const watchFlag = prod ? '' : ' --watch';
 execSync(`npx parcel build src/main.ts --dist-dir ${distFolder} --no-cache${watchFlag}`, { stdio: 'inherit' });
 
