@@ -8,6 +8,6 @@ export class Esbuild extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder): void {
-    builder.addPackage('esbuild', '0.27.3');
+    builder.addPackage('esbuild');
   }
 }
