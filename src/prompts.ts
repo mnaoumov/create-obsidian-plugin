@@ -137,7 +137,7 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     authorName: 'John Doe',
     bundler: 'esbuild',
     currentYear: new Date().getFullYear(),
-    fundingUrl: '',
+    fundingUrl: 'https://buymeacoffee.com/johndoe',
     packageManager: 'npm',
     platformSupport: 'desktop-only',
     pluginDescription: 'Does something awesome.',
@@ -175,89 +175,85 @@ function makePluginName(pluginId: string): string {
 }
 
 async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetadata> {
+  const defaultPluginId = defaults?.pluginId ?? (basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin');
+
   const metadata = await group(
     {
-      authorGitHubName: () =>
-        text({
-          defaultValue: defaults?.authorGitHubName ?? 'johndoe',
+      authorGitHubName: () => {
+        const value = defaults?.authorGitHubName ?? 'johndoe';
+        return text({
+          defaultValue: value,
           message: 'Your GitHub username',
-          placeholder: defaults?.authorGitHubName ?? 'johndoe',
-          validate(value): string | undefined {
-            if (!value) {
-              return 'Should not be empty';
-            }
-            return undefined;
-          }
-        }),
-      authorName: () =>
-        text({
-          defaultValue: defaults?.authorName ?? 'John Doe',
+          placeholder: value,
+          validate: validateNotEmpty
+        });
+      },
+      authorName: () => {
+        const value = defaults?.authorName ?? 'John Doe';
+        return text({
+          defaultValue: value,
           message: 'Your full name',
-          placeholder: defaults?.authorName ?? 'John Doe',
-          validate(value): string | undefined {
-            if (!value) {
-              return 'Should not be empty';
-            }
-            return undefined;
-          }
-        }),
-      fundingUrl: () =>
-        text({
-          defaultValue: defaults?.fundingUrl ?? '',
+          placeholder: value,
+          validate: validateNotEmpty
+        });
+      },
+      fundingUrl: ({ results }) => {
+        const value = defaults?.fundingUrl ?? `https://buymeacoffee.com/${results.authorGitHubName ?? 'johndoe'}`;
+        return text({
+          defaultValue: value,
           message: 'Funding URL (leave empty if not needed)',
-          placeholder: 'https://buymeacoffee.com/johndoe'
-        }),
-      pluginDescription: () =>
-        text({
-          defaultValue: defaults?.pluginDescription ?? 'Does something awesome.',
+          placeholder: value
+        });
+      },
+      pluginDescription: () => {
+        const value = defaults?.pluginDescription ?? 'Does something awesome.';
+        return text({
+          defaultValue: value,
           message: 'Plugin description',
-          placeholder: defaults?.pluginDescription ?? 'Does something awesome.',
-          validate(value): string | undefined {
-            if (!value) {
+          placeholder: value,
+          validate(input: string | undefined): string | undefined {
+            if (!input) {
               return 'Should not be empty';
             }
-            if (!value.endsWith('.')) {
+            if (!input.endsWith('.')) {
               return 'Should end with a dot';
             }
             return undefined;
           }
-        }),
-      pluginId: () =>
-        text({
-          defaultValue: defaults?.pluginId ?? basename(process.cwd()).replace(/^obsidian-/, ''),
-          message: 'Plugin id (lowercase, hyphens allowed)',
-          placeholder: defaults?.pluginId ?? 'my-awesome-plugin',
-          validate(value): string | undefined {
-            if (!value) {
-              return 'Should not be empty';
-            }
-            if (!/^[a-z0-9-]+$/.test(value)) {
-              return 'Should contain only lowercase English letters, digits and hyphens';
-            }
-            if (!/^[a-z]/.test(value)) {
-              return 'Should start with a letter';
-            }
-            if (!/[a-z0-9]$/.test(value)) {
-              return 'Should end with a letter or digit';
-            }
-            if (value.startsWith('obsidian-')) {
-              return 'Should not start with "obsidian-"';
-            }
-            return undefined;
+        });
+      },
+      pluginId: () => text({
+        defaultValue: defaultPluginId,
+        message: 'Plugin id (lowercase, hyphens allowed)',
+        placeholder: defaultPluginId,
+        validate(input: string | undefined): string | undefined {
+          if (!input) {
+            return 'Should not be empty';
           }
-        }),
-      pluginName: ({ results }) =>
-        text({
-          defaultValue: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
+          if (!/^[a-z0-9-]+$/.test(input)) {
+            return 'Should contain only lowercase English letters, digits and hyphens';
+          }
+          if (!/^[a-z]/.test(input)) {
+            return 'Should start with a letter';
+          }
+          if (!/[a-z0-9]$/.test(input)) {
+            return 'Should end with a letter or digit';
+          }
+          if (input.startsWith('obsidian-')) {
+            return 'Should not start with "obsidian-"';
+          }
+          return undefined;
+        }
+      }),
+      pluginName: ({ results }) => {
+        const value = defaults?.pluginName ?? makePluginName(results.pluginId ?? defaultPluginId);
+        return text({
+          defaultValue: value,
           message: 'Plugin display name',
-          placeholder: defaults?.pluginName ?? makePluginName(results.pluginId ?? ''),
-          validate(value): string | undefined {
-            if (!value) {
-              return 'Should not be empty';
-            }
-            return undefined;
-          }
-        })
+          placeholder: value,
+          validate: validateNotEmpty
+        });
+      }
     },
     {
       onCancel() {
@@ -311,4 +307,11 @@ async function promptToolingMode(): Promise<string> {
   });
   assertNotCancelled(result);
   return result;
+}
+
+function validateNotEmpty(value: string | undefined): string | undefined {
+  if (!value) {
+    return 'Should not be empty';
+  }
+  return undefined;
 }
