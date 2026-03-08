@@ -1,13 +1,14 @@
 import {
   cancel,
-  group,
-  select
+  log
 } from '@clack/prompts';
+import { styleText } from 'node:util';
 
 import type { Answers } from './Answers.ts';
 
+import { select } from './clack-select.ts';
 import { text } from './clack-text.ts';
-import { assertNotCancelled } from './clack-utils.ts';
+import { GoBackError } from './clack-utils.ts';
 import { promptApiSubset } from './features/ApiSubset/index.ts';
 import { promptBundler } from './features/Bundler/index.ts';
 import { promptCommitLinting } from './features/CommitLinting/index.ts';
@@ -30,16 +31,7 @@ import { promptTestRunner } from './features/TestRunner/index.ts';
 import { promptUiFramework } from './features/UiFramework/index.ts';
 import { promptWasmSupport } from './features/WasmSupport/index.ts';
 
-interface PluginMetadata {
-  authorGitHubName: string;
-  authorName: string;
-  fundingUrl: string;
-  pluginDescription: string;
-  pluginId: string;
-  pluginName: string;
-}
-
-interface ToolingOptions {
+interface DefaultTooling {
   apiSubset: string;
   commitLinting: string;
   e2eTestRunner: string;
@@ -58,6 +50,15 @@ interface ToolingOptions {
   wasmSupport: string;
 }
 
+interface PromptStep {
+  defaultValue: (answers: StepAnswers) => string;
+  key: string;
+  prompt: (savedValue: string) => Promise<string>;
+  skip?: (answers: StepAnswers) => boolean;
+}
+
+type StepAnswers = Map<string, string>;
+
 export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
   const pluginId = defaults?.pluginId ?? 'my-awesome-plugin';
   const base = getDefaultAnswersBase(pluginId);
@@ -74,55 +75,250 @@ export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
 }
 
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
-  const preset = await promptPreset(defaults?.preset);
+  showHotkeyHints();
 
-  const toolingMode = preset === 'demo'
-    ? 'defaults'
-    : await promptToolingMode();
+  const defaultTooling = getDefaultTooling('enhanced');
+  const steps = buildPromptSteps(defaults ?? {}, defaultTooling);
+  const answers = await runPromptSteps(steps);
 
-  let bundler: string;
-  let uiFramework: string;
-  let tooling: ToolingOptions;
-  let packageManager: string;
-  let platformSupport: string;
+  return buildAnswers(answers, defaultTooling);
+}
 
-  if (toolingMode === 'customize') {
-    bundler = await promptBundler(defaults?.bundler);
-    uiFramework = await promptUiFramework(defaults?.uiFramework);
-    tooling = await promptTooling(preset, defaults);
-    packageManager = await promptPackageManager(defaults?.packageManager);
-    platformSupport = await promptPlatformSupport(defaults?.platformSupport);
-  } else {
-    const defaultAnswers = getDefaultAnswers(defaults);
-    bundler = preset === 'demo' ? 'esbuild' : defaultAnswers.bundler;
-    uiFramework = preset === 'demo' ? 'none' : defaultAnswers.uiFramework;
-    tooling = getDefaultTooling(preset);
-    packageManager = defaultAnswers.packageManager;
-    platformSupport = defaultAnswers.platformSupport;
+function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Answers {
+  function get(key: string, fallback: string): string {
+    return answers.get(key) ?? fallback;
   }
 
-  const metadata = await promptMetadata(defaults);
-
-  const features = {
-    ...tooling,
-    bundler,
-    packageManager,
-    platformSupport,
-    preset,
-    uiFramework
-  };
+  const pluginId = get('pluginId', 'my-awesome-plugin');
 
   return {
-    ...features,
-    authorGitHubName: metadata.authorGitHubName,
-    authorName: metadata.authorName,
+    apiSubset: get('apiSubset', defaultTooling.apiSubset),
+    authorGitHubName: get('authorGitHubName', 'johndoe'),
+    authorName: get('authorName', 'John Doe'),
+    bundler: get('bundler', 'esbuild'),
+    commitLinting: get('commitLinting', defaultTooling.commitLinting),
     currentYear: new Date().getFullYear(),
-    fundingUrl: metadata.fundingUrl,
-    pluginDescription: metadata.pluginDescription,
-    pluginId: metadata.pluginId,
-    pluginName: metadata.pluginName,
-    pluginShortName: extractWords(metadata.pluginId).join('')
+    e2eTestRunner: get('e2eTestRunner', defaultTooling.e2eTestRunner),
+    editorExtensions: get('editorExtensions', defaultTooling.editorExtensions),
+    formatter: get('formatter', defaultTooling.formatter),
+    fundingUrl: get('fundingUrl', ''),
+    gitHubActions: get('gitHubActions', defaultTooling.gitHubActions),
+    gitHubFunding: get('gitHubFunding', defaultTooling.gitHubFunding),
+    gitHubIssueTemplates: get('gitHubIssueTemplates', defaultTooling.gitHubIssueTemplates),
+    hotReload: get('hotReload', defaultTooling.hotReload),
+    internationalization: get('internationalization', defaultTooling.internationalization),
+    linter: get('linter', defaultTooling.linter),
+    markdownLinter: get('markdownLinter', defaultTooling.markdownLinter),
+    packageManager: get('packageManager', 'npm'),
+    platformSupport: get('platformSupport', 'desktop-only'),
+    pluginDescription: get('pluginDescription', 'Does something awesome.'),
+    pluginId,
+    pluginName: get('pluginName', makePluginName(pluginId)),
+    pluginShortName: extractWords(pluginId).join(''),
+    preset: get('preset', 'enhanced'),
+    spellChecker: get('spellChecker', defaultTooling.spellChecker),
+    styling: get('styling', defaultTooling.styling),
+    testRunner: get('testRunner', defaultTooling.testRunner),
+    uiFramework: get('uiFramework', 'none'),
+    wasmSupport: get('wasmSupport', defaultTooling.wasmSupport)
   };
+}
+
+function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): PromptStep[] {
+  function isCustomize(answers: StepAnswers): boolean {
+    return answers.get('toolingMode') === 'customize';
+  }
+
+  function skipUnlessCustomize(answers: StepAnswers): boolean {
+    return !isCustomize(answers);
+  }
+
+  return [
+    {
+      defaultValue: () => d.preset ?? 'enhanced',
+      key: 'preset',
+      prompt: (saved): Promise<string> => promptPreset(saved)
+    },
+    {
+      defaultValue: () => 'defaults',
+      key: 'toolingMode',
+      prompt: (): Promise<string> => promptToolingMode(),
+      skip: (answers) => answers.get('preset') === 'demo'
+    },
+    {
+      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'esbuild' : (d.bundler ?? 'esbuild'),
+      key: 'bundler',
+      prompt: (saved): Promise<string> => promptBundler(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'none' : (d.uiFramework ?? 'none'),
+      key: 'uiFramework',
+      prompt: (saved): Promise<string> => promptUiFramework(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.linter ?? defaultTooling.linter,
+      key: 'linter',
+      prompt: (saved): Promise<string> => promptLinter(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.formatter ?? defaultTooling.formatter,
+      key: 'formatter',
+      prompt: (saved): Promise<string> => promptFormatter(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.spellChecker ?? defaultTooling.spellChecker,
+      key: 'spellChecker',
+      prompt: (saved): Promise<string> => promptSpellChecker(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.markdownLinter ?? defaultTooling.markdownLinter,
+      key: 'markdownLinter',
+      prompt: (saved): Promise<string> => promptMarkdownLinter(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.testRunner ?? defaultTooling.testRunner,
+      key: 'testRunner',
+      prompt: (saved): Promise<string> => promptTestRunner(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.e2eTestRunner ?? defaultTooling.e2eTestRunner,
+      key: 'e2eTestRunner',
+      prompt: (saved): Promise<string> => promptE2eTestRunner(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.editorExtensions ?? defaultTooling.editorExtensions,
+      key: 'editorExtensions',
+      prompt: (saved): Promise<string> => promptEditorExtensions(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.styling ?? defaultTooling.styling,
+      key: 'styling',
+      prompt: (saved): Promise<string> => promptStyling(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.wasmSupport ?? defaultTooling.wasmSupport,
+      key: 'wasmSupport',
+      prompt: (saved): Promise<string> => promptWasmSupport(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.commitLinting ?? defaultTooling.commitLinting,
+      key: 'commitLinting',
+      prompt: (saved): Promise<string> => promptCommitLinting(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.hotReload ?? defaultTooling.hotReload,
+      key: 'hotReload',
+      prompt: (saved): Promise<string> => promptHotReload(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.internationalization ?? defaultTooling.internationalization,
+      key: 'internationalization',
+      prompt: (saved): Promise<string> => promptInternationalization(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.gitHubActions ?? defaultTooling.gitHubActions,
+      key: 'gitHubActions',
+      prompt: (saved): Promise<string> => promptGitHubActions(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.gitHubIssueTemplates ?? defaultTooling.gitHubIssueTemplates,
+      key: 'gitHubIssueTemplates',
+      prompt: (saved): Promise<string> => promptGitHubIssueTemplates(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.gitHubFunding ?? defaultTooling.gitHubFunding,
+      key: 'gitHubFunding',
+      prompt: (saved): Promise<string> => promptGitHubFunding(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.apiSubset ?? defaultTooling.apiSubset,
+      key: 'apiSubset',
+      prompt: (saved): Promise<string> => promptApiSubset(saved),
+      skip: (answers) => !(isCustomize(answers) && answers.get('preset') === 'enhanced')
+    },
+    {
+      defaultValue: () => d.packageManager ?? 'npm',
+      key: 'packageManager',
+      prompt: (saved): Promise<string> => promptPackageManager(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.platformSupport ?? 'desktop-only',
+      key: 'platformSupport',
+      prompt: (saved): Promise<string> => promptPlatformSupport(saved),
+      skip: skipUnlessCustomize
+    },
+    {
+      defaultValue: () => d.pluginId ?? '',
+      key: 'pluginId',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved || undefined,
+          message: 'Plugin id (lowercase, hyphens allowed)',
+          placeholder: saved || 'my-awesome-plugin',
+          validate: validatePluginId
+        })
+    },
+    {
+      defaultValue: (answers) => d.pluginName ?? makePluginName(answers.get('pluginId') ?? 'my-awesome-plugin'),
+      key: 'pluginName',
+      prompt: (saved): Promise<string> => promptPluginName(saved)
+    },
+    {
+      defaultValue: () => d.pluginDescription ?? 'Does something awesome.',
+      key: 'pluginDescription',
+      prompt: (saved): Promise<string> => promptPluginDescription(saved)
+    },
+    {
+      defaultValue: () => d.authorName ?? 'John Doe',
+      key: 'authorName',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved,
+          message: 'Your full name',
+          placeholder: saved,
+          validate: validateNotEmpty
+        })
+    },
+    {
+      defaultValue: () => d.authorGitHubName ?? 'johndoe',
+      key: 'authorGitHubName',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved,
+          message: 'Your GitHub username',
+          placeholder: saved,
+          validate: validateNotEmpty
+        })
+    },
+    {
+      defaultValue: (answers) => d.fundingUrl ?? `https://buymeacoffee.com/${answers.get('authorGitHubName') ?? 'johndoe'}`,
+      key: 'fundingUrl',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved,
+          message: 'Funding URL (leave empty if not needed)',
+          placeholder: saved
+        })
+    }
+  ];
 }
 
 function extractWords(pluginId: string): string[] {
@@ -148,7 +344,7 @@ function getDefaultAnswersBase(pluginId: string): Answers {
   };
 }
 
-function getDefaultTooling(preset: string): ToolingOptions {
+function getDefaultTooling(preset: string): DefaultTooling {
   return {
     apiSubset: 'official',
     commitLinting: 'conventional-commits',
@@ -173,128 +369,28 @@ function makePluginName(pluginId: string): string {
   return extractWords(pluginId).join(' ');
 }
 
-async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetadata> {
-  const metadata = await group(
-    {
-      authorGitHubName: () => {
-        const value = defaults?.authorGitHubName ?? 'johndoe';
-        return text({
-          defaultValue: value,
-          message: 'Your GitHub username',
-          placeholder: value,
-          validate: validateNotEmpty
-        });
-      },
-      authorName: () => {
-        const value = defaults?.authorName ?? 'John Doe';
-        return text({
-          defaultValue: value,
-          message: 'Your full name',
-          placeholder: value,
-          validate: validateNotEmpty
-        });
-      },
-      fundingUrl: ({ results }) => {
-        const value = defaults?.fundingUrl ?? `https://buymeacoffee.com/${results.authorGitHubName ?? 'johndoe'}`;
-        return text({
-          defaultValue: value,
-          message: 'Funding URL (leave empty if not needed)',
-          placeholder: value
-        });
-      },
-      pluginDescription: () => {
-        const value = defaults?.pluginDescription ?? 'Does something awesome.';
-        return text({
-          defaultValue: value,
-          message: 'Plugin description',
-          placeholder: value,
-          validate(input: string | undefined): string | undefined {
-            if (!input) {
-              return 'Should not be empty';
-            }
-            if (!input.endsWith('.')) {
-              return 'Should end with a dot';
-            }
-            return undefined;
-          }
-        });
-      },
-      pluginId: () => text({
-        defaultValue: defaults?.pluginId,
-        message: 'Plugin id (lowercase, hyphens allowed)',
-        placeholder: defaults?.pluginId ?? 'my-awesome-plugin',
-        validate(input: string | undefined): string | undefined {
-          if (!input) {
-            return 'Should not be empty';
-          }
-          if (!/^[a-z0-9-]+$/.test(input)) {
-            return 'Should contain only lowercase English letters, digits and hyphens';
-          }
-          if (!/^[a-z]/.test(input)) {
-            return 'Should start with a letter';
-          }
-          if (!/[a-z0-9]$/.test(input)) {
-            return 'Should end with a letter or digit';
-          }
-          if (input.startsWith('obsidian-')) {
-            return 'Should not start with "obsidian-"';
-          }
-          return undefined;
-        }
-      }),
-      pluginName: ({ results }) => {
-        const value = defaults?.pluginName ?? makePluginName(results.pluginId ?? 'my-awesome-plugin');
-        return text({
-          defaultValue: value,
-          message: 'Plugin display name',
-          placeholder: value,
-          validate: validateNotEmpty
-        });
-      }
-    },
-    {
-      onCancel() {
-        cancel('Operation cancelled.');
-        process.exit(0);
-      }
-    }
-  );
-
-  return metadata as PluginMetadata;
+function promptPluginDescription(saved: string): Promise<string> {
+  const value = saved || undefined;
+  return text({
+    defaultValue: value,
+    message: 'Plugin description',
+    placeholder: value ?? 'Does something awesome.',
+    validate: validatePluginDescription
+  });
 }
 
-async function promptTooling(preset: string, defaults?: Partial<Answers>): Promise<ToolingOptions> {
-  const tooling = getDefaultTooling(preset);
-
-  if (preset === 'demo') {
-    return tooling;
-  }
-
-  tooling.linter = await promptLinter(defaults?.linter);
-  tooling.formatter = await promptFormatter(defaults?.formatter);
-  tooling.spellChecker = await promptSpellChecker(defaults?.spellChecker);
-  tooling.markdownLinter = await promptMarkdownLinter(defaults?.markdownLinter);
-  tooling.testRunner = await promptTestRunner(defaults?.testRunner);
-  tooling.e2eTestRunner = await promptE2eTestRunner(defaults?.e2eTestRunner);
-  tooling.editorExtensions = await promptEditorExtensions(defaults?.editorExtensions);
-  tooling.styling = await promptStyling(defaults?.styling);
-  tooling.wasmSupport = await promptWasmSupport(defaults?.wasmSupport);
-  tooling.commitLinting = await promptCommitLinting(defaults?.commitLinting);
-  tooling.hotReload = await promptHotReload(defaults?.hotReload);
-  tooling.internationalization = await promptInternationalization(defaults?.internationalization);
-  tooling.gitHubActions = await promptGitHubActions(defaults?.gitHubActions);
-  tooling.gitHubIssueTemplates = await promptGitHubIssueTemplates(defaults?.gitHubIssueTemplates);
-  tooling.gitHubFunding = await promptGitHubFunding(defaults?.gitHubFunding);
-
-  if (preset === 'enhanced') {
-    tooling.apiSubset = await promptApiSubset(defaults?.apiSubset);
-  }
-
-  return tooling;
+function promptPluginName(saved: string): Promise<string> {
+  const value = saved || undefined;
+  return text({
+    defaultValue: value,
+    message: 'Plugin display name',
+    placeholder: value ?? 'My Awesome Plugin',
+    validate: validateNotEmpty
+  });
 }
 
 async function promptToolingMode(): Promise<string> {
-  const result = await select({
+  return select({
     initialValue: 'defaults',
     message: 'Tooling',
     options: [
@@ -302,13 +398,98 @@ async function promptToolingMode(): Promise<string> {
       { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' }
     ]
   });
-  assertNotCancelled(result);
-  return result;
+}
+
+async function runPromptSteps(steps: PromptStep[]): Promise<StepAnswers> {
+  const answers: StepAnswers = new Map();
+  let i = 0;
+
+  while (i < steps.length) {
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- Cannot use `!` assertion per project rules.
+    const step = steps[i] as PromptStep;
+
+    if (step.skip?.(answers)) {
+      answers.set(step.key, step.defaultValue(answers));
+      i++;
+      continue;
+    }
+
+    try {
+      const savedValue = answers.get(step.key) ?? step.defaultValue(answers);
+      answers.set(step.key, await step.prompt(savedValue));
+      i++;
+    } catch (error: unknown) {
+      if (!(error instanceof GoBackError)) {
+        throw error;
+      }
+
+      answers.delete(step.key);
+      i--;
+
+      while (i > 0 && steps[i]?.skip?.(answers)) {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- Cannot use `!` assertion per project rules.
+        const skippedStep = steps[i] as PromptStep;
+        answers.delete(skippedStep.key);
+        i--;
+      }
+
+      if (i < 0) {
+        cancel('Operation cancelled.');
+        process.exit(0);
+      }
+    }
+  }
+
+  return answers;
+}
+
+function showHotkeyHints(): void {
+  function dim(s: string): string {
+    return styleText('dim', s);
+  }
+
+  function key(s: string): string {
+    return styleText('cyan', s);
+  }
+
+  log.info([
+    `${key('↑↓')} Navigate  ${key('Enter')} Confirm  ${key('Esc')} Go back`,
+    `${dim('Text inputs:')} ${key('Tab')}/${key('→')}/${key('End')} Accept suggestion`
+  ].join('\n'));
 }
 
 function validateNotEmpty(value: string | undefined): string | undefined {
   if (!value) {
     return 'Should not be empty';
+  }
+  return undefined;
+}
+
+function validatePluginDescription(input: string | undefined): string | undefined {
+  if (!input) {
+    return 'Should not be empty';
+  }
+  if (!input.endsWith('.')) {
+    return 'Should end with a dot';
+  }
+  return undefined;
+}
+
+function validatePluginId(input: string | undefined): string | undefined {
+  if (!input) {
+    return 'Should not be empty';
+  }
+  if (!/^[a-z0-9-]+$/.test(input)) {
+    return 'Should contain only lowercase English letters, digits and hyphens';
+  }
+  if (!/^[a-z]/.test(input)) {
+    return 'Should start with a letter';
+  }
+  if (!/[a-z0-9]$/.test(input)) {
+    return 'Should end with a letter or digit';
+  }
+  if (input.startsWith('obsidian-')) {
+    return 'Should not start with "obsidian-"';
   }
   return undefined;
 }

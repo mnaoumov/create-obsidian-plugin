@@ -12,6 +12,12 @@ import {
 } from '@clack/prompts';
 import { styleText } from 'node:util';
 
+import {
+  resetCancelFlag,
+  setEscapeCancel,
+  throwGoBackOnCancel
+} from './clack-utils.ts';
+
 interface TextWithCompletionOptions {
   defaultValue?: string | undefined;
   message: string;
@@ -44,7 +50,7 @@ class TextPromptWithCompletion extends TextPrompt {
   }
 }
 
-export async function text(opts: TextWithCompletionOptions): Promise<string | symbol> {
+export async function text(opts: TextWithCompletionOptions): Promise<string> {
   const textOpts: TextOptions = {
     render() {
       const withGuide = settings.withGuide;
@@ -89,6 +95,13 @@ export async function text(opts: TextWithCompletionOptions): Promise<string | sy
     textOpts.placeholder = opts.placeholder;
   }
 
-  const result = await new TextPromptWithCompletion(textOpts).prompt();
-  return result ?? '';
+  const prompt = new TextPromptWithCompletion(textOpts);
+  prompt.on('key', (_char, key) => {
+    if (key.name === 'escape') {
+      setEscapeCancel();
+    }
+  });
+  resetCancelFlag();
+  const result = await prompt.prompt();
+  return throwGoBackOnCancel(result) ?? '';
 }
