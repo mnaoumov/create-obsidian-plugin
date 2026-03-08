@@ -73,7 +73,7 @@ async function main(): Promise<void> {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
   const currentVersion = packageJson.version ?? '0.0.0';
 
-  const m = '\x1b[35m';
+  const m = '\x1b[38;5;135m';
   const r = '\x1b[0m';
   const b = '\x1b[1m';
   const banner = `
