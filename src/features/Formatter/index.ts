@@ -6,7 +6,7 @@ import { Dprint } from './Dprint.ts';
 import { None } from './None.ts';
 import { Prettier } from './Prettier.ts';
 
-export const FORMATTER_OPTIONS: readonly FeatureOption[] = [new Biome(), new Dprint(), new Prettier(), new None()];
+export const FORMATTER_OPTIONS: readonly FeatureOption[] = [new None(), new Biome(), new Dprint(), new Prettier()];
 
 export async function promptFormatter(defaultValue?: string): Promise<string> {
   return promptFeature(FORMATTER_OPTIONS, 'Formatter', defaultValue);

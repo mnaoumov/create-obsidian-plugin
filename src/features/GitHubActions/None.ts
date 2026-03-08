@@ -2,6 +2,6 @@ import { FeatureOption } from '../../FeatureOption.ts';
 
 export class None extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'No GitHub Actions workflows', promptLabel: 'None', settingValue: 'none' });
+    super({ promptHint: 'No GitHub Actions workflows', promptLabel: '(none)', settingValue: 'none' });
   }
 }

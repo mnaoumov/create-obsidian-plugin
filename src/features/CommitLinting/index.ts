@@ -4,7 +4,7 @@ import { promptFeature } from '../../FeatureOption.ts';
 import { ConventionalCommits } from './ConventionalCommits.ts';
 import { None } from './None.ts';
 
-export const COMMIT_LINTING_OPTIONS: readonly FeatureOption[] = [new ConventionalCommits(), new None()];
+export const COMMIT_LINTING_OPTIONS: readonly FeatureOption[] = [new None(), new ConventionalCommits()];
 
 export async function promptCommitLinting(defaultValue?: string): Promise<string> {
   return promptFeature(COMMIT_LINTING_OPTIONS, 'Commit linting', defaultValue);

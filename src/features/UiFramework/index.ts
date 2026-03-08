@@ -9,7 +9,7 @@ import { Solid } from './Solid.ts';
 import { Svelte } from './Svelte.ts';
 import { Vue } from './Vue.ts';
 
-export const UI_FRAMEWORK_OPTIONS: readonly FeatureOption[] = [new Lit(), new None(), new Preact(), new React(), new Solid(), new Svelte(), new Vue()];
+export const UI_FRAMEWORK_OPTIONS: readonly FeatureOption[] = [new None(), new Lit(), new Preact(), new React(), new Solid(), new Svelte(), new Vue()];
 
 export async function promptUiFramework(defaultValue?: string): Promise<string> {
   return promptFeature(UI_FRAMEWORK_OPTIONS, 'UI framework', defaultValue);

@@ -5,7 +5,7 @@ import { Biome } from './Biome.ts';
 import { Eslint } from './Eslint.ts';
 import { None } from './None.ts';
 
-export const LINTER_OPTIONS: readonly FeatureOption[] = [new Biome(), new Eslint(), new None()];
+export const LINTER_OPTIONS: readonly FeatureOption[] = [new None(), new Biome(), new Eslint()];
 
 export async function promptLinter(defaultValue?: string): Promise<string> {
   return promptFeature(LINTER_OPTIONS, 'Linter', defaultValue);
