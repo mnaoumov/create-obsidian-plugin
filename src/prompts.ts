@@ -174,8 +174,6 @@ function makePluginName(pluginId: string): string {
 }
 
 async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetadata> {
-  const defaultPluginId = defaults?.pluginId ?? 'my-awesome-plugin';
-
   const metadata = await group(
     {
       authorGitHubName: () => {
@@ -222,9 +220,9 @@ async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetada
         });
       },
       pluginId: () => text({
-        defaultValue: defaultPluginId,
+        defaultValue: defaults?.pluginId,
         message: 'Plugin id (lowercase, hyphens allowed)',
-        placeholder: defaultPluginId,
+        placeholder: defaults?.pluginId ?? 'my-awesome-plugin',
         validate(input: string | undefined): string | undefined {
           if (!input) {
             return 'Should not be empty';
@@ -245,7 +243,7 @@ async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetada
         }
       }),
       pluginName: ({ results }) => {
-        const value = defaults?.pluginName ?? makePluginName(results.pluginId ?? defaultPluginId);
+        const value = defaults?.pluginName ?? makePluginName(results.pluginId ?? 'my-awesome-plugin');
         return text({
           defaultValue: value,
           message: 'Plugin display name',
