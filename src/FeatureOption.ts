@@ -1,9 +1,7 @@
-import { select } from '@clack/prompts';
-
 import type { Answers } from './Answers.ts';
 import type { TemplateBuilder } from './TemplateBuilder.ts';
 
-import { assertNotCancelled } from './clack-utils.ts';
+import { select } from './clack-select.ts';
 
 export interface FeatureOptionConfig {
   promptHint: string;
@@ -39,7 +37,6 @@ export async function promptFeature(params: PromptFeatureParams): Promise<string
     message: params.message,
     options: params.options.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
   });
-  assertNotCancelled(result);
   return result;
 }
 
