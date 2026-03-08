@@ -6,6 +6,6 @@ import { WithUnofficial } from './WithUnofficial.ts';
 
 export const API_SUBSET_OPTIONS: readonly FeatureOption[] = [new Official(), new WithUnofficial()];
 
-export async function promptApiSubset(defaultValue?: string): Promise<string> {
-  return promptFeature(API_SUBSET_OPTIONS, 'Obsidian API subset', defaultValue);
+export async function promptApiSubset(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new Official(), message: 'Obsidian API subset', options: API_SUBSET_OPTIONS, savedValue });
 }

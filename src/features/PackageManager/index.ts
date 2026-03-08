@@ -25,6 +25,6 @@ export function getRunCommand(pm: string, script: string): string {
   return `bun run ${script}`;
 }
 
-export async function promptPackageManager(defaultValue?: string): Promise<string> {
-  return promptFeature(PACKAGE_MANAGER_OPTIONS, 'Package manager', defaultValue);
+export async function promptPackageManager(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new Npm(), message: 'Package manager', options: PACKAGE_MANAGER_OPTIONS, savedValue });
 }

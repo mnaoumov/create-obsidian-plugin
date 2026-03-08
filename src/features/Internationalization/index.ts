@@ -7,6 +7,6 @@ import { TypesafeI18n } from './TypesafeI18n.ts';
 
 export const INTERNATIONALIZATION_OPTIONS: readonly FeatureOption[] = [new None(), new I18next(), new TypesafeI18n()];
 
-export async function promptInternationalization(defaultValue?: string): Promise<string> {
-  return promptFeature(INTERNATIONALIZATION_OPTIONS, 'Internationalization', defaultValue);
+export async function promptInternationalization(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new None(), message: 'Internationalization', options: INTERNATIONALIZATION_OPTIONS, savedValue });
 }

@@ -8,6 +8,6 @@ import { Prettier } from './Prettier.ts';
 
 export const FORMATTER_OPTIONS: readonly FeatureOption[] = [new None(), new Biome(), new Dprint(), new Prettier()];
 
-export async function promptFormatter(defaultValue?: string): Promise<string> {
-  return promptFeature(FORMATTER_OPTIONS, 'Formatter', defaultValue ?? 'prettier');
+export async function promptFormatter(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new Prettier(), message: 'Formatter', options: FORMATTER_OPTIONS, savedValue });
 }

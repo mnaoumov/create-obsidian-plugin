@@ -11,6 +11,13 @@ export interface FeatureOptionConfig {
   settingValue: string;
 }
 
+export interface PromptFeatureParams {
+  defaultOption: FeatureOption;
+  message: string;
+  options: readonly FeatureOption[];
+  savedValue?: string | undefined;
+}
+
 export abstract class FeatureOption {
   public readonly promptHint: string;
   public readonly promptLabel: string;
@@ -26,11 +33,11 @@ export abstract class FeatureOption {
   public configure(_builder: TemplateBuilder, _answers: Answers): void {}
 }
 
-export async function promptFeature(options: readonly FeatureOption[], message: string, defaultValue?: string): Promise<string> {
+export async function promptFeature(params: PromptFeatureParams): Promise<string> {
   const result = await select({
-    initialValue: defaultValue ?? options[0]?.settingValue ?? '',
-    message,
-    options: options.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
+    initialValue: params.savedValue ?? params.defaultOption.settingValue,
+    message: params.message,
+    options: params.options.map((o) => ({ hint: o.promptHint, label: o.promptLabel, value: o.settingValue }))
   });
   assertNotCancelled(result);
   return result;

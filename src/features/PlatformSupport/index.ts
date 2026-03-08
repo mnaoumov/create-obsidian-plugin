@@ -6,6 +6,6 @@ import { DesktopOnly } from './DesktopOnly.ts';
 
 export const PLATFORM_SUPPORT_OPTIONS: readonly FeatureOption[] = [new DesktopOnly(), new DesktopAndMobile()];
 
-export async function promptPlatformSupport(defaultValue?: string): Promise<string> {
-  return promptFeature(PLATFORM_SUPPORT_OPTIONS, 'Platform support', defaultValue);
+export async function promptPlatformSupport(savedValue?: string): Promise<string> {
+  return promptFeature({ defaultOption: new DesktopOnly(), message: 'Platform support', options: PLATFORM_SUPPORT_OPTIONS, savedValue });
 }
