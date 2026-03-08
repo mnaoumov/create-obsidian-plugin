@@ -165,6 +165,12 @@ describe('copyTemplates', () => {
     expect(config).toContain('libraryTarget');
   });
 
+  it('renders build script from parcel partial', () => {
+    copyTemplates(makeAnswers({ buildSystem: 'parcel' }), targetDir, '1.0.0', null);
+    const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(buildScript).toContain('parcel');
+  });
+
   it('creates dev.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const devScript = readFileSync(join(targetDir, 'scripts/dev.ts'), 'utf-8');

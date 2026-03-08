@@ -231,6 +231,14 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).toContain('webpack.config.ts');
       expect([...builder.templateFiles]).toContain('scripts/webpack.config.ts');
     });
+
+    it('adds parcel files and dependencies', () => {
+      const builder = buildTemplate(makeAnswers({ buildSystem: 'parcel' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('parcel');
+      expect(depNames).toContain('@parcel/config-default');
+      expect([...builder.templateFiles]).toContain('.parcelrc');
+    });
   });
 
   describe('uiFramework feature', () => {
