@@ -4,7 +4,7 @@ import { FeatureOption } from '../../FeatureOption.ts';
 
 export class Demo extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'All features enabled for demonstration. Not for production', promptLabel: 'Demo', settingValue: 'demo' });
+    super({ promptHint: 'All features enabled for demonstration', promptLabel: 'Demo', settingValue: 'demo' });
   }
 
   public override configure(builder: TemplateBuilder): void {
