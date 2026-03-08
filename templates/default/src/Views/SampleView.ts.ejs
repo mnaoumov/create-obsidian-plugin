@@ -12,8 +12,26 @@ export class SampleView extends ItemView {
   }
 
   public override async onOpen(): Promise<void> {
-    this.contentEl.empty();
-    this.contentEl.createEl('h4', { text: 'Sample view' });
+    const container = this.contentEl;
+    container.empty();
+    container.createEl('h4', { text: '<%= pluginName %>' });
+
+    const vaultName = this.app.vault.getName();
+    container.createEl('p', { text: `Vault: ${vaultName}` });
+
+    const files = this.app.vault.getMarkdownFiles();
+    container.createEl('p', { text: `Markdown files: ${String(files.length)}` });
+
+    const list = container.createEl('ul');
+    const MAX_FILES = 10;
+    for (const file of files.slice(0, MAX_FILES)) {
+      list.createEl('li', { text: file.path });
+    }
+
+    if (files.length > MAX_FILES) {
+      list.createEl('li', { text: `... and ${String(files.length - MAX_FILES)} more` });
+    }
+
     await Promise.resolve();
   }
 }

@@ -1,7 +1,35 @@
-import { Modal } from 'obsidian';
+import {
+  Modal,
+  Notice,
+  Setting
+} from 'obsidian';
 
 export class SampleModal extends Modal {
+  private name = '';
+
   public override onOpen(): void {
-    this.contentEl.setText('Sample modal');
+    this.contentEl.createEl('h2', { text: 'Sample Form' });
+
+    new Setting(this.contentEl)
+      .setName('Name')
+      .setDesc('Enter your name')
+      .addText((text) => {
+        text
+          .setPlaceholder('Your name')
+          .onChange((value) => {
+            this.name = value;
+          });
+      });
+
+    new Setting(this.contentEl)
+      .addButton((btn) => {
+        btn
+          .setButtonText('Submit')
+          .setCta()
+          .onClick(() => {
+            new Notice(`Hello, ${this.name || 'world'}!`);
+            this.close();
+          });
+      });
   }
 }
