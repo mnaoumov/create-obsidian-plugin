@@ -1,7 +1,24 @@
 import { WidgetType } from '@codemirror/view';
 
 export class SampleWidget extends WidgetType {
+  private readonly count: number;
+
+  public constructor(count: number) {
+    super();
+    this.count = count;
+  }
+
+  public override eq(other: SampleWidget): boolean {
+    return this.count === other.count;
+  }
+
   public toDOM(): HTMLElement {
-    return createEl('span', { text: '👉' });
+    const span = createEl('span', {
+      cls: 'cm-sample-word-count',
+      text: ` [${String(this.count)} words]`
+    });
+    span.style.opacity = '0.5';
+    span.style.fontSize = '0.85em';
+    return span;
   }
 }
