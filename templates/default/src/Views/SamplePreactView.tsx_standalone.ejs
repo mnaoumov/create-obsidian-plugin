@@ -1,0 +1,42 @@
+import { ItemView } from 'obsidian';
+import { render } from 'preact';
+
+import type { SamplePreactComponentProps } from '../PreactComponents/SamplePreactComponent.tsx';
+
+import {
+  AppContext,
+  SamplePreactComponent
+} from '../PreactComponents/SamplePreactComponent.tsx';
+
+export const SAMPLE_PREACT_VIEW_TYPE = '<%= pluginId %>-SamplePreactView';
+
+export class SamplePreactView extends ItemView {
+  public override getDisplayText(): string {
+    return 'Sample Preact view';
+  }
+
+  public override getViewType(): string {
+    return SAMPLE_PREACT_VIEW_TYPE;
+  }
+
+  public override async onClose(): Promise<void> {
+    render(null, this.contentEl);
+    await Promise.resolve();
+  }
+
+  public override async onOpen(): Promise<void> {
+    const START_COUNT = 10;
+    const props: SamplePreactComponentProps = {
+      startCount: START_COUNT
+    };
+
+    render(
+      <AppContext.Provider value={this.app}>
+        <SamplePreactComponent {...props} />
+      </AppContext.Provider>,
+      this.contentEl
+    );
+
+    await Promise.resolve();
+  }
+}
