@@ -75,7 +75,6 @@ async function main(): Promise<void> {
 
   const m = '\x1b[38;5;135m';
   const r = '\x1b[0m';
-  const b = '\x1b[1m';
   const banner = `
          ${m}▗▄▟██${r}
        ${m}▄█████▛ █▄${r}
