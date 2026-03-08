@@ -73,7 +73,15 @@ async function main(): Promise<void> {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
   const currentVersion = packageJson.version ?? '0.0.0';
 
-  intro(`@mnaoumov/create-obsidian-plugin v${currentVersion}`);
+  const banner = `
+    \x1b[35m╱╲\x1b[0m
+   \x1b[35m╱  ╲\x1b[0m       \x1b[1m@mnaoumov/create-obsidian-plugin\x1b[0m
+  \x1b[35m╱ ◆  ╲\x1b[0m      v${currentVersion}
+ \x1b[35m╱      ╲\x1b[0m
+\x1b[35m╱________╲\x1b[0m     Scaffold modern Obsidian plugins
+`;
+  process.stdout.write(banner);
+  intro('');
 
   await checkForUpdates(currentVersion);
 
