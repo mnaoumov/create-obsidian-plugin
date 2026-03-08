@@ -17,11 +17,11 @@ export class Scss extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder.addFiles(['src/styles/main.scss']);
 
-    const plugin = SCSS_PLUGINS[answers.buildSystem];
+    const plugin = SCSS_PLUGINS[answers.bundler];
     if (plugin) {
       builder.addPackage(plugin);
     }
-    if (answers.buildSystem === 'webpack') {
+    if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')

@@ -22,7 +22,7 @@ import type { FeatureOption } from './FeatureOption.ts';
 import { CONFIG_FILE_NAME } from './Answers.ts';
 import { resolveFeature } from './FeatureOption.ts';
 import { API_SUBSET_OPTIONS } from './features/ApiSubset/index.ts';
-import { BUILD_SYSTEM_OPTIONS } from './features/BuildSystem/index.ts';
+import { BUNDLER_OPTIONS } from './features/Bundler/index.ts';
 import { COMMIT_LINTING_OPTIONS } from './features/CommitLinting/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
@@ -72,7 +72,7 @@ interface RenderOptions {
 
 const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'preset', options: PRESET_OPTIONS },
-  { answerKey: 'buildSystem', options: BUILD_SYSTEM_OPTIONS },
+  { answerKey: 'bundler', options: BUNDLER_OPTIONS },
   { answerKey: 'uiFramework', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'linter', options: LINTER_OPTIONS },
   { answerKey: 'formatter', options: FORMATTER_OPTIONS },
@@ -321,6 +321,10 @@ function migrateConfig(config: GeneratorConfig): void {
   if (raw['cssMode'] && !raw['styling']) {
     raw['styling'] = raw['cssMode'];
     delete raw['cssMode'];
+  }
+  if (raw['buildSystem'] && !raw['bundler']) {
+    raw['bundler'] = raw['buildSystem'];
+    delete raw['buildSystem'];
   }
 }
 

@@ -9,7 +9,7 @@ export interface Answers {
   apiSubset: string;
   authorGitHubName: string;
   authorName: string;
-  buildSystem: string;
+  bundler: string;
   commitLinting: string;
   currentYear: number;
   e2eTestRunner: string;

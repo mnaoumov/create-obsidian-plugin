@@ -25,7 +25,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     apiSubset: 'official',
     authorGitHubName: 'testuser',
     authorName: 'Test User',
-    buildSystem: 'esbuild',
+    bundler: 'esbuild',
     commitLinting: 'none',
     currentYear: CURRENT_YEAR,
     e2eTestRunner: 'none',
@@ -147,39 +147,39 @@ describe('copyTemplates', () => {
   });
 
   it('renders build script from esbuild partial', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'esbuild' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'esbuild' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('esbuild');
     expect(buildScript).toContain('const prod = process.argv[2] !== \'dev\'');
   });
 
   it('renders build script from rollup partial', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'rollup' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'rollup' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('rollup');
   });
 
   it('renders build script from vite partial', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'vite' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'vite' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('vite');
   });
 
   it('renders build script from webpack partial', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'webpack' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'webpack' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('webpack');
   });
 
   it('creates webpack config with render sections', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'webpack' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'webpack' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
     expect(config).toContain('ts-loader');
     expect(config).toContain('libraryTarget');
   });
 
   it('renders build script from parcel partial', () => {
-    copyTemplates(makeAnswers({ buildSystem: 'parcel' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'parcel' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).toContain('parcel');
   });

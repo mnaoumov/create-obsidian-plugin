@@ -21,11 +21,11 @@ export class Solid extends FeatureOption {
         'src/Views/SampleSolidView.tsx'
       ]);
 
-    const plugin = BUILD_PLUGINS[answers.buildSystem];
+    const plugin = BUILD_PLUGINS[answers.bundler];
     if (plugin) {
       builder.addPackage(plugin);
     }
-    if (answers.buildSystem === 'rollup') {
+    if (answers.bundler === 'rollup') {
       builder
         .addPackage('@babel/core')
         .addPackage('babel-preset-solid')
@@ -34,7 +34,7 @@ export class Solid extends FeatureOption {
           'scripts/babel.config.ts'
         ]);
     }
-    if (answers.buildSystem === 'esbuild') {
+    if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-plugin-solid');
     }
   }

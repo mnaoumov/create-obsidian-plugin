@@ -8,7 +8,7 @@ import { basename } from 'node:path';
 import type { Answers } from './Answers.ts';
 
 import { promptApiSubset } from './features/ApiSubset/index.ts';
-import { promptBuildSystem } from './features/BuildSystem/index.ts';
+import { promptBundler } from './features/Bundler/index.ts';
 import { promptCommitLinting } from './features/CommitLinting/index.ts';
 import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
 import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
@@ -60,9 +60,9 @@ interface ToolingOptions {
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   const preset = await promptPreset(defaults?.preset);
 
-  const buildSystem = preset === 'demo'
+  const bundler = preset === 'demo'
     ? 'esbuild'
-    : await promptBuildSystem(defaults?.buildSystem);
+    : await promptBundler(defaults?.bundler);
 
   const uiFramework = preset === 'demo'
     ? 'none'
@@ -77,7 +77,7 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
 
   const features = {
     ...tooling,
-    buildSystem,
+    bundler,
     packageManager,
     platformSupport,
     preset,

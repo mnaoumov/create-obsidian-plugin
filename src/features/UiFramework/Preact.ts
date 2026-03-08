@@ -22,11 +22,11 @@ export class Preact extends FeatureOption {
         'src/Views/SamplePreactView.tsx'
       ]);
 
-    const plugin = BUILD_PLUGINS[answers.buildSystem];
+    const plugin = BUILD_PLUGINS[answers.bundler];
     if (plugin) {
       builder.addPackage(plugin);
     }
-    if (answers.buildSystem === 'rollup') {
+    if (answers.bundler === 'rollup') {
       builder
         .addPackage('@babel/core')
         .addPackage('@babel/plugin-transform-react-jsx')
