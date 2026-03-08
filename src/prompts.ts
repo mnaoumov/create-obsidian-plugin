@@ -3,7 +3,6 @@ import {
   group,
   select
 } from '@clack/prompts';
-import { basename } from 'node:path';
 
 import type { Answers } from './Answers.ts';
 
@@ -60,7 +59,7 @@ interface ToolingOptions {
 }
 
 export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
-  const pluginId = defaults?.pluginId ?? (basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin');
+  const pluginId = defaults?.pluginId ?? 'my-awesome-plugin';
   const base = getDefaultAnswersBase(pluginId);
   if (!defaults) {
     return base;
@@ -175,7 +174,7 @@ function makePluginName(pluginId: string): string {
 }
 
 async function promptMetadata(defaults?: Partial<Answers>): Promise<PluginMetadata> {
-  const defaultPluginId = defaults?.pluginId ?? (basename(process.cwd()).replace(/^obsidian-/, '') || 'my-awesome-plugin');
+  const defaultPluginId = defaults?.pluginId ?? 'my-awesome-plugin';
 
   const metadata = await group(
     {
