@@ -75,7 +75,7 @@ async function main(): Promise<void> {
 
   const banner = `\n    \x1b[35m╱╲\x1b[0m\n   \x1b[35m╱  ╲\x1b[0m       \x1b[1m@mnaoumov/create-obsidian-plugin\x1b[0m\n  \x1b[35m╱ ◆  ╲\x1b[0m      v${currentVersion}\n \x1b[35m╱      ╲\x1b[0m\n\x1b[35m╱________╲\x1b[0m     Scaffold modern Obsidian plugins\n`;
   process.stdout.write(banner);
-  intro("Let's build an Obsidian plugin!");
+  intro('Let\'s build an Obsidian plugin!');
 
   await checkForUpdates(currentVersion);
 
