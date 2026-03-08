@@ -257,10 +257,17 @@ describe('copyTemplates', () => {
     expect(buildScript).toContain('.hotreload');
   });
 
-  it('excludes .hotreload write from build script when hot reload is none', () => {
+  it('includes obsidian plugin:reload in build script when obsidian-cli is selected', () => {
+    copyTemplates(makeAnswers({ hotReload: 'obsidian-cli' }), targetDir, '1.0.0', null);
+    const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(buildScript).toContain('obsidian plugin:reload');
+  });
+
+  it('excludes reload from build script when hot reload is none', () => {
     copyTemplates(makeAnswers({ hotReload: 'none' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
     expect(buildScript).not.toContain('.hotreload');
+    expect(buildScript).not.toContain('plugin:reload');
   });
 
   it('creates ci.yml with eslint step when eslint is selected', () => {

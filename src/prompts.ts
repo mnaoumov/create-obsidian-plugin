@@ -111,7 +111,7 @@ function getDefaultTooling(preset: string): ToolingOptions {
     gitHubActions: 'ci-and-release',
     gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
-    hotReload: 'hot-reload-plugin',
+    hotReload: 'obsidian-cli',
     internationalization: 'none',
     linter: 'eslint',
     markdownLinter: 'markdownlint',
