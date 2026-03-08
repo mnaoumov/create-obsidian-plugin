@@ -133,6 +133,15 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, 'scripts/lint.ts'))).toBe(false);
   });
 
+  it('creates biome config and lint scripts when biome is selected', () => {
+    copyTemplates(makeAnswers({ linter: 'biome' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'biome.json'))).toBe(true);
+    const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
+    expect(lint).toContain('biome lint');
+    const lintFix = readFileSync(join(targetDir, 'scripts/lint-fix.ts'), 'utf-8');
+    expect(lintFix).toContain('biome lint --write');
+  });
+
   it('renders build script from esbuild partial', () => {
     copyTemplates(makeAnswers({ buildSystem: 'esbuild' }), targetDir, '1.0.0', null);
     const buildScript = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
