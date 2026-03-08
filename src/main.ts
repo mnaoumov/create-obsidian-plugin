@@ -25,7 +25,10 @@ import {
   CONFIG_FILE_NAME,
   Mode
 } from './Answers.ts';
-import { assertNotCancelled } from './clack-utils.ts';
+import {
+  assertNotCancelled,
+  enableTabCompletion
+} from './clack-utils.ts';
 import {
   getInstallCommand,
   getRunCommand
@@ -72,6 +75,7 @@ async function latestVersion(packageName: string): Promise<string> {
 }
 
 async function main(): Promise<void> {
+  enableTabCompletion();
   const packageJsonPath = join(getScriptDir(), '..', 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
   const currentVersion = packageJson.version ?? '0.0.0';
