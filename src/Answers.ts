@@ -23,6 +23,7 @@ export interface Answers {
   internationalization: string;
   linter: string;
   markdownLinter: string;
+  obsidianConfigFolder: string;
   packageManager: string;
   platformSupport: string;
   pluginDescription: string;
