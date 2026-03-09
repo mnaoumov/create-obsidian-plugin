@@ -41,120 +41,175 @@ The updater will:
 
 The wizard lets you pick and choose from the following categories:
 
-### Presets
+### Preset
 
-| Option | Description |
-|--------|-------------|
-| **Standalone** | Self-contained scripts with no external runtime dependencies |
-| **Enhanced** | One-liner wrapper scripts powered by [obsidian-dev-utils](https://github.com/mnaoumov/obsidian-dev-utils) |
-| **Demo** | Full-featured demo showcasing all capabilities |
+| Option         | Description                                                                                                              |
+|----------------|--------------------------------------------------------------------------------------------------------------------------|
+| Demo           | All features enabled for demonstration                                                                                   |
+| Enhanced       | Recommended. Uses [obsidian-dev-utils](https://github.com/mnaoumov/obsidian-dev-utils) for settings, linting, and more   |
+| Standalone     | Standalone plugin without obsidian-dev-utils dependency                                                                  |
 
-### Build systems
+### Bundler
 
-| Option | Description |
-|--------|-------------|
-| **esbuild** | Fast bundler with plugin ecosystem |
-| **Rollup** | Tree-shaking bundler with rich plugin system |
-| **Vite** | Modern dev server and build tool |
-| **Webpack** | Widely-used bundler with loaders and plugins |
-| **Parcel** | Zero-config bundler |
+| Option  | Description                                |
+|---------|--------------------------------------------|
+| esbuild | Fast and simple (recommended)              |
+| Parcel  | Zero-config bundler                        |
+| Rollup  | Flexible with plugin ecosystem             |
+| Vite    | Modern dev server with HMR                 |
+| Webpack | Mature bundler with broad plugin support   |
 
-### UI frameworks
+### UI framework
 
-| Option | Description |
-|--------|-------------|
-| **React** | Component library with JSX |
-| **Preact** | Lightweight React alternative |
-| **Svelte** | Compiler-based reactive framework |
-| **Vue** | Progressive framework with SFC support |
-| **Solid** | Fine-grained reactive framework |
-| **Lit** | Web components with decorators |
-| **None** | Vanilla TypeScript |
+| Option  | Description                                  |
+|---------|----------------------------------------------|
+| (none)  | Plain TypeScript, no UI framework            |
+| Lit     | Web Components with declarative templates    |
+| Preact  | Lightweight React alternative (3kB)          |
+| React   | Component-based UI with JSX                  |
+| Solid   | Fine-grained reactivity, no virtual DOM      |
+| Svelte  | Lightweight reactive components              |
+| Vue     | Progressive framework with SFC               |
 
-### Linters
+### Linter
 
-| Option | Description |
-|--------|-------------|
-| **ESLint** | Industry standard for JavaScript/TypeScript |
-| **Biome** | Fast all-in-one toolchain |
-| **None** | No linting |
+| Option | Description                                  |
+|--------|----------------------------------------------|
+| (none) | No linting                                   |
+| Biome  | Fast linter and formatter                    |
+| ESLint | Industry standard for JavaScript/TypeScript  |
 
-### Formatters
+### Formatter
 
-| Option | Description |
-|--------|-------------|
-| **Prettier** | Opinionated code formatter |
-| **dprint** | Fast formatter written in Rust |
-| **Biome** | Integrated formatting via Biome |
-| **None** | No formatting |
+| Option   | Description                          |
+|----------|--------------------------------------|
+| (none)   | No formatting                        |
+| Biome    | Fast formatter (pairs with Biome linter) |
+| dprint   | Fast, pluggable, written in Rust     |
+| Prettier | Opinionated, widely adopted          |
 
-### Styling
+### Spell checker
 
-| Option | Description |
-|--------|-------------|
-| **CSS** | Plain CSS |
-| **SCSS** | Sass preprocessor |
-| **PostCSS** | CSS transformations with plugins |
-| **Tailwind CSS** | Utility-first CSS framework |
-| **CSS Modules** | Scoped CSS with type declarations |
-| **None** | No styling setup |
+| Option | Description                              |
+|--------|------------------------------------------|
+| (none) | No spell checking                        |
+| cspell | Configurable spell checker for code      |
 
-### Test runners
+### Markdown linter
 
-| Option | Description |
-|--------|-------------|
-| **Vitest** | Fast Vite-native test runner |
-| **Jest** | Full-featured test framework |
-| **None** | No unit testing |
+| Option       | Description                                        |
+|--------------|----------------------------------------------------|
+| (none)       | No Markdown linting                                |
+| markdownlint | Lint Markdown files for style and consistency      |
 
-### E2E test runners
+### Unit testing
 
-| Option | Description |
-|--------|-------------|
-| **wdio-obsidian** | WebdriverIO with Obsidian service |
-| **obsidian-test** | Embedded Obsidian test runner |
-| **None** | No E2E testing |
+| Option | Description                     |
+|--------|---------------------------------|
+| (none) | No unit testing                 |
+| Jest   | Feature-rich, widely adopted    |
+| Vitest | Fast, Vite-native, ESM-first   |
+
+### E2E testing
+
+| Option        | Description                                                    |
+|---------------|----------------------------------------------------------------|
+| (none)        | No E2E testing                                                 |
+| obsidian-test | Tests run inside Obsidian with real app APIs                   |
+| wdio-obsidian | WebdriverIO service for Obsidian, multi-version and CI/CD      |
 
 ### Editor extensions
 
-| Option | Description |
-|--------|-------------|
-| **CodeMirror** | StateField, ViewPlugin, Widget, EditorSuggest samples |
-| **None** | No editor extensions |
+| Option    | Description                                              |
+|-----------|----------------------------------------------------------|
+| (none)    | No editor extensions                                     |
+| CodeMirror | CodeMirror 6 state fields, view plugins, decorations    |
+
+### Styling
+
+| Option       | Description                                   |
+|--------------|-----------------------------------------------|
+| (none)       | No custom styles                              |
+| CSS          | Plain CSS styles                              |
+| CSS Modules  | Scoped CSS with .module.css files             |
+| PostCSS      | CSS with plugins (autoprefixer, nesting)      |
+| SCSS         | Sass/SCSS preprocessor                        |
+| Tailwind CSS | Utility-first CSS framework                   |
+
+### WebAssembly support
+
+| Option | Description                      |
+|--------|----------------------------------|
+| (none) | No WASM                          |
+| WASM   | Import and use .wasm modules     |
 
 ### Commit linting
 
-| Option | Description |
-|--------|-------------|
-| **Conventional Commits** | commitlint + husky + lint-staged |
-| **None** | No commit linting |
+| Option                | Description                        |
+|-----------------------|------------------------------------|
+| (none)                | No commit linting                  |
+| Conventional Commits  | commitlint + husky + lint-staged   |
 
 ### Hot reload
 
-| Option | Description |
-|--------|-------------|
-| **Hot Reload Plugin** | Creates `.hotreload` marker for [pjeby/hot-reload](https://github.com/pjeby/hot-reload) |
-| **None** | No hot reload support |
+| Option            | Description                                                                          |
+|-------------------|--------------------------------------------------------------------------------------|
+| (none)            | No hot reload support                                                                |
+| Hot Reload Plugin | Creates `.hotreload` marker for [pjeby/hot-reload](https://github.com/pjeby/hot-reload) |
+| Obsidian CLI      | Reloads via `obsidian plugin:reload` CLI command                                     |
 
 ### Internationalization
 
-| Option | Description |
-|--------|-------------|
-| **i18next** | Popular i18n framework with JSON translations |
-| **typesafe-i18n** | Type-safe i18n with auto-generated types |
-| **None** | No internationalization |
+| Option        | Description                                   |
+|---------------|-----------------------------------------------|
+| (none)        | No internationalization                       |
+| i18next       | Popular i18n framework with JSON translations |
+| typesafe-i18n | Type-safe i18n with auto-generated types      |
 
-### Additional options
+### GitHub Actions
 
-- **Spell checker**: CSpell or none
-- **Markdown linter**: markdownlint or none
-- **GitHub Actions**: CI + Release, CI only, or none
-- **GitHub issue templates**: Bug and feature templates or none
-- **GitHub funding**: FUNDING.yml or none
-- **WASM support**: WebAssembly module support or none
-- **Platform support**: Desktop and mobile, desktop only, or mobile only
-- **API subset**: Official API or with unofficial typings
-- **Package manager**: npm, pnpm, yarn, or bun
+| Option       | Description                                  |
+|--------------|----------------------------------------------|
+| (none)       | No GitHub Actions workflows                  |
+| CI + Release | CI + automated release on tag push           |
+| CI           | CI workflow only (lint, test, build)         |
+
+### GitHub issue templates
+
+| Option        | Description                                  |
+|---------------|----------------------------------------------|
+| (none)        | No issue templates                           |
+| Bug & Feature | Bug report and feature request templates     |
+
+### GitHub funding
+
+| Option      | Description                                |
+|-------------|--------------------------------------------|
+| (none)      | No funding configuration                   |
+| FUNDING.yml | GitHub Sponsors funding configuration      |
+
+### Obsidian API subset
+
+| Option               | Description                                                  |
+|----------------------|--------------------------------------------------------------|
+| Official API         | Stable, documented API only                                  |
+| Official + Unofficial | Includes internal undocumented APIs (for experienced devs)  |
+
+### Package manager
+
+| Option | Description                            |
+|--------|----------------------------------------|
+| Bun    | Fast all-in-one JavaScript toolkit     |
+| npm    | Default, comes with Node.js            |
+| pnpm   | Fast, efficient disk space             |
+| Yarn   | Classic alternative with workspaces    |
+
+### Platform support
+
+| Option             | Description                            |
+|--------------------|----------------------------------------|
+| Desktop and mobile | Plugin works on desktop and mobile     |
+| Desktop only       | Plugin works only on desktop           |
 
 ## Configuration file
 
@@ -186,4 +241,4 @@ See [Sample Plugin Extended](https://github.com/mnaoumov/obsidian-sample-plugin-
 
 ## License
 
-MIT © [Michael Naumov](https://github.com/mnaoumov/)
+© [Michael Naumov](https://github.com/mnaoumov/)
