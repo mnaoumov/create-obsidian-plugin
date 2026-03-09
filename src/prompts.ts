@@ -394,8 +394,8 @@ async function promptToolingMode(): Promise<string> {
     initialValue: 'defaults',
     message: 'Tooling',
     options: [
-      { hint: 'ESLint, dprint, SCSS, Vitest, and more', label: 'Use recommended defaults', value: 'defaults' },
-      { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' }
+      { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' },
+      { hint: 'ESLint, dprint, SCSS, Vitest, and more', label: 'Use recommended defaults', value: 'defaults' }
     ]
   });
 }
