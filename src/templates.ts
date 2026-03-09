@@ -119,6 +119,10 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     builder.addPartial('has-funding');
   }
 
+  if (answers.obsidianConfigFolder) {
+    builder.addPartial('has-vault-path');
+  }
+
   for (const registry of FEATURE_REGISTRIES) {
     const value = String(answers[registry.answerKey]);
     const option = resolveFeature(registry.options, value);

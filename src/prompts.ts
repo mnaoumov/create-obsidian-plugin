@@ -109,6 +109,7 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     internationalization: get('internationalization', defaultTooling.internationalization),
     linter: get('linter', defaultTooling.linter),
     markdownLinter: get('markdownLinter', defaultTooling.markdownLinter),
+    obsidianConfigFolder: get('obsidianConfigFolder', ''),
     packageManager: get('packageManager', 'npm'),
     platformSupport: get('platformSupport', 'desktop-only'),
     pluginDescription: get('pluginDescription', 'Does something awesome.'),
@@ -317,6 +318,16 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
           message: 'Funding URL (leave empty if not needed)',
           placeholder: saved
         })
+    },
+    {
+      defaultValue: () => d.obsidianConfigFolder ?? '',
+      key: 'obsidianConfigFolder',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved || undefined,
+          message: 'Path to vault .obsidian folder (leave empty to skip)',
+          placeholder: saved || 'C:/Users/me/Documents/MyVault/.obsidian'
+        })
     }
   ];
 }
@@ -333,6 +344,7 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     bundler: 'esbuild',
     currentYear: new Date().getFullYear(),
     fundingUrl: 'https://buymeacoffee.com/johndoe',
+    obsidianConfigFolder: '',
     packageManager: 'npm',
     platformSupport: 'desktop-only',
     pluginDescription: 'Does something awesome.',

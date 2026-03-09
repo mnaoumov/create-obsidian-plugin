@@ -39,6 +39,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     internationalization: 'none',
     linter: 'none',
     markdownLinter: 'none',
+    obsidianConfigFolder: '',
     packageManager: 'npm',
     platformSupport: 'desktop-and-mobile',
     pluginDescription: 'A test plugin.',
