@@ -7,13 +7,14 @@ import {
   outro,
   spinner
 } from '@clack/prompts';
-import { execSync } from 'node:child_process';
+import { exec } from 'node:child_process';
 import {
   existsSync,
   readFileSync,
   writeFileSync
 } from 'node:fs';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 import { compare } from 'semver';
 
 import type {
@@ -40,6 +41,7 @@ import {
   loadConfig
 } from './templates.ts';
 
+const execAsync = promisify(exec);
 const JSON_INDENT_SPACES = 2;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
@@ -158,7 +160,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Installing dependencies...');
     try {
-      execSync(installCmd, { cwd: targetDir, stdio: 'pipe' });
+      await execAsync(installCmd, { cwd: targetDir });
       s.stop('Dependencies installed.');
     } catch (error: unknown) {
       s.stop(`Failed to install dependencies. Run \`${installCmd}\` manually.`);
@@ -178,9 +180,9 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Initializing git repository...');
     try {
-      execSync('git init', { cwd: targetDir, stdio: 'pipe' });
-      execSync('git add -A', { cwd: targetDir, stdio: 'pipe' });
-      execSync('git commit -m "Initial commit from create-obsidian-plugin"', { cwd: targetDir, stdio: 'pipe' });
+      await execAsync('git init', { cwd: targetDir });
+      await execAsync('git add -A', { cwd: targetDir });
+      await execAsync('git commit -m "Initial commit from create-obsidian-plugin"', { cwd: targetDir });
       s.stop('Git repository initialized with initial commit.');
     } catch {
       s.stop('Failed to initialize git. Run `git init` manually.');
@@ -197,9 +199,8 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Creating GitHub repository...');
     try {
-      execSync(`gh repo create obsidian-${answers.pluginId} --public --source=. --push`, {
-        cwd: targetDir,
-        stdio: 'pipe'
+      await execAsync(`gh repo create obsidian-${answers.pluginId} --public --source=. --push`, {
+        cwd: targetDir
       });
       s.stop('GitHub repository created and pushed.');
     } catch {
