@@ -168,7 +168,10 @@ async function runCreate(currentVersion: string, useDefaults: boolean): Promise<
 
   const s = spinner();
   s.start('Scaffolding plugin...');
-  copyTemplates(answers, targetDir, currentVersion, null);
+  const newConfig = copyTemplates(answers, targetDir, currentVersion, null);
+  const configPath = join(targetDir, CONFIG_FILE_NAME);
+  const configWithAnswers = { ...newConfig, answers };
+  writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
   s.stop('Plugin scaffolded.');
 
   if (!useDefaults) {
