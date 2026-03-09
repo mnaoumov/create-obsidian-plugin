@@ -120,7 +120,9 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
   }
 
   if (answers.obsidianConfigFolder) {
-    builder.addPartial('has-vault-path');
+    builder.addPartial('has-vault');
+  } else {
+    builder.addPartial('does-not-have-vault');
   }
 
   for (const registry of FEATURE_REGISTRIES) {
