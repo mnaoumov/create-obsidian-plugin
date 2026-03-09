@@ -18,7 +18,7 @@ export class TemplateBuilder {
   }
 
   public get scripts(): Record<string, string> {
-    return { ...this._scripts };
+    return Object.fromEntries(Object.entries(this._scripts).sort(([a], [b]) => a.localeCompare(b)));
   }
 
   public get templateFiles(): Set<string> {
