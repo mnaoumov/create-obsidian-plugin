@@ -7,14 +7,13 @@ import {
   outro,
   spinner
 } from '@clack/prompts';
-import { exec } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import {
   existsSync,
   readFileSync,
   writeFileSync
 } from 'node:fs';
 import { join } from 'node:path';
-import { promisify } from 'node:util';
 import { compare } from 'semver';
 
 import type {
@@ -41,7 +40,15 @@ import {
   loadConfig
 } from './templates.ts';
 
-const execAsync = promisify(exec);
+interface ExecError extends Error {
+  stderr: string;
+}
+
+interface ExecResult {
+  stderr: string;
+  stdout: string;
+}
+
 const JSON_INDENT_SPACES = 2;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
@@ -65,6 +72,39 @@ async function detectMode(): Promise<Mode> {
     return shouldUpdate ? Mode.Update : Mode.Create;
   }
   return Mode.Create;
+}
+
+function execAsync(command: string, cwd: string): Promise<ExecResult> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, [], {
+      cwd,
+      shell: true,
+      stdio: 'pipe'
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data: Buffer) => {
+      stdout += data.toString('utf-8');
+    });
+
+    child.stderr.on('data', (data: Buffer) => {
+      stderr += data.toString('utf-8');
+    });
+
+    child.on('close', (exitCode) => {
+      if (exitCode !== 0) {
+        const error = new Error(`Command failed with exit code ${String(exitCode)}`);
+        (error as ExecError).stderr = stderr;
+        reject(error);
+        return;
+      }
+      resolve({ stderr, stdout });
+    });
+
+    child.on('error', reject);
+  });
 }
 
 async function latestVersion(packageName: string): Promise<string> {
@@ -160,7 +200,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Installing dependencies...');
     try {
-      await execAsync(installCmd, { cwd: targetDir });
+      await execAsync(installCmd, targetDir);
       s.stop('Dependencies installed.');
     } catch (error: unknown) {
       s.stop(`Failed to install dependencies. Run \`${installCmd}\` manually.`);
@@ -180,9 +220,9 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Initializing git repository...');
     try {
-      await execAsync('git init', { cwd: targetDir });
-      await execAsync('git add -A', { cwd: targetDir });
-      await execAsync('git commit -m "Initial commit from create-obsidian-plugin"', { cwd: targetDir });
+      await execAsync('git init', targetDir);
+      await execAsync('git add -A', targetDir);
+      await execAsync('git commit -m "Initial commit from create-obsidian-plugin"', targetDir);
       s.stop('Git repository initialized with initial commit.');
     } catch {
       s.stop('Failed to initialize git. Run `git init` manually.');
@@ -199,9 +239,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Creating GitHub repository...');
     try {
-      await execAsync(`gh repo create obsidian-${answers.pluginId} --public --source=. --push`, {
-        cwd: targetDir
-      });
+      await execAsync(`gh repo create obsidian-${answers.pluginId} --public --source=. --push`, targetDir);
       s.stop('GitHub repository created and pushed.');
     } catch {
       s.stop('Failed to create GitHub repo. Make sure `gh` CLI is installed and authenticated.');
