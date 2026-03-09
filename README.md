@@ -4,13 +4,20 @@
 [![GitHub release](https://img.shields.io/github/v/release/mnaoumov/create-obsidian-plugin)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
 [![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/create-obsidian-plugin/total)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
 
-An npm scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin projects from modern templates. Supports creating new plugins and updating existing ones.
+A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin projects from modern templates. Supports creating new plugins and updating existing ones.
 
 ## Create a new plugin
 
-```bash
-npm create @mnaoumov/obsidian-plugin
-```
+| Package manager | Runner | Command                                      |
+|-----------------|--------|----------------------------------------------|
+| npm             | create | `npm create @mnaoumov/obsidian-plugin`       |
+| npm             | npx    | `npx @mnaoumov/create-obsidian-plugin`       |
+| pnpm            | create | `pnpm create @mnaoumov/obsidian-plugin`      |
+| pnpm            | dlx    | `pnpm dlx @mnaoumov/create-obsidian-plugin`  |
+| yarn            | create | `yarn create @mnaoumov/obsidian-plugin`      |
+| yarn            | dlx    | `yarn dlx @mnaoumov/create-obsidian-plugin`  |
+| bun             | create | `bun create @mnaoumov/obsidian-plugin`       |
+| bun             | bunx   | `bunx @mnaoumov/create-obsidian-plugin`      |
 
 This walks you through an interactive wizard to scaffold a new Obsidian plugin project with optional post-scaffold actions (npm install, git init, GitHub repo creation).
 
@@ -19,7 +26,7 @@ This walks you through an interactive wizard to scaffold a new Obsidian plugin p
 Run the same command inside a project previously created with this tool:
 
 ```bash
-npx @mnaoumov/create-obsidian-plugin
+npm create @mnaoumov/obsidian-plugin
 ```
 
 The updater will:
