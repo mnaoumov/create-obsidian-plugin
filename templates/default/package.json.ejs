@@ -2,11 +2,11 @@
   "name": "<%= pluginId %>",
   "version": "0.0.0",
   "description": "<%= pluginDescription %>",
+  "type": "module",
   "main": "main.js",
   "keywords": [],
   "license": "MIT",
   "author": "<%= authorGitHubName %>",
-  "type": "module",
   "scripts": {
 <% const scriptEntries = Object.entries(_scripts); -%>
 <% scriptEntries.forEach(([key, value], i) => { -%>
