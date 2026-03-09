@@ -1,1 +1,5 @@
-export { default } from './scripts/babel.config.ts';
+import { createJiti } from 'jiti';
+
+const jiti = createJiti(import.meta.url);
+const { config } = await jiti.import('./scripts/babel.config.ts');
+export default config;

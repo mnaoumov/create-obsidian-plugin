@@ -1,1 +1,5 @@
-export { default } from './scripts/lintstagedrc.ts';
+import { createJiti } from 'jiti';
+
+const jiti = createJiti(import.meta.url);
+const { config } = await jiti.import('./scripts/lintstagedrc.ts');
+export default config;
