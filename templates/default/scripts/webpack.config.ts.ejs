@@ -29,7 +29,7 @@ const EXTERNAL = [
   ...builtinModules,
 ];
 
-const config: Configuration = {
+export const config: Configuration = {
   entry: './src/main.ts',
   output: {
     path: join(process.cwd(), distFolder),
@@ -69,4 +69,3 @@ if you want to view the source, please visit the github repository of this plugi
 <%- render('experiments') -%>
 };
 
-export default config;

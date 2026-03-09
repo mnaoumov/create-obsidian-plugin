@@ -1,3 +1,7 @@
 // This file is required by postcss at the root level.
 // The actual configuration lives in scripts/postcss.config.ts
-export { default } from './scripts/postcss.config.ts';
+import { createJiti } from 'jiti';
+
+const jiti = createJiti(import.meta.url);
+const { config } = await jiti.import('./scripts/postcss.config.ts');
+export default config;

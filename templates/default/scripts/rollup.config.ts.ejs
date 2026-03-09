@@ -29,7 +29,7 @@ const EXTERNAL = [
   ...builtinModules,
 ];
 
-export default {
+export const config = {
   input: 'src/main.ts',
   output: {
     file: `${distFolder}/main.js`,
@@ -52,3 +52,4 @@ if you want to view the source, please visit the github repository of this plugi
     ...(prod ? [terser()] : []),
   ],
 };
+
