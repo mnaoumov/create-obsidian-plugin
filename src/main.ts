@@ -176,13 +176,14 @@ async function runCreate(currentVersion: string, useDefaults: boolean): Promise<
   }
 
   const pm = answers.packageManager;
-  const nextSteps = [
-    `cd obsidian-${answers.pluginId}`,
-    ...(existsSync(join(targetDir, 'node_modules')) ? [] : [getInstallCommand(pm)]),
+  const dirName = `obsidian-${answers.pluginId}`;
+  const needsInstall = !existsSync(join(targetDir, 'node_modules'));
+  const steps = [
+    ...(needsInstall ? [getInstallCommand(pm)] : []),
     getRunCommand(pm, 'dev')
   ];
 
-  note(nextSteps.join('\n'), 'Next steps');
+  note(`cd ${dirName} && ${steps.join(' && ')}`, 'Next steps');
   outro('Happy coding!');
 }
 
