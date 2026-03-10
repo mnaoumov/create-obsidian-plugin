@@ -126,6 +126,7 @@ async function main(): Promise<void> {
      ${m}◆ ◆ ◆${r}    ${m}create-obsidian-plugin${r}
       ${m}◆ ◆${r}     ${m}v${currentVersion}${r}
        ${m}◆${r}      ${m}@mnaoumov${r}
+
 `;
   process.stdout.write(banner);
   intro('Let\'s build an Obsidian plugin!');
