@@ -325,7 +325,8 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       prompt: (saved): Promise<string> =>
         text({
           defaultValue: saved || undefined,
-          message: 'Path to test vault config folder (.obsidian, by default, but it is configurable in Obsidian settings). This enables auto-update of your plugin in your test vault during dev. Leave empty if you prefer to update the plugin manually.',
+          message:
+            'Path to test vault config folder (.obsidian, by default, but it is configurable in Obsidian settings). This enables auto-update of your plugin in your test vault during dev. Leave empty if you prefer to update the plugin manually.',
           placeholder: saved || 'path/to/test-vault/.obsidian'
         })
     }

@@ -55,5 +55,8 @@
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vitest": "latest"
+  },
+  "overrides": {
+    "eslint-plugin-import": "npm:eslint-plugin-import-x@latest"
   }
 }

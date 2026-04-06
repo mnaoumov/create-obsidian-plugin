@@ -1,8 +1,10 @@
 import {
   existsSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
-  rmSync
+  rmSync,
+  statSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -324,9 +326,8 @@ describe('copyTemplates', () => {
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
   });
 
-  it('does not produce empty files', async () => {
+  it('does not produce empty files', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
-    const { readdirSync, statSync } = await import('node:fs') as typeof import('node:fs');
 
     function walk(dir: string): string[] {
       const results: string[] = [];

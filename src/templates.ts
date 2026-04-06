@@ -92,7 +92,13 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS }
 ];
 
-const DEMO_OVERRIDES: { answerKey: keyof Answers; demoValue: string; options: readonly FeatureOption[] }[] = [
+interface DemoOverride {
+  answerKey: keyof Answers;
+  demoValue: string;
+  options: readonly FeatureOption[];
+}
+
+const DEMO_OVERRIDES: DemoOverride[] = [
   { answerKey: 'uiFramework', demoValue: 'react', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'uiFramework', demoValue: 'svelte', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'uiFramework', demoValue: 'vue', options: UI_FRAMEWORK_OPTIONS },
@@ -274,9 +280,10 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   if (!existsSync(configPath)) {
     return null;
   }
-  const config = JSON.parse(readFileSync(configPath, 'utf-8')) as unknown as GeneratorConfig;
-  migrateConfig(config);
-  return config;
+  const parsed: unknown = JSON.parse(readFileSync(configPath, 'utf-8'));
+  const raw = parsed as Record<string, unknown>;
+  migrateAnswers(raw);
+  return parsed as GeneratorConfig;
 }
 
 function getDestinationPath(templatePath: string, answers: Answers): string {
@@ -315,22 +322,22 @@ function logUpdateSummary(updated: string[], created: string[], skipped: string[
   }
 }
 
-function migrateConfig(config: GeneratorConfig): void {
-  if (!config.answers) {
+function migrateAnswers(raw: Record<string, unknown>): void {
+  const answers = raw['answers'] as Record<string, unknown> | undefined;
+  if (!answers) {
     return;
   }
-  const raw = config.answers as unknown as Record<string, unknown>;
-  if (raw['framework'] && !raw['uiFramework']) {
-    raw['uiFramework'] = raw['framework'];
-    delete raw['framework'];
+  if (answers['framework'] && !answers['uiFramework']) {
+    answers['uiFramework'] = answers['framework'];
+    delete answers['framework'];
   }
-  if (raw['cssMode'] && !raw['styling']) {
-    raw['styling'] = raw['cssMode'];
-    delete raw['cssMode'];
+  if (answers['cssMode'] && !answers['styling']) {
+    answers['styling'] = answers['cssMode'];
+    delete answers['cssMode'];
   }
-  if (raw['buildSystem'] && !raw['bundler']) {
-    raw['bundler'] = raw['buildSystem'];
-    delete raw['buildSystem'];
+  if (answers['buildSystem'] && !answers['bundler']) {
+    answers['bundler'] = answers['buildSystem'];
+    delete answers['buildSystem'];
   }
 }
 
