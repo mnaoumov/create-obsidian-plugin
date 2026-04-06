@@ -5,12 +5,12 @@ import {
 } from 'vitest';
 
 import type { Answers } from '../src/Answers.ts';
-import type { TemplateBuilder } from '../src/TemplateBuilder.ts';
 
 import {
   FeatureOption,
   resolveFeature
 } from '../src/FeatureOption.ts';
+import { TemplateBuilder } from '../src/TemplateBuilder.ts';
 
 class ConfiguringFeature extends FeatureOption {
   public constructor() {
@@ -57,9 +57,8 @@ describe('resolveFeature', () => {
 });
 
 describe('Feature configure integration', () => {
-  it('feature can add packages and scripts to builder', async () => {
-    const { TemplateBuilder: RealBuilder } = await import('../src/TemplateBuilder.ts');
-    const builder = new RealBuilder();
+  it('feature can add packages and scripts to builder', () => {
+    const builder = new TemplateBuilder();
     const feature = new ConfiguringFeature();
     feature.configure(builder, {} as Answers);
 
