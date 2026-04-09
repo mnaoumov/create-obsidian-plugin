@@ -186,7 +186,7 @@ Root configs are thin wrappers; real logic in `scripts/`. No `.featurerc` files 
 - `scripts/build.ts_standalone@bundler-run_esbuild.ejs` — esbuild context + watch
 - `scripts/build.ts_standalone@bundler-run_rollup.ejs` — rollup CLI call
 - `scripts/build.ts_standalone@bundler-run_vite.ejs` — vite CLI call
-- `scripts/build.ts_enhanced.ejs` — `import { build } from 'obsidian-dev-utils/ScriptUtils/Commands'; await build();`
+- `scripts/build.ts_enhanced.ejs` — `import { build } from 'obsidian-dev-utils/script-utils/commands'; await build();`
 
 Same for `dev.ts`, `version.ts`.
 
@@ -200,13 +200,13 @@ Same for `dev.ts`, `version.ts`.
 #### 2.3 Convert feature scripts to two-tier
 For feature-added scripts (lint, format, spellcheck, lint-md, test, etc.):
 - Create `scripts/lint.ts_standalone.ejs` (current standalone content)
-- Create `scripts/lint.ts_enhanced.ejs` (wrapper: `import { lint } from 'obsidian-dev-utils/ScriptUtils/Commands'; await lint();`)
+- Create `scripts/lint.ts_enhanced.ejs` (wrapper: `import { lint } from 'obsidian-dev-utils/script-utils/commands'; await lint();`)
 
 Since `standalone` and `enhanced` are mutually exclusive, only the matching partial renders.
 
 obsidian-dev-utils has been refactored: CLI removed, functions exported from `obsidian-dev-utils/ScriptUtils/Commands`:
 ```typescript
-import { build } from 'obsidian-dev-utils/ScriptUtils/Commands';
+import { build } from 'obsidian-dev-utils/script-utils/commands';
 await build();
 ```
 

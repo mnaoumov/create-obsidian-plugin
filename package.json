@@ -58,6 +58,8 @@
     "vitest": "latest"
   },
   "overrides": {
-    "eslint-plugin-import": "npm:eslint-plugin-import-x@latest"
+    "eslint": "latest",
+    "eslint-plugin-import": "npm:eslint-plugin-import-x@latest",
+    "typescript": "latest"
   }
 }
