@@ -8,7 +8,6 @@ import eslint from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { flatConfigs as eslintPluginImportXFlatConfigs } from 'eslint-plugin-import-x';
-import eslintPluginModulesNewlines from 'eslint-plugin-modules-newlines';
 import { configs as perfectionistConfigs } from 'eslint-plugin-perfectionist';
 import {
   defineConfig,
@@ -41,7 +40,6 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
     ...getStylisticConfigs(),
     ...getImportXConfigs(),
     ...getPerfectionistConfigs(),
-    ...getModulesNewlinesConfigs(),
     ...getEslintImportResolverTypescriptConfigs(),
     ...getEslintCommentsConfigs()
   );
@@ -185,6 +183,10 @@ function getEslintConfigs(): Linter.Config[] {
             selector: 'TSTypeAnnotation TSTypeLiteral'
           },
           {
+            message: 'Do not use anonymous inline object types in type assertions. Define a named interface instead.',
+            selector: 'TSAsExpression TSTypeLiteral'
+          },
+          {
             message: 'Do not use double type assertions (as X as Y).',
             selector: 'TSAsExpression > TSAsExpression'
           },
@@ -323,21 +325,6 @@ function getImportXConfigs(): Linter.Config[] {
       files: ['scripts/**/*.ts', 'src/**/*.ts', '__tests__/**/*.ts'],
       rules: {
         'import-x/no-nodejs-modules': 'off'
-      }
-    }
-  ]);
-}
-
-function getModulesNewlinesConfigs(): Linter.Config[] {
-  return defineConfig([
-    {
-      files: typeScriptFiles,
-      plugins: {
-        'modules-newlines': eslintPluginModulesNewlines
-      },
-      rules: {
-        'modules-newlines/export-declaration-newline': 'error',
-        'modules-newlines/import-declaration-newline': 'error'
       }
     }
   ]);
