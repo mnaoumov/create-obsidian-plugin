@@ -49,6 +49,10 @@ interface ExecResult {
   stdout: string;
 }
 
+interface SavedConfig {
+  answers?: Answers;
+}
+
 const JSON_INDENT_SPACES = 2;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
@@ -257,7 +261,7 @@ async function runUpdate(currentVersion: string): Promise<void> {
   log.info(`Current project was generated with v${existingConfig.generatorVersion}`);
 
   const configPath = join(targetDir, CONFIG_FILE_NAME);
-  const savedConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as { answers?: Answers };
+  const savedConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as SavedConfig;
 
   let answers: Answers;
 

@@ -20,6 +20,10 @@ import type { Answers } from '../src/Answers.ts';
 
 import { copyTemplates } from '../src/templates.ts';
 
+interface ParsedPackageJson {
+  scripts: Record<string, string>;
+}
+
 const CURRENT_YEAR = 2026;
 
 function makeAnswers(overrides: Partial<Answers> = {}): Answers {
@@ -122,7 +126,7 @@ describe('copyTemplates', () => {
 
   it('renders EJS templates in package.json scripts', () => {
     copyTemplates(makeAnswers({ linter: 'eslint' }), targetDir, '1.0.0', null);
-    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as { scripts: Record<string, string> };
+    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
     expect(pkg.scripts['lint']).toBe('jiti scripts/lint.ts');
     expect(pkg.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
   });

@@ -66,7 +66,7 @@ export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
     return base;
   }
   const overrides: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(defaults) as [string, unknown][]) {
+  for (const [key, value] of Object.entries(defaults)) {
     if (value !== undefined) {
       overrides[key] = value;
     }
