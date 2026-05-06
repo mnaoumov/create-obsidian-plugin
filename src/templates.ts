@@ -16,31 +16,31 @@ import { fileURLToPath } from 'node:url';
 import type {
   Answers,
   GeneratorConfig
-} from './Answers.ts';
-import type { FeatureOption } from './FeatureOption.ts';
+} from './answers.ts';
+import type { FeatureOption } from './feature-option.ts';
 
-import { CONFIG_FILE_NAME } from './Answers.ts';
-import { resolveFeature } from './FeatureOption.ts';
-import { API_SUBSET_OPTIONS } from './features/ApiSubset/index.ts';
-import { BUNDLER_OPTIONS } from './features/Bundler/index.ts';
-import { COMMIT_LINTING_OPTIONS } from './features/CommitLinting/index.ts';
-import { E2E_TEST_RUNNER_OPTIONS } from './features/E2eTestRunner/index.ts';
-import { EDITOR_EXTENSIONS_OPTIONS } from './features/EditorExtensions/index.ts';
-import { FORMATTER_OPTIONS } from './features/Formatter/index.ts';
-import { GITHUB_ACTIONS_OPTIONS } from './features/GitHubActions/index.ts';
-import { GITHUB_FUNDING_OPTIONS } from './features/GitHubFunding/index.ts';
-import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/GitHubIssueTemplates/index.ts';
-import { HOT_RELOAD_OPTIONS } from './features/HotReload/index.ts';
-import { INTERNATIONALIZATION_OPTIONS } from './features/Internationalization/index.ts';
-import { LINTER_OPTIONS } from './features/Linter/index.ts';
-import { MARKDOWN_LINTER_OPTIONS } from './features/MarkdownLinter/index.ts';
-import { PRESET_OPTIONS } from './features/Preset/index.ts';
-import { SPELL_CHECKER_OPTIONS } from './features/SpellChecker/index.ts';
-import { STYLING_OPTIONS } from './features/Styling/index.ts';
-import { TEST_RUNNER_OPTIONS } from './features/TestRunner/index.ts';
-import { UI_FRAMEWORK_OPTIONS } from './features/UiFramework/index.ts';
-import { WASM_SUPPORT_OPTIONS } from './features/WasmSupport/index.ts';
-import { TemplateBuilder } from './TemplateBuilder.ts';
+import { CONFIG_FILE_NAME } from './answers.ts';
+import { resolveFeature } from './feature-option.ts';
+import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
+import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
+import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
+import { E2E_TEST_RUNNER_OPTIONS } from './features/e2e-test-runner/index.ts';
+import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts';
+import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
+import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
+import { GITHUB_FUNDING_OPTIONS } from './features/git-hub-funding/index.ts';
+import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
+import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
+import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
+import { LINTER_OPTIONS } from './features/linter/index.ts';
+import { MARKDOWN_LINTER_OPTIONS } from './features/markdown-linter/index.ts';
+import { PRESET_OPTIONS } from './features/preset/index.ts';
+import { SPELL_CHECKER_OPTIONS } from './features/spell-checker/index.ts';
+import { STYLING_OPTIONS } from './features/styling/index.ts';
+import { TEST_RUNNER_OPTIONS } from './features/test-runner/index.ts';
+import { UI_FRAMEWORK_OPTIONS } from './features/ui-framework/index.ts';
+import { WASM_SUPPORT_OPTIONS } from './features/wasm-support/index.ts';
+import { TemplateBuilder } from './template-builder.ts';
 
 const JSON_INDENT_SPACES = 2;
 

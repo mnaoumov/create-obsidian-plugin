@@ -4,32 +4,32 @@ import {
 } from '@clack/prompts';
 import { styleText } from 'node:util';
 
-import type { Answers } from './Answers.ts';
+import type { Answers } from './answers.ts';
 
 import { select } from './clack-select.ts';
 import { text } from './clack-text.ts';
 import { GoBackError } from './clack-utils.ts';
-import { promptApiSubset } from './features/ApiSubset/index.ts';
-import { promptBundler } from './features/Bundler/index.ts';
-import { promptCommitLinting } from './features/CommitLinting/index.ts';
-import { promptE2eTestRunner } from './features/E2eTestRunner/index.ts';
-import { promptEditorExtensions } from './features/EditorExtensions/index.ts';
-import { promptFormatter } from './features/Formatter/index.ts';
-import { promptGitHubActions } from './features/GitHubActions/index.ts';
-import { promptGitHubFunding } from './features/GitHubFunding/index.ts';
-import { promptGitHubIssueTemplates } from './features/GitHubIssueTemplates/index.ts';
-import { promptHotReload } from './features/HotReload/index.ts';
-import { promptInternationalization } from './features/Internationalization/index.ts';
-import { promptLinter } from './features/Linter/index.ts';
-import { promptMarkdownLinter } from './features/MarkdownLinter/index.ts';
-import { promptPackageManager } from './features/PackageManager/index.ts';
-import { promptPlatformSupport } from './features/PlatformSupport/index.ts';
-import { promptPreset } from './features/Preset/index.ts';
-import { promptSpellChecker } from './features/SpellChecker/index.ts';
-import { promptStyling } from './features/Styling/index.ts';
-import { promptTestRunner } from './features/TestRunner/index.ts';
-import { promptUiFramework } from './features/UiFramework/index.ts';
-import { promptWasmSupport } from './features/WasmSupport/index.ts';
+import { promptApiSubset } from './features/api-subset/index.ts';
+import { promptBundler } from './features/bundler/index.ts';
+import { promptCommitLinting } from './features/commit-linting/index.ts';
+import { promptE2eTestRunner } from './features/e2e-test-runner/index.ts';
+import { promptEditorExtensions } from './features/editor-extensions/index.ts';
+import { promptFormatter } from './features/formatter/index.ts';
+import { promptGitHubActions } from './features/git-hub-actions/index.ts';
+import { promptGitHubFunding } from './features/git-hub-funding/index.ts';
+import { promptGitHubIssueTemplates } from './features/git-hub-issue-templates/index.ts';
+import { promptHotReload } from './features/hot-reload/index.ts';
+import { promptInternationalization } from './features/internationalization/index.ts';
+import { promptLinter } from './features/linter/index.ts';
+import { promptMarkdownLinter } from './features/markdown-linter/index.ts';
+import { promptPackageManager } from './features/package-manager/index.ts';
+import { promptPlatformSupport } from './features/platform-support/index.ts';
+import { promptPreset } from './features/preset/index.ts';
+import { promptSpellChecker } from './features/spell-checker/index.ts';
+import { promptStyling } from './features/styling/index.ts';
+import { promptTestRunner } from './features/test-runner/index.ts';
+import { promptUiFramework } from './features/ui-framework/index.ts';
+import { promptWasmSupport } from './features/wasm-support/index.ts';
 
 interface DefaultTooling {
   apiSubset: string;

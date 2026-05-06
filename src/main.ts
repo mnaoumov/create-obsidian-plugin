@@ -19,17 +19,17 @@ import { compare } from 'semver';
 import type {
   Answers,
   PackageJson
-} from './Answers.ts';
+} from './answers.ts';
 
 import {
   CONFIG_FILE_NAME,
   Mode
-} from './Answers.ts';
+} from './answers.ts';
 import { assertNotCancelled } from './clack-utils.ts';
 import {
   getInstallCommand,
   getRunCommand
-} from './features/PackageManager/index.ts';
+} from './features/package-manager/index.ts';
 import {
   getDefaultAnswers,
   promptAnswers
