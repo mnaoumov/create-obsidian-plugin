@@ -6,6 +6,14 @@
   "author": "Michael Naumov <mnaoumov@gmail.com>",
   "type": "module",
   "bin": "dist/main.js",
+  "files": [
+    "dist/",
+    "templates/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
   "scripts": {
     "build": "jiti scripts/build.ts",
     "commit": "jiti scripts/commit.ts",
@@ -16,14 +24,11 @@
     "prepare": "jiti scripts/prepare.ts",
     "test": "jiti scripts/test.ts"
   },
-  "files": [
-    "dist/",
-    "templates/",
-    "CHANGELOG.md",
-    "LICENSE",
-    "README.md",
-    "package.json"
-  ],
+  "overrides": {
+    "eslint": "latest",
+    "eslint-plugin-import": "npm:eslint-plugin-import-x@latest",
+    "typescript": "latest"
+  },
   "dependencies": {
     "@clack/core": "latest",
     "@clack/prompts": "latest",
@@ -42,8 +47,7 @@
     "@types/ejs": "latest",
     "@types/semver": "latest",
     "better-typescript-lib": "latest",
-    "commitizen": "latest",
-    "cz-conventional-changelog": "latest",
+    "czg": "latest",
     "dprint": "latest",
     "esbuild": "latest",
     "eslint": "latest",
@@ -56,10 +60,5 @@
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vitest": "latest"
-  },
-  "overrides": {
-    "eslint": "latest",
-    "eslint-plugin-import": "npm:eslint-plugin-import-x@latest",
-    "typescript": "latest"
   }
 }
