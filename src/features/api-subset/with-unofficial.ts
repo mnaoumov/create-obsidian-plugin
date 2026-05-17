@@ -8,6 +8,6 @@ export class WithUnofficial extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder): void {
-    builder.addPackage('obsidian-typings', 'obsidian-public-latest');
+    builder.addPackage('@obsidian-typings/obsidian-public-latest', '^6.0.0');
   }
 }
