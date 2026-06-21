@@ -1,8 +1,8 @@
 import type { FeatureOption } from '../../feature-option.ts';
 
 import { promptFeature } from '../../feature-option.ts';
-import { Css } from './css.ts';
 import { CssModules } from './css-modules.ts';
+import { Css } from './css.ts';
 import { None } from './none.ts';
 import { PostCss } from './post-css.ts';
 import { Scss } from './scss.ts';

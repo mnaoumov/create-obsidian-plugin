@@ -10,15 +10,15 @@
     "inlineSources": true,
     "lib": [
       "DOM",
-        "DOM.Iterable",
-      "ES2024"
+      "DOM.Iterable",
+      "ES2022"
     ],
     "libReplacement": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "node16",
+    "moduleResolution": "node16",
     "noEmit": true,
     "skipLibCheck": true,
-    "target": "ES2024",
+    "target": "es2022",
     "types": [
       "@total-typescript/ts-reset",
       "node"
