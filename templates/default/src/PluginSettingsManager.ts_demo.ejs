@@ -15,8 +15,11 @@ interface SerializedSettings {
 }
 
 export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
-  protected override createDefaultSettings(): PluginSettings {
-    return new PluginSettings();
+  public constructor(dataHandler: DataHandler) {
+    super({
+      dataHandler,
+      pluginSettingsClass: PluginSettings
+    });
   }
 
   protected override async onLoadRecord(record: Record<string, unknown>): Promise<void> {
