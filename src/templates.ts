@@ -50,6 +50,7 @@ const BASE_TEMPLATE_FILES = [
   '.gitattributes',
   '.gitignore',
   '.npmrc',
+  'CONTRIBUTING.md',
   'LICENSE',
   'README.md',
   'manifest.json',
