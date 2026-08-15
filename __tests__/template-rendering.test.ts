@@ -106,6 +106,46 @@ describe('copyTemplates', () => {
     expect(readme).toContain('# My Plugin');
   });
 
+  it('leads the README with the plugin description', () => {
+    copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    // G102 puts a lead paragraph between the title block and the first section.
+    expect(readme.split('## Installation')[0]).toContain('A test plugin.');
+  });
+
+  it('orders the README sections per the G102 skeleton', () => {
+    copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    const sections = [...readme.matchAll(/^## (?<Title>.+)$/gm)].map((match) => match.groups?.['Title']);
+    expect(sections).toStrictEqual([
+      'Installation',
+      'Debugging',
+      'Contributing',
+      'Support',
+      'License'
+    ]);
+  });
+
+  it('omits the Demo vault and Changelog sections, which the generator scaffolds no file for', () => {
+    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    // G102 omits a section rather than linking a file that does not exist.
+    expect(readme).not.toContain('## Demo vault');
+    expect(readme).not.toContain('## Changelog');
+    expect(existsSync(join(targetDir, 'CHANGELOG.md'))).toBe(false);
+  });
+
+  it('creates CONTRIBUTING.md and links it from the README', () => {
+    copyTemplates(makeAnswers({ linter: 'eslint' }), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    expect(readme).toContain('[CONTRIBUTING](./CONTRIBUTING.md)');
+
+    const contributing = readFileSync(join(targetDir, 'CONTRIBUTING.md'), 'utf-8');
+    expect(contributing).toContain('# Contributing');
+    // The per-tool script list moved here with the rest of the development instructions.
+    expect(contributing).toContain('`npm run lint` — Run linter');
+  });
+
   it('includes Support section in README when fundingUrl is set', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
