@@ -1,6 +1,7 @@
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { DEMO_VAULT_TEMPLATE_FILES } from './demo-vault.ts';
 
 export class Demo extends FeatureOption {
   public constructor() {
@@ -15,18 +16,20 @@ export class Demo extends FeatureOption {
       .addPackage('type-fest')
       .addScript('dev')
       .addScript('build')
+      .addScript('build:compile')
       .addScript('version')
       .addFiles([
         'scripts/build.ts',
+        'scripts/build-compile.ts',
         'scripts/dev.ts',
         'scripts/version.ts',
         'src/Modals/SampleModal.ts',
         'src/Modals/SampleSuggestModal.ts',
         'src/PluginSettings.ts',
-        'src/PluginSettingsManager.ts',
+        'src/PluginSettingsComponent.ts',
         'src/PluginSettingsTab.ts',
-        'src/PluginTypes.ts',
-        'src/Views/SampleView.ts'
+        'src/Views/SampleView.ts',
+        ...DEMO_VAULT_TEMPLATE_FILES
       ])
       .addPartial('odu');
   }

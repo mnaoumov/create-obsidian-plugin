@@ -1,0 +1,16 @@
+import { wrapCliTask } from 'obsidian-dev-utils/script-utils/cli-utils';
+import { test } from 'obsidian-dev-utils/script-utils/test-runners/vitest';
+
+// `integration-tests:desktop` and `integration-tests:android` are declared by
+// `defineObsidianPluginVitestConfig` too, but they are deliberately not run here: the first drives a real
+// Obsidian install and the second needs a provisioned Android emulator, so a freshly generated project
+// Would fail its own `test:integration` on any machine that has neither. Add them once you have set those
+// Up. Run them one at a time — the integration projects share a single Obsidian and a single device.
+await wrapCliTask(async () => {
+  await test({
+    projects: ['integration-tests:no-app']
+  });
+  await test({
+    projects: ['integration-tests:demo-vault']
+  });
+});
