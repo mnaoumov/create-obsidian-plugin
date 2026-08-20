@@ -99,10 +99,10 @@ function getNewVersion(type: string): string {
     throw new Error(`Invalid current version format: ${currentVersion}`);
   }
 
-  let major = Number(match.groups['Major']);
-  let minor = Number(match.groups['Minor']);
-  let patch = Number(match.groups['Patch']);
-  let beta = Number(match.groups['Beta'] ?? '');
+  let major = Number(match.groups.Major);
+  let minor = Number(match.groups.Minor);
+  let patch = Number(match.groups.Patch);
+  let beta = Number(match.groups.Beta ?? '');
 
   switch (type) {
     case 'beta':
@@ -295,12 +295,17 @@ function getReleaseNotes(version: string): string {
   return releaseNotes;
 }
 
+// The type parameter appears once in the signature but is not useless: every call site pins it
+// (`editJson<PackageJson>(...)`) and it is what types the callback's `data`. Dropping it would push an
+// `any` into all of them.
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- Load-bearing at the call sites, which name it explicitly.
 function editJson<T>(filePath: string, editFn: (data: T) => void): void {
   const data = JSON.parse(readFileSync(filePath, 'utf-8')) as T;
   editFn(data);
-  writeFileSync(filePath, JSON.stringify(data, null, '\t') + '\n');
+  writeFileSync(filePath, `${JSON.stringify(data, null, '\t')}\n`);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- Load-bearing at the call sites, which name it explicitly.
 function editJsonIfExists<T>(filePath: string, editFn: (data: T) => void): void {
   if (existsSync(filePath)) {
     editJson(filePath, editFn);

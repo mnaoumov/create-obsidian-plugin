@@ -30,6 +30,9 @@
   },
   "include": [
     "./*.ts",
+<%# `./*.ts` does not match the `.mts` eslint config, and typed lint rules need every file ESLint -%>
+<%# reaches to be in this list — `eslint.config.mts` lints itself. Keep in step with `typeScriptFiles`. -%>
+    "./eslint.config.*ts",
 <%- render('include') -%>
     "./scripts/**/*.ts",
     "src/**/*.ts"<%- render('include-extra') %>

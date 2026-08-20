@@ -23,7 +23,7 @@ export class Demo extends FeatureOption {
         'scripts/build-compile.ts',
         'scripts/dev.ts',
         'scripts/version.ts',
-        'src/Modals/SampleModal.ts',
+        'src/Modals/SampleFormModal.ts',
         'src/Modals/SampleSuggestModal.ts',
         'src/PluginSettings.ts',
         'src/PluginSettingsComponent.ts',

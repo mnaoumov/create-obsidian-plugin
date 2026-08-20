@@ -14,15 +14,15 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   mySetting: 'default'
 };
 
-export class SampleSettingTab extends PluginSettingTab {
-  plugin: <%= pluginShortName %>Plugin;
+export class <%= pluginShortName %>SettingTab extends PluginSettingTab {
+  public plugin: <%= pluginShortName %>Plugin;
 
-  constructor(app: App, plugin: <%= pluginShortName %>Plugin) {
+  public constructor(app: App, plugin: <%= pluginShortName %>Plugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
-  display(): void {
+  public display(): void {
     const { containerEl } = this;
     containerEl.empty();
 

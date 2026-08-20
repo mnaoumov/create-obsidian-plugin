@@ -460,8 +460,8 @@ describe('buildTemplate', () => {
       expect(files).toContain('scripts/commitlint.config.ts');
       expect(files).toContain('.husky/commit-msg');
       expect(files).toContain('.husky/pre-commit');
-      expect(files).toContain('.lintstagedrc.mjs');
-      expect(files).toContain('scripts/lintstagedrc.ts');
+      expect(files).toContain('.nano-staged.mjs');
+      expect(files).toContain('scripts/nano-staged-config.ts');
     });
 
     it('adds commitlint and husky dependencies', () => {
@@ -470,7 +470,7 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('@commitlint/cli');
       expect(depNames).toContain('@commitlint/config-conventional');
       expect(depNames).toContain('husky');
-      expect(depNames).toContain('lint-staged');
+      expect(depNames).toContain('nano-staged');
     });
 
     it('adds no files for none', () => {

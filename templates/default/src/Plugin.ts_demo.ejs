@@ -27,7 +27,7 @@ import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin
 import { sampleStateField } from './EditorExtensions/SampleStateField.ts';
 import { sampleViewPlugin } from './EditorExtensions/SampleViewPlugin.ts';
 import { SampleEditorSuggest } from './EditorSuggests/SampleEditorSuggest.ts';
-import { SampleModal } from './Modals/SampleModal.ts';
+import { SampleFormModal } from './Modals/SampleFormModal.ts';
 import { SampleSuggestModal } from './Modals/SampleSuggestModal.ts';
 import { PluginSettingsComponent } from './PluginSettingsComponent.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
@@ -209,7 +209,7 @@ export class Plugin extends PluginBase {
 
   private registerModalCommands(): void {
     this.addCommand({
-      callback: this.showSampleModal.bind(this),
+      callback: this.showSampleFormModal.bind(this),
       id: 'show-sample-modal',
       name: 'Show sample modal'
     });
@@ -303,8 +303,8 @@ export class Plugin extends PluginBase {
     });
   }
 
-  private showSampleModal(): void {
-    new SampleModal(this.app).open();
+  private showSampleFormModal(): void {
+    new SampleFormModal(this.app).open();
   }
 
   private async showSelectItem(): Promise<void> {

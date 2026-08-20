@@ -130,6 +130,10 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     .addPackage('obsidian')
     .addPackage('tslib')
     .addPackage('typescript')
+    // The plugin's own name is a proper noun in its own UI, so `obsidianmd/ui/sentence-case` must not
+    // Ask for `My awesome plugin`. Registered here rather than by a feature because every plugin has
+    // One, whatever else it picks.
+    .addSentenceCaseBrand(answers.pluginName)
     .addPartial('common');
 
   if (answers.fundingUrl) {

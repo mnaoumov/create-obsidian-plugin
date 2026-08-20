@@ -1,6 +1,4 @@
-import type { Configuration } from 'lint-staged';
-
-export const config: Configuration = {
+export const config = {
 <% _lintStagedPatterns.forEach((entry, i) => { -%>
   '<%- entry.pattern %>': [
 <% entry.commands.forEach((command, j) => { -%>
