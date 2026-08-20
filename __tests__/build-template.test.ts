@@ -332,9 +332,23 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('obsidian-dev-utils');
     });
 
-    it('enhanced adds enhanced partial', () => {
-      const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
-      expect(builder.partials.has('enhanced')).toBe(true);
+    it('both obsidian-dev-utils presets add the shared odu partial', () => {
+      for (const preset of ['enhanced', 'demo']) {
+        const builder = buildTemplate(makeAnswers({ preset }));
+        expect(builder.partials.has('odu'), preset).toBe(true);
+      }
+    });
+
+    it('keeps the two obsidian-dev-utils presets mutually exclusive', () => {
+      // A file with both an `_enhanced` and a `_demo` whole-file partial is composed by concatenating
+      // Every match, so a `demo` build that also carried `enhanced` emitted `src/Plugin.ts` twice over.
+      const demoPartials = buildTemplate(makeAnswers({ preset: 'demo' })).partials;
+      expect(demoPartials.has('demo')).toBe(true);
+      expect(demoPartials.has('enhanced')).toBe(false);
+
+      const enhancedPartials = buildTemplate(makeAnswers({ preset: 'enhanced' })).partials;
+      expect(enhancedPartials.has('enhanced')).toBe(true);
+      expect(enhancedPartials.has('demo')).toBe(false);
     });
   });
 

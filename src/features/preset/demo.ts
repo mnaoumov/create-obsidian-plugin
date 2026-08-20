@@ -28,6 +28,6 @@ export class Demo extends FeatureOption {
         'src/PluginTypes.ts',
         'src/Views/SampleView.ts'
       ])
-      .addPartial('enhanced');
+      .addPartial('odu');
   }
 }

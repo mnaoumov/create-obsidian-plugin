@@ -24,6 +24,6 @@ export class Enhanced extends FeatureOption {
         'src/PluginSettingsTab.ts',
         'src/PluginTypes.ts'
       ])
-      .addPartial('enhanced');
+      .addPartial('odu');
   }
 }

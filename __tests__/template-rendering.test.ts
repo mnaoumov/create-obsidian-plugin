@@ -135,6 +135,17 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, 'CHANGELOG.md'))).toBe(false);
   });
 
+  it('renders each preset-specific file exactly once for the demo preset', () => {
+    copyTemplates(makeAnswers({ preset: 'demo' }), targetDir, '1.0.0', null);
+    // A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so
+    // While `demo` also carried the `enhanced` partial each of these was emitted twice over.
+    for (const relativePath of ['src/Plugin.ts', 'src/PluginSettings.ts', 'src/PluginSettingsManager.ts', 'src/PluginSettingsTab.ts']) {
+      const content = readFileSync(join(targetDir, relativePath), 'utf-8');
+      const declarationCount = [...content.matchAll(/^export class (?<ClassName>\w+)/gm)].filter((match) => match.groups?.['ClassName'] !== 'TypedItem').length;
+      expect(declarationCount, relativePath).toBe(1);
+    }
+  });
+
   it('creates CONTRIBUTING.md and links it from the README', () => {
     copyTemplates(makeAnswers({ linter: 'eslint' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
