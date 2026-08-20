@@ -11,7 +11,7 @@ export class Demo extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@tsconfig/strictest')
-      .addPackage('moment', '2.29.4')
+      .addPackage('moment')
       .addPackage('obsidian-dev-utils')
       .addPackage('type-fest')
       .addScript('dev')

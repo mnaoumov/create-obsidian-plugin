@@ -19,6 +19,7 @@ export class React extends FeatureOption {
       .addPackage('@types/react-dom')
       .addPackage('react')
       .addPackage('react-dom')
+      .addSentenceCaseBrand('React')
       .addFiles([
         'src/ReactComponents/SampleReactComponent.tsx',
         'src/Views/SampleReactView.tsx'

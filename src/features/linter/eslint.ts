@@ -9,6 +9,7 @@ export class Eslint extends FeatureOption {
 
   public override configure(builder: TemplateBuilder): void {
     builder
+      .addLintStagedCommand('*.{ts,tsx,mts}', 'eslint --fix')
       .addPackage('@eslint/js')
       .addPackage('eslint-plugin-obsidianmd')
       .addPackage('globals')

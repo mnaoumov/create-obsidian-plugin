@@ -14,16 +14,23 @@ const mdFiles = globSync('**/*.md', {
 
 if (mdFiles.length > 0) {
   try {
-    execSync([
-      'linkinator',
-      ...mdFiles,
-      '--retry',
-      '--retry-errors',
-      '--retry-errors-count', '3',
-      '--retry-errors-jitter', '5',
-      '--url-rewrite-search', 'https://www\\.npmjs\\.com/package/',
-      '--url-rewrite-replace', 'https://registry.npmjs.org/'
-    ].join(' '), { stdio: 'inherit' });
+    execSync(
+      [
+        'linkinator',
+        ...mdFiles,
+        '--retry',
+        '--retry-errors',
+        '--retry-errors-count',
+        '3',
+        '--retry-errors-jitter',
+        '5',
+        '--url-rewrite-search',
+        'https://www\\.npmjs\\.com/package/',
+        '--url-rewrite-replace',
+        'https://registry.npmjs.org/'
+      ].join(' '),
+      { stdio: 'inherit' }
+    );
   } catch {
     process.exit(1);
   }

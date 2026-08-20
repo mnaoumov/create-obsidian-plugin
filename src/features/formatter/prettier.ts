@@ -9,6 +9,7 @@ export class Prettier extends FeatureOption {
 
   public override configure(builder: TemplateBuilder): void {
     builder
+      .addLintStagedCommand('*.{ts,tsx,mts}', 'prettier --write')
       .addPackage('prettier')
       .addScript('format')
       .addScript('format:check')

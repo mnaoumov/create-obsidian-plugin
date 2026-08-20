@@ -22,6 +22,7 @@ export class Svelte extends FeatureOption {
       .addPackage('svelte-check')
       .addPackage('svelte-preprocess')
       .addPackage(getBuildPlugin(answers.bundler))
+      .addSentenceCaseBrand('Svelte')
       .addFiles([
         'src/SvelteComponents/SampleSvelteComponent.d.ts',
         'src/SvelteComponents/SampleSvelteComponent.svelte',

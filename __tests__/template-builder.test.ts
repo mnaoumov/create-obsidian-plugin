@@ -10,10 +10,12 @@ import {
 } from '../src/template-builder.ts';
 
 describe('Dependency', () => {
-  it('defaults version to latest', () => {
+  it('leaves the version unset so it can be resolved', () => {
     const dep = new Dependency('foo');
     expect(dep.packageName).toBe('foo');
-    expect(dep.version).toBe('latest');
+    // `null` is what routes the package through the pin table and then the registry; a default spec here
+    // Would silently win over both.
+    expect(dep.version).toBeNull();
   });
 
   it('accepts explicit version', () => {

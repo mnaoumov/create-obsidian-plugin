@@ -9,6 +9,7 @@ export class Biome extends FeatureOption {
 
   public override configure(builder: TemplateBuilder): void {
     builder
+      .addLintStagedCommand('*.{ts,tsx,mts}', 'biome check --write --no-errors-on-unmatched')
       .addPackage('@biomejs/biome')
       .addScript('lint')
       .addScript('lint:fix')

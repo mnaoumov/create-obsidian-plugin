@@ -1,7 +1,7 @@
 import eslint from '@eslint/js';
 import obsidianmd from 'eslint-plugin-obsidianmd';
-import globals from 'globals';
 import { globalIgnores } from 'eslint/config';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const typeScriptFiles = [
@@ -11,7 +11,7 @@ const typeScriptFiles = [
   // Root-level config files (`vitest.config.ts`, `commitlint.config.ts`, …). Typed rules need every file
   // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree.
   '*.ts',
-  'eslint.config.mts',
+  'eslint.config.mts'
 ];
 
 export default tseslint.config(
@@ -23,27 +23,27 @@ export default tseslint.config(
     // Breaks the lesson.
     'demo-vault/**',
     'dist/**',
-    'main.js',
+    'main.js'
   ]),
   {
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked
     ],
     files: typeScriptFiles,
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node,
+        ...globals.node
       },
       parserOptions: {
         ecmaFeatures: {
-          jsx: true,
+          jsx: true
         },
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+        tsconfigRootDir: import.meta.dirname
+      }
     },
     rules: {
       '@typescript-eslint/explicit-function-return-type': 'error',
@@ -57,8 +57,8 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: '^_',
           destructuredArrayIgnorePattern: '^_',
           ignoreRestSiblings: true,
-          varsIgnorePattern: '^_',
-        },
+          varsIgnorePattern: '^_'
+        }
       ],
       '@typescript-eslint/prefer-readonly': 'error',
       'curly': 'error',
@@ -66,8 +66,8 @@ export default tseslint.config(
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-var': 'error',
       'prefer-const': 'error',
-      'prefer-template': 'error',
-    },
+      'prefer-template': 'error'
+    }
   },
   ...obsidianmd.configs.recommended,
   {
@@ -75,9 +75,9 @@ export default tseslint.config(
       'obsidianmd/ui/sentence-case': [
         'error',
         {
-          brands: [<%- render('brands') %>]
+          brands: [<% _sentenceCaseBrands.forEach((brand, i) => { %>'<%- brand %>'<%= i < _sentenceCaseBrands.length - 1 ? ', ' : '' %><% }); %>]
         }
       ]
     }
-  },
+  }
 );

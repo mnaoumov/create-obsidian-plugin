@@ -9,6 +9,7 @@ export class Dprint extends FeatureOption {
 
   public override configure(builder: TemplateBuilder): void {
     builder
+      .addLintStagedCommand('*.{ts,tsx,mts}', 'dprint fmt')
       .addPackage('dprint')
       .addScript('format')
       .addScript('format:check')
