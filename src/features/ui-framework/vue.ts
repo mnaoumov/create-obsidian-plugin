@@ -20,6 +20,7 @@ export class Vue extends FeatureOption {
     builder
       .addPackage('vue')
       .addPackage(getBuildPlugin(answers.bundler))
+      .addSentenceCaseBrand('Vue')
       .addFiles([
         'src/VueComponents/SampleVueComponent.d.ts',
         'src/VueComponents/SampleVueComponent.vue',

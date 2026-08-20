@@ -46,6 +46,30 @@ All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `c
 
 `addScript(name)` defaults to `jiti scripts/{name.replaceAll(':', '-')}.ts`. Each npm script maps 1:1 to a script file. Only pass a second arg for non-standard commands.
 
+### Dependency versions are resolved at generation time
+
+`addPackage(name)` records no version. `resolveVersions()` (`src/versions.ts`) fills one in per package:
+an explicit `addPackage(name, version)` wins, then the pin table, then `^<current latest>` from
+`registry.npmjs.org`; a failed lookup falls back to the literal `latest` so generating offline works.
+
+The pin table is the single source for three things — the exact spec written into `devDependencies`, the
+generated project's `overrides` block (npm's `$<name>` shorthand, only for pins that must also reach
+nested copies), and its `pinned-versions.json` (G100). A pin's `check` is emitted only when the package it
+reads from is in the project; otherwise its `manualCheck` is, so the file never carries a command that
+cannot run. Two of the pins are load-bearing: `typescript@latest` is outside typescript-eslint's peer
+range, and `@codemirror/*` must match Obsidian's exact peers.
+
+`copyTemplates` takes the resolved map as an optional argument and stays synchronous — the rendering tests
+call it ~60 times and must not touch the network.
+
+### A list that partials would end with a trailing comma belongs on the builder
+
+A partial can only emit `'<item>',`, so the last one always leaves a trailing comma — which the formatter
+config strips, meaning the generated file fails its own `format:check`. Anything shaped like a list is
+therefore collected on `TemplateBuilder` and rendered with a `forEach` that knows which element is last:
+`addScript`, `addPackage`, `addLintStagedCommand`, `addSentenceCaseBrand`. Partials stay for content that
+is a block, not an item.
+
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.

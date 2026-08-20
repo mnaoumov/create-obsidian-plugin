@@ -35,10 +35,15 @@ import {
   promptAnswers
 } from './prompts.ts';
 import {
+  buildTemplate,
   copyTemplates,
   getScriptDir,
   loadConfig
 } from './templates.ts';
+import {
+  fetchLatestVersion,
+  resolveVersions
+} from './versions.ts';
 
 interface ExecError extends Error {
   stderr: string;
@@ -56,13 +61,9 @@ interface SavedConfig {
 const JSON_INDENT_SPACES = 2;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
-  try {
-    const latestVer = await latestVersion('@mnaoumov/create-obsidian-plugin');
-    if (compare(currentVersion, latestVer) < 0) {
-      log.warn(`Your version is outdated. Latest: ${latestVer}. Update with:\n  npm install -g @mnaoumov/create-obsidian-plugin`);
-    }
-  } catch {
-    // Silently ignore network errors
+  const latestVer = await fetchLatestVersion('@mnaoumov/create-obsidian-plugin');
+  if (latestVer !== null && compare(currentVersion, latestVer) < 0) {
+    log.warn(`Your version is outdated. Latest: ${latestVer}. Update with:\n  npm install -g @mnaoumov/create-obsidian-plugin`);
   }
 }
 
@@ -111,12 +112,6 @@ function execAsync(command: string, cwd: string): Promise<ExecResult> {
   });
 }
 
-async function latestVersion(packageName: string): Promise<string> {
-  const response = await fetch(`https://registry.npmjs.org/${packageName}/latest`);
-  const json = await response.json() as Record<string, unknown>;
-  return json['version'] as string;
-}
-
 async function main(): Promise<void> {
   const packageJsonPath = join(getScriptDir(), '..', 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
@@ -148,6 +143,14 @@ async function main(): Promise<void> {
   }
 }
 
+async function resolveDependencyVersions(answers: Answers): Promise<ReadonlyMap<string, string>> {
+  const s = spinner();
+  s.start('Resolving dependency versions...');
+  const resolvedVersions = await resolveVersions(buildTemplate(answers).dependencies);
+  s.stop('Dependency versions resolved.');
+  return resolvedVersions;
+}
+
 async function runCreate(currentVersion: string, useDefaults: boolean): Promise<void> {
   const answers = useDefaults ? getDefaultAnswers() : await promptAnswers();
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
@@ -164,9 +167,11 @@ async function runCreate(currentVersion: string, useDefaults: boolean): Promise<
     }
   }
 
+  const resolvedVersions = await resolveDependencyVersions(answers);
+
   const s = spinner();
   s.start('Scaffolding plugin...');
-  const newConfig = copyTemplates(answers, targetDir, currentVersion, null);
+  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions);
   const configPath = join(targetDir, CONFIG_FILE_NAME);
   const configWithAnswers = { ...newConfig, answers };
   writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
@@ -283,9 +288,11 @@ async function runUpdate(currentVersion: string): Promise<void> {
     answers = await promptAnswers();
   }
 
+  const resolvedVersions = await resolveDependencyVersions(answers);
+
   const s = spinner();
   s.start('Updating project files...');
-  copyTemplates(answers, targetDir, currentVersion, existingConfig);
+  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions);
   s.stop('Update complete.');
 
   const newConfig = loadConfig(targetDir);

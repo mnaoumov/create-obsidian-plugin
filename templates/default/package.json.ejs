@@ -13,6 +13,11 @@
     "<%- key %>": "<%- value %>"<%= i < scriptEntries.length - 1 ? ',' : '' %>
 <% }); -%>
   },
+  "overrides": {
+<% _overrides.forEach((override, i) => { -%>
+    "<%- override.packageName %>": "<%- override.spec %>"<%= i < _overrides.length - 1 ? ',' : '' %>
+<% }); -%>
+  },
   "devDependencies": {
 <% _dependencies.forEach((dep, i) => { -%>
     "<%- dep.packageName %>": "<%- dep.version %>"<%= i < _dependencies.length - 1 ? ',' : '' %>

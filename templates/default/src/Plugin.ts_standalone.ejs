@@ -1,9 +1,9 @@
 import {
-  Editor,
-  MarkdownView,
   Notice,
-  Plugin
+  Plugin as ObsidianPlugin
 } from 'obsidian';
+
+import type { Editor } from 'obsidian';
 
 import {
   DEFAULT_SETTINGS,
@@ -12,8 +12,10 @@ import {
 
 import type { PluginSettings } from './settings.ts';
 
-export default class <%= pluginShortName %>Plugin extends Plugin {
-  settings: PluginSettings;
+export class Plugin extends ObsidianPlugin {
+  // `Plugin.settings` is declared as `settings?: unknown` by Obsidian itself, so a redeclaration needs both
+  // `override` and an initializer to narrow it.
+  override settings: PluginSettings = { ...DEFAULT_SETTINGS };
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -27,7 +29,7 @@ export default class <%= pluginShortName %>Plugin extends Plugin {
     });
 
     this.addCommand({
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
+      editorCallback: (editor: Editor) => {
         editor.replaceSelection('Sample Editor Command');
       },
       id: 'sample-editor',
@@ -38,7 +40,7 @@ export default class <%= pluginShortName %>Plugin extends Plugin {
   }
 
   onunload(): void {
-    // cleanup
+    // Cleanup
   }
 
   async loadSettings(): Promise<void> {

@@ -9,6 +9,7 @@ export class Markdownlint extends FeatureOption {
 
   public override configure(builder: TemplateBuilder): void {
     builder
+      .addLintStagedCommand('*.md', 'markdownlint-cli2 --fix')
       .addPackage('markdownlint')
       .addPackage('markdownlint-cli2')
       .addPackage('markdownlint-rule-relative-links')

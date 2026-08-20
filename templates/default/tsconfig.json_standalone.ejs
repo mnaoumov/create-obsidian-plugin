@@ -1,33 +1,36 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "allowArbitraryExtensions": true,
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
     "inlineSourceMap": true,
     "inlineSources": true,
-    "module": "es2022",
-    "target": "ES6",
-    "allowJs": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "noUncheckedIndexedAccess": true,
     "isolatedModules": true,
-    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUncheckedIndexedAccess": true,
     "strictBindCallApply": true,
-    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
     "useUnknownInCatchVariables": true,
 <%- render('compiler-options') -%>
     "lib": [
       "DOM",
-      "ES5",
-      "ES6",
-      "ES7"
-    ]
+      "es2022"
+    ],
+    "module": "node16",
+    "moduleResolution": "node16",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "verbatimModuleSyntax": true
   },
   "include": [
-<%- render('include') -%>
     "./*.ts",
+<%- render('include') -%>
     "./scripts/**/*.ts",
     "src/**/*.ts"<%- render('include-extra') %>
   ]

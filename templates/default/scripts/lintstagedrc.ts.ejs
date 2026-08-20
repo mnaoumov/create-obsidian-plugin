@@ -1,6 +1,11 @@
-import type { Config } from 'lint-staged';
+import type { Configuration } from 'lint-staged';
 
-export const config: Config = {
-  '*.{ts,tsx,mts}': [<%- render('ts-commands') -%>],
-<%- render('extra-patterns') -%>};
-
+export const config: Configuration = {
+<% _lintStagedPatterns.forEach((entry, i) => { -%>
+  '<%- entry.pattern %>': [
+<% entry.commands.forEach((command, j) => { -%>
+    '<%- command %>'<%= j < entry.commands.length - 1 ? ',' : '' %>
+<% }); -%>
+  ]<%= i < _lintStagedPatterns.length - 1 ? ',' : '' %>
+<% }); -%>
+};

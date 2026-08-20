@@ -41,8 +41,17 @@ import { TEST_RUNNER_OPTIONS } from './features/test-runner/index.ts';
 import { UI_FRAMEWORK_OPTIONS } from './features/ui-framework/index.ts';
 import { WASM_SUPPORT_OPTIONS } from './features/wasm-support/index.ts';
 import { TemplateBuilder } from './template-builder.ts';
+import {
+  buildOverrides,
+  buildPinnedVersionsJson,
+  PINNED_VERSIONS
+} from './versions.ts';
 
 const JSON_INDENT_SPACES = 2;
+
+// Only reached when generation runs without a resolution pass -- rendering tests, and `latest` is what the
+// Generator emitted for everything before the pin table existed.
+const UNRESOLVED_VERSION = 'latest';
 
 const BASE_TEMPLATE_FILES = [
   '.editorconfig',
@@ -55,6 +64,7 @@ const BASE_TEMPLATE_FILES = [
   'README.md',
   'manifest.json',
   'package.json',
+  'pinned-versions.json',
   'src/Plugin.ts',
   'src/main.ts',
   'tsconfig.json',
@@ -152,7 +162,13 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
   return builder;
 }
 
-export function copyTemplates(answers: Answers, targetDir: string, currentVersion: string, existingConfig: GeneratorConfig | null): GeneratorConfig {
+export function copyTemplates(
+  answers: Answers,
+  targetDir: string,
+  currentVersion: string,
+  existingConfig: GeneratorConfig | null,
+  resolvedVersions: ReadonlyMap<string, string> = new Map()
+): GeneratorConfig {
   const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
   const newConfig: GeneratorConfig = {
     fileHashes: {},
@@ -162,14 +178,22 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
   const builder = buildTemplate(answers);
   const templateFiles = builder.templateFiles;
   const partials = builder.partials;
+  const dependencies = builder.dependencies;
 
   let currentTemplatePath = '';
   let renderRoot = '';
 
   const templateContext: Record<string, unknown> = {
     ...answers,
-    _dependencies: builder.dependencies,
+    _dependencies: dependencies.map((dependency) => ({
+      packageName: dependency.packageName,
+      version: dependency.version ?? resolvedVersions.get(dependency.packageName) ?? PINNED_VERSIONS[dependency.packageName]?.version ?? UNRESOLVED_VERSION
+    })),
+    _lintStagedPatterns: builder.lintStagedPatterns,
+    _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
+    _pinnedVersionsJson: buildPinnedVersionsJson(dependencies),
     _scripts: builder.scripts,
+    _sentenceCaseBrands: builder.sentenceCaseBrands,
     render(options?: RenderOptions | string): string {
       const { indentLevel, section } = typeof options === 'string'
         ? { indentLevel: 0, section: options }
@@ -194,7 +218,9 @@ export function copyTemplates(answers: Answers, targetDir: string, currentVersio
         let rendered = ejs.render(readFileSync(fullPath, 'utf-8'), templateContext);
         if (indentLevel > 0) {
           const indent = '  '.repeat(indentLevel);
-          rendered = rendered.replaceAll('\n', `\n${indent}`);
+          // Every non-empty line, including the first -- indenting only after each `\n` left the partial's
+          // First line at column 0 and pushed the caller's next line out by one indent.
+          rendered = rendered.replaceAll(/^(?<Content>.+)$/gm, `${indent}$<Content>`);
         }
         result += rendered;
       }

@@ -1,4 +1,10 @@
-import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
 import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import process from 'node:process';
@@ -24,7 +30,6 @@ if (existsSync(distFolder)) {
 mkdirSync(distFolder, { recursive: true });
 
 copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
-
 <%- render('hot-reload') -%>
 
 const banner = `/*
@@ -35,7 +40,7 @@ if you want to view the source, please visit the github repository of this plugi
 
 const context = await esbuild.context({
   banner: {
-    js: banner,
+    js: banner
   },
   entryPoints: ['src/main.ts'],
   bundle: true,
@@ -55,7 +60,7 @@ const context = await esbuild.context({
     '@lezer/lr',
     'esbuild',
     'eslint',
-    ...builtinModules,
+    ...builtinModules
   ],
   conditions: ['browser'],
   format: 'cjs',
@@ -70,8 +75,8 @@ const context = await esbuild.context({
 <%- render('options') -%>
   plugins: [
 <%- render('plugin') -%>
-    copyToObsidianPluginsFolderPlugin(prod, distFolder),
-  ],
+    copyToObsidianPluginsFolderPlugin(prod, distFolder)
+  ]
 });
 
 if (prod) {
@@ -104,6 +109,6 @@ function copyToObsidianPluginsFolderPlugin(isProduction: boolean, dist: string):
         cpSync(dist, pluginFolder, { recursive: true });
 <%- render({ section: 'reload', indentLevel: 4 }) -%>
       });
-    },
+    }
   };
 }

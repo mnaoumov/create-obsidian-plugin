@@ -1,8 +1,15 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
 import { join } from 'node:path';
 import process from 'node:process';
 import { createInterface } from 'node:readline/promises';
-import { execSync } from 'node:child_process';
 
 interface Manifest {
   minAppVersion: string;
@@ -47,7 +54,7 @@ await publishGitHubRelease(newVersion);
 
 function validate(type: string): void {
   if (!['major', 'minor', 'patch', 'beta'].includes(type) && !/^\d+\.\d+\.\d+(?:-[\w\d.-]+)?$/.test(type)) {
-    throw new Error("Invalid version update type. Please use 'major', 'minor', 'patch', 'beta', or 'x.y.z[-suffix]' format.");
+    throw new Error('Invalid version update type. Please use \'major\', \'minor\', \'patch\', \'beta\', or \'x.y.z[-suffix]\' format.');
   }
 }
 
@@ -99,7 +106,9 @@ function getNewVersion(type: string): string {
 
   switch (type) {
     case 'beta':
-      if (beta === 0) { patch++; }
+      if (beta === 0) {
+        patch++;
+      }
       beta++;
       break;
     case 'major':
@@ -114,7 +123,11 @@ function getNewVersion(type: string): string {
       beta = 0;
       break;
     case 'patch':
-      if (beta === 0) { patch++; } else { beta = 0; }
+      if (beta === 0) {
+        patch++;
+      } else {
+        beta = 0;
+      }
       break;
   }
 
@@ -122,29 +135,39 @@ function getNewVersion(type: string): string {
 }
 
 function updateVersionInFiles(version: string): void {
-  editJson<PackageJson>('package.json', (pkg) => { pkg.version = version; });
+  editJson<PackageJson>('package.json', (pkg) => {
+    pkg.version = version;
+  });
   editJsonIfExists<PackageLockJson>('package-lock.json', (lock) => {
     lock.version = version;
     const defaultPkg = lock.packages?.[''];
-    if (defaultPkg) { defaultPkg.version = version; }
+    if (defaultPkg) {
+      defaultPkg.version = version;
+    }
   });
   editJsonIfExists<PackageLockJson>('npm-shrinkwrap.json', (lock) => {
     lock.version = version;
     const defaultPkg = lock.packages?.[''];
-    if (defaultPkg) { defaultPkg.version = version; }
+    if (defaultPkg) {
+      defaultPkg.version = version;
+    }
   });
 }
 
 function updateVersionInFilesForPlugin(version: string): void {
   if (version.includes('beta')) {
     copyFileSync('manifest.json', 'manifest-beta.json');
-    editJson<Manifest>('manifest-beta.json', (m) => { m.version = version; });
+    editJson<Manifest>('manifest-beta.json', (m) => {
+      m.version = version;
+    });
   } else {
     const response = fetchSync('https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest');
     const latestObsidianVersion = (JSON.parse(response) as { name?: string }).name;
 
     editJson<Manifest>('manifest.json', (m) => {
-      if (latestObsidianVersion) { m.minAppVersion = latestObsidianVersion; }
+      if (latestObsidianVersion) {
+        m.minAppVersion = latestObsidianVersion;
+      }
       m.version = version;
     });
 
@@ -171,7 +194,9 @@ async function updateChangelog(version: string): Promise<void> {
   if (existsSync(changelogPath)) {
     const content = readFileSync(changelogPath, 'utf-8');
     previousLines = content.split('\n').slice(2);
-    if (previousLines.at(-1) === '') { previousLines.pop(); }
+    if (previousLines.at(-1) === '') {
+      previousLines.pop();
+    }
   }
 
   const lastTag = (previousLines[0] ?? '').replace('## ', '');
@@ -180,10 +205,14 @@ async function updateChangelog(version: string): Promise<void> {
   const commitMessages = commitMessagesStr.split('\0').filter(Boolean).map((s) => s.split(/\r?\n/).filter(Boolean).join(' '));
 
   let changelog = `# CHANGELOG\n\n## ${version}\n\n`;
-  for (const msg of commitMessages) { changelog += `- ${msg}\n`; }
+  for (const msg of commitMessages) {
+    changelog += `- ${msg}\n`;
+  }
   if (previousLines.length > 0) {
     changelog += '\n';
-    for (const line of previousLines) { changelog += `${line}\n`; }
+    for (const line of previousLines) {
+      changelog += `${line}\n`;
+    }
   }
   writeFileSync(changelogPath, changelog, 'utf-8');
 
@@ -223,16 +252,24 @@ async function publishGitHubRelease(version: string): Promise<void> {
 
   const releaseNotes = getReleaseNotes(version);
 
-  execSync([
-    'gh', 'release', 'create', version,
-    ...files,
-    '--title', `v${version}`,
-    ...(version.includes('beta') ? ['--prerelease'] : []),
-    '--notes-file', '-'
-  ].join(' '), {
-    input: releaseNotes,
-    stdio: ['pipe', 'inherit', 'inherit']
-  });
+  execSync(
+    [
+      'gh',
+      'release',
+      'create',
+      version,
+      ...files,
+      '--title',
+      `v${version}`,
+      ...(version.includes('beta') ? ['--prerelease'] : []),
+      '--notes-file',
+      '-'
+    ].join(' '),
+    {
+      input: releaseNotes,
+      stdio: ['pipe', 'inherit', 'inherit']
+    }
+  );
 }
 
 function getReleaseNotes(version: string): string {
@@ -242,7 +279,9 @@ function getReleaseNotes(version: string): string {
     const content = readFileSync(changelogPath, 'utf-8');
     const escaped = version.replaceAll('.', '\\.');
     const match = new RegExp(`\n## ${escaped}\n\n((.|\n)+?)\n\n##`).exec(content);
-    if (match?.[1]) { releaseNotes = `${match[1]}\n\n`; }
+    if (match?.[1]) {
+      releaseNotes = `${match[1]}\n\n`;
+    }
   }
 
   const tags = execSync('git tag --sort=-creatordate', { encoding: 'utf-8' }).split(/\r?\n/);
@@ -263,7 +302,9 @@ function editJson<T>(filePath: string, editFn: (data: T) => void): void {
 }
 
 function editJsonIfExists<T>(filePath: string, editFn: (data: T) => void): void {
-  if (existsSync(filePath)) { editJson(filePath, editFn); }
+  if (existsSync(filePath)) {
+    editJson(filePath, editFn);
+  }
 }
 
 function fetchSync(url: string): string {
