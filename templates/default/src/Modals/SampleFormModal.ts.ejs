@@ -4,11 +4,11 @@ import {
   Setting
 } from 'obsidian';
 
-export class SampleModal extends Modal {
+export class SampleFormModal extends Modal {
   private name = '';
 
   public override onOpen(): void {
-    this.contentEl.createEl('h2', { text: 'Sample Form' });
+    this.contentEl.createEl('h2', { text: 'Sample form' });
 
     new Setting(this.contentEl)
       .setName('Name')

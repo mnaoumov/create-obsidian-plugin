@@ -1,6 +1,9 @@
 import eslint from '@eslint/js';
 import obsidianmd from 'eslint-plugin-obsidianmd';
-import { globalIgnores } from 'eslint/config';
+import {
+  defineConfig,
+  globalIgnores
+} from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -14,7 +17,7 @@ const typeScriptFiles = [
   'eslint.config.mts'
 ];
 
-export default tseslint.config(
+export default defineConfig(
   globalIgnores([
     '**/*.cjs',
     '**/*.js',
@@ -70,6 +73,28 @@ export default tseslint.config(
     }
   },
   ...obsidianmd.configs.recommended,
+  // The Obsidian rules — and the console ban — are about code that SHIPS and runs inside Obsidian: no
+  // Node built-ins, because of mobile, and no stray logging. The build scripts are Node by definition
+  // And a build script that says what it is doing is behaving correctly, so they are turned back off
+  // Outside `src/`. Done as an override rather than by re-scoping the shared config, which would drop
+  // The parser settings that come with it.
+  {
+    files: ['scripts/**/*.ts', '*.ts', 'eslint.config.mts'],
+    rules: {
+      'no-console': 'off',
+      'obsidianmd/no-nodejs-modules': 'off',
+      'obsidianmd/rule-custom-message': 'off'
+    }
+  },
+  {
+    rules: {
+      // `moment` is banned for bundle size, which does not apply here: Obsidian bundles it and
+      // Re-exports it, so it is imported from `'obsidian'` and the dependency exists only so
+      // `moment.Duration` and friends type-check against the version the app actually runs. A no-op
+      // Unless the project depends on it.
+      'depend/ban-dependencies': ['error', { allowed: ['moment'] }]
+    }
+  },
   {
     rules: {
       'obsidianmd/ui/sentence-case': [

@@ -4,7 +4,7 @@ import { FeatureOption } from '../../feature-option.ts';
 
 export class ConventionalCommits extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'commitlint + husky + lint-staged', promptLabel: 'Conventional Commits', settingValue: 'conventional-commits' });
+    super({ promptHint: 'commitlint + husky + nano-staged', promptLabel: 'Conventional Commits', settingValue: 'conventional-commits' });
   }
 
   public override configure(builder: TemplateBuilder): void {
@@ -12,14 +12,17 @@ export class ConventionalCommits extends FeatureOption {
       .addPackage('@commitlint/cli')
       .addPackage('@commitlint/config-conventional')
       .addPackage('husky')
-      .addPackage('lint-staged')
+      // `nano-staged` rather than `lint-staged`: the fleet moved to it, and `depend/ban-dependencies`
+      // In the generated ESLint config bans `lint-staged` outright, so a project that installed it
+      // Could not pass its own `npm run lint`.
+      .addPackage('nano-staged')
       .addFiles([
         'commitlint.config.ts',
         'scripts/commitlint.config.ts',
         '.husky/commit-msg',
         '.husky/pre-commit',
-        '.lintstagedrc.mjs',
-        'scripts/lintstagedrc.ts'
+        '.nano-staged.mjs',
+        'scripts/nano-staged-config.ts'
       ]);
   }
 }

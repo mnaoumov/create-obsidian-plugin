@@ -2,8 +2,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
-  rmSync,
-  writeFileSync
+  rmSync<%- render('fs-import') %>
 } from 'node:fs';
 import { builtinModules } from 'node:module';
 import { join } from 'node:path';
@@ -13,10 +12,7 @@ import esbuild from 'esbuild';
 <%- render('import') -%>
 
 const prod = process.argv[2] !== 'dev';
-
-if (prod) {
 <%- render('compile') -%>
-}
 
 if (existsSync('.env')) {
   process.loadEnvFile('.env');
@@ -95,7 +91,7 @@ function copyToObsidianPluginsFolderPlugin(isProduction: boolean, dist: string):
           return;
         }
 
-        const obsidianConfigFolder = process.env['OBSIDIAN_CONFIG_FOLDER'] ?? '';
+        const obsidianConfigFolder = process.env.OBSIDIAN_CONFIG_FOLDER ?? '';
         if (!obsidianConfigFolder) {
           return;
         }

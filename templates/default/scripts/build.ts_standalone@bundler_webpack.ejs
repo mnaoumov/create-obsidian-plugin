@@ -33,7 +33,7 @@ if (!prod) {
 }
 
 function copyToObsidianPluginsFolder(dist: string): void {
-  const obsidianConfigFolder = process.env['OBSIDIAN_CONFIG_FOLDER'] ?? '';
+  const obsidianConfigFolder = process.env.OBSIDIAN_CONFIG_FOLDER ?? '';
   if (!obsidianConfigFolder) { return; }
 
   const pluginFolder = join(obsidianConfigFolder, 'plugins', '<%= pluginId %>');

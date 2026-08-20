@@ -438,15 +438,15 @@ describe('copyTemplates', () => {
     expect(config).toContain('@commitlint/config-conventional');
   });
 
-  it('creates lint-staged config with eslint command', () => {
+  it('creates nano-staged config with eslint command', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', linter: 'eslint' }), targetDir, '1.0.0', null);
-    const config = readFileSync(join(targetDir, 'scripts/lintstagedrc.ts'), 'utf-8');
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
     expect(config).toContain('eslint --fix');
   });
 
-  it('creates lint-staged config with prettier command', () => {
+  it('creates nano-staged config with prettier command', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'prettier' }), targetDir, '1.0.0', null);
-    const config = readFileSync(join(targetDir, 'scripts/lintstagedrc.ts'), 'utf-8');
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
     expect(config).toContain('prettier --write');
   });
 
