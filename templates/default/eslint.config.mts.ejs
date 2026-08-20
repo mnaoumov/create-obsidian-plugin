@@ -8,6 +8,9 @@ const typeScriptFiles = [
   'src/**/*.ts',
   'src/**/*.tsx',
   'scripts/**/*.ts',
+  // Root-level config files (`vitest.config.ts`, `commitlint.config.ts`, …). Typed rules need every file
+  // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree.
+  '*.ts',
   'eslint.config.mts',
 ];
 
@@ -16,6 +19,9 @@ export default tseslint.config(
     '**/*.cjs',
     '**/*.js',
     '**/*.mjs',
+    // The demo scripts show unusual module and `require` styles on purpose; a linter that "fixes" them
+    // Breaks the lesson.
+    'demo-vault/**',
     'dist/**',
     'main.js',
   ]),

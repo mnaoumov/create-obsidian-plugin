@@ -16,7 +16,12 @@ export class Markdownlint extends FeatureOption {
       .addScript('lint:md')
       .addScript('lint:md:fix')
       .addFiles([
-        '.markdownlint-cli2.mts',
+        // `markdownlint-cli2` only discovers a config named `.markdownlint-cli2.{jsonc,yaml,cjs,mjs}`, and
+        // So does obsidian-dev-utils' runner -- which copies its own `.mjs` in when it finds none, pointing
+        // At a `scripts/markdownlint-cli2-config.ts` that then has to exist. Hence this shape rather than a
+        // Single `.mts` that nothing reads.
+        '.markdownlint-cli2.mjs',
+        'scripts/markdownlint-cli2-config.ts',
         'scripts/lint-md.ts',
         'scripts/lint-md-fix.ts'
       ]);

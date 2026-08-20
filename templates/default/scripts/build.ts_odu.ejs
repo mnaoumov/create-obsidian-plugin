@@ -1,3 +1,4 @@
-import { build } from 'obsidian-dev-utils/script-utils/commands';
+import { build } from 'obsidian-dev-utils/script-utils/bundlers/esbuild';
+import { wrapCliTask } from 'obsidian-dev-utils/script-utils/cli-utils';
 
-await build();
+await wrapCliTask(() => build());

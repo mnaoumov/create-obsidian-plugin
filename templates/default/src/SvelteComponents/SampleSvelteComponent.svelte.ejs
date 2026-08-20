@@ -1,9 +1,14 @@
 <script lang="ts">
   import type { SampleSvelteComponentProps } from './SampleSvelteComponent.d.ts';
 
+  import { untrack } from 'svelte';
+
   let { startCount }: SampleSvelteComponentProps = $props();
 
-  let count = $state(startCount);
+  // `startCount` seeds the local state once and is deliberately not tracked afterwards. Reading it
+  // Directly here would make Svelte warn (`state_referenced_locally`) that only its initial value is
+  // Captured -- which is exactly the intent, so `untrack` says so.
+  let count = $state(untrack(() => startCount));
 
   export function increment() {
     count += 1;

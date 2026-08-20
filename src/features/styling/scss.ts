@@ -15,7 +15,7 @@ export class Scss extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addFiles(['src/styles/main.scss']);
+    builder.addFiles(['src/styles/main.scss', 'src/styles/styles.d.ts']);
 
     const plugin = SCSS_PLUGINS[answers.bundler];
     if (plugin) {

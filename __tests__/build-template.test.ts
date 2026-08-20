@@ -357,7 +357,10 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint' }));
       expect(builder.scripts['lint:md']).toBe('jiti scripts/lint-md.ts');
       expect(builder.scripts['lint:md:fix']).toBe('jiti scripts/lint-md-fix.ts');
-      expect([...builder.templateFiles]).toContain('.markdownlint-cli2.mts');
+      // `markdownlint-cli2` discovers no config named `.mts`; the `.mjs` wrapper plus a `scripts/` config
+      // Is the shape both it and the obsidian-dev-utils runner read.
+      expect([...builder.templateFiles]).toContain('.markdownlint-cli2.mjs');
+      expect([...builder.templateFiles]).toContain('scripts/markdownlint-cli2-config.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });

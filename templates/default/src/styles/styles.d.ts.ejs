@@ -1,0 +1,4 @@
+// `src/main.ts` imports the stylesheet for its side effect, so that the bundler emits `styles.css`.
+// TypeScript needs a declaration for that import; without one it fails with TS2882.
+declare module '*.css';
+declare module '*.scss';

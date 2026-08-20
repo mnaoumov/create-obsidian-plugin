@@ -18,7 +18,8 @@ export class Tailwind extends FeatureOption {
         'scripts/postcss.config.ts',
         'tailwind.config.ts',
         'scripts/tailwind.config.ts',
-        'src/styles/main.css'
+        'src/styles/main.css',
+        'src/styles/styles.d.ts'
       ]);
     if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-postcss');
