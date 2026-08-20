@@ -15,7 +15,8 @@ export class PostCss extends FeatureOption {
       .addFiles([
         'postcss.config.mjs',
         'scripts/postcss.config.ts',
-        'src/styles/main.css'
+        'src/styles/main.css',
+        'src/styles/styles.d.ts'
       ]);
     if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-postcss');

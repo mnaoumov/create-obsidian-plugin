@@ -332,9 +332,23 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('obsidian-dev-utils');
     });
 
-    it('enhanced adds enhanced partial', () => {
-      const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
-      expect(builder.partials.has('enhanced')).toBe(true);
+    it('both obsidian-dev-utils presets add the shared odu partial', () => {
+      for (const preset of ['enhanced', 'demo']) {
+        const builder = buildTemplate(makeAnswers({ preset }));
+        expect(builder.partials.has('odu'), preset).toBe(true);
+      }
+    });
+
+    it('keeps the two obsidian-dev-utils presets mutually exclusive', () => {
+      // A file with both an `_enhanced` and a `_demo` whole-file partial is composed by concatenating
+      // Every match, so a `demo` build that also carried `enhanced` emitted `src/Plugin.ts` twice over.
+      const demoPartials = buildTemplate(makeAnswers({ preset: 'demo' })).partials;
+      expect(demoPartials.has('demo')).toBe(true);
+      expect(demoPartials.has('enhanced')).toBe(false);
+
+      const enhancedPartials = buildTemplate(makeAnswers({ preset: 'enhanced' })).partials;
+      expect(enhancedPartials.has('enhanced')).toBe(true);
+      expect(enhancedPartials.has('demo')).toBe(false);
     });
   });
 
@@ -343,7 +357,10 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint' }));
       expect(builder.scripts['lint:md']).toBe('jiti scripts/lint-md.ts');
       expect(builder.scripts['lint:md:fix']).toBe('jiti scripts/lint-md-fix.ts');
-      expect([...builder.templateFiles]).toContain('.markdownlint-cli2.mts');
+      // `markdownlint-cli2` discovers no config named `.mts`; the `.mjs` wrapper plus a `scripts/` config
+      // Is the shape both it and the obsidian-dev-utils runner read.
+      expect([...builder.templateFiles]).toContain('.markdownlint-cli2.mjs');
+      expect([...builder.templateFiles]).toContain('scripts/markdownlint-cli2-config.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });

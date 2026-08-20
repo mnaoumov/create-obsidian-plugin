@@ -5,9 +5,7 @@ import type {
   ObsidianProtocolData,
   TAbstractFile
 } from 'obsidian';
-import type { ExtractPluginSettingsWrapper } from 'obsidian-dev-utils/obsidian/plugin/plugin-types-base';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
-import type { ReadonlyDeep } from 'type-fest';
 
 import {
   MarkdownView,
@@ -16,20 +14,22 @@ import {
 } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { getDebugger } from 'obsidian-dev-utils/debug';
+import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
+import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
+import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { alert } from 'obsidian-dev-utils/obsidian/modals/alert';
 import { confirm } from 'obsidian-dev-utils/obsidian/modals/confirm';
 import { prompt } from 'obsidian-dev-utils/obsidian/modals/prompt';
 import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
-import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-base';
-
-import type { PluginTypes } from './PluginTypes.ts';
+import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
+import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
 import { sampleStateField } from './EditorExtensions/SampleStateField.ts';
 import { sampleViewPlugin } from './EditorExtensions/SampleViewPlugin.ts';
 import { SampleEditorSuggest } from './EditorSuggests/SampleEditorSuggest.ts';
 import { SampleModal } from './Modals/SampleModal.ts';
 import { SampleSuggestModal } from './Modals/SampleSuggestModal.ts';
-import { PluginSettingsManager } from './PluginSettingsManager.ts';
+import { PluginSettingsComponent } from './PluginSettingsComponent.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
 import {
   SAMPLE_REACT_VIEW_TYPE,
@@ -44,25 +44,26 @@ import {
   SampleView
 } from './Views/SampleView.ts';
 
-export class Plugin extends PluginBase<PluginTypes> {
-  protected override createSettingsManager(): PluginSettingsManager {
-    return new PluginSettingsManager(this);
-  }
-
-  protected override createSettingsTab(): null | PluginSettingsTab {
-    return new PluginSettingsTab(this);
-  }
-
-  protected override async onLayoutReady(): Promise<void> {
-    await super.onLayoutReady();
-    new Notice('This is executed after all plugins are loaded');
-    await this.openView(SAMPLE_VIEW_TYPE);
-    await this.openView(SAMPLE_SVELTE_VIEW_TYPE);
-    await this.openView(SAMPLE_REACT_VIEW_TYPE);
-  }
-
+export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
-    await super.onloadImpl();
+    const pluginSettingsComponent = this.addChild(
+      new PluginSettingsComponent({
+        dataHandler: new PluginDataHandler(this),
+        pluginEventSource: new PluginEventSourceImpl(this)
+      })
+    );
+    this.pluginSettingsComponent = pluginSettingsComponent;
+
+    this.addChild(
+      new PluginSettingsTabComponent({
+        plugin: this,
+        pluginSettingsTab: new PluginSettingsTab({
+          plugin: this,
+          pluginSettingsComponent
+        })
+      })
+    );
+
     this.addCommand({
       callback: this.runSampleCommand.bind(this),
       id: 'sample',
@@ -117,32 +118,28 @@ export class Plugin extends PluginBase<PluginTypes> {
     this.registerView(SAMPLE_REACT_VIEW_TYPE, (leaf) => new SampleReactView(leaf));
 
     this.registerModalCommands();
-  }
 
-  protected override async onLoadSettings(
-    loadedSettings: ReadonlyDeep<ExtractPluginSettingsWrapper<PluginTypes>>,
-    isInitialLoad: boolean
-  ): Promise<void> {
-    await super.onLoadSettings(loadedSettings, isInitialLoad);
-    if (loadedSettings.settings.textSetting === 'bar') {
-      new Notice('Sample text setting is bar');
-    }
-  }
+    this.register(() => {
+      new Notice('Sample plugin is being unloaded');
+    });
 
-  protected override async onSaveSettings(
-    newSettings: ReadonlyDeep<ExtractPluginSettingsWrapper<PluginTypes>>,
-    oldSettings: ReadonlyDeep<ExtractPluginSettingsWrapper<PluginTypes>>,
-    context: unknown
-  ): Promise<void> {
-    await super.onSaveSettings(newSettings, oldSettings, context);
-    if (newSettings.settings.textSetting === 'baz' && oldSettings.settings.textSetting === 'bar') {
-      new Notice('Sample text setting is changed from bar to baz');
-    }
-  }
+    this.app.workspace.onLayoutReady(() => {
+      new Notice('This is executed after all plugins are loaded');
+      void this.openSampleViews();
+    });
 
-  protected override async onunloadImpl(): Promise<void> {
-    await super.onunloadImpl();
-    new Notice('Sample plugin is being unloaded');
+    // `OpenDemoVaultCommandHandler` is what makes the README's first demo-vault route real: it downloads
+    // The `<plugin-id>-demo-vault-<version>.zip` attached to the GitHub release and opens it as a vault in
+    // A new window. It is not registered automatically -- a demo vault without this command can only be
+    // Reached by downloading the asset by hand. It hides itself on mobile, so no platform guard is needed.
+    await this.commandHandlerComponent.registerCommandHandlers(() => [
+      new OpenDemoVaultCommandHandler({
+        app: this.app,
+        pluginId: this.manifest.id,
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        pluginVersion: this.manifest.version
+      })
+    ]);
   }
 
   private handleEditorMenu(menu: Menu, editor: Editor): void {
@@ -198,6 +195,12 @@ export class Plugin extends PluginBase<PluginTypes> {
 
   private handleSampleObsidianProtocolHandler(params: ObsidianProtocolData): void {
     new Notice(`Sample obsidian protocol handler: ${params.action}`);
+  }
+
+  private async openSampleViews(): Promise<void> {
+    await this.openView(SAMPLE_VIEW_TYPE);
+    await this.openView(SAMPLE_SVELTE_VIEW_TYPE);
+    await this.openView(SAMPLE_REACT_VIEW_TYPE);
   }
 
   private async openView(viewType: string): Promise<void> {
@@ -308,7 +311,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     await selectItem({
       app: this.app,
       items: ['Item 1', 'Item 2', 'Item 3'],
-      itemTextFunc: (item) => item,
+      itemTextFunction: (item: string) => item,
       placeholder: 'Sample select item placeholder'
     });
   }

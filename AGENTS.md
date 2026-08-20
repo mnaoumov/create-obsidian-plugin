@@ -21,8 +21,22 @@ The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, 
 
 ### Two-tier script strategy
 
-- **Enhanced/demo presets** (uses-obsidian-dev-utils): one-liner wrapper scripts that call `obsidian-dev-utils <command>`. Updates propagate via `npm update`.
+- **Enhanced/demo presets**: thin wrapper scripts that call the matching `obsidian-dev-utils` module — `script-utils/bundlers/esbuild`, `script-utils/linters/eslint`, `script-utils/test-runners/vitest`, `script-utils/version`, and so on, each wrapped in `wrapCliTask`. Updates propagate via `npm update`. There is no `script-utils/commands` barrel; every command has its own module.
 - **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
+
+### Three preset partials: `odu`, `enhanced`, `demo`
+
+`enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`odu`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
+
+They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_enhanced` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `enhanced`. `src/Plugin.ts_enhanced*` and the three `PluginSettings*_enhanced` files therefore stay keyed on `enhanced`, which only that preset carries.
+
+### The obsidian-dev-utils presets ship a demo vault
+
+`demo-vault/` is the generated plugin's documentation (fleet rules G95/G98/G102/G104): notes that explain each feature and demonstrate it with `code-button`s run by CodeScript Toolkit. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
+
+Only the `odu` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
+
+Two suites guard it, both emitted only when the preset is `odu` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
 
 ### Root configs are thin wrappers
 

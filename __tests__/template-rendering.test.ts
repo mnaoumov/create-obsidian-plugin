@@ -117,7 +117,9 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'enhanced' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     const sections = [...readme.matchAll(/^## (?<Title>.+)$/gm)].map((match) => match.groups?.['Title']);
+    // G102 puts `Demo vault` first, before any feature section.
     expect(sections).toStrictEqual([
+      'Demo vault',
       'Installation',
       'Debugging',
       'Contributing',
@@ -126,13 +128,103 @@ describe('copyTemplates', () => {
     ]);
   });
 
-  it('omits the Demo vault and Changelog sections, which the generator scaffolds no file for', () => {
+  it('links the demo vault from the README for the obsidian-dev-utils presets', () => {
+    for (const preset of ['enhanced', 'demo']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
+      const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      expect(readme, preset).toContain('## Demo vault');
+      // All three G102 access routes, plus the plain-markdown entry point.
+      expect(readme, preset).toContain('[Start reading here](<./demo-vault/00 Start.md>)');
+      expect(readme, preset).toContain('**My Plugin: Open demo vault** command');
+      expect(readme, preset).toContain('`my-plugin-demo-vault-<version>.zip`');
+      expect(readme, preset).toContain('[`demo-vault/`](./demo-vault/README.md)');
+    }
+  });
+
+  it('omits the Demo vault section and the vault for the standalone preset', () => {
+    copyTemplates(makeAnswers({ preset: 'standalone' }), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    // `standalone` has no obsidian-dev-utils release flow, so nothing would archive the vault into a
+    // Release -- and G102 omits a section rather than linking a file that does not exist.
+    expect(readme).not.toContain('## Demo vault');
+    expect(existsSync(join(targetDir, 'demo-vault'))).toBe(false);
+  });
+
+  it('omits the Changelog section, which the generator scaffolds no file for', () => {
     copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    // G102 omits a section rather than linking a file that does not exist.
-    expect(readme).not.toContain('## Demo vault');
     expect(readme).not.toContain('## Changelog');
     expect(existsSync(join(targetDir, 'CHANGELOG.md'))).toBe(false);
+  });
+
+  it('scaffolds a demo vault for the obsidian-dev-utils presets', () => {
+    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+
+    for (const relativePath of ['00 Start.md', '01 Sample commands.md', '02 Settings.md', 'README.md']) {
+      const note = readFileSync(join(targetDir, 'demo-vault', relativePath), 'utf-8');
+      // Every note opens with an `# H1`; the coverage suite fails one that does not.
+      expect(note.startsWith('# '), relativePath).toBe(true);
+    }
+
+    const startNote = readFileSync(join(targetDir, 'demo-vault', '00 Start.md'), 'utf-8');
+    expect(startNote).toContain('```code-button');
+    // Links between notes are Markdown links -- a wikilink renders as literal brackets on GitHub.
+    expect(startNote).not.toMatch(/\[\[/);
+
+    const demoSetup = readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts'), 'utf-8');
+    // The plugin id keys both the command ids and `data.json`; getting it wrong breaks every button.
+    expect(demoSetup).toContain('const PLUGIN_ID = \'my-plugin\';');
+
+    const startupScript = readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/startup.ts'), 'utf-8');
+    // A top-level script throws `this.startupScript.invoke is not a function` when the vault loads.
+    expect(startupScript).toContain('export async function invoke(');
+  });
+
+  it('commits both plugin ids and none of the injected app.json settings in the demo vault', () => {
+    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+
+    const communityPlugins = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/community-plugins.json'), 'utf-8')) as string[];
+    // Listing only the helper is a silent failure: it enables CodeScript Toolkit, not the plugin itself.
+    expect(communityPlugins).toStrictEqual(['demo-vault-helper', 'my-plugin']);
+
+    const appJson = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/app.json'), 'utf-8')) as Record<string, unknown>;
+    // These four are injected into the ARCHIVED vault by obsidian-dev-utils; a committed copy is a second
+    // Source of truth that nothing reconciles, and the coverage suite fails a vault that carries one.
+    for (const injectedSetting of ['defaultViewMode', 'livePreview', 'newLinkFormat', 'useMarkdownLinks']) {
+      expect(appJson, injectedSetting).not.toHaveProperty(injectedSetting);
+    }
+  });
+
+  it('wires both demo-vault suites only for an obsidian-dev-utils preset running vitest', () => {
+    const suiteFiles = ['src/demo-vault.no-app.integration.test.ts', 'src/demo-vault-buttons.demo-vault.integration.test.ts'];
+
+    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    for (const suiteFile of suiteFiles) {
+      expect(existsSync(join(targetDir, suiteFile)), suiteFile).toBe(true);
+    }
+    // A suite whose suffix matches no declared project is collected by nothing and reads like passing.
+    const vitestConfig = readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8');
+    expect(vitestConfig).toContain('integration-tests:demo-vault');
+    expect(readFileSync(join(targetDir, 'scripts/test-integration.ts'), 'utf-8')).toContain('integration-tests:demo-vault');
+    expect(existsSync(join(targetDir, 'scripts/demo-vault-global-setup.ts'))).toBe(true);
+
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    for (const suiteFile of suiteFiles) {
+      expect(existsSync(join(targetDir, suiteFile)), suiteFile).toBe(false);
+    }
+  });
+
+  it('renders each preset-specific file exactly once for the demo preset', () => {
+    copyTemplates(makeAnswers({ preset: 'demo' }), targetDir, '1.0.0', null);
+    // A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so
+    // While `demo` also carried the `enhanced` partial each of these was emitted twice over.
+    for (const relativePath of ['src/Plugin.ts', 'src/PluginSettings.ts', 'src/PluginSettingsComponent.ts', 'src/PluginSettingsTab.ts']) {
+      const content = readFileSync(join(targetDir, relativePath), 'utf-8');
+      const declarationCount = [...content.matchAll(/^export class (?<ClassName>\w+)/gm)].filter((match) => match.groups?.['ClassName'] !== 'TypedItem').length;
+      expect(declarationCount, relativePath).toBe(1);
+    }
   });
 
   it('creates CONTRIBUTING.md and links it from the README', () => {

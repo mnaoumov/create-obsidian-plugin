@@ -2,26 +2,36 @@ import type { Editor } from 'obsidian';
 <%- render('import') -%>
 
 import { Notice } from 'obsidian';
-import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-base';
+import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
+import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
+import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
+import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
+import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
-import type { PluginTypes } from './PluginTypes.ts';
-
-import { PluginSettingsManager } from './PluginSettingsManager.ts';
+import { PluginSettingsComponent } from './PluginSettingsComponent.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
 <%- render('import2') -%>
 
-export class Plugin extends PluginBase<PluginTypes> {
-  protected override createSettingsManager(): PluginSettingsManager {
-    return new PluginSettingsManager(this);
-  }
-
-  protected override createSettingsTab(): null | PluginSettingsTab {
-    return new PluginSettingsTab(this);
-  }
-<%- render('class-body') -%>
-
+export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
-    await super.onloadImpl();
+    const pluginSettingsComponent = this.addChild(
+      new PluginSettingsComponent({
+        dataHandler: new PluginDataHandler(this),
+        pluginEventSource: new PluginEventSourceImpl(this)
+      })
+    );
+    this.pluginSettingsComponent = pluginSettingsComponent;
+
+    this.addChild(
+      new PluginSettingsTabComponent({
+        plugin: this,
+        pluginSettingsTab: new PluginSettingsTab({
+          plugin: this,
+          pluginSettingsComponent
+        })
+      })
+    );
+
     this.addCommand({
       callback: this.runSampleCommand.bind(this),
       id: 'sample',
@@ -34,11 +44,19 @@ export class Plugin extends PluginBase<PluginTypes> {
       name: 'Sample editor'
     });
 <%- render('onload') -%>
-  }
 
-  protected override async onunloadImpl(): Promise<void> {
-    await super.onunloadImpl();
-    new Notice('Sample plugin is being unloaded');
+    // `OpenDemoVaultCommandHandler` is what makes the README's first demo-vault route real: it downloads
+    // The `<plugin-id>-demo-vault-<version>.zip` attached to the GitHub release and opens it as a vault in
+    // A new window. It is not registered automatically -- a demo vault without this command can only be
+    // Reached by downloading the asset by hand. It hides itself on mobile, so no platform guard is needed.
+    await this.commandHandlerComponent.registerCommandHandlers(() => [
+      new OpenDemoVaultCommandHandler({
+        app: this.app,
+        pluginId: this.manifest.id,
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        pluginVersion: this.manifest.version
+      })
+    ]);
   }
 <%- render('method') -%>
 

@@ -9,7 +9,7 @@ export class Css extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addFiles(['src/styles/main.css']);
+    builder.addFiles(['src/styles/main.css', 'src/styles/styles.d.ts']);
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
