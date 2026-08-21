@@ -150,7 +150,7 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     const value = String(answers[registry.answerKey]);
     const option = resolveFeature(registry.options, value);
     option.configure(builder, answers);
-    builder.addPartial(value);
+    builder.addPartial(option.partialName);
   }
 
   if (answers.preset === 'demo') {
@@ -158,7 +158,7 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
       if (String(answers[override.answerKey]) !== override.demoValue) {
         const option = resolveFeature(override.options, override.demoValue);
         option.configure(builder, answers);
-        builder.addPartial(override.demoValue);
+        builder.addPartial(option.partialName);
       }
     }
   }

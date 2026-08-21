@@ -4,6 +4,13 @@ import type { TemplateBuilder } from './template-builder.ts';
 import { select } from './clack-select.ts';
 
 export interface FeatureOptionConfig {
+  /**
+   * Name this option's template partials are keyed on. Defaults to {@link settingValue}, which is right
+   * for all but the options whose value is claimed by more than one question -- `biome` answers both
+   * `linter` and `formatter`, and partial names are one flat namespace, so a shared name concatenates
+   * the other question's partial into the same file.
+   */
+  partialName?: string | undefined;
   promptHint: string;
   promptLabel: string;
   settingValue: string;
@@ -17,12 +24,14 @@ export interface PromptFeatureParams {
 }
 
 export abstract class FeatureOption {
+  public readonly partialName: string;
   public readonly promptHint: string;
   public readonly promptLabel: string;
   public readonly settingValue: string;
 
   public constructor(config: FeatureOptionConfig) {
     this.settingValue = config.settingValue;
+    this.partialName = config.partialName ?? config.settingValue;
     this.promptLabel = config.promptLabel;
     this.promptHint = config.promptHint;
   }

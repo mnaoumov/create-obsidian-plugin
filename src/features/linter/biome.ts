@@ -4,7 +4,7 @@ import { FeatureOption } from '../../feature-option.ts';
 
 export class Biome extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Fast linter and formatter', promptLabel: 'Biome', settingValue: 'biome' });
+    super({ partialName: 'biome-linter', promptHint: 'Fast linter and formatter', promptLabel: 'Biome', settingValue: 'biome' });
   }
 
   public override configure(builder: TemplateBuilder): void {

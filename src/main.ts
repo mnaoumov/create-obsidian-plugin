@@ -193,6 +193,26 @@ async function runCreate(currentVersion: string, useDefaults: boolean): Promise<
   outro('Happy coding!');
 }
 
+// The templates are authored in one style, the fleet's. dprint is configured to match it, but prettier
+// And biome cannot be configured to reproduce it byte for byte -- biome collapses an empty object to
+// `{}` whatever the settings say -- so a project that picked either of those would be committed
+// Already failing its own `format:check`. Formatting once here settles that, in the tool's own style,
+// Before the initial commit is taken.
+async function runInitialFormat(targetDir: string, answers: Answers, isInstalled: boolean): Promise<void> {
+  if (!isInstalled || answers.formatter === 'none') {
+    return;
+  }
+
+  const s = spinner();
+  s.start('Formatting...');
+  try {
+    await execAsync(getRunCommand(answers.packageManager, 'format'), targetDir);
+    s.stop('Formatted.');
+  } catch {
+    s.stop('Failed to format. Run `format` manually.');
+  }
+}
+
 async function runPostScaffold(targetDir: string, answers: Answers): Promise<void> {
   const pm = answers.packageManager;
   const installCmd = getInstallCommand(pm);
@@ -203,11 +223,14 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
   });
   assertNotCancelled(shouldInstall);
 
+  let isInstalled = false;
+
   if (shouldInstall) {
     const s = spinner();
     s.start('Installing dependencies...');
     try {
       await execAsync(installCmd, targetDir);
+      isInstalled = true;
       s.stop('Dependencies installed.');
     } catch (error: unknown) {
       s.stop(`Failed to install dependencies. Run \`${installCmd}\` manually.`);
@@ -216,6 +239,8 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
       }
     }
   }
+
+  await runInitialFormat(targetDir, answers, isInstalled);
 
   const shouldGitInit = await confirm({
     initialValue: true,

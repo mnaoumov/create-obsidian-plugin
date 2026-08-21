@@ -359,6 +359,80 @@ describe('copyTemplates', () => {
     expect(formatCheck).toContain('biome format');
   });
 
+  it('runs the chosen formatter on every preset, not just standalone', () => {
+    // The three tests above all run on the default `standalone` preset, which is why the obsidian-dev-utils
+    // Presets could import the dprint runner whatever was chosen -- and install prettier or biome without
+    // Ever invoking them, while dprint was not even a dependency.
+    const expectedCommands = new Map([
+      ['biome', 'biome format'],
+      ['dprint', 'dprint'],
+      ['prettier', 'prettier']
+    ]);
+
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const [formatter, expectedCommand] of expectedCommands) {
+        rmSync(targetDir, { force: true, recursive: true });
+        copyTemplates(makeAnswers({ formatter, preset }), targetDir, '1.0.0', null);
+        const label = `${preset}/${formatter}`;
+
+        for (const scriptFile of ['scripts/format.ts', 'scripts/format-check.ts']) {
+          const script = readFileSync(join(targetDir, scriptFile), 'utf-8');
+          expect(script, `${label} ${scriptFile}`).toContain(expectedCommand);
+          for (const [otherFormatter, otherCommand] of expectedCommands) {
+            if (otherFormatter !== formatter) {
+              expect(script, `${label} ${scriptFile} must not run ${otherFormatter}`).not.toContain(otherCommand);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('emits dprint.json wherever the dprint runner is what actually runs', () => {
+    // Without it the obsidian-dev-utils runner silently falls back to the copy bundled in the library,
+    // Which carries none of this project's own excludes -- notably `demo-vault`.
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ formatter: 'dprint', preset }), targetDir, '1.0.0', null);
+      expect(existsSync(join(targetDir, 'dprint.json')), preset).toBe(true);
+    }
+  });
+
+  it('formats staged files with biome when biome is the formatter but not the linter', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'biome', linter: 'eslint' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
+    expect(config).toContain('biome format --write');
+  });
+
+  it('does not stage biome twice when biome is both formatter and linter', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'biome', linter: 'biome' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
+    // `biome check --write` already formats.
+    expect(config).toContain('biome check --write');
+    expect(config).not.toContain('biome format --write');
+  });
+
+  it('keeps the two biome options apart when only one of them was chosen', () => {
+    // `biome` answers both `linter` and `formatter`, and partial names are one flat namespace, so
+    // Choosing it as the formatter used to pull the biome LINTER partials in as well: `scripts/lint.ts`
+    // Came out as the eslint script with the biome one concatenated onto it, which does not compile.
+    copyTemplates(makeAnswers({ formatter: 'biome', linter: 'eslint' }), targetDir, '1.0.0', null);
+    for (const scriptFile of ['scripts/lint.ts', 'scripts/lint-fix.ts']) {
+      const script = readFileSync(join(targetDir, scriptFile), 'utf-8');
+      expect(script, scriptFile).toContain('eslint');
+      expect(script, scriptFile).not.toContain('biome');
+    }
+
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ formatter: 'prettier', gitHubActions: 'ci', linter: 'biome' }), targetDir, '1.0.0', null);
+    const format = readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8');
+    expect(format).toContain('prettier');
+    expect(format).not.toContain('biome');
+    // The same collision doubled the lint step in the workflow.
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect([...ci.matchAll(/npm run lint$/gm)]).toHaveLength(1);
+  });
+
   it('creates test scripts for vitest', () => {
     copyTemplates(makeAnswers({ testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
