@@ -93,6 +93,22 @@ describe('buildOverrides', () => {
     const overrides = buildOverrides([new Dependency('typescript')]);
     expect(overrides).toStrictEqual({ typescript: '$typescript' });
   });
+
+  it('forces a literal spec for an advisory reached only through obsidian-dev-utils', () => {
+    // These two are never declared by the project, so there is no spec for `$<name>` to reuse -- which is
+    // Exactly why they cannot live in the pin table.
+    const overrides = buildOverrides([new Dependency('typescript'), new Dependency('obsidian-dev-utils')]);
+    expect(overrides['@puppeteer/browsers']).toBe('^3.2.0');
+    expect(overrides['deepmerge-ts']).toBe('^8.0.0');
+  });
+
+  it('leaves a project without obsidian-dev-utils free of advisory overrides', () => {
+    // The standalone preset never reaches webdriverio, so it audits clean on its own; overriding a package
+    // Absent from its tree would pull one in.
+    const overrides = buildOverrides([new Dependency('typescript')]);
+    expect(overrides).not.toHaveProperty('@puppeteer/browsers');
+    expect(overrides).not.toHaveProperty('deepmerge-ts');
+  });
 });
 
 describe('buildPinnedVersionsJson', () => {
@@ -114,5 +130,17 @@ describe('buildPinnedVersionsJson', () => {
     const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('typescript')])) as ParsedPinnedVersions;
     expect(parsed.pins['typescript']?.check).toBeNull();
     expect(parsed.pins['typescript']?.manualCheck).toBeTruthy();
+  });
+
+  it('documents every advisory override it emits', () => {
+    // G100 wants the override and its justification to correspond one to one, so an override that outlives
+    // The advisory is visible rather than permanent.
+    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('obsidian-dev-utils')])) as ParsedPinnedVersions;
+    for (const packageName of ['@puppeteer/browsers', 'deepmerge-ts']) {
+      const pin = parsed.pins[packageName];
+      expect(pin?.section, packageName).toBe('overrides');
+      expect(pin?.why, packageName).toContain('GHSA-');
+      expect(pin?.check, packageName).toContain('@wdio/utils');
+    }
   });
 });
