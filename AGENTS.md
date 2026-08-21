@@ -24,6 +24,30 @@ The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, 
 - **Enhanced/demo presets**: thin wrapper scripts that call the matching `obsidian-dev-utils` module — `script-utils/bundlers/esbuild`, `script-utils/linters/eslint`, `script-utils/test-runners/vitest`, `script-utils/version`, and so on, each wrapped in `wrapCliTask`. Updates propagate via `npm update`. There is no `script-utils/commands` barrel; every command has its own module.
 - **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
 
+**The two format scripts are the documented exception: they split on the tool first, not the preset.**
+What `npm run format` runs is decided by the formatter answer, and only dprint has a preset-specific
+runner (dev-utils resolves `dprint.json` from the repo root and falls back to its bundled copy).
+prettier and biome are a plain `execSync`, identical everywhere, so they are one file each shared by
+every preset. Splitting on the preset first is what let the odu half import the dprint runner whatever
+was chosen — installing prettier or biome, emitting its config, then running dprint over it, with
+dprint not even a dependency.
+
+### The chosen formatter runs once at generation time
+
+The templates are authored in one style, the fleet's. dprint is configured to match it; prettier and
+biome cannot be configured to reproduce it — biome collapses an empty object onto one line whatever the
+settings say. So a project that picked either would be committed already failing its own
+`format:check`. `runInitialFormat` (`src/main.ts`) runs the chosen formatter after install and before
+the initial commit, which settles it in that tool's own style. Do not try to make the templates satisfy
+all three.
+
+Their configs still carry the project's excludes, because a formatter that actually runs will otherwise
+rewrite `demo-vault/` — including `.obsidian/community-plugins.json`, which the demo-vault coverage
+suite compares exactly. `.prettierignore` and `biome.json`'s `files.includes` mirror what `dprint.json`
+already excluded. `biome.json` points `$schema` at the copy in `node_modules` rather than a pinned URL:
+Biome refuses to start when the schema version does not match the CLI, and a pinned one goes stale on
+the next major.
+
 ### Three preset partials: `odu`, `enhanced`, `demo`
 
 `enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`odu`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
@@ -62,6 +86,12 @@ range, and `@codemirror/*` must match Obsidian's exact peers.
 `copyTemplates` takes the resolved map as an optional argument and stays synchronous — the rendering tests
 call it ~60 times and must not touch the network.
 
+`ADVISORY_OVERRIDES` is a **second, separate** table for overrides that exist only to clear an npm audit
+advisory in a package the project never declares. The pin table cannot express those: there is no
+declared spec for npm's `$<name>` shorthand to reuse. Each entry names the direct dependency whose
+subtree carries the advisory, so `standalone` — which never reaches webdriverio and audits clean on its
+own — gets none of them, and each still emits a `pinned-versions.json` entry with a runnable check.
+
 ### A list that partials would end with a trailing comma belongs on the builder
 
 A partial can only emit `'<item>',`, so the last one always leaves a trailing comma — which the formatter
@@ -78,8 +108,16 @@ is a block, not an item.
 
 - `_` in filename basename = partial (skipped in main render loop)
 - `render(section)` auto-discovers partials by convention: `{basePath}_{section}_{partial}.ejs` — always use a section name
-- `buildTemplate()` auto-adds feature setting values as partials after `configure()`
+- `buildTemplate()` auto-adds each feature option's `partialName` as a partial after `configure()`
 - Virtual templates: if no file exists on disk, `render()` composes from partials
+
+**Partial names are one flat namespace, shared across every question.** `partialName` defaults to the
+option's `settingValue`, which is right until two registries use the same value — `biome` answers both
+`linter` and `formatter`. Choosing it for one pulled in the other's partials, so `scripts/lint.ts` came
+out as the eslint script with the biome one concatenated onto it (`TS2300`), and `ci.yml` got its lint
+step twice. A section name does not help: `render('tool')` still iterates every partial. The two biome
+options therefore set `partialName: 'biome-formatter'` / `'biome-linter'` explicitly. Any future option
+whose value collides needs the same.
 
 ### fundingUrl uses partial system
 
