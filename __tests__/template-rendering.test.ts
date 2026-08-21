@@ -412,6 +412,27 @@ describe('copyTemplates', () => {
     expect(config).not.toContain('biome format --write');
   });
 
+  it('keeps the two biome options apart when only one of them was chosen', () => {
+    // `biome` answers both `linter` and `formatter`, and partial names are one flat namespace, so
+    // Choosing it as the formatter used to pull the biome LINTER partials in as well: `scripts/lint.ts`
+    // Came out as the eslint script with the biome one concatenated onto it, which does not compile.
+    copyTemplates(makeAnswers({ formatter: 'biome', linter: 'eslint' }), targetDir, '1.0.0', null);
+    for (const scriptFile of ['scripts/lint.ts', 'scripts/lint-fix.ts']) {
+      const script = readFileSync(join(targetDir, scriptFile), 'utf-8');
+      expect(script, scriptFile).toContain('eslint');
+      expect(script, scriptFile).not.toContain('biome');
+    }
+
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ formatter: 'prettier', gitHubActions: 'ci', linter: 'biome' }), targetDir, '1.0.0', null);
+    const format = readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8');
+    expect(format).toContain('prettier');
+    expect(format).not.toContain('biome');
+    // The same collision doubled the lint step in the workflow.
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect([...ci.matchAll(/npm run lint$/gm)]).toHaveLength(1);
+  });
+
   it('creates test scripts for vitest', () => {
     copyTemplates(makeAnswers({ testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const test = readFileSync(join(targetDir, 'scripts/test.ts'), 'utf-8');
