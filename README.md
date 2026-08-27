@@ -155,7 +155,7 @@ The wizard lets you pick and choose from the following categories:
 | Option            | Description                                                                             |
 |-------------------|-----------------------------------------------------------------------------------------|
 | (none)            | No hot reload support                                                                   |
-| Hot Reload Plugin | Creates `.hotreload` marker for [pjeby/hot-reload](https://github.com/pjeby/hot-reload) |
+| Hot Reload Plugin | Creates `.hotreload` marker for [Hot Reload](https://community.obsidian.md/plugins/hot-reload) |
 | Obsidian CLI      | Reloads via `obsidian plugin:reload` CLI command                                        |
 
 ### Internationalization
