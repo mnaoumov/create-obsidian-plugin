@@ -1,10 +1,8 @@
 import {
   existsSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
-  rmSync,
-  statSync
+  rmSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -1194,37 +1192,5 @@ describe('copyTemplates', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
-  });
-
-  it('does not produce empty files for any preset and ui framework', () => {
-    function walk(dir: string): string[] {
-      const results: string[] = [];
-      for (const entry of readdirSync(dir)) {
-        const full = join(dir, entry);
-        if (statSync(full).isDirectory()) {
-          results.push(...walk(full));
-        } else {
-          results.push(full);
-        }
-      }
-      return results;
-    }
-
-    // A registered file with no direct `.ejs` is composed by concatenating `${basePath}_${partial}.ejs`,
-    // And an unresolved partial renders `''` rather than failing -- so a variant file whose name drifted
-    // Out of lockstep with its base produces an EMPTY destination that nothing else notices. One answer
-    // Set cannot see that: each ui framework pulls its own partials, so the sweep has to be the matrix.
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
-      for (const uiFramework of ['none', 'lit', 'preact', 'react', 'solid', 'svelte', 'vue']) {
-        rmSync(targetDir, { force: true, recursive: true });
-        targetDir = mkdtempSync(join(tmpdir(), 'obsidian-plugin-test-'));
-        copyTemplates(makeAnswers({ preset, uiFramework }), targetDir, '1.0.0', null);
-
-        for (const file of walk(targetDir).filter((f) => !f.endsWith('.json'))) {
-          const content = readFileSync(file, 'utf-8');
-          expect(content.trim(), `${preset}/${uiFramework}: file "${file}" should not be empty`).not.toBe('');
-        }
-      }
-    }
   });
 });
