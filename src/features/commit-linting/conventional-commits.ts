@@ -11,13 +11,18 @@ export class ConventionalCommits extends FeatureOption {
     builder
       .addPackage('@commitlint/cli')
       .addPackage('@commitlint/config-conventional')
+      // `czg` and the `commit` script it backs: commitlint only REJECTS a bad message, so without a
+      // Prompt the contributor has to know the Conventional Commits grammar by heart to get past the hook.
+      .addPackage('czg')
       .addPackage('husky')
       // `nano-staged` rather than `lint-staged`: the fleet moved to it, and `depend/ban-dependencies`
       // In the generated ESLint config bans `lint-staged` outright, so a project that installed it
       // Could not pass its own `npm run lint`.
       .addPackage('nano-staged')
+      .addScript('commit')
       .addFiles([
         'commitlint.config.ts',
+        'scripts/commit.ts',
         'scripts/commitlint.config.ts',
         '.husky/commit-msg',
         '.husky/pre-commit',

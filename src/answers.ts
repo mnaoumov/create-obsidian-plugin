@@ -12,6 +12,7 @@ export interface Answers {
   bundler: string;
   commitLinting: string;
   currentYear: number;
+  defaultBranch: string;
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;

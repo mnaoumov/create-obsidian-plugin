@@ -131,9 +131,24 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
   }
 };
 
+// The same source `obsidian-dev-utils/script-utils/version` reads when it stamps `minAppVersion` on a
+// Release, so the scaffold and the project's first `npm run version` agree on where the number comes from.
+const DESKTOP_RELEASES_JSON_URL = 'https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/desktop-releases.json';
+/**
+ * The `minAppVersion` used when the lookup below fails, which is the offline path.
+ *
+ * `0.0.0` is the honest answer there: it claims no minimum rather than inventing one, and the project's
+ * first `npm run version` overwrites it with the real latest.
+ */
+export const FALLBACK_MIN_APP_VERSION = '0.0.0';
+
 const FALLBACK_VERSION = 'latest';
 const JSON_INDENT_SPACES = 2;
 const REGISTRY_URL = 'https://registry.npmjs.org';
+
+interface DesktopReleasesJson {
+  latestVersion?: string;
+}
 
 interface LatestPackument {
   version: string;
@@ -215,6 +230,25 @@ export function buildPinnedVersionsJson(dependencies: readonly Dependency[]): st
   };
 
   return `${JSON.stringify(content, null, JSON_INDENT_SPACES)}\n`;
+}
+
+/**
+ * The latest public desktop Obsidian version, for the generated `manifest.json`'s `minAppVersion`.
+ *
+ * Falls back to a version that claims no minimum when the lookup fails, so generating offline still
+ * produces a valid manifest.
+ */
+export async function fetchLatestObsidianVersion(): Promise<string> {
+  try {
+    const response = await fetch(DESKTOP_RELEASES_JSON_URL);
+    if (!response.ok) {
+      return FALLBACK_MIN_APP_VERSION;
+    }
+    const desktopReleasesJson = await response.json() as DesktopReleasesJson;
+    return desktopReleasesJson.latestVersion ?? FALLBACK_MIN_APP_VERSION;
+  } catch {
+    return FALLBACK_MIN_APP_VERSION;
+  }
 }
 
 /**

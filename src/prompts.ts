@@ -98,6 +98,7 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     bundler: get('bundler', 'esbuild'),
     commitLinting: get('commitLinting', defaultTooling.commitLinting),
     currentYear: new Date().getFullYear(),
+    defaultBranch: get('defaultBranch', 'main'),
     e2eTestRunner: get('e2eTestRunner', defaultTooling.e2eTestRunner),
     editorExtensions: get('editorExtensions', defaultTooling.editorExtensions),
     formatter: get('formatter', defaultTooling.formatter),
@@ -310,6 +311,17 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
         })
     },
     {
+      defaultValue: () => d.defaultBranch ?? 'main',
+      key: 'defaultBranch',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved,
+          message: 'Default branch name. `git init` creates it, and the CI workflow triggers on it.',
+          placeholder: saved,
+          validate: validateNotEmpty
+        })
+    },
+    {
       defaultValue: (answers) => d.fundingUrl ?? `https://buymeacoffee.com/${answers.get('authorGitHubName') ?? 'johndoe'}`,
       key: 'fundingUrl',
       prompt: (saved): Promise<string> =>
@@ -343,6 +355,7 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     authorName: 'John Doe',
     bundler: 'esbuild',
     currentYear: new Date().getFullYear(),
+    defaultBranch: 'main',
     fundingUrl: 'https://buymeacoffee.com/johndoe',
     obsidianConfigFolder: '',
     packageManager: 'npm',

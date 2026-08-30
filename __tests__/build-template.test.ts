@@ -18,6 +18,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     bundler: 'esbuild',
     commitLinting: 'conventional-commits',
     currentYear: CURRENT_YEAR,
+    defaultBranch: 'main',
     e2eTestRunner: 'none',
     editorExtensions: 'none',
     formatter: 'prettier',
