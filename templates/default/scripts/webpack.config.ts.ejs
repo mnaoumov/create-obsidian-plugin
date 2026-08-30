@@ -47,7 +47,27 @@ export const config: Configuration = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        // The emitted `tsconfig.json` declares `noEmit: true` and allows `.ts` import specifiers, both
+        // Right for the file itself -- more than tsc reads it. ts-loader compiles WITH emit, so it needs
+        // Both overridden, and the overrides belong here, in the one tool that needs them, exactly as
+        // `jest.config.ts` overrides `rootDir` for the same reason.
+        //
+        // `rewriteRelativeImportExtensions` rather than turning `allowImportingTsExtensions` off: the
+        // Emitted `src/` really does import `./plugin.ts` by that name, so switching it off trades
+        // TS5096 for an error on every one of those. This is the option TypeScript added for emitting
+        // From exactly such sources. `onlyCompileBundledFiles` keeps ts-loader to the graph webpack
+        // Actually pulls in, instead of every file the tsconfig's `include` lists -- it was reaching
+        // `webpack.config.ts` and `scripts/dev.ts`, which are no business of the bundle.
+        use: {
+          loader: 'ts-loader',
+          options: {
+            compilerOptions: {
+              noEmit: false,
+              rewriteRelativeImportExtensions: true,
+            },
+            onlyCompileBundledFiles: true,
+          },
+        },
         exclude: /node_modules/,
       },
 <%- render('rule') -%>
@@ -55,6 +75,12 @@ export const config: Configuration = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
+    // The loader above rewrites `./plugin.ts` to `./plugin.js` on emit, but only `./plugin.ts` exists on
+    // Disk, and webpack's `extensions` list only appends a suffix to a request that has no extension --
+    // It does not map one extension to another. Without this the bundle fails to resolve "./plugin.js".
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js'],
+    },
   },
   plugins: [
     new webpack.BannerPlugin({

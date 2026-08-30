@@ -1,0 +1,21 @@
+<%#
+  Parcel alone needs a declared target, for two reasons that both bite silently.
+
+  `"main": "main.js"` above is a Parcel TARGET as far as Parcel is concerned, with a dist directory of
+  `.` -- so `parcel build --dist-dir dist/build` wrote the bundle to the project root instead and left
+  `dist/build` holding nothing but `manifest.json`. Disabling that target is what lets `--dist-dir` apply.
+
+  The replacement target has to be node context and CommonJS: the default is browser, and Parcel refuses
+  outright to leave any module external when building for the browser -- which an Obsidian plugin must,
+  since the app supplies `obsidian` and CodeMirror at runtime.
+-%>
+  "targets": {
+    "main": false,
+    "obsidianPlugin": {
+      "context": "node",
+      "isLibrary": false,
+      "optimize": true,
+      "outputFormat": "commonjs",
+      "sourceMap": false
+    }
+  },

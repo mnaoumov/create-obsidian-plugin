@@ -1,0 +1,6 @@
+try {
+  const { execSync: exec } = await import('node:child_process');
+  exec('obsidian plugin:reload id=<%= pluginId %>', { stdio: 'ignore' });
+} catch {
+  // Obsidian CLI may not be available
+}

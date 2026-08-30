@@ -1,11 +1,31 @@
 import { builtinModules } from 'node:module';
 import process from 'node:process';
 
-import commonjs from '@rollup/plugin-commonjs';
+import commonjsModule from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
-import typescript from '@rollup/plugin-typescript';
+import terserModule from '@rollup/plugin-terser';
+import typescriptModule from '@rollup/plugin-typescript';
 <%- render('import') -%>
+/**
+ * Restores the call signature of a plugin whose types describe the CommonJS shape.
+ *
+ * Every `@rollup/plugin-*` ships an ESM build whose default export IS the plugin factory, but declares
+ * its types from one CommonJS-shaped `.d.ts`. Under `moduleResolution: node16` TypeScript therefore
+ * models each default import as the module object and rejects the call, while at runtime the import
+ * really is the factory. Reading `.default` instead type-checks and then crashes, so neither form is
+ * right on its own. This follows the runtime and keeps each plugin's own option types, and it is a
+ * no-op for any plugin whose types are already correct.
+ */
+type PluginFactory<TImported> = TImported extends { default: infer TDefault } ? TDefault : TImported;
+
+function asPluginFactory<TImported>(imported: TImported): PluginFactory<TImported> {
+  return imported as PluginFactory<TImported>;
+}
+
+const commonjs = asPluginFactory(commonjsModule);
+const terser = asPluginFactory(terserModule);
+const typescript = asPluginFactory(typescriptModule);
+<%- render('unwrap') -%>
 
 const prod = process.env['BUILD'] === 'production';
 const distFolder = process.env['DIST_FOLDER'] ?? (prod ? 'dist/build' : 'dist/dev');
@@ -34,6 +54,10 @@ export const config = {
   output: {
     file: `${distFolder}/main.js`,
     format: 'cjs',
+    // An Obsidian plugin is one file: the manifest names `main.js` and nothing loads a second chunk.
+    // Any dynamic import in the sources -- the obsidian-dev-utils presets have several -- otherwise
+    // Makes rollup refuse `output.file` and demand `output.dir`.
+    inlineDynamicImports: true,
     sourcemap: prod ? false : 'inline',
     exports: 'default',
     banner: `/*
@@ -45,7 +69,17 @@ if you want to view the source, please visit the github repository of this plugi
   external: EXTERNAL,
   plugins: [
 <%- render('pre-plugin') -%>
-    typescript(),
+    // The emitted `tsconfig.json` declares `noEmit: true` and allows `.ts` import specifiers, both right
+    // For the file itself -- more than tsc reads it. This plugin compiles WITH emit, so it rejects that
+    // Config outright (TS5096, and an `outDir` it insists must sit inside the output directory). The
+    // Overrides belong here, in the one tool that needs them, exactly as `jest.config.ts` overrides
+    // `rootDir` for the same reason.
+    typescript({
+      noEmit: false,
+      rewriteRelativeImportExtensions: true,
+      outDir: distFolder,
+      sourceMap: !prod,
+    }),
     nodeResolve({ browser: true }),
     commonjs(),
 <%- render('post-plugin') -%>

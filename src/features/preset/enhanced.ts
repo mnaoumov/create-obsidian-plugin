@@ -12,6 +12,13 @@ export class Enhanced extends FeatureOption {
     builder
       .addPackage('@tsconfig/strictest')
       .addPackage('obsidian-dev-utils')
+      // Not a testing dependency here, despite the name. The obsidian-dev-utils esbuild bundler
+      // STATICALLY imports it from its copy-to-obsidian-plugins-folder plugin, so a preset built on
+      // Obsidian-dev-utils cannot run its own build without it. It used to be added only alongside
+      // Vitest, which left every such preset on any other test runner dying at
+      // "Cannot find module 'obsidian-integration-testing'" -- and obsidian-dev-utils declares it as an
+      // Optional peer, which is exactly what makes npm leave it out without a word.
+      .addPackage('obsidian-integration-testing')
       .addPackage('type-fest')
       .addScript('dev')
       .addScript('build')

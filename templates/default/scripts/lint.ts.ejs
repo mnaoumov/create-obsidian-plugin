@@ -1,0 +1,6 @@
+<%# Keyed on the TOOL first, exactly as the format scripts are, and for the same reason. What -%>
+<%# `npm run lint` runs is decided by the linter answer; only eslint has a preset-specific runner, so -%>
+<%# it splits again underneath. Splitting on the preset first is what made every obsidian-dev-utils -%>
+<%# preset emit the dev-utils ESLint runner whatever was chosen -- so `linter: biome` installed biome, -%>
+<%# emitted `biome.json`, and then ran eslint, which died looking for a config that was never written. -%>
+<%- render('tool') -%>

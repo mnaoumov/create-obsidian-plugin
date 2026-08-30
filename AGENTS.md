@@ -171,6 +171,45 @@ Not always-include, not `<% if`. Uses `has-funding` partial — conditionally ad
 
 Templates must be logicless — no `<% if %>` conditionals. Use the partial system for conditional content. Loops (`<% for %>`) are acceptable for iterating data. All conditional logic is handled by which partials are included, not by branching in templates.
 
+### Three-tier answer-space verification
+
+The generator asks 23 questions — 21 choices plus two presence branches (`fundingUrl` and
+`obsidianConfigFolder`, on which `buildTemplate` contributes `has-funding` and `has-vault-true`/`false`).
+They multiply out to **15,049,359,360** combinations, so "test every combination" is not one job. It is
+three, each covering as much as its per-case cost allows.
+
+| tier | per case | what runs it | coverage it can afford |
+| --- | --- | --- | --- |
+| plan (`src/plan-checks.ts`) | ~32 us | strength-2 in `npm test`; `npm run verify:answer-space` | 5M-case stride sample + a strength-3 interaction pass, ~35 s |
+| render (`src/render-checks.ts`) | ~215 ms | strength-2 in `npm test`; `npm run verify:rendering` | strength 3, 265 cases, ~40 s across processes |
+| install and gate (`src/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under npm, ~50 cases, plus one case each for bun/pnpm/yarn |
+
+`--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
+single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
+
+**Two failure modes make a silent pass the default here, and every tier is shaped around them.**
+
+1. **An unresolved partial renders as `''`, not an error.** A registered file whose partials were all
+   left unresolved is written EMPTY — and an empty `.ts` compiles, an empty config reads as "no
+   configuration", and every existence check on it passes. The plan tier catches it before rendering
+   (`empty-emitted-file`); the render tier catches it in the bytes (`empty-file`).
+2. **A test runner that collects nothing exits 0.** Jest and vitest both do, so the gate tier reads the
+   collected test count out of the runner's summary and treats zero as a failure.
+
+Three rules that are easy to get wrong and were:
+
+- **Enumerate questions from the feature option arrays, never from `FEATURE_REGISTRIES`.** That list is
+  only the questions whose options contribute a partial, and copying it is precisely how `platformSupport`
+  came to be prompted for and discarded, leaving `isDesktopOnly` out of every manifest ever generated.
+- **Sharding walks the space on a stride coprime to its size, not by counting.** Consecutive ordinals
+  differ only in the lowest dimensions, so a shard taking every Nth ordinal freezes any dimension whose
+  radix shares a factor with N — with ten workers and the first two questions sized 2 and 5, every shard
+  would test one of those ten combinations and report success.
+- **A package name that resolves to nothing still reaches `package.json`.** `resolveVersions` falls back
+  to the literal `latest` when a registry lookup fails, so that generating offline works; the cost is that
+  a typo'd or dead package name looks ordinary until `npm install`. `npm run verify:answer-space --
+  --check-registry` is the pass that catches it, and it is worth running before any release.
+
 ### Template engine: EJS
 
 Researched all major `create-*` packages. Only create-vue and create-nuxt-app use a template engine (both EJS). The rest use plain file copying. EJS is the only engine used in practice by major scaffolding tools.

@@ -1,0 +1,37 @@
+/*
+ * Marks the modules Obsidian supplies at runtime as external.
+ *
+ * Parcel's default resolver refuses to treat a package as external unless it is declared in
+ * `dependencies`, and an Obsidian plugin must not declare `obsidian` there: the app provides it, and
+ * bundling a second copy of the API breaks `instanceof` against the running one. Every other bundler
+ * takes an `external` list; Parcel takes a resolver, so this is that list.
+ *
+ * CommonJS on purpose. The project is `"type": "module"`, so a `.mjs` plugin makes Parcel warn "ES
+ * module dependencies are experimental" on every single build.
+ */
+
+const { Resolver } = require('@parcel/plugin');
+
+const EXTERNAL = new Set([
+  '@codemirror/autocomplete',
+  '@codemirror/collab',
+  '@codemirror/commands',
+  '@codemirror/language',
+  '@codemirror/lint',
+  '@codemirror/search',
+  '@codemirror/state',
+  '@codemirror/view',
+  '@lezer/common',
+  '@lezer/highlight',
+  '@lezer/lr',
+  'electron',
+  'esbuild',
+  'eslint',
+  'obsidian'
+]);
+
+module.exports = new Resolver({
+  resolve({ specifier }) {
+    return EXTERNAL.has(specifier) ? { isExcluded: true } : null;
+  }
+});

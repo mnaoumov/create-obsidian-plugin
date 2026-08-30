@@ -1,10 +1,8 @@
 import {
   existsSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
-  rmSync,
-  statSync
+  rmSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -280,6 +278,24 @@ describe('buildTemplate', () => {
     });
   });
 
+  // Two of these named packages that have never existed on npm, so the answer could not `npm install`
+  // At all -- and `resolveVersions` falls back to the literal `latest` when a lookup fails (so offline
+  // Generation works), which is what let a name resolving to nothing look ordinary in `package.json`.
+  // `npm run verify:answer-space -- --check-registry` is the sweep that catches the next one.
+  describe('bundler plugin packages', () => {
+    it('adds no esbuild plugin for preact, which esbuild handles through its own jsx options', () => {
+      const packages = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'preact' })).dependencies.map((d) => d.packageName);
+      expect(packages).not.toContain('esbuild-plugin-preact');
+      expect(packages).toContain('preact');
+    });
+
+    it('uses the community parcel svelte transformer, the only one that exists', () => {
+      const packages = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' })).dependencies.map((d) => d.packageName);
+      expect(packages).toContain('parcel-transformer-svelte');
+      expect(packages).not.toContain('@parcel/transformer-svelte');
+    });
+  });
+
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
       const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'svelte' }));
@@ -365,6 +381,47 @@ describe('buildTemplate', () => {
       const enhancedPartials = buildTemplate(makeAnswers({ preset: 'enhanced' })).partials;
       expect(enhancedPartials.has('enhanced')).toBe(true);
       expect(enhancedPartials.has('demo')).toBe(false);
+    });
+  });
+
+  describe('wasmSupport feature', () => {
+    const BUNDLERS = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
+
+    // `WASM_PLUGINS` listed only the three bundlers that need a plugin, and a bundler missing from it
+    // Threw rather than resolving to "no plugin needed" -- so `wasm` with parcel or with webpack took
+    // The whole generation down. Both are legal answers, and between them they are two fifths of the
+    // Bundler question.
+    it('builds a plan for wasm with every bundler', () => {
+      for (const bundler of BUNDLERS) {
+        expect(() => buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })), `${bundler} + wasm`).not.toThrow();
+      }
+    });
+
+    it('registers the wasm sources for every bundler', () => {
+      for (const bundler of BUNDLERS) {
+        const files = [...buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).templateFiles];
+        expect(files, bundler).toContain('src/wasm.d.ts');
+      }
+    });
+
+    // Parcel 2 resolves `.wasm` natively and webpack 5 does it via `experiments.asyncWebAssembly`, so
+    // Adding a plugin package for either would be a dependency the project never loads.
+    it('adds a bundler plugin only where the bundler needs one', () => {
+      function wasmPackages(bundler: string): string[] {
+        return buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).dependencies
+          .map((dependency) => dependency.packageName)
+          .filter((name) => name.includes('wasm'));
+      }
+
+      expect(wasmPackages('esbuild')).toEqual(['esbuild-plugin-wasm']);
+      expect(wasmPackages('rollup')).toEqual(['@rollup/plugin-wasm']);
+      expect(wasmPackages('vite')).toEqual(['vite-plugin-wasm']);
+      expect(wasmPackages('parcel')).toEqual([]);
+      expect(wasmPackages('webpack')).toEqual([]);
+    });
+
+    it('still refuses a bundler nobody has decided how to reach WebAssembly with', () => {
+      expect(() => buildTemplate(makeAnswers({ bundler: 'no-such-bundler', wasmSupport: 'wasm' }))).toThrow();
     });
   });
 
@@ -611,6 +668,22 @@ describe('copyTemplates', () => {
     expect(manifest['author']).toBe('testuser');
   });
 
+  // `isDesktopOnly` is required in every Obsidian manifest, and it went missing from all of them: the
+  // Two `manifest.json@platform_*` partials were on disk and `manifest.json.ejs` asked for the section,
+  // But `platformSupport` was absent from `FEATURE_REGISTRIES`, so nothing ever contributed either name
+  // And the section rendered as nothing. The answer was prompted for and discarded.
+  it('stamps the platform support answer into the manifest', () => {
+    copyTemplates(makeAnswers({ platformSupport: 'desktop-only' }), targetDir, '1.0.0', null);
+    const desktopOnly = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(desktopOnly['isDesktopOnly']).toBe(true);
+  });
+
+  it('stamps mobile support into the manifest when both platforms are supported', () => {
+    copyTemplates(makeAnswers({ platformSupport: 'desktop-and-mobile' }), targetDir, '1.0.0', null);
+    const both = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(both['isDesktopOnly']).toBe(false);
+  });
+
   it('stamps the resolved minAppVersion into the manifest and versions.json', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null, new Map(), '1.13.7');
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
@@ -812,6 +885,119 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: '' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).not.toContain('## Support');
+  });
+
+  // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING
+  // Under `node_modules/@types` reaches the program -- measured: zero packages -- so `standalone` failed
+  // Its own `tsc --noEmit` with twelve TS2591s. The odu config and this generator's own tsconfig both
+  // Already named what they need; standalone was the one that did not.
+  it('names the node types in the tsconfig, for both presets', () => {
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
+      const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(tsconfig['compilerOptions']?.['types'], preset).toContain('node');
+    }
+  });
+
+  // The types entry named `obsidian-typings` while the dependency added is
+  // `@obsidian-typings/obsidian-public-latest`, so `with-unofficial` failed `tsc` with TS2688 on every
+  // Preset. The fleet -- including the sample plugin the README advertises as this generator's output --
+  // Names the scoped package in both places and carries no import of the old name at all.
+  it('names the typings package it actually installs, on both presets', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ apiSubset: 'with-unofficial', preset }), targetDir, '1.0.0', null);
+      const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      const packageJson = readFileSync(join(targetDir, 'package.json'), 'utf-8');
+      expect(tsconfig['compilerOptions']?.['types'], preset).toContain('@obsidian-typings/obsidian-public-latest');
+      expect(packageJson, preset).toContain('@obsidian-typings/obsidian-public-latest');
+      expect(readFileSync(join(targetDir, 'src/main.ts'), 'utf-8'), preset).not.toContain('obsidian-typings\'');
+    }
+  });
+
+  // The svelte `compile` partial shells out to `svelte-check`, and only the esbuild bundler partial
+  // Renders `import` -- the other four import `execSync` themselves. So esbuild, the DEFAULT bundler,
+  // Emitted a build script calling a name it never imported: `tsc` failed and `npm run build` died.
+  it('imports execSync into the standalone build script that calls it', () => {
+    copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'standalone', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
+    const build = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(build).toContain('svelte-check');
+    expect(build).toContain('from \'node:child_process\'');
+  });
+
+  // `lint.ts_odu.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
+  // Obsidian-dev-utils ESLint runner whatever the linter answer said: `linter: biome` installed biome,
+  // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
+  // Keyed on the tool first, exactly as the format scripts already were.
+  //
+  // The demo rows are the subtle ones and are pinned deliberately. `DEMO_OVERRIDES` forces the eslint
+  // Partial on regardless of the answer, so demo + biome contributes BOTH tool partials; the biome one
+  // Wins because it is inserted first and `render` fixes `renderRoot` on the first match, which leaves
+  // The eslint branch resolving its nested `render('preset')` against the wrong base and emitting
+  // Nothing. That is the right answer -- the explicit answer beats the demo default -- but it follows
+  // From insertion order, so it is asserted rather than left to be rediscovered.
+  it('runs the linter that was actually chosen, on every preset', () => {
+    const expected = [
+      ['standalone', 'eslint', 'eslint .'],
+      ['standalone', 'biome', 'biome lint .'],
+      ['enhanced', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['enhanced', 'biome', 'biome lint .'],
+      ['demo', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['demo', 'biome', 'biome lint .'],
+      ['demo', 'none', 'obsidian-dev-utils/script-utils/linters/eslint']
+    ];
+
+    for (const [preset, linter, marker] of expected) {
+      copyTemplates(makeAnswers({ linter: String(linter), preset: String(preset) }), targetDir, '1.0.0', null);
+      const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
+      expect(lint, `${String(preset)} + ${String(linter)}`).toContain(String(marker));
+      // One runner, not two concatenated: a file composed from two matching tool partials would carry
+      // Both import blocks and fail to compile.
+      expect(lint.match(/^import process/gm)?.length ?? 0, `${String(preset)} + ${String(linter)}`).toBe(1);
+    }
+  });
+
+  it('emits no lint script when no linter is chosen and no preset forces one', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ linter: 'none', preset }), targetDir, '1.0.0', null);
+      expect(existsSync(join(targetDir, 'scripts/lint.ts')), preset).toBe(false);
+    }
+  });
+
+  // Jest's emitted suite uses bare `describe`/`it`/`expect`, and an explicit `types` array excludes every
+  // @types package it does not name -- so `@types/jest` was installed and then ignored, and every
+  // Jest project failed `tsc` with TS2593 on its own sample test.
+  it('names the jest types when jest is the test runner, and only then', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
+      const withJest = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(withJest['compilerOptions']?.['types'], preset).toContain('jest');
+
+      copyTemplates(makeAnswers({ preset, testRunner: 'vitest' }), targetDir, '1.0.0', null);
+      const withVitest = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(withVitest['compilerOptions']?.['types'], preset).not.toContain('jest');
+    }
+  });
+
+  // `src/i18n/index.ts` imports `./locales/en.json`, which TypeScript refuses without this (TS2732).
+  it('enables resolveJsonModule for the i18next answer, which imports a JSON locale', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ internationalization: 'i18next', preset }), targetDir, '1.0.0', null);
+      const config = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(config['compilerOptions']?.['resolveJsonModule'], preset).toBe(true);
+    }
+  });
+
+  // The ignore entries read `!**/dist/`, which Biome does not treat as excluding the folder -- so once a
+  // Build had run, `lint` reported 896 errors in the bundled `dist/build/main.js` and `format` rewrote
+  // It. Biome wants a bare `!**/dist`: its own `useBiomeIgnoreFolder` rule rejects the `/**` form too.
+  it('excludes build output from biome in the form biome actually honours', () => {
+    copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome' }), targetDir, '1.0.0', null);
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.json'), 'utf-8')) as Record<string, Record<string, string[]>>;
+    const includes = biome['files']?.['includes'] ?? [];
+    expect(includes).toContain('!**/dist');
+    for (const entry of includes) {
+      expect(entry.endsWith('/') || entry.endsWith('/**'), `"${entry}" is a form Biome ignores`).toBe(false);
+    }
   });
 
   it('creates tsconfig.json', () => {
@@ -1110,6 +1296,23 @@ describe('copyTemplates', () => {
     expect(config).toContain('prettier --write');
   });
 
+  // All three were registered, but `isPartialFile` reads any `_` in a basename as the partial marker,
+  // So the render loop skipped `bug_report.yml` and `feature_request.yml` and wrote only `config.yml` --
+  // Leaving every project that asked for issue templates pointing at forms that did not exist.
+  it('creates all three issue template files, not just the one without an underscore', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    for (const name of ['bug-report.yml', 'config.yml', 'feature-request.yml']) {
+      const path = join(targetDir, '.github/ISSUE_TEMPLATE', name);
+      expect(existsSync(path), `${name} should be created`).toBe(true);
+      expect(readFileSync(path, 'utf-8').trim(), `${name} should not be empty`).not.toBe('');
+    }
+  });
+
+  it('does not create issue template files when gitHubIssueTemplates is none', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'none' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, '.github/ISSUE_TEMPLATE'))).toBe(false);
+  });
+
   it('does not create workflow files when gitHubActions is none', () => {
     copyTemplates(makeAnswers({ gitHubActions: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/workflows/ci.yml'))).toBe(false);
@@ -1120,37 +1323,5 @@ describe('copyTemplates', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
-  });
-
-  it('does not produce empty files for any preset and ui framework', () => {
-    function walk(dir: string): string[] {
-      const results: string[] = [];
-      for (const entry of readdirSync(dir)) {
-        const full = join(dir, entry);
-        if (statSync(full).isDirectory()) {
-          results.push(...walk(full));
-        } else {
-          results.push(full);
-        }
-      }
-      return results;
-    }
-
-    // A registered file with no direct `.ejs` is composed by concatenating `${basePath}_${partial}.ejs`,
-    // And an unresolved partial renders `''` rather than failing -- so a variant file whose name drifted
-    // Out of lockstep with its base produces an EMPTY destination that nothing else notices. One answer
-    // Set cannot see that: each ui framework pulls its own partials, so the sweep has to be the matrix.
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
-      for (const uiFramework of ['none', 'lit', 'preact', 'react', 'solid', 'svelte', 'vue']) {
-        rmSync(targetDir, { force: true, recursive: true });
-        targetDir = mkdtempSync(join(tmpdir(), 'obsidian-plugin-test-'));
-        copyTemplates(makeAnswers({ preset, uiFramework }), targetDir, '1.0.0', null);
-
-        for (const file of walk(targetDir).filter((f) => !f.endsWith('.json'))) {
-          const content = readFileSync(file, 'utf-8');
-          expect(content.trim(), `${preset}/${uiFramework}: file "${file}" should not be empty`).not.toBe('');
-        }
-      }
-    }
   });
 });

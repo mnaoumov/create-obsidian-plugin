@@ -34,6 +34,8 @@ import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
 import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
 import { LINTER_OPTIONS } from './features/linter/index.ts';
 import { MARKDOWN_LINTER_OPTIONS } from './features/markdown-linter/index.ts';
+import { PACKAGE_MANAGER_OPTIONS } from './features/package-manager/index.ts';
+import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
 import { PRESET_OPTIONS } from './features/preset/index.ts';
 import { SPELL_CHECKER_OPTIONS } from './features/spell-checker/index.ts';
 import { STYLING_OPTIONS } from './features/styling/index.ts';
@@ -101,7 +103,16 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
   { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
   { answerKey: 'wasmSupport', options: WASM_SUPPORT_OPTIONS },
-  { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS }
+  { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS },
+  // Both of these were missing, and a question absent from this list is a question the user is asked
+  // And whose answer is then discarded. `platformSupport` was the live one: `manifest.json.ejs` calls
+  // `render('platform')` and both partials sit on disk, but with nothing contributing `desktop-only` or
+  // `desktop-and-mobile` the section rendered as nothing, so EVERY generated manifest shipped without
+  // `isDesktopOnly` -- a required field. `packageManager` contributes no partial today and so changes
+  // No output; it is registered anyway, because "every question is here" is the invariant that keeps
+  // The next one from going the same way, and because a `X_npm.ejs` added later should just work.
+  { answerKey: 'platformSupport', options: PLATFORM_SUPPORT_OPTIONS },
+  { answerKey: 'packageManager', options: PACKAGE_MANAGER_OPTIONS }
 ];
 
 interface DemoOverride {
@@ -305,6 +316,16 @@ export function copyTemplates(
   return newConfig;
 }
 
+/**
+ * Resolves a registered template path to the path the generated project gets, substituting answers.
+ *
+ * Exported so the plan-level checks decide "do two registered files land on the same destination?" by
+ * the same rule the generator writes them, rather than by a second copy of it that could drift.
+ */
+export function getDestinationPath(templatePath: string, answers: Answers): string {
+  return templatePath.replace(/%= (?<AnswerKey>.+?) %/g, (_match: string, ...args: unknown[]) => String(answers[String(args[0]) as keyof Answers]));
+}
+
 export function getScriptDir(): string {
   return dirname(fileURLToPath(import.meta.url));
 }
@@ -318,10 +339,6 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   const raw = parsed as Record<string, unknown>;
   migrateAnswers(raw);
   return parsed as GeneratorConfig;
-}
-
-function getDestinationPath(templatePath: string, answers: Answers): string {
-  return templatePath.replace(/%= (?<AnswerKey>.+?) %/g, (_match: string, ...args: unknown[]) => String(answers[String(args[0]) as keyof Answers]));
 }
 
 function isPartialFile(templatePath: string): boolean {

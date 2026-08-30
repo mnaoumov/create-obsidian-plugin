@@ -1,0 +1,10 @@
+import { execSync } from 'node:child_process';
+import esbuildSvelte from 'esbuild-svelte';
+import { sveltePreprocess } from 'svelte-preprocess';
+
+// `esbuild-svelte` declares `export default function` in its types but ships a CommonJS `main` whose
+// `module.exports` IS that function, and it publishes no `exports` map. Under `moduleResolution:
+// node16` TypeScript therefore models the default import as the module object and rejects the call,
+// while at runtime the import really is the function (verified: `typeof` is `function`). The cast
+// follows the runtime. It costs the option object's type-checking, which is the narrower loss.
+const sveltePlugin = esbuildSvelte as unknown as (options?: Record<string, unknown>) => esbuild.Plugin;

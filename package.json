@@ -27,7 +27,10 @@
     "lint:fix": "jiti scripts/lint-fix.ts",
     "prepare": "jiti scripts/prepare.ts",
     "spellcheck": "jiti scripts/spellcheck.ts",
-    "test": "jiti scripts/test.ts"
+    "test": "jiti scripts/test.ts",
+    "verify:answer-space": "jiti scripts/verify-answer-space.ts",
+    "verify:projects": "jiti scripts/verify-generated-projects.ts",
+    "verify:rendering": "jiti scripts/verify-rendering.ts"
   },
   "overrides": {
     "eslint": "$eslint",
@@ -66,6 +69,7 @@
     "jiti": "^2.7.0",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.68.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "yaml": "^2.9.0"
   }
 }
