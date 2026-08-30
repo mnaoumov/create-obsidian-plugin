@@ -39,6 +39,6 @@ The scratch note is gitignored, so whatever you write in it stays out of your re
 
 ## Where they are defined
 
-Both live in `src/Plugin.ts`, registered in `onloadImpl` with `this.addCommand(...)`. The command id you
+Both live in `src/plugin.ts`, registered in `onloadImpl` with `this.addCommand(...)`. The command id you
 see in `demoSetup.ts` is `<%= pluginId %>:sample` — Obsidian prefixes every command id with the plugin id
 from `manifest.json`.

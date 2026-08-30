@@ -39,9 +39,9 @@ Manual equivalent: type `defaultText` back into the field.
 
 ## Adding your own
 
-Settings are declared as plain properties on the `PluginSettings` class in `src/PluginSettings.ts`; the
-property's initial value **is** its default. `src/PluginSettingsTab.ts` renders one row per setting, and
-`src/PluginSettingsComponent.ts` is where migrations and validators go.
+Settings are declared as plain properties on the `PluginSettings` class in `src/plugin-settings.ts`; the
+property's initial value **is** its default. `src/plugin-settings-tab.ts` renders one row per setting, and
+`src/plugin-settings-component.ts` is where migrations and validators go.
 
 When you add one, add it to this note too. The demo-vault coverage suite can be told to fail the build when
 a setting is documented nowhere — see the commented reflection spec in
