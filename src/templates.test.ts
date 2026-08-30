@@ -368,6 +368,47 @@ describe('buildTemplate', () => {
     });
   });
 
+  describe('wasmSupport feature', () => {
+    const BUNDLERS = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
+
+    // `WASM_PLUGINS` listed only the three bundlers that need a plugin, and a bundler missing from it
+    // Threw rather than resolving to "no plugin needed" -- so `wasm` with parcel or with webpack took
+    // The whole generation down. Both are legal answers, and between them they are two fifths of the
+    // Bundler question.
+    it('builds a plan for wasm with every bundler', () => {
+      for (const bundler of BUNDLERS) {
+        expect(() => buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })), `${bundler} + wasm`).not.toThrow();
+      }
+    });
+
+    it('registers the wasm sources for every bundler', () => {
+      for (const bundler of BUNDLERS) {
+        const files = [...buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).templateFiles];
+        expect(files, bundler).toContain('src/wasm.d.ts');
+      }
+    });
+
+    // Parcel 2 resolves `.wasm` natively and webpack 5 does it via `experiments.asyncWebAssembly`, so
+    // Adding a plugin package for either would be a dependency the project never loads.
+    it('adds a bundler plugin only where the bundler needs one', () => {
+      function wasmPackages(bundler: string): string[] {
+        return buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).dependencies
+          .map((dependency) => dependency.packageName)
+          .filter((name) => name.includes('wasm'));
+      }
+
+      expect(wasmPackages('esbuild')).toEqual(['esbuild-plugin-wasm']);
+      expect(wasmPackages('rollup')).toEqual(['@rollup/plugin-wasm']);
+      expect(wasmPackages('vite')).toEqual(['vite-plugin-wasm']);
+      expect(wasmPackages('parcel')).toEqual([]);
+      expect(wasmPackages('webpack')).toEqual([]);
+    });
+
+    it('still refuses a bundler nobody has decided how to reach WebAssembly with', () => {
+      expect(() => buildTemplate(makeAnswers({ bundler: 'no-such-bundler', wasmSupport: 'wasm' }))).toThrow();
+    });
+  });
+
   describe('markdownLinter feature', () => {
     it('adds markdownlint scripts and files', () => {
       const builder = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint' }));
