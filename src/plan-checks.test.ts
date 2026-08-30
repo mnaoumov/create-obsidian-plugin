@@ -9,7 +9,13 @@ import type {
   TemplateInventory
 } from './plan-checks.ts';
 
-import { makeAnswers } from './answer-space.ts';
+import {
+  ANSWER_SPACE_DIMENSION_SIZES,
+  answersFromValueIndices,
+  describeCase,
+  makeAnswers
+} from './answer-space.ts';
+import { buildCoveringArray } from './covering-array.ts';
 import {
   checkCase,
   checkPlan,
@@ -22,6 +28,67 @@ import {
   parsePartialPath
 } from './plan-checks.ts';
 import { TemplateBuilder } from './template-builder.ts';
+
+/** Builds a fixture inventory, deriving the whole-file index so it can never disagree with `partials`. */
+function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInventory {
+  const partials = overrides.partials ?? [];
+  const wholeFilePartialsByBase = new Map<string, string[]>();
+  for (const partial of partials) {
+    if (partial.section === null) {
+      wholeFilePartialsByBase.set(partial.basePath, [...(wholeFilePartialsByBase.get(partial.basePath) ?? []), partial.partialName]);
+    }
+  }
+
+  return {
+    directTemplates: new Set<string>(),
+    emptyTemplates: new Set<string>(),
+    renderSites: [],
+    ...overrides,
+    partials,
+    wholeFilePartialsByBase
+  };
+}
+
+/**
+ * The whole answer space at plan level, sampled at strength 2 so it runs on every `npm test`.
+ *
+ * Strength 2 is 49 cases and milliseconds, and covers every pair of answers -- enough that a partial
+ * renamed out of lockstep with its base, or a question dropped from `FEATURE_REGISTRIES`, fails here
+ * rather than in someone's generated project. `npm run verify:answer-space` runs the same checks over
+ * the entire space; this is the part that is cheap enough to never be skipped.
+ */
+describe('the answer space at plan level', () => {
+  const SWEEP_STRENGTH = 2;
+  const inventory = loadTemplateInventory();
+  const usage = newUsage();
+  const failures: string[] = [];
+  const signatures = new Set<string>();
+
+  for (const valueIndices of buildCoveringArray({ dimensionSizes: ANSWER_SPACE_DIMENSION_SIZES, strength: SWEEP_STRENGTH })) {
+    const answers = answersFromValueIndices(valueIndices);
+    const result = checkCase(answers, inventory, usage);
+    if (result.dependencySignature !== null) {
+      signatures.add(result.dependencySignature);
+    }
+    for (const violation of result.violations) {
+      failures.push(`[${violation.kind}] ${violation.subject}: ${violation.detail}\n    case: ${describeCase(answers)}`);
+    }
+  }
+
+  it('builds a clean plan for every case in the covering array', () => {
+    expect(failures).toEqual([]);
+  });
+
+  it('leaves no template file that nothing in the covering array can reach', () => {
+    expect(checkUsage(usage, inventory).map((violation) => `[${violation.kind}] ${violation.subject}: ${violation.detail}`)).toEqual([]);
+  });
+
+  // Not a threshold to tune -- the install tier reuses one `node_modules` per distinct set, so a sudden
+  // Collapse to a handful means the signature stopped distinguishing cases, not that the space shrank.
+  it('declares many distinct dependency sets across the covering array', () => {
+    expect(signatures.size).toBeGreaterThan(1);
+  });
+});
 
 describe('parsePartialPath', () => {
   it('reads the whole-file form', () => {
@@ -96,16 +163,6 @@ describe('loadTemplateInventory', () => {
 });
 
 describe('checkPlan', () => {
-  function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInventory {
-    return {
-      directTemplates: new Set<string>(),
-      emptyTemplates: new Set<string>(),
-      partials: [],
-      renderSites: [],
-      ...overrides
-    };
-  }
-
   function kinds(violations: readonly PlanViolation[]): string[] {
     return violations.map((violation) => violation.kind);
   }
@@ -206,48 +263,44 @@ describe('checkUsage', () => {
 
   it('flags a partial no answer contributes', () => {
     const usage = usageOf(new TemplateBuilder().addFiles(['manifest.json']).addPartial('common'));
-    const inventory: TemplateInventory = {
+    const inventory = makeInventory({
       directTemplates: new Set(['manifest.json']),
-      emptyTemplates: new Set<string>(),
       partials: [parsePartialPath('manifest.json@platform_desktop-only.ejs')],
       renderSites: []
-    };
+    });
     expect(checkUsage(usage, inventory).map((violation) => violation.kind)).toEqual(['orphan-partial']);
   });
 
   it('flags a partial whose base is neither registered nor another partial', () => {
     const usage = usageOf(new TemplateBuilder().addPartial('odu'));
-    const inventory: TemplateInventory = {
+    const inventory = makeInventory({
       directTemplates: new Set<string>(),
-      emptyTemplates: new Set<string>(),
       partials: [parsePartialPath('gone.json_odu.ejs')],
       renderSites: []
-    };
+    });
     expect(checkUsage(usage, inventory).map((violation) => violation.kind)).toEqual(['dead-partial-base']);
   });
 
   it('accepts a nested partial whose base is another partial', () => {
     const usage = usageOf(new TemplateBuilder().addFiles(['scripts/build.ts']).addPartial('standalone').addPartial('esbuild'));
-    const inventory: TemplateInventory = {
+    const inventory = makeInventory({
       directTemplates: new Set<string>(),
-      emptyTemplates: new Set<string>(),
       partials: [
         parsePartialPath('scripts/build.ts_standalone.ejs'),
         parsePartialPath('scripts/build.ts_standalone@bundler_esbuild.ejs')
       ],
       renderSites: []
-    };
+    });
     expect(checkUsage(usage, inventory)).toEqual([]);
   });
 
   it('flags a render section no partial file answers at all', () => {
     const usage = usageOf(new TemplateBuilder().addFiles(['manifest.json']).addPartial('common'));
-    const inventory: TemplateInventory = {
+    const inventory = makeInventory({
       directTemplates: new Set(['manifest.json']),
-      emptyTemplates: new Set<string>(),
       partials: [],
       renderSites: [{ basePath: 'manifest.json', section: 'platform' }]
-    };
+    });
     const violations = checkUsage(usage, inventory);
     expect(violations.map((violation) => violation.kind)).toEqual(['unreachable-render-section']);
     expect(violations[0]?.detail).toContain('No partial file answers it at all');
@@ -255,12 +308,11 @@ describe('checkUsage', () => {
 
   it('accepts a render section a contributed partial answers', () => {
     const usage = usageOf(new TemplateBuilder().addFiles(['manifest.json']).addPartial('desktop-only'));
-    const inventory: TemplateInventory = {
+    const inventory = makeInventory({
       directTemplates: new Set(['manifest.json']),
-      emptyTemplates: new Set<string>(),
       partials: [parsePartialPath('manifest.json@platform_desktop-only.ejs')],
       renderSites: [{ basePath: 'manifest.json', section: 'platform' }]
-    };
+    });
     expect(checkUsage(usage, inventory)).toEqual([]);
   });
 });

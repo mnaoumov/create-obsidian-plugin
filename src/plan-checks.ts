@@ -73,6 +73,14 @@ export interface TemplateInventory {
   emptyTemplates: Set<string>;
   partials: PartialFile[];
   renderSites: RenderSite[];
+  /**
+   * Whole-file partial names, indexed by the file they compose.
+   *
+   * The per-case check asks "which partials could fill this file?" once per registered file, and the
+   * sweep runs it billions of times. Scanning all 242 partials per question made that ~15,000 string
+   * comparisons per case and dominated the tier's whole cost; this index makes it a map lookup.
+   */
+  wholeFilePartialsByBase: Map<string, string[]>;
 }
 
 /**
@@ -88,6 +96,9 @@ export interface TemplateUsage {
 }
 
 const EJS_SUFFIX = '.ejs';
+
+/** The `addScript` default command shape, whose tail is the `scripts/<name>.ts` the script needs. */
+const JITI_SCRIPT_PREFIX = 'jiti scripts/';
 
 /** Matches the `<%- render(...) %>` form only, so `render(null, this.contentEl)` in emitted code is not one. */
 const RENDER_SITE_PATTERN = /<%[-=]?\s*render\(\s*(?:'(?<Section>[^']*)'|\{(?<Options>[^}]*)\})/g;
@@ -134,24 +145,20 @@ export function checkCase(answers: Answers, inventory: TemplateInventory, usage?
  */
 export function checkPlan(builder: TemplateBuilder, answers: Answers, inventory: TemplateInventory): PlanViolation[] {
   const violations: PlanViolation[] = [];
+  // Each of these getters copies (and `scripts` sorts) on every access, so they are read exactly once.
+  // At the scale this tier runs at, reading `templateFiles` twice is measurable on its own.
   const partials = builder.partials;
-  const destinations = new Map<string, string>();
+  const files = builder.templateFiles;
+  const emitted: string[] = [];
+  let anySubstitution = false;
 
-  for (const registeredPath of builder.templateFiles) {
+  for (const registeredPath of files) {
     if (isPartialPath(registeredPath)) {
       continue;
     }
 
-    const destination = getDestinationPath(registeredPath, answers);
-    const claimed = destinations.get(destination);
-    if (claimed !== undefined && claimed !== registeredPath) {
-      violations.push({
-        detail: `"${claimed}" and "${registeredPath}" both write it.`,
-        kind: 'duplicate-destination',
-        subject: destination
-      });
-    }
-    destinations.set(destination, registeredPath);
+    emitted.push(registeredPath);
+    anySubstitution ||= registeredPath.includes('%');
 
     const emptyReason = findEmptyReason(registeredPath, partials, inventory);
     if (emptyReason !== null) {
@@ -163,7 +170,14 @@ export function checkPlan(builder: TemplateBuilder, answers: Answers, inventory:
     }
   }
 
-  violations.push(...checkScriptFiles(builder));
+  // `templateFiles` is a Set, so paths that pass through unchanged are already distinct -- only an
+  // Answer substitution can make two of them land on one destination. Nothing registers a `%=` path
+  // Today, so this whole pass is skipped, which matters at billions of cases.
+  if (anySubstitution) {
+    violations.push(...checkDestinations(emitted, answers));
+  }
+
+  violations.push(...checkScriptFiles(builder.scripts, files));
   return violations;
 }
 
@@ -266,11 +280,22 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
     }
   }
 
+  const wholeFilePartialsByBase = new Map<string, string[]>();
+  for (const partial of partials) {
+    if (partial.section !== null) {
+      continue;
+    }
+    const names = wholeFilePartialsByBase.get(partial.basePath) ?? [];
+    names.push(partial.partialName);
+    wholeFilePartialsByBase.set(partial.basePath, names);
+  }
+
   return {
     directTemplates,
     emptyTemplates,
     partials,
-    renderSites
+    renderSites,
+    wholeFilePartialsByBase
   };
 }
 
@@ -312,6 +337,28 @@ export function parsePartialPath(relativePath: string): PartialFile {
     path: relativePath,
     section: prefix.slice(sectionStart + 1)
   };
+}
+
+/** Reports registered paths that resolve to one destination, so one silently overwrites the other. */
+function checkDestinations(emitted: readonly string[], answers: Answers): PlanViolation[] {
+  const violations: PlanViolation[] = [];
+  const claimants = new Map<string, string>();
+
+  for (const registeredPath of emitted) {
+    const destination = getDestinationPath(registeredPath, answers);
+    const claimed = claimants.get(destination);
+    if (claimed !== undefined) {
+      violations.push({
+        detail: `"${claimed}" and "${registeredPath}" both write it.`,
+        kind: 'duplicate-destination',
+        subject: destination
+      });
+      continue;
+    }
+    claimants.set(destination, registeredPath);
+  }
+
+  return violations;
 }
 
 /**
@@ -364,13 +411,17 @@ function checkRenderSites(usage: TemplateUsage, inventory: TemplateInventory): P
  * script and its file are two separate declarations that can drift apart -- and the result is a
  * `package.json` entry pointing at a path the generated project does not contain.
  */
-function checkScriptFiles(builder: TemplateBuilder): PlanViolation[] {
+function checkScriptFiles(scripts: Readonly<Record<string, string>>, files: ReadonlySet<string>): PlanViolation[] {
   const violations: PlanViolation[] = [];
-  const files = builder.templateFiles;
 
-  for (const [name, command] of Object.entries(builder.scripts)) {
-    const scriptPath = /^jiti (?<Path>scripts\/[\w.-]+\.ts)$/.exec(command)?.groups?.['Path'];
-    if (scriptPath !== undefined && !files.has(scriptPath)) {
+  for (const [name, command] of Object.entries(scripts)) {
+    // Prefix and suffix tests rather than a regex: this runs per script per case, and a regex here cost
+    // More than every other check in this function put together.
+    if (!command.startsWith(JITI_SCRIPT_PREFIX) || !command.endsWith('.ts')) {
+      continue;
+    }
+    const scriptPath = command.slice(JITI_SCRIPT_PREFIX.length - 'scripts/'.length);
+    if (!files.has(scriptPath)) {
       violations.push({
         detail: `Script "${name}" runs "${command}", but "${scriptPath}" is not a registered file.`,
         kind: 'missing-script-file',
@@ -392,17 +443,18 @@ function findEmptyReason(registeredPath: string, partials: ReadonlySet<string>, 
     return inventory.emptyTemplates.has(registeredPath) ? 'Its own .ejs is empty.' : null;
   }
 
-  const candidates = inventory.partials.filter((partial) => partial.basePath === registeredPath && partial.section === null);
-  if (candidates.length === 0) {
+  const candidates = inventory.wholeFilePartialsByBase.get(registeredPath);
+  if (candidates === undefined) {
     return 'It has neither its own .ejs nor any whole-file partial on disk.';
   }
 
-  if (!candidates.some((partial) => partials.has(partial.partialName))) {
-    const offered = candidates.map((partial) => partial.partialName).sort((a, b) => a.localeCompare(b)).join(', ');
-    return `No contributed partial matches. On disk: ${offered}.`;
+  for (const partialName of candidates) {
+    if (partials.has(partialName)) {
+      return null;
+    }
   }
 
-  return null;
+  return `No contributed partial matches. On disk: ${[...candidates].sort((a, b) => a.localeCompare(b)).join(', ')}.`;
 }
 
 function isPartialPath(relativePath: string): boolean {
