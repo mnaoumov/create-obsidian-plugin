@@ -65,6 +65,8 @@ interface ShardResult {
   partialNames: string[];
   registeredPaths: string[];
   signatureCount: number;
+  /** Whether this shard stopped collecting signatures at the cap, so the reported count is a floor. */
+  signaturesTruncated: boolean;
   signatures: string[];
   violations: PlanViolation[];
 }
@@ -248,10 +250,12 @@ async function runCoordinator(options: Options): Promise<void> {
   const violations: PlanViolation[] = [...coveringViolations];
   let casesChecked = coveringCases.length;
   let signatureTotal = 0;
+  let truncated = false;
 
   for (const result of results) {
     casesChecked += result.casesChecked;
     signatureTotal += result.signatureCount;
+    truncated ||= result.signaturesTruncated;
     violations.push(...result.violations);
     for (const signature of result.signatures) {
       signatures.add(signature);
@@ -270,7 +274,12 @@ async function runCoordinator(options: Options): Promise<void> {
 
   write(`\nChecked ${casesChecked.toLocaleString('en-US')} combinations in ${formatDuration(elapsed)}.`);
   write(`  coverage                    ${options.exhaustive ? 'EXHAUSTIVE -- every combination' : `${(casesChecked / ANSWER_SPACE_SIZE * PERCENT).toFixed(4)}% of the space`}`);
-  write(`  distinct dependency sets    ${String(signatures.size)}${signatureTotal > signatures.size ? ` (from ${String(signatureTotal)} collected)` : ''}`);
+  // Said as a floor when a shard hit the cap, because a count that quietly stopped rising reads as a
+  // Finding about the generator rather than about the collector.
+  write(`  distinct dependency sets    ${truncated ? 'at least ' : ''}${String(signatures.size)}${signatureTotal > signatures.size ? ` (from ${String(signatureTotal)} collected)` : ''}`);
+  if (truncated) {
+    write(`    a shard stopped collecting at ${String(MAX_SIGNATURES)}; the true count is higher`);
+  }
   reportCoveringArray(options.strength, coveringCases.length, coveringViolations, inert);
   reportPackages(options, packageNames.size, missingPackages);
   reportViolations([...violations, ...usageViolations]);
@@ -326,6 +335,7 @@ function runShard(options: Options, shard: ShardSpec): void {
     partialNames: [...usage.partialNames],
     registeredPaths: [...usage.registeredPaths],
     signatureCount: signatures.size,
+    signaturesTruncated: signatures.size >= MAX_SIGNATURES,
     signatures: [...signatures],
     violations
   };
