@@ -24,9 +24,12 @@ copyFileSync('manifest.json', join(distFolder, 'manifest.json'));
 
 <%- render('hot-reload') -%>
 process.env['DIST_FOLDER'] = distFolder;
-const envPrefix = prod ? 'BUILD=production ' : '';
+// Passed through the child's environment rather than as a `BUILD=production ` command prefix.
+// Inline environment assignments are POSIX shell syntax: on Windows cmd.exe they are not a prefix at
+// All, and the build died with "'BUILD' is not recognized as an internal or external command".
+const env = prod ? { ...process.env, BUILD: 'production' } : process.env;
 const watchFlag = prod ? '' : ' --watch';
-execSync(`${envPrefix}npx vite build${watchFlag}`, { stdio: 'inherit' });
+execSync(`npx vite build${watchFlag}`, { env, stdio: 'inherit' });
 
 if (!prod) {
   copyToObsidianPluginsFolder(distFolder);
