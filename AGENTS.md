@@ -47,6 +47,29 @@ already excluded. `biome.json` points `$schema` at the copy in `node_modules` ra
 Biome refuses to start when the schema version does not match the CLI, and a pinned one goes stale on
 the next major.
 
+### jest owns its own compiler and module settings — the emitted `tsconfig.json` must stay `rootDir`-free
+
+ts-jest compiles **with** emit whatever the tsconfig says, so TypeScript 6 raises **TS5011** ("the `rootDir`
+setting must be explicitly set") against a config that infers its common source directory. The fix belongs in
+`jest.config.ts`, as a `transform`-level `tsconfig: { rootDir: '.' }` — **not** in the emitted
+`tsconfig.json`. That file declares `noEmit: true` and is read by more than tsc: `scripts/rollup.config.ts`
+hands it to `@rollup/plugin-typescript`, and the odu presets run `buildCompileTypeScript` over it. Putting an
+emit-layout option there changes what those tools see, for the sake of the one tool that ignores `noEmit`.
+(`.` and not `./src`: the tsconfig's `include` also covers `./*.ts` and `./scripts/**/*.ts`.) ts-jest merges
+the inline object over the discovered tsconfig rather than replacing it, which is what keeps this narrow.
+
+**`rootDir` alone only gets to the second blocker.** Generated projects are `"type": "module"` with
+`module: node16`, so ts-jest emits ESM, and jest treats `.ts` as CommonJS unless told otherwise — every suite
+then dies on "Must use import to load ES Module". So the jest answer runs in ESM mode throughout:
+`extensionsToTreatAsEsm: ['.ts']` plus `useESM: true`, and `scripts/test.ts` / `scripts/test-watch.ts` append
+`--experimental-vm-modules` to `NODE_OPTIONS` because jest's ESM loader is built on `vm.SyntheticModule`,
+which Node exposes only under that flag. All four pieces are load-bearing; drop any one and **zero tests run
+while the exit code stays green**, which is why `src/templates.test.ts` asserts each of them.
+
+The CommonJS alternative is a dead end, not an untried option: forcing `module: CommonJS` drags
+`moduleResolution` down to `node10`, which TypeScript 6 rejects outright (TS5107, deprecated) and TypeScript 7
+removes.
+
 ### Three preset partials: `odu`, `enhanced`, `demo`
 
 `enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`odu`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).

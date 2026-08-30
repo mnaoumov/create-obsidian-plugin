@@ -1,10 +1,20 @@
 import type { Config } from 'jest';
 
 const config: Config = {
-  preset: 'ts-jest',
+  // The project is `"type": "module"` and the tsconfig is `module: node16`, so ts-jest emits ESM. Jest
+  // treats `.ts` as CommonJS unless told otherwise, and then fails to `require` that output.
+  extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/*.test.ts'],
+  transform: {
+    // Replaces `preset: 'ts-jest'`, which is transform-only and leaves nowhere to put these options.
+    // `rootDir` is here rather than in `tsconfig.json` because that file declares `noEmit: true` and is
+    // also read by the bundler scripts, while ts-jest compiles WITH emit and so raises TS5011 on an
+    // inferred common source directory. `.` not `./src`: the tsconfig's `include` also covers `./*.ts`
+    // and `./scripts/**/*.ts`. The object is merged over the tsconfig, not substituted for it.
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { rootDir: '.' }, useESM: true }],
+  },
 };
 
 export default config;

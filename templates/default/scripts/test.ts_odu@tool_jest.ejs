@@ -1,8 +1,13 @@
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 
+// Jest runs the suite as ESM (see `jest.config.ts`), and its ESM loader is built on `vm.SyntheticModule`,
+// which Node only exposes under `--experimental-vm-modules`. Without the flag every suite fails to load
+// with "Must use import to load ES Module". Appended so an inherited NODE_OPTIONS survives.
+const nodeOptions = `${process.env['NODE_OPTIONS'] ?? ''} --experimental-vm-modules`.trim();
+
 try {
-  execSync('jest', { stdio: 'inherit' });
+  execSync('jest', { env: { ...process.env, NODE_OPTIONS: nodeOptions }, stdio: 'inherit' });
 } catch {
   process.exit(1);
 }
