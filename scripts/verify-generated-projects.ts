@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import {
+  appendFileSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -284,6 +285,11 @@ function runShard(options: Options, shard: ShardSpec): void {
     copyTemplates(answers, targetDir, '0.0.0', null, versions, resolved.minAppVersion);
     const result = runGate(targetDir, answers);
     const failed = result.violations.length > 0;
+
+    // Appended per case rather than written once at the end. This tier runs for the better part of an
+    // Hour, so a run that is interrupted -- and a long one eventually is -- must not lose everything it
+    // Had already established. The coordinator's merged report is a convenience on top of this.
+    appendFileSync(join(options.outRoot, `shard-${String(shard.index)}.jsonl`), `${JSON.stringify({ answers, index, result } satisfies CaseOutcome)}\n`);
 
     outcomes.push({ answers, index, result });
     process.stderr.write(`  case ${String(index)}: ${failed ? `${String(result.violations.length)} violation(s)` : 'ok'}\n`);

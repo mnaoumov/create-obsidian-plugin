@@ -924,6 +924,82 @@ describe('copyTemplates', () => {
     expect(build).toContain('from \'node:child_process\'');
   });
 
+  // `lint.ts_odu.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
+  // Obsidian-dev-utils ESLint runner whatever the linter answer said: `linter: biome` installed biome,
+  // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
+  // Keyed on the tool first, exactly as the format scripts already were.
+  //
+  // The demo rows are the subtle ones and are pinned deliberately. `DEMO_OVERRIDES` forces the eslint
+  // Partial on regardless of the answer, so demo + biome contributes BOTH tool partials; the biome one
+  // Wins because it is inserted first and `render` fixes `renderRoot` on the first match, which leaves
+  // The eslint branch resolving its nested `render('preset')` against the wrong base and emitting
+  // Nothing. That is the right answer -- the explicit answer beats the demo default -- but it follows
+  // From insertion order, so it is asserted rather than left to be rediscovered.
+  it('runs the linter that was actually chosen, on every preset', () => {
+    const expected = [
+      ['standalone', 'eslint', 'eslint .'],
+      ['standalone', 'biome', 'biome lint .'],
+      ['enhanced', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['enhanced', 'biome', 'biome lint .'],
+      ['demo', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['demo', 'biome', 'biome lint .'],
+      ['demo', 'none', 'obsidian-dev-utils/script-utils/linters/eslint']
+    ];
+
+    for (const [preset, linter, marker] of expected) {
+      copyTemplates(makeAnswers({ linter: String(linter), preset: String(preset) }), targetDir, '1.0.0', null);
+      const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
+      expect(lint, `${String(preset)} + ${String(linter)}`).toContain(String(marker));
+      // One runner, not two concatenated: a file composed from two matching tool partials would carry
+      // Both import blocks and fail to compile.
+      expect(lint.match(/^import process/gm)?.length ?? 0, `${String(preset)} + ${String(linter)}`).toBe(1);
+    }
+  });
+
+  it('emits no lint script when no linter is chosen and no preset forces one', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ linter: 'none', preset }), targetDir, '1.0.0', null);
+      expect(existsSync(join(targetDir, 'scripts/lint.ts')), preset).toBe(false);
+    }
+  });
+
+  // Jest's emitted suite uses bare `describe`/`it`/`expect`, and an explicit `types` array excludes every
+  // @types package it does not name -- so `@types/jest` was installed and then ignored, and every
+  // Jest project failed `tsc` with TS2593 on its own sample test.
+  it('names the jest types when jest is the test runner, and only then', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
+      const withJest = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(withJest['compilerOptions']?.['types'], preset).toContain('jest');
+
+      copyTemplates(makeAnswers({ preset, testRunner: 'vitest' }), targetDir, '1.0.0', null);
+      const withVitest = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(withVitest['compilerOptions']?.['types'], preset).not.toContain('jest');
+    }
+  });
+
+  // `src/i18n/index.ts` imports `./locales/en.json`, which TypeScript refuses without this (TS2732).
+  it('enables resolveJsonModule for the i18next answer, which imports a JSON locale', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ internationalization: 'i18next', preset }), targetDir, '1.0.0', null);
+      const config = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(config['compilerOptions']?.['resolveJsonModule'], preset).toBe(true);
+    }
+  });
+
+  // The ignore entries read `!**/dist/`, which Biome does not treat as excluding the folder -- so once a
+  // Build had run, `lint` reported 896 errors in the bundled `dist/build/main.js` and `format` rewrote
+  // It. Biome wants a bare `!**/dist`: its own `useBiomeIgnoreFolder` rule rejects the `/**` form too.
+  it('excludes build output from biome in the form biome actually honours', () => {
+    copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome' }), targetDir, '1.0.0', null);
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.json'), 'utf-8')) as Record<string, Record<string, string[]>>;
+    const includes = biome['files']?.['includes'] ?? [];
+    expect(includes).toContain('!**/dist');
+    for (const entry of includes) {
+      expect(entry.endsWith('/') || entry.endsWith('/**'), `"${entry}" is a form Biome ignores`).toBe(false);
+    }
+  });
+
   it('creates tsconfig.json', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'tsconfig.json'))).toBe(true);
