@@ -24,9 +24,9 @@ export class Svelte extends FeatureOption {
       .addPackage(getBuildPlugin(answers.bundler))
       .addSentenceCaseBrand('Svelte')
       .addFiles([
-        'src/SvelteComponents/SampleSvelteComponent.d.ts',
-        'src/SvelteComponents/SampleSvelteComponent.svelte',
-        'src/Views/SampleSvelteView.ts'
+        'src/svelte-components/sample-svelte-component.d.ts',
+        'src/svelte-components/sample-svelte-component.svelte',
+        'src/views/sample-svelte-view.ts'
       ]);
   }
 }

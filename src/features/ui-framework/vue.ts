@@ -22,9 +22,9 @@ export class Vue extends FeatureOption {
       .addPackage(getBuildPlugin(answers.bundler))
       .addSentenceCaseBrand('Vue')
       .addFiles([
-        'src/VueComponents/SampleVueComponent.d.ts',
-        'src/VueComponents/SampleVueComponent.vue',
-        'src/Views/SampleVueView.ts'
+        'src/vue-components/sample-vue-component.d.ts',
+        'src/vue-components/sample-vue-component.vue',
+        'src/views/sample-vue-view.ts'
       ]);
   }
 }

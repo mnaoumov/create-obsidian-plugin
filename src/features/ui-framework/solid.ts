@@ -18,8 +18,8 @@ export class Solid extends FeatureOption {
       .addPackage('solid-js')
       .addSentenceCaseBrand('Solid')
       .addFiles([
-        'src/SolidComponents/SampleSolidComponent.tsx',
-        'src/Views/SampleSolidView.tsx'
+        'src/solid-components/sample-solid-component.tsx',
+        'src/views/sample-solid-view.tsx'
       ]);
 
     const plugin = BUILD_PLUGINS[answers.bundler];

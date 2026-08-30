@@ -12,8 +12,8 @@ export class Lit extends FeatureOption {
       .addPackage('lit')
       .addSentenceCaseBrand('Lit')
       .addFiles([
-        'src/LitElements/SampleLitElement.ts',
-        'src/Views/SampleLitView.ts'
+        'src/lit-elements/sample-lit-element.ts',
+        'src/views/sample-lit-view.ts'
       ]);
   }
 }

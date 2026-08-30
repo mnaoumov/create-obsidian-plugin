@@ -66,8 +66,8 @@ const BASE_TEMPLATE_FILES = [
   'manifest.json',
   'package.json',
   'pinned-versions.json',
-  'src/Plugin.ts',
   'src/main.ts',
+  'src/plugin.ts',
   'tsconfig.json',
   'versions.json'
 ];

@@ -22,9 +22,9 @@ export class Enhanced extends FeatureOption {
         'scripts/build-compile.ts',
         'scripts/dev.ts',
         'scripts/version.ts',
-        'src/PluginSettings.ts',
-        'src/PluginSettingsComponent.ts',
-        'src/PluginSettingsTab.ts',
+        'src/plugin-settings.ts',
+        'src/plugin-settings-component.ts',
+        'src/plugin-settings-tab.ts',
         ...DEMO_VAULT_TEMPLATE_FILES
       ])
       .addPartial('odu');
