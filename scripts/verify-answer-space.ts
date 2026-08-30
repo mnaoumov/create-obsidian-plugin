@@ -2,7 +2,9 @@ import { spawn } from 'node:child_process';
 import { availableParallelism } from 'node:os';
 import process from 'node:process';
 
+import type { Answers } from '../src/answers.ts';
 import type { PlanViolation } from '../src/plan-checks.ts';
+import type { MissingPackage } from '../src/versions.ts';
 
 import {
   ANSWER_SPACE,
@@ -20,6 +22,7 @@ import {
   newUsage
 } from '../src/plan-checks.ts';
 import { buildTemplate } from '../src/templates.ts';
+import { findMissingPackages } from '../src/versions.ts';
 
 /**
  * Step between successive visited ordinals.
@@ -67,6 +70,7 @@ interface ShardResult {
 }
 
 interface Options {
+  checkRegistry: boolean;
   exhaustive: boolean;
   sampleSize: number;
   shard: null | ShardSpec;
@@ -147,6 +151,7 @@ function parseOptions(argv: readonly string[]): Options {
   const shardParts = shardFlag?.split('/').map(Number);
 
   return {
+    checkRegistry: argv.includes('--check-registry'),
     exhaustive,
     sampleSize: exhaustive ? ANSWER_SPACE_SIZE : Number(flag('sample') ?? DEFAULT_SAMPLE_SIZE),
     shard: shardParts ? { index: shardParts[0] ?? 0, total: shardParts[1] ?? 1 } : null,
@@ -163,6 +168,26 @@ function reportCoveringArray(strength: number, caseCount: number, violations: re
   write(`  violations                  ${String(violations.length)}`);
   write(`  questions not seen to move the dependency set (SAMPLE over ${String(caseCount)} bases, not a proof):`);
   write(`    ${inert.length > 0 ? inert.join(', ') : '(none)'}`);
+}
+
+/**
+ * Reports the package names the answer space can produce, and which the registry has no record of.
+ *
+ * Off by default because it is the one pass that needs the network. It is worth running before any
+ * release: a name that resolves to nothing still reaches `package.json`, because `resolveVersions`
+ * falls back to the literal `latest` so that generating offline works, so the only symptom is a failed
+ * `npm install` in someone else's project.
+ */
+function reportPackages(options: Options, total: number, missing: readonly MissingPackage[]): void {
+  write(`\nPackages the covering array can declare: ${String(total)}`);
+  if (!options.checkRegistry) {
+    write('  registry existence            not checked (pass --check-registry)');
+    return;
+  }
+  write(`  missing from the registry     ${String(missing.length)}`);
+  for (const entry of missing) {
+    write(`    ${entry.packageName}: ${entry.reason}`);
+  }
 }
 
 function reportViolations(violations: readonly PlanViolation[]): void {
@@ -208,8 +233,13 @@ async function runCoordinator(options: Options): Promise<void> {
   const coveringCases = buildCoveringArray({ dimensionSizes: ANSWER_SPACE_DIMENSION_SIZES, strength: options.strength });
   const coveringViolations: PlanViolation[] = [];
   const usage = newUsage();
+  const packageNames = new Set<string>();
   for (const values of coveringCases) {
-    coveringViolations.push(...checkCase(answersFromValueIndices(values), inventory, usage).violations);
+    const answers = answersFromValueIndices(values);
+    coveringViolations.push(...checkCase(answers, inventory, usage).violations);
+    for (const packageName of packagesFor(answers)) {
+      packageNames.add(packageName);
+    }
   }
   const inert = findInertQuestions(coveringCases);
 
@@ -235,15 +265,17 @@ async function runCoordinator(options: Options): Promise<void> {
   }
 
   const usageViolations = checkUsage(usage, inventory);
+  const missingPackages = options.checkRegistry ? await findMissingPackages([...packageNames]) : [];
   const elapsed = Date.now() - started;
 
   write(`\nChecked ${casesChecked.toLocaleString('en-US')} combinations in ${formatDuration(elapsed)}.`);
   write(`  coverage                    ${options.exhaustive ? 'EXHAUSTIVE -- every combination' : `${(casesChecked / ANSWER_SPACE_SIZE * PERCENT).toFixed(4)}% of the space`}`);
   write(`  distinct dependency sets    ${String(signatures.size)}${signatureTotal > signatures.size ? ` (from ${String(signatureTotal)} collected)` : ''}`);
   reportCoveringArray(options.strength, coveringCases.length, coveringViolations, inert);
+  reportPackages(options, packageNames.size, missingPackages);
   reportViolations([...violations, ...usageViolations]);
 
-  if (violations.length > 0 || usageViolations.length > 0) {
+  if (violations.length > 0 || usageViolations.length > 0 || missingPackages.length > 0) {
     process.exitCode = 1;
   }
 }
@@ -298,6 +330,15 @@ function runShard(options: Options, shard: ShardSpec): void {
     violations
   };
   process.stdout.write(`${RESULT_MARKER}${JSON.stringify(result)}\n`);
+}
+
+/** The package names one case declares, or none when its plan cannot be built. */
+function packagesFor(answers: Answers): string[] {
+  try {
+    return buildTemplate(answers).dependencies.map((dependency) => dependency.packageName);
+  } catch {
+    return [];
+  }
 }
 
 /** Builds one case's dependency key, treating a plan that cannot be built as its own distinct outcome. */

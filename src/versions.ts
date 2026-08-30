@@ -106,6 +106,12 @@ export interface AdvisoryOverride {
   why: string;
 }
 
+/** A package name the registry does not serve, and what came back when it was asked for. */
+export interface MissingPackage {
+  packageName: string;
+  reason: string;
+}
+
 /**
  * Overrides that clear an advisory reached only transitively, keyed by package name.
  *
@@ -145,6 +151,11 @@ export const FALLBACK_MIN_APP_VERSION = '0.0.0';
 const FALLBACK_VERSION = 'latest';
 const JSON_INDENT_SPACES = 2;
 const REGISTRY_URL = 'https://registry.npmjs.org';
+
+/** Simultaneous registry lookups during a package-existence sweep. Polite, and fast enough at this size. */
+const REGISTRY_CONCURRENCY = 10;
+
+const NOT_FOUND = 404;
 
 interface DesktopReleasesJson {
   latestVersion?: string;
@@ -251,9 +262,6 @@ export async function fetchLatestObsidianVersion(): Promise<string> {
   }
 }
 
-/**
- * The version the registry currently tags `latest` for `packageName`, or `null` when the lookup fails.
- */
 export async function fetchLatestVersion(packageName: string): Promise<null | string> {
   try {
     const response = await fetch(`${REGISTRY_URL}/${packageName}/latest`);
@@ -268,12 +276,35 @@ export async function fetchLatestVersion(packageName: string): Promise<null | st
 }
 
 /**
- * Resolves every dependency to a concrete `package.json` spec.
- *
- * An explicit version passed to `addPackage` wins, then the pin table, then the registry's current
- * `latest` as a caret range. A registry lookup that fails falls back to the literal `latest` so the
- * generator still works offline.
+ * The version the registry currently tags `latest` for `packageName`, or `null` when the lookup fails.
  */
+/**
+ * Reports which of the given package names the registry has no record of.
+ *
+ * A 404 is distinguished from a failed lookup deliberately. {@link resolveVersions} falls back to the
+ * literal `latest` whenever it cannot reach the registry, so that generating offline still produces a
+ * working `package.json` -- which also means a package name that resolves to nothing lands there
+ * looking perfectly ordinary and fails only at `npm install`. That is exactly how
+ * `esbuild-plugin-preact`, a package that has never existed on npm, reached every preact project the
+ * generator produced.
+ */
+export async function findMissingPackages(packageNames: readonly string[]): Promise<MissingPackage[]> {
+  const missing: MissingPackage[] = [];
+  const queue = [...packageNames];
+
+  async function worker(): Promise<void> {
+    for (let packageName = queue.pop(); packageName !== undefined; packageName = queue.pop()) {
+      const reason = await lookUpPackage(packageName);
+      if (reason !== null) {
+        missing.push({ packageName, reason });
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(REGISTRY_CONCURRENCY, queue.length) }, () => worker()));
+  return missing.sort((a, b) => a.packageName.localeCompare(b.packageName));
+}
+
 export async function resolveVersions(dependencies: readonly Dependency[]): Promise<Map<string, string>> {
   const resolved = new Map<string, string>();
   const unresolved: string[] = [];
@@ -328,4 +359,27 @@ function getPinnedPackageNames(dependencies: readonly Dependency[]): string[] {
 
 function hasPackage(dependencies: readonly Dependency[], packageName: string): boolean {
   return dependencies.some((dependency) => dependency.packageName === packageName);
+}
+
+/**
+ * Resolves every dependency to a concrete `package.json` spec.
+ *
+ * An explicit version passed to `addPackage` wins, then the pin table, then the registry's current
+ * `latest` as a caret range. A registry lookup that fails falls back to the literal `latest` so the
+ * generator still works offline.
+ */
+/** Asks the registry for one package, returning why it is missing or `null` when it is there. */
+async function lookUpPackage(packageName: string): Promise<null | string> {
+  try {
+    const response = await fetch(`${REGISTRY_URL}/${packageName}`, { method: 'HEAD' });
+    if (response.status === NOT_FOUND) {
+      return 'The registry has no such package.';
+    }
+    if (!response.ok) {
+      return `The registry answered ${String(response.status)}; this is inconclusive, not a missing package.`;
+    }
+    return null;
+  } catch (error: unknown) {
+    return `The lookup failed (${error instanceof Error ? error.message : String(error)}); this is inconclusive, not a missing package.`;
+  }
 }

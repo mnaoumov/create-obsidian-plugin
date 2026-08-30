@@ -278,6 +278,24 @@ describe('buildTemplate', () => {
     });
   });
 
+  // Two of these named packages that have never existed on npm, so the answer could not `npm install`
+  // At all -- and `resolveVersions` falls back to the literal `latest` when a lookup fails (so offline
+  // Generation works), which is what let a name resolving to nothing look ordinary in `package.json`.
+  // `npm run verify:answer-space -- --check-registry` is the sweep that catches the next one.
+  describe('bundler plugin packages', () => {
+    it('adds no esbuild plugin for preact, which esbuild handles through its own jsx options', () => {
+      const packages = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'preact' })).dependencies.map((d) => d.packageName);
+      expect(packages).not.toContain('esbuild-plugin-preact');
+      expect(packages).toContain('preact');
+    });
+
+    it('uses the community parcel svelte transformer, the only one that exists', () => {
+      const packages = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' })).dependencies.map((d) => d.packageName);
+      expect(packages).toContain('parcel-transformer-svelte');
+      expect(packages).not.toContain('@parcel/transformer-svelte');
+    });
+  });
+
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
       const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'svelte' }));
@@ -867,6 +885,43 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: '' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).not.toContain('## Support');
+  });
+
+  // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING
+  // Under `node_modules/@types` reaches the program -- measured: zero packages -- so `standalone` failed
+  // Its own `tsc --noEmit` with twelve TS2591s. The odu config and this generator's own tsconfig both
+  // Already named what they need; standalone was the one that did not.
+  it('names the node types in the tsconfig, for both presets', () => {
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
+      const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      expect(tsconfig['compilerOptions']?.['types'], preset).toContain('node');
+    }
+  });
+
+  // The types entry named `obsidian-typings` while the dependency added is
+  // `@obsidian-typings/obsidian-public-latest`, so `with-unofficial` failed `tsc` with TS2688 on every
+  // Preset. The fleet -- including the sample plugin the README advertises as this generator's output --
+  // Names the scoped package in both places and carries no import of the old name at all.
+  it('names the typings package it actually installs, on both presets', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ apiSubset: 'with-unofficial', preset }), targetDir, '1.0.0', null);
+      const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
+      const packageJson = readFileSync(join(targetDir, 'package.json'), 'utf-8');
+      expect(tsconfig['compilerOptions']?.['types'], preset).toContain('@obsidian-typings/obsidian-public-latest');
+      expect(packageJson, preset).toContain('@obsidian-typings/obsidian-public-latest');
+      expect(readFileSync(join(targetDir, 'src/main.ts'), 'utf-8'), preset).not.toContain('obsidian-typings\'');
+    }
+  });
+
+  // The svelte `compile` partial shells out to `svelte-check`, and only the esbuild bundler partial
+  // Renders `import` -- the other four import `execSync` themselves. So esbuild, the DEFAULT bundler,
+  // Emitted a build script calling a name it never imported: `tsc` failed and `npm run build` died.
+  it('imports execSync into the standalone build script that calls it', () => {
+    copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'standalone', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
+    const build = readFileSync(join(targetDir, 'scripts/build.ts'), 'utf-8');
+    expect(build).toContain('svelte-check');
+    expect(build).toContain('from \'node:child_process\'');
   });
 
   it('creates tsconfig.json', () => {
