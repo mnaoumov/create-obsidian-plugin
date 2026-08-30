@@ -611,6 +611,22 @@ describe('copyTemplates', () => {
     expect(manifest['author']).toBe('testuser');
   });
 
+  // `isDesktopOnly` is required in every Obsidian manifest, and it went missing from all of them: the
+  // Two `manifest.json@platform_*` partials were on disk and `manifest.json.ejs` asked for the section,
+  // But `platformSupport` was absent from `FEATURE_REGISTRIES`, so nothing ever contributed either name
+  // And the section rendered as nothing. The answer was prompted for and discarded.
+  it('stamps the platform support answer into the manifest', () => {
+    copyTemplates(makeAnswers({ platformSupport: 'desktop-only' }), targetDir, '1.0.0', null);
+    const desktopOnly = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(desktopOnly['isDesktopOnly']).toBe(true);
+  });
+
+  it('stamps mobile support into the manifest when both platforms are supported', () => {
+    copyTemplates(makeAnswers({ platformSupport: 'desktop-and-mobile' }), targetDir, '1.0.0', null);
+    const both = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(both['isDesktopOnly']).toBe(false);
+  });
+
   it('stamps the resolved minAppVersion into the manifest and versions.json', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null, new Map(), '1.13.7');
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
