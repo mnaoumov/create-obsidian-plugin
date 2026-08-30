@@ -50,3 +50,11 @@ export interface PackageJson {
   name?: string;
   version?: string;
 }
+
+/**
+ * The {@link Answers} keys whose answer is a string -- every question, plus the free-text answers.
+ *
+ * Excludes `currentYear`, the one numeric field, so an answer-space dimension cannot be declared against
+ * a key it could not write a `settingValue` into.
+ */
+export type StringAnswerKey = { [Key in keyof Answers]: Answers[Key] extends string ? Key : never }[keyof Answers];
