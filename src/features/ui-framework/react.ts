@@ -21,8 +21,8 @@ export class React extends FeatureOption {
       .addPackage('react-dom')
       .addSentenceCaseBrand('React')
       .addFiles([
-        'src/ReactComponents/SampleReactComponent.tsx',
-        'src/Views/SampleReactView.tsx'
+        'src/react-components/sample-react-component.tsx',
+        'src/views/sample-react-view.tsx'
       ]);
 
     const plugin = BUILD_PLUGINS[answers.bundler];

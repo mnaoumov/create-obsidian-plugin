@@ -23,12 +23,12 @@ export class Demo extends FeatureOption {
         'scripts/build-compile.ts',
         'scripts/dev.ts',
         'scripts/version.ts',
-        'src/Modals/SampleFormModal.ts',
-        'src/Modals/SampleSuggestModal.ts',
-        'src/PluginSettings.ts',
-        'src/PluginSettingsComponent.ts',
-        'src/PluginSettingsTab.ts',
-        'src/Views/SampleView.ts',
+        'src/modals/sample-form-modal.ts',
+        'src/modals/sample-suggest-modal.ts',
+        'src/plugin-settings.ts',
+        'src/plugin-settings-component.ts',
+        'src/plugin-settings-tab.ts',
+        'src/views/sample-view.ts',
         ...DEMO_VAULT_TEMPLATE_FILES
       ])
       .addPartial('odu');

@@ -19,8 +19,8 @@ export class Preact extends FeatureOption {
       .addPackage('preact')
       .addSentenceCaseBrand('Preact')
       .addFiles([
-        'src/PreactComponents/SamplePreactComponent.tsx',
-        'src/Views/SamplePreactView.tsx'
+        'src/preact-components/sample-preact-component.tsx',
+        'src/views/sample-preact-view.tsx'
       ]);
 
     const plugin = BUILD_PLUGINS[answers.bundler];

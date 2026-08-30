@@ -13,10 +13,10 @@ export class CodeMirror extends FeatureOption {
       .addPackage('@codemirror/state')
       .addPackage('@codemirror/view')
       .addFiles([
-        'src/EditorExtensions/SampleStateField.ts',
-        'src/EditorExtensions/SampleViewPlugin.ts',
-        'src/EditorExtensions/SampleWidget.ts',
-        'src/EditorSuggests/SampleEditorSuggest.ts'
+        'src/editor-extensions/sample-state-field.ts',
+        'src/editor-extensions/sample-view-plugin.ts',
+        'src/editor-extensions/sample-widget.ts',
+        'src/editor-suggests/sample-editor-suggest.ts'
       ]);
   }
 }

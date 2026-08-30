@@ -16,7 +16,7 @@ export class Jest extends FeatureOption {
       .addScript('test:watch')
       .addFiles([
         'jest.config.ts',
-        'src/Plugin.test.ts',
+        'src/plugin.test.ts',
         'scripts/test.ts',
         'scripts/test-watch.ts'
       ]);
