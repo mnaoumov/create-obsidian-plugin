@@ -24,25 +24,25 @@ import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
-import { sampleStateField } from './EditorExtensions/SampleStateField.ts';
-import { sampleViewPlugin } from './EditorExtensions/SampleViewPlugin.ts';
-import { SampleEditorSuggest } from './EditorSuggests/SampleEditorSuggest.ts';
-import { SampleFormModal } from './Modals/SampleFormModal.ts';
-import { SampleSuggestModal } from './Modals/SampleSuggestModal.ts';
-import { PluginSettingsComponent } from './PluginSettingsComponent.ts';
-import { PluginSettingsTab } from './PluginSettingsTab.ts';
+import { sampleStateField } from './editor-extensions/sample-state-field.ts';
+import { sampleViewPlugin } from './editor-extensions/sample-view-plugin.ts';
+import { SampleEditorSuggest } from './editor-suggests/sample-editor-suggest.ts';
+import { SampleFormModal } from './modals/sample-form-modal.ts';
+import { SampleSuggestModal } from './modals/sample-suggest-modal.ts';
+import { PluginSettingsComponent } from './plugin-settings-component.ts';
+import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import {
   SAMPLE_REACT_VIEW_TYPE,
   SampleReactView
-} from './Views/SampleReactView.tsx';
+} from './views/sample-react-view.tsx';
 import {
   SAMPLE_SVELTE_VIEW_TYPE,
   SampleSvelteView
-} from './Views/SampleSvelteView.ts';
+} from './views/sample-svelte-view.ts';
 import {
   SAMPLE_VIEW_TYPE,
   SampleView
-} from './Views/SampleView.ts';
+} from './views/sample-view.ts';
 
 export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
