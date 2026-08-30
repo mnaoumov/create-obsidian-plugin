@@ -1,6 +1,7 @@
 import type { ObsidianPluginVitestConfigContext } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
 import type { TestProjectConfiguration } from 'vitest/config';
 
+import { fileURLToPath } from 'node:url';
 import { defineObsidianPluginVitestConfig } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
 
 /**
@@ -19,6 +20,15 @@ const DEMO_VAULT_TEST_FILES = 'src/**/*.demo-vault.integration.test.ts';
  */
 const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
 
+/**
+ * Where every `.svelte` / `.vue` import in a unit test's module graph is sent. Compiling a single-file
+ * component is the bundler's job, and the plugin that does it is a dependency only of the bundler that
+ * was chosen — so a unit test that imports the plugin's own code would otherwise fail on a file vitest
+ * cannot transform. Absolute, because a vite alias replacement is resolved from the project root rather
+ * than from this file.
+ */
+const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('./framework-component-stub.ts', import.meta.url));
+
 export const config = defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {
     return [
@@ -32,5 +42,12 @@ export const config = defineObsidianPluginVitestConfig({
         }
       }
     ];
+  },
+  // `^.+` is load-bearing, not decoration: a vite alias built from a RegExp replaces only the part the
+  // Pattern MATCHED, so `/\.svelte$/` rewrites the extension and leaves the rest of the specifier glued
+  // To the front of the stub path. The pattern has to cover the whole id.
+  editContext(context: ObsidianPluginVitestConfigContext): void {
+    context.unitTests.alias = [{ find: /^.+\.(?:svelte|vue)$/u, replacement: FRAMEWORK_COMPONENT_STUB_PATH }];
   }
 });
+<%- render('post-config') -%>

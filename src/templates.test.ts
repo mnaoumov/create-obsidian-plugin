@@ -222,6 +222,23 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ testRunner: 'none' }));
       expect(builder.scripts['test']).toBeUndefined();
     });
+
+    // The runtime `obsidian` module. Standalone gets it too: its premise is "no obsidian-dev-utils", and
+    // `obsidian-test-mocks` pulls none of that in -- without it a standalone project can never unit-test
+    // Code that imports `obsidian`. It is tied to the runner rather than to the preset, so a project that
+    // Picked no runner carries no testing dependency at all.
+    it('adds the obsidian mocks for every preset that picks a runner, and never without one', () => {
+      for (const preset of ['standalone', 'enhanced', 'demo']) {
+        for (const testRunner of ['jest', 'vitest']) {
+          const builder = buildTemplate(makeAnswers({ preset, testRunner }));
+          const depNames = builder.dependencies.map((d) => d.packageName);
+          expect(depNames, `${preset} + ${testRunner}`).toContain('obsidian-test-mocks');
+        }
+
+        const withoutRunner = buildTemplate(makeAnswers({ preset, testRunner: 'none' }));
+        expect(withoutRunner.dependencies.map((d) => d.packageName), preset).not.toContain('obsidian-test-mocks');
+      }
+    });
   });
 
   describe('e2e test runner feature', () => {
@@ -1218,6 +1235,85 @@ describe('copyTemplates', () => {
     for (const scriptName of ['scripts/test.ts', 'scripts/test-watch.ts']) {
       const script = readFileSync(join(targetDir, scriptName), 'utf-8');
       expect(script, scriptName).toContain('--experimental-vm-modules');
+    }
+  });
+
+  // The `obsidian` npm package is types-only -- `"main": ""` and a tarball of `.d.ts` files -- so nothing
+  // Resolves it at runtime. All three pieces are load-bearing for jest: the mapper (there is no module for
+  // A `jest.mock('obsidian')` to stand in for), the setup files (the prototype extensions and globals
+  // Obsidian installs), and jsdom (that setup writes to `Document`, `Element` and `window`). Miss one and
+  // The sample test cannot even load the plugin it is testing.
+  it('points jest at the obsidian mocks', () => {
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
+      const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
+      expect(jestConfig, preset).toContain('\'^obsidian$\': \'obsidian-test-mocks/obsidian\'');
+      expect(jestConfig, preset).toContain('obsidian-test-mocks/jest-setup');
+      expect(jestConfig, preset).toContain('testEnvironment: \'jsdom\'');
+    }
+  });
+
+  // The odu presets get their alias from `defineObsidianPluginVitestConfig`; standalone has no such
+  // Config, so it declares both halves itself. Both ARE needed: `vitest-setup` only calls
+  // `vi.mock('obsidian')`, and vite has to resolve the specifier before that mock is ever consulted.
+  it('points the standalone vitest config at the obsidian mocks', () => {
+    copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    const vitestConfig = readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8');
+    expect(vitestConfig).toContain('obsidian: \'obsidian-test-mocks/obsidian\'');
+    expect(vitestConfig).toContain('obsidian-test-mocks/vitest-setup');
+    expect(vitestConfig).toContain('environment: \'jsdom\'');
+  });
+
+  // Compiling a single-file component needs a plugin that is a dependency only of the chosen bundler, so
+  // Both runners alias `.svelte` / `.vue` to a stub instead. Not optional on `preset: demo`, whose
+  // `plugin.ts` imports the svelte view unconditionally -- without the stub it cannot be imported at all.
+  it('stubs single-file components for both runners', () => {
+    for (const testRunner of ['jest', 'vitest']) {
+      copyTemplates(makeAnswers({ preset: 'demo', testRunner }), targetDir, '1.0.0', null);
+      const stub = readFileSync(join(targetDir, 'scripts/framework-component-stub.ts'), 'utf-8');
+      expect(stub, testRunner).toContain('export default function frameworkComponentStub');
+      const configPath = testRunner === 'jest' ? 'jest.config.ts' : 'scripts/vitest-config.ts';
+      expect(readFileSync(join(targetDir, configPath), 'utf-8'), testRunner).toContain('framework-component-stub.ts');
+    }
+
+    // Jest needs the whole `svelte` package stubbed as well, not only the component: svelte reaches its
+    // Own runtime through Node subpath imports and jest's ESM resolver hands back the types entry for
+    // Those, so every suite that loads it dies on a missing `COMMENT_NODE` export. Vitest resolves them.
+    copyTemplates(makeAnswers({ preset: 'demo', testRunner: 'jest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('\'^svelte$\'');
+  });
+
+  // Solid compiles its JSX with `babel-preset-solid`, so its `tsconfig.json` says `jsx: 'preserve'` --
+  // Which neither unit runner can consume. ts-jest emits the JSX untouched ("Unexpected token '<'") and
+  // Vite refuses to parse it at all. Both get the automatic runtime from `solid-js/h`, the entry point
+  // That publishes a `jsx-runtime`; plain `solid-js` does not.
+  it('gives both runners a JSX runtime for the solid answer, and only for it', () => {
+    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('jsxImportSource: \'solid-js/h\'');
+
+    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'vitest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8')).toContain('importSource: \'solid-js/h\'');
+
+    copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8')).toContain('importSource: \'solid-js/h\'');
+
+    // Wrong for every other framework's runtime, so it must not leak into them.
+    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('solid-js');
+  });
+
+  // The point of the whole exercise. A sample test that imports nothing passes on every combination while
+  // Proving nothing, which is what hid the missing `obsidian` runtime for as long as it did. Importing the
+  // Plugin under test is what gives the gate tier's non-zero collected-test count something to mean.
+  it('emits a sample test that imports the plugin under test', () => {
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const testRunner of ['jest', 'vitest']) {
+        copyTemplates(makeAnswers({ preset, testRunner }), targetDir, '1.0.0', null);
+        const sample = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
+        const label = `${preset} + ${testRunner}`;
+        expect(sample, label).toContain('from \'./plugin.ts\'');
+        expect(sample, label).toContain('from \'obsidian\'');
+      }
     }
   });
 

@@ -84,6 +84,49 @@ Only the `odu` presets get one: `standalone` has no release flow to do the injec
 
 Two suites guard it, both emitted only when the preset is `odu` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
 
+### Unit tests import the plugin, which is what forces every piece of the mock wiring
+
+The emitted `src/plugin.test.ts` imports `./plugin.ts` and asserts the class extends Obsidian's `Plugin`.
+It used to import nothing and assert `1 + 1 === 2`, which passed on every combination while proving
+nothing — the gate tier's non-zero collected-test count only means something once the sample test
+actually loads the code under test. Everything below exists because that import has to work; none of it
+is optional decoration, and each piece was found by a combination that failed without it.
+
+- **`obsidian` is types-only** (`"main": ""`, a tarball of `.d.ts` files), so it must be aliased to
+  `obsidian-test-mocks/obsidian` in every runner. The odu presets get that free from
+  `defineObsidianPluginVitestConfig`'s `unit-tests` project; `standalone`'s own `vitest.config.ts` and
+  `jest.config.ts` declare it themselves. `obsidian-test-mocks` is therefore added by the **test-runner**
+  answer, not the preset — `standalone`'s premise is "no obsidian-dev-utils", which this does not breach,
+  and a project on `testRunner: 'none'` gets none of it.
+- **The alias is not enough on its own for vitest, and the setup file is not enough either.**
+  `obsidian-test-mocks/vitest-setup` calls `vi.mock('obsidian')`, but vite has to *resolve* the specifier
+  before the mock is consulted. Both halves ship.
+- **jsdom, not node.** `obsidian-test-mocks`' `setup()` writes to `Document.prototype`,
+  `Element.prototype` and `window`. Jest needs `jest-environment-jsdom` installed by name.
+- **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
+  Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
+  `preset: demo` imports the svelte view from `plugin.ts` **unconditionally**, so this is not a
+  svelte-answer-only concern. The mapping is emitted for every jest project and every odu vitest project
+  rather than through partials: the pattern does not depend on any answer, which keeps the two configs
+  identical across the matrix and avoids the partial-built-list trailing comma trap below.
+- **A vite alias built from a RegExp replaces only what the pattern MATCHED.** `/\.svelte$/` rewrites the
+  extension and leaves the rest of the specifier glued to the front of the replacement path — a failure
+  that reports as "Failed to resolve import … Does the file exist?" on a file that plainly does. Hence
+  `^.+` in `scripts/vitest-config.ts`. It is set through `editContext`, which hands over the live
+  `unitTests` object; `test.alias` works there, and project-level `resolve.alias` is not reachable from
+  that seam.
+- **jest additionally stubs the whole `svelte` package.** Svelte reaches its own runtime through Node
+  subpath imports (`#client/constants`), and jest's ESM resolver hands back the *types* entry for those,
+  so any suite that loads svelte dies on a missing `COMMENT_NODE` export before it runs. The stub exports
+  the `mount` / `unmount` the generated view uses; another `svelte` import needs adding there. Vitest
+  resolves the subpath imports correctly and stubs only the component.
+- **Solid needs a JSX runtime in both runners.** Its tsconfig sets `jsx: 'preserve'` for
+  `babel-preset-solid`, which ts-jest emits untouched (`Unexpected token '<'`) and vite refuses to parse
+  at all. Both configs override it to the automatic runtime from **`solid-js/h`** — the entry point that
+  publishes a `jsx-runtime`; plain `solid-js` does not. These two are per-answer and so DO go through
+  partials (`jest.config.ts@ts-jest-tsconfig_solid`, `vitest.config.ts_standalone@jsx_solid`,
+  `scripts/vitest-config.ts@post-config_solid`).
+
 ### Root configs are thin wrappers
 
 All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `commitlint.config.ts`, `vitest.config.ts`) are minimal re-exports from `scripts/`. Root `package.json` scripts all use `jiti scripts/*.ts`.
