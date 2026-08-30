@@ -1126,6 +1126,23 @@ describe('copyTemplates', () => {
     expect(config).toContain('prettier --write');
   });
 
+  // All three were registered, but `isPartialFile` reads any `_` in a basename as the partial marker,
+  // So the render loop skipped `bug_report.yml` and `feature_request.yml` and wrote only `config.yml` --
+  // Leaving every project that asked for issue templates pointing at forms that did not exist.
+  it('creates all three issue template files, not just the one without an underscore', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    for (const name of ['bug-report.yml', 'config.yml', 'feature-request.yml']) {
+      const path = join(targetDir, '.github/ISSUE_TEMPLATE', name);
+      expect(existsSync(path), `${name} should be created`).toBe(true);
+      expect(readFileSync(path, 'utf-8').trim(), `${name} should not be empty`).not.toBe('');
+    }
+  });
+
+  it('does not create issue template files when gitHubIssueTemplates is none', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'none' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, '.github/ISSUE_TEMPLATE'))).toBe(false);
+  });
+
   it('does not create workflow files when gitHubActions is none', () => {
     copyTemplates(makeAnswers({ gitHubActions: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/workflows/ci.yml'))).toBe(false);
