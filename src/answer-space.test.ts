@@ -17,17 +17,32 @@ import {
 import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
 
 describe('ANSWER_SPACE', () => {
-  const QUESTION_COUNT = 21;
-  const EXPECTED_ANSWER_SPACE_SIZE = 3_762_339_840;
+  const DIMENSION_COUNT = 23;
+  const CHOICE_QUESTION_COUNT = 21;
+  const CHOICE_QUESTION_SPACE_SIZE = 3_762_339_840;
+  const PRESENCE_BRANCHES = ['fundingUrl', 'obsidianConfigFolder'];
+  const PRESENCE_BRANCH_VALUE_COUNT = 2;
+  const EXPECTED_ANSWER_SPACE_SIZE = CHOICE_QUESTION_SPACE_SIZE * PRESENCE_BRANCH_VALUE_COUNT ** PRESENCE_BRANCHES.length;
   const OUT_OF_RANGE_VALUE_INDEX = 99;
   const NON_INTEGER_ORDINAL = 1.5;
-  const FIXED_ANSWER_COUNT = 10;
+  const FIXED_ANSWER_COUNT = 8;
 
-  it('has one dimension per question the generator asks', () => {
-    expect(ANSWER_SPACE).toHaveLength(QUESTION_COUNT);
+  it('has one dimension per choice question, plus the two presence branches', () => {
+    expect(ANSWER_SPACE).toHaveLength(DIMENSION_COUNT);
+    expect(DIMENSION_COUNT - PRESENCE_BRANCHES.length).toBe(CHOICE_QUESTION_COUNT);
   });
 
-  it('reports the size as the product of every question', () => {
+  // The two free-text answers are a branch, not decoration: `buildTemplate` contributes `has-funding`
+  // And `has-vault-true`/`has-vault-false` on nothing but whether they are empty. A space without them
+  // Reports those three partials as unreachable, which says nothing about the templates.
+  it('branches on whether the two free-text answers were given', () => {
+    for (const answerKey of PRESENCE_BRANCHES) {
+      expect(findDimension(answerKey as 'fundingUrl').values[0]).toBe('');
+      expect(findDimension(answerKey as 'fundingUrl').values).toHaveLength(PRESENCE_BRANCH_VALUE_COUNT);
+    }
+  });
+
+  it('reports the size as the product of every dimension', () => {
     const expected = ANSWER_SPACE_DIMENSION_SIZES.reduce((product, size) => product * size, 1);
     expect(ANSWER_SPACE_SIZE).toBe(expected);
     // Stated outright so a question quietly gained or lost is a failing assertion, not a silent reshape.
@@ -69,7 +84,7 @@ describe('ANSWER_SPACE', () => {
   describe('makeAnswers', () => {
     it('fills every answer, with no gaps for a template to render as undefined', () => {
       const answers = makeAnswers();
-      expect(Object.keys(answers)).toHaveLength(QUESTION_COUNT + FIXED_ANSWER_COUNT);
+      expect(Object.keys(answers)).toHaveLength(DIMENSION_COUNT + FIXED_ANSWER_COUNT);
       for (const [key, value] of Object.entries(answers)) {
         expect(value, `${key} should be answered`).not.toBeUndefined();
       }

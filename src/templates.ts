@@ -305,6 +305,16 @@ export function copyTemplates(
   return newConfig;
 }
 
+/**
+ * Resolves a registered template path to the path the generated project gets, substituting answers.
+ *
+ * Exported so the plan-level checks decide "do two registered files land on the same destination?" by
+ * the same rule the generator writes them, rather than by a second copy of it that could drift.
+ */
+export function getDestinationPath(templatePath: string, answers: Answers): string {
+  return templatePath.replace(/%= (?<AnswerKey>.+?) %/g, (_match: string, ...args: unknown[]) => String(answers[String(args[0]) as keyof Answers]));
+}
+
 export function getScriptDir(): string {
   return dirname(fileURLToPath(import.meta.url));
 }
@@ -318,10 +328,6 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   const raw = parsed as Record<string, unknown>;
   migrateAnswers(raw);
   return parsed as GeneratorConfig;
-}
-
-function getDestinationPath(templatePath: string, answers: Answers): string {
-  return templatePath.replace(/%= (?<AnswerKey>.+?) %/g, (_match: string, ...args: unknown[]) => String(answers[String(args[0]) as keyof Answers]));
 }
 
 function isPartialFile(templatePath: string): boolean {

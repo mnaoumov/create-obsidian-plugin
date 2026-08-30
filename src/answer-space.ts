@@ -34,14 +34,26 @@ export interface AnswerDimension {
   values: readonly string[];
 }
 
+/** A funding URL that is present, for the dimension that branches on whether one was given at all. */
+const SAMPLE_FUNDING_URL = 'https://buymeacoffee.com/testuser';
+
+/** A vault config folder that is present, for the dimension that branches on whether one was given. */
+const SAMPLE_OBSIDIAN_CONFIG_FOLDER = 'demo-vault/.obsidian';
+
 /**
- * Every question the generator asks, derived from the feature option arrays themselves.
+ * Every answer that changes what the generator emits, derived from the feature option arrays themselves.
  *
  * Derived rather than hand-listed so that adding an option to any `src/features/<question>/index.ts`
  * widens the verified space automatically -- a hand-written copy would silently stop covering the new
  * value. This is deliberately NOT `FEATURE_REGISTRIES` (`src/templates.ts`): that list is only the
  * questions whose options contribute a partial, and a question missing from it is exactly the defect
  * class the plan-level checks exist to catch.
+ *
+ * The 21 choice questions are joined by two **presence branches**: `fundingUrl` and
+ * `obsidianConfigFolder` are free text, but `buildTemplate` contributes `has-funding` and
+ * `has-vault-true` / `has-vault-false` purely on whether they are empty. Leaving them out would report
+ * those three partials as unreachable, which is not a finding about the templates -- it is a gap in the
+ * space. Their content varies nothing else, so two values each is the whole branch.
  */
 export const ANSWER_SPACE: readonly AnswerDimension[] = [
   toDimension('apiSubset', API_SUBSET_OPTIONS),
@@ -50,6 +62,7 @@ export const ANSWER_SPACE: readonly AnswerDimension[] = [
   toDimension('e2eTestRunner', E2E_TEST_RUNNER_OPTIONS),
   toDimension('editorExtensions', EDITOR_EXTENSIONS_OPTIONS),
   toDimension('formatter', FORMATTER_OPTIONS),
+  toValueDimension('fundingUrl', ['', SAMPLE_FUNDING_URL]),
   toDimension('gitHubActions', GITHUB_ACTIONS_OPTIONS),
   toDimension('gitHubFunding', GITHUB_FUNDING_OPTIONS),
   toDimension('gitHubIssueTemplates', GITHUB_ISSUE_TEMPLATES_OPTIONS),
@@ -57,6 +70,7 @@ export const ANSWER_SPACE: readonly AnswerDimension[] = [
   toDimension('internationalization', INTERNATIONALIZATION_OPTIONS),
   toDimension('linter', LINTER_OPTIONS),
   toDimension('markdownLinter', MARKDOWN_LINTER_OPTIONS),
+  toValueDimension('obsidianConfigFolder', ['', SAMPLE_OBSIDIAN_CONFIG_FOLDER]),
   toDimension('packageManager', PACKAGE_MANAGER_OPTIONS),
   toDimension('platformSupport', PLATFORM_SUPPORT_OPTIONS),
   toDimension('preset', PRESET_OPTIONS),
@@ -86,8 +100,6 @@ const FIXED_ANSWERS = {
   authorName: 'Test User',
   currentYear: VERIFICATION_CURRENT_YEAR,
   defaultBranch: 'main',
-  fundingUrl: '',
-  obsidianConfigFolder: '',
   pluginDescription: 'A generated plugin.',
   pluginId: 'my-plugin',
   pluginName: 'My Plugin',
@@ -170,4 +182,8 @@ function toDimension(answerKey: StringAnswerKey, options: readonly FeatureOption
     answerKey,
     values: options.map((option) => option.settingValue)
   };
+}
+
+function toValueDimension(answerKey: StringAnswerKey, values: readonly string[]): AnswerDimension {
+  return { answerKey, values };
 }
