@@ -1,0 +1,11 @@
+  // Solid compiles its JSX with `babel-preset-solid`, so `tsconfig.json` sets `jsx: 'preserve'` and
+  // Leaves the JSX in place for the bundler. Vite refuses to parse a file in that state at all -- "make
+  // Sure to not set jsx to preserve" -- so the suites transform it with the automatic runtime instead,
+  // From `solid-js/h`, the entry point that publishes a `jsx-runtime` (plain `solid-js` does not).
+  // Reactivity is not compiled in, which unit tests do not need.
+  oxc: {
+    jsx: {
+      importSource: 'solid-js/h',
+      runtime: 'automatic'
+    }
+  },

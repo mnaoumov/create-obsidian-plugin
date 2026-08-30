@@ -1,0 +1,8 @@
+        // Solid compiles its JSX with `babel-preset-solid`, so the project's own tsconfig sets
+        // `jsx: 'preserve'` and leaves the JSX in place for the bundler. ts-jest has no babel step, so
+        // Preserved JSX reaches jest as `SyntaxError: Unexpected token '<'`. The automatic runtime is
+        // What ts-jest can emit on its own, and `solid-js/h` is the entry point that has one -- plain
+        // `solid-js` publishes no `jsx-runtime`. Reactivity is not compiled in, which unit tests do not
+        // Need; rendering a Solid component is an integration-test job.
+        jsx: 'react-jsx',
+        jsxImportSource: 'solid-js/h',

@@ -1,8 +1,24 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+<%- render('jsx') -%>
+  resolve: {
+    // The `obsidian` npm package is types-only: `"main": ""`, and a published tarball carrying nothing
+    // But `.d.ts` files. Vite has to resolve the specifier before `vi.mock` is ever consulted, so the
+    // Setup file below is not enough on its own -- without this alias every test that touches the
+    // Plugin's own code fails to resolve `obsidian` at all.
+    alias: {
+      obsidian: 'obsidian-test-mocks/obsidian'
+    }
+  },
   test: {
+    // `obsidian-test-mocks`' `setup()` writes to `Document.prototype`, `Element.prototype` and
+    // `window`, none of which exist in the `node` environment.
+    environment: 'jsdom',
     globals: true,
-    environment: 'node'
+    setupFiles: [
+      'obsidian-test-mocks/vitest-setup',
+      'obsidian-test-mocks/obsidian-typings/vitest-setup'
+    ]
   }
 });

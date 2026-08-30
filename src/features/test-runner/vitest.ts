@@ -11,6 +11,13 @@ export class Vitest extends FeatureOption {
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
+      // The unit-test suites run in the jsdom environment, and vitest resolves that from the consuming
+      // Project rather than from vitest itself.
+      .addPackage('jsdom')
+      // The runtime `obsidian` module, plus the setup file that patches the prototypes and globals
+      // Obsidian installs. The npm package is types-only -- `"main": ""` and a tarball of `.d.ts` files
+      // -- so without this every test that touches the plugin's own code dies in the resolver.
+      .addPackage('obsidian-test-mocks')
       .addPackage('vitest')
       .addScript('test')
       .addScript('test:watch')
@@ -32,18 +39,13 @@ export class Vitest extends FeatureOption {
     // Nothing, which looks exactly like passing.
     builder
       .addPackage('@vitest/coverage-v8')
-      // The `unit-tests` project `defineObsidianPluginVitestConfig` declares runs in the jsdom
-      // Environment, and vitest resolves that from the consuming project, not from obsidian-dev-utils.
-      .addPackage('jsdom')
-      // The `unit-tests` project's `setupFiles` point at `obsidian-test-mocks/vitest-setup`, which the
-      // Consuming project has to provide.
-      .addPackage('obsidian-test-mocks')
       .addScript('test:coverage')
       .addScript('test:integration')
       .addScript('test:integration:demo-vault')
       .addScript('test:integration:no-app')
       .addFiles([
         'scripts/demo-vault-global-setup.ts',
+        'scripts/framework-component-stub.ts',
         'scripts/test-coverage.ts',
         'scripts/test-integration.ts',
         'scripts/test-integration-demo-vault.ts',

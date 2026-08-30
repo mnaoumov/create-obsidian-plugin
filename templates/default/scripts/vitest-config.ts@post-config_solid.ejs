@@ -1,0 +1,31 @@
+
+/** The shape of a project entry this file reaches into, which vitest's own union type does not narrow to. */
+interface JsxProject {
+  oxc?: {
+    jsx: {
+      importSource: string;
+      runtime: string;
+    };
+  };
+}
+
+/*
+ * Solid compiles its JSX with `babel-preset-solid`, so the project's `tsconfig.json` sets
+ * `jsx: 'preserve'` and leaves the JSX in place for the bundler. Vite refuses to parse a file in that
+ * state at all -- "make sure to not set jsx to preserve" -- so every suite whose module graph reaches a
+ * `.tsx` file fails before it runs. The test projects transform JSX with the automatic runtime instead,
+ * from `solid-js/h`, which is the entry point that publishes a `jsx-runtime`; plain `solid-js` does not.
+ * Reactivity is not compiled in, which unit tests do not need -- rendering a Solid component is an
+ * integration-test job.
+ *
+ * Applied here rather than through `editContext`, which reaches a project's `test` section only, while
+ * `oxc` is a vite-level option on the project itself.
+ */
+for (const project of (config as unknown as { test: { projects: JsxProject[] } }).test.projects) {
+  project.oxc = {
+    jsx: {
+      importSource: 'solid-js/h',
+      runtime: 'automatic'
+    }
+  };
+}

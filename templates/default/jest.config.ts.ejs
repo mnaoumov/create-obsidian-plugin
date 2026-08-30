@@ -4,8 +4,32 @@ const config: Config = {
   // The project is `"type": "module"` and the tsconfig is `module: node16`, so ts-jest emits ESM. Jest
   // treats `.ts` as CommonJS unless told otherwise, and then fails to `require` that output.
   extensionsToTreatAsEsm: ['.ts'],
-  testEnvironment: 'node',
+  moduleNameMapper: {
+    // Compiling a single-file component is the bundler's job, not the unit runner's -- and the plugin
+    // That does it is only a dependency when the matching bundler was chosen. A unit test that reaches
+    // One through the plugin's module graph gets this stub instead, so the graph loads.
+    '\\.(svelte|vue)$': '<rootDir>/scripts/framework-component-stub.ts',
+    // The `obsidian` npm package is types-only: `"main": ""`, and a published tarball carrying nothing
+    // But `.d.ts` files. There is no module for jest to resolve at runtime, so without this every test
+    // That touches the plugin's own code dies in the resolver with "Cannot find module 'obsidian'".
+    // A `jest.mock('obsidian')` in a setup file cannot stand in for it: it has the same nothing to
+    // Resolve.
+    '^obsidian$': 'obsidian-test-mocks/obsidian',
+    // Svelte reaches its own runtime through Node subpath imports (`#client/constants`), and jest's ESM
+    // Resolver hands back the types entry for those -- so any suite that loads `svelte` dies on "does not
+    // Provide an export named 'COMMENT_NODE'" before it can run. The whole package therefore goes to the
+    // Stub too, which exports the `mount` / `unmount` the generated view uses. Vitest resolves the subpath
+    // Imports correctly and needs none of this.
+    '^svelte$': '<rootDir>/scripts/framework-component-stub.ts'
+  },
   roots: ['<rootDir>/src'],
+  setupFiles: [
+    'obsidian-test-mocks/jest-setup',
+    'obsidian-test-mocks/obsidian-typings/jest-setup'
+  ],
+  // `obsidian-test-mocks`' `setup()` writes to `Document.prototype`, `Element.prototype` and `window`,
+  // None of which exist in jest's default `node` environment.
+  testEnvironment: 'jsdom',
   testMatch: ['**/*.test.ts'],
   transform: {
     // Replaces `preset: 'ts-jest'`, which is transform-only and leaves nowhere to put these options.
@@ -13,8 +37,14 @@ const config: Config = {
     // also read by the bundler scripts, while ts-jest compiles WITH emit and so raises TS5011 on an
     // inferred common source directory. `.` not `./src`: the tsconfig's `include` also covers `./*.ts`
     // and `./scripts/**/*.ts`. The object is merged over the tsconfig, not substituted for it.
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { rootDir: '.' }, useESM: true }],
-  },
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: {
+<%- render('ts-jest-tsconfig') -%>
+        rootDir: '.'
+      },
+      useESM: true
+    }]
+  }
 };
 
 export default config;
