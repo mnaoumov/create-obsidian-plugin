@@ -54,6 +54,10 @@ export const config = {
   output: {
     file: `${distFolder}/main.js`,
     format: 'cjs',
+    // An Obsidian plugin is one file: the manifest names `main.js` and nothing loads a second chunk.
+    // Any dynamic import in the sources -- the obsidian-dev-utils presets have several -- otherwise
+    // Makes rollup refuse `output.file` and demand `output.dir`.
+    inlineDynamicImports: true,
     sourcemap: prod ? false : 'inline',
     exports: 'default',
     banner: `/*
@@ -71,8 +75,8 @@ if you want to view the source, please visit the github repository of this plugi
     // Overrides belong here, in the one tool that needs them, exactly as `jest.config.ts` overrides
     // `rootDir` for the same reason.
     typescript({
-      allowImportingTsExtensions: false,
       noEmit: false,
+      rewriteRelativeImportExtensions: true,
       outDir: distFolder,
       sourceMap: !prod,
     }),
