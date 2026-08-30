@@ -93,7 +93,7 @@ describe('buildTemplate', () => {
       expect(files).toContain('scripts/dev.ts');
       expect(files).toContain('scripts/version.ts');
       expect(files).toContain('src/main.ts');
-      expect(files).toContain('src/Plugin.ts');
+      expect(files).toContain('src/plugin.ts');
     });
 
     it('includes common partial', () => {
@@ -307,8 +307,8 @@ describe('buildTemplate', () => {
     it('adds preact component files', () => {
       const builder = buildTemplate(makeAnswers({ uiFramework: 'preact' }));
       const files = [...builder.templateFiles];
-      expect(files).toContain('src/PreactComponents/SamplePreactComponent.tsx');
-      expect(files).toContain('src/Views/SamplePreactView.tsx');
+      expect(files).toContain('src/preact-components/sample-preact-component.tsx');
+      expect(files).toContain('src/views/sample-preact-view.tsx');
     });
 
     it('adds solid packages and build plugin for vite', () => {
@@ -321,8 +321,8 @@ describe('buildTemplate', () => {
     it('adds solid component files', () => {
       const builder = buildTemplate(makeAnswers({ uiFramework: 'solid' }));
       const files = [...builder.templateFiles];
-      expect(files).toContain('src/SolidComponents/SampleSolidComponent.tsx');
-      expect(files).toContain('src/Views/SampleSolidView.tsx');
+      expect(files).toContain('src/solid-components/sample-solid-component.tsx');
+      expect(files).toContain('src/views/sample-solid-view.tsx');
     });
 
     it('adds lit packages and files', () => {
@@ -330,8 +330,8 @@ describe('buildTemplate', () => {
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('lit');
       const files = [...builder.templateFiles];
-      expect(files).toContain('src/LitElements/SampleLitElement.ts');
-      expect(files).toContain('src/Views/SampleLitView.ts');
+      expect(files).toContain('src/lit-elements/sample-lit-element.ts');
+      expect(files).toContain('src/views/sample-lit-view.ts');
     });
   });
 
@@ -357,7 +357,7 @@ describe('buildTemplate', () => {
 
     it('keeps the two obsidian-dev-utils presets mutually exclusive', () => {
       // A file with both an `_enhanced` and a `_demo` whole-file partial is composed by concatenating
-      // Every match, so a `demo` build that also carried `enhanced` emitted `src/Plugin.ts` twice over.
+      // Every match, so a `demo` build that also carried `enhanced` emitted `src/plugin.ts` twice over.
       const demoPartials = buildTemplate(makeAnswers({ preset: 'demo' })).partials;
       expect(demoPartials.has('demo')).toBe(true);
       expect(demoPartials.has('enhanced')).toBe(false);
@@ -783,7 +783,7 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ preset: 'demo' }), targetDir, '1.0.0', null);
     // A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so
     // While `demo` also carried the `enhanced` partial each of these was emitted twice over.
-    for (const relativePath of ['src/Plugin.ts', 'src/PluginSettings.ts', 'src/PluginSettingsComponent.ts', 'src/PluginSettingsTab.ts']) {
+    for (const relativePath of ['src/plugin.ts', 'src/plugin-settings.ts', 'src/plugin-settings-component.ts', 'src/plugin-settings-tab.ts']) {
       const content = readFileSync(join(targetDir, relativePath), 'utf-8');
       const declarationCount = [...content.matchAll(/^export class (?<ClassName>\w+)/gm)].filter((match) => match.groups?.['ClassName'] !== 'TypedItem').length;
       expect(declarationCount, relativePath).toBe(1);
@@ -1122,9 +1122,7 @@ describe('copyTemplates', () => {
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
   });
 
-  it('does not produce empty files', () => {
-    copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
-
+  it('does not produce empty files for any preset and ui framework', () => {
     function walk(dir: string): string[] {
       const results: string[] = [];
       for (const entry of readdirSync(dir)) {
@@ -1138,10 +1136,21 @@ describe('copyTemplates', () => {
       return results;
     }
 
-    const files = walk(targetDir).filter((f) => !f.endsWith('.json'));
-    for (const file of files) {
-      const content = readFileSync(file, 'utf-8');
-      expect(content.trim(), `File "${file}" should not be empty`).not.toBe('');
+    // A registered file with no direct `.ejs` is composed by concatenating `${basePath}_${partial}.ejs`,
+    // And an unresolved partial renders `''` rather than failing -- so a variant file whose name drifted
+    // Out of lockstep with its base produces an EMPTY destination that nothing else notices. One answer
+    // Set cannot see that: each ui framework pulls its own partials, so the sweep has to be the matrix.
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const uiFramework of ['none', 'lit', 'preact', 'react', 'solid', 'svelte', 'vue']) {
+        rmSync(targetDir, { force: true, recursive: true });
+        targetDir = mkdtempSync(join(tmpdir(), 'obsidian-plugin-test-'));
+        copyTemplates(makeAnswers({ preset, uiFramework }), targetDir, '1.0.0', null);
+
+        for (const file of walk(targetDir).filter((f) => !f.endsWith('.json'))) {
+          const content = readFileSync(file, 'utf-8');
+          expect(content.trim(), `${preset}/${uiFramework}: file "${file}" should not be empty`).not.toBe('');
+        }
+      }
     }
   });
 });
