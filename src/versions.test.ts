@@ -6,13 +6,13 @@ import {
   vi
 } from 'vitest';
 
-import { Dependency } from '../src/template-builder.ts';
+import { Dependency } from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
   PINNED_VERSIONS,
   resolveVersions
-} from '../src/versions.ts';
+} from './versions.ts';
 
 interface ParsedPin {
   check: null | string;
