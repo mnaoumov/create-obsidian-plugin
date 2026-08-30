@@ -44,6 +44,7 @@ import { TemplateBuilder } from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
+  FALLBACK_MIN_APP_VERSION,
   PINNED_VERSIONS
 } from './versions.ts';
 
@@ -171,7 +172,8 @@ export function copyTemplates(
   targetDir: string,
   currentVersion: string,
   existingConfig: GeneratorConfig | null,
-  resolvedVersions: ReadonlyMap<string, string> = new Map()
+  resolvedVersions: ReadonlyMap<string, string> = new Map(),
+  minAppVersion: string = FALLBACK_MIN_APP_VERSION
 ): GeneratorConfig {
   const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
   const newConfig: GeneratorConfig = {
@@ -194,6 +196,7 @@ export function copyTemplates(
       version: dependency.version ?? resolvedVersions.get(dependency.packageName) ?? PINNED_VERSIONS[dependency.packageName]?.version ?? UNRESOLVED_VERSION
     })),
     _lintStagedPatterns: builder.lintStagedPatterns,
+    _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _pinnedVersionsJson: buildPinnedVersionsJson(dependencies),
     _scripts: builder.scripts,
@@ -370,6 +373,11 @@ function migrateAnswers(raw: Record<string, unknown>): void {
     answers['bundler'] = answers['buildSystem'];
     delete answers['buildSystem'];
   }
+  // Projects generated before the branch was configurable have no answer to carry forward, and the
+  // Workflow they were emitted with hardcoded `master`. Migrating to that -- not to the new `main`
+  // Default -- is what leaves their `ci.yml` byte-identical, so an update reports no change instead of
+  // Silently retargeting a CI trigger. Re-prompting is how they opt into `main`.
+  answers['defaultBranch'] ??= 'master';
 }
 
 function sha256(content: string): string {

@@ -34,6 +34,7 @@ function makeAnswers(overrides: Partial<Answers> = {}): Answers {
     bundler: 'esbuild',
     commitLinting: 'none',
     currentYear: CURRENT_YEAR,
+    defaultBranch: 'main',
     e2eTestRunner: 'none',
     editorExtensions: 'none',
     formatter: 'none',
@@ -86,6 +87,46 @@ describe('copyTemplates', () => {
     expect(manifest['id']).toBe('my-plugin');
     expect(manifest['name']).toBe('My Plugin');
     expect(manifest['author']).toBe('testuser');
+  });
+
+  it('stamps the resolved minAppVersion into the manifest and versions.json', () => {
+    copyTemplates(makeAnswers(), targetDir, '1.0.0', null, new Map(), '1.13.7');
+    const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    const versions = JSON.parse(readFileSync(join(targetDir, 'versions.json'), 'utf-8')) as Record<string, unknown>;
+    expect(manifest['minAppVersion']).toBe('1.13.7');
+    // `versions.json` maps each released version to the app version it needs, so its only entry has to
+    // Agree with the manifest it ships next to.
+    expect(versions[manifest['version'] as string]).toBe('1.13.7');
+  });
+
+  it('falls back to a manifest that claims no minimum app version', () => {
+    copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+    const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(manifest['minAppVersion']).toBe('0.0.0');
+  });
+
+  it('adds the commit script only when commit linting is on', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
+    const withLinting = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+    expect(withLinting.scripts['commit']).toBe('jiti scripts/commit.ts');
+    expect(existsSync(join(targetDir, 'scripts', 'commit.ts'))).toBe(true);
+
+    rmSync(targetDir, { force: true, recursive: true });
+    targetDir = mkdtempSync(join(tmpdir(), 'obsidian-plugin-test-'));
+    copyTemplates(makeAnswers({ commitLinting: 'none' }), targetDir, '1.0.0', null);
+    const withoutLinting = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+    expect(withoutLinting.scripts).not.toHaveProperty('commit');
+  });
+
+  it('triggers the CI workflow on the chosen default branch', () => {
+    for (const defaultBranch of ['main', 'master', 'trunk']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ defaultBranch, gitHubActions: 'ci' }), targetDir, '1.0.0', null);
+      const ci = readFileSync(join(targetDir, '.github', 'workflows', 'ci.yml'), 'utf-8');
+      // `git init -b <defaultBranch>` uses the same answer, so a workflow naming a different branch is
+      // A workflow that never fires.
+      expect(ci, defaultBranch).toContain(`branches: [${defaultBranch}]`);
+    }
   });
 
   it('excludes fundingUrl from manifest when empty', () => {

@@ -41,6 +41,7 @@ import {
   loadConfig
 } from './templates.ts';
 import {
+  fetchLatestObsidianVersion,
   fetchLatestVersion,
   resolveVersions
 } from './versions.ts';
@@ -52,6 +53,11 @@ interface ExecError extends Error {
 interface ExecResult {
   stderr: string;
   stdout: string;
+}
+
+interface ResolvedExternalVersions {
+  minAppVersion: string;
+  resolvedVersions: ReadonlyMap<string, string>;
 }
 
 interface SavedConfig {
@@ -143,12 +149,18 @@ async function main(): Promise<void> {
   }
 }
 
-async function resolveDependencyVersions(answers: Answers): Promise<ReadonlyMap<string, string>> {
+// The `minAppVersion` is looked up here, next to the dependency versions, for the same reason they are:
+// `copyTemplates` is synchronous and must not touch the network, so everything fetched is resolved before
+// It runs and handed in.
+async function resolveExternalVersions(answers: Answers): Promise<ResolvedExternalVersions> {
   const s = spinner();
-  s.start('Resolving dependency versions...');
-  const resolvedVersions = await resolveVersions(buildTemplate(answers).dependencies);
-  s.stop('Dependency versions resolved.');
-  return resolvedVersions;
+  s.start('Resolving versions...');
+  const [resolvedVersions, minAppVersion] = await Promise.all([
+    resolveVersions(buildTemplate(answers).dependencies),
+    fetchLatestObsidianVersion()
+  ]);
+  s.stop('Versions resolved.');
+  return { minAppVersion, resolvedVersions };
 }
 
 async function runCreate(currentVersion: string, useDefaults: boolean): Promise<void> {
@@ -167,11 +179,11 @@ async function runCreate(currentVersion: string, useDefaults: boolean): Promise<
     }
   }
 
-  const resolvedVersions = await resolveDependencyVersions(answers);
+  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers);
 
   const s = spinner();
   s.start('Scaffolding plugin...');
-  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions);
+  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions, minAppVersion);
   const configPath = join(targetDir, CONFIG_FILE_NAME);
   const configWithAnswers = { ...newConfig, answers };
   writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
@@ -252,7 +264,10 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     const s = spinner();
     s.start('Initializing git repository...');
     try {
-      await execAsync('git init', targetDir);
+      // `-b` rather than a bare `git init`: without it the branch is whatever the user's
+      // `init.defaultBranch` says, which need not be the branch the generated CI workflow triggers on --
+      // A mismatch produces a repo whose CI never fires. Both come from the same answer.
+      await execAsync(`git init -b ${answers.defaultBranch}`, targetDir);
       await execAsync('git add -A', targetDir);
       await execAsync('git commit -m "Initial commit from create-obsidian-plugin"', targetDir);
       s.stop('Git repository initialized with initial commit.');
@@ -313,11 +328,14 @@ async function runUpdate(currentVersion: string): Promise<void> {
     answers = await promptAnswers();
   }
 
-  const resolvedVersions = await resolveDependencyVersions(answers);
+  // A project that has already released carries a `manifest.json` its own `npm run version` rewrote, so its
+  // Hash no longer matches the recorded one and the updater skips it -- the freshly looked-up
+  // `minAppVersion` only ever reaches a manifest nobody has touched.
+  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers);
 
   const s = spinner();
   s.start('Updating project files...');
-  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions);
+  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions, minAppVersion);
   s.stop('Update complete.');
 
   const newConfig = loadConfig(targetDir);

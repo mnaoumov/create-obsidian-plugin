@@ -1,8 +1,6 @@
 # Create Obsidian Plugin
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov)
-[![GitHub release](https://img.shields.io/github/v/release/mnaoumov/create-obsidian-plugin)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
-[![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/create-obsidian-plugin/total)](https://github.com/mnaoumov/create-obsidian-plugin/releases)
 
 A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin projects from modern templates. Supports creating new plugins and updating existing ones.
 
@@ -20,6 +18,8 @@ A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin project
 | bun             | bunx   | `bunx @mnaoumov/create-obsidian-plugin`     |
 
 This walks you through an interactive wizard to scaffold a new Obsidian plugin project with optional post-scaffold actions (npm install, git init, GitHub repo creation).
+
+The wizard first asks for the project's own details — plugin id, name and description, your name and GitHub username, the default branch (`main` unless you say otherwise; `git init` creates it and the CI workflow triggers on it), a funding URL, and the path to a test vault's config folder — then the feature options below.
 
 ## Update an existing plugin
 
@@ -228,6 +228,12 @@ The `.create-obsidian-plugin.json` file stores:
 ## Sample output
 
 See [Sample Plugin Extended](https://github.com/mnaoumov/obsidian-sample-plugin-extended).
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING](./CONTRIBUTING.md) to get set up.
+
+## Support
 
 <!-- markdownlint-disable MD033 -->
 

@@ -98,8 +98,8 @@ describe('buildOverrides', () => {
     // These two are never declared by the project, so there is no spec for `$<name>` to reuse -- which is
     // Exactly why they cannot live in the pin table.
     const overrides = buildOverrides([new Dependency('typescript'), new Dependency('obsidian-dev-utils')]);
-    expect(overrides['@puppeteer/browsers']).toBe('^3.2.0');
-    expect(overrides['deepmerge-ts']).toBe('^8.0.0');
+    expect(overrides['@puppeteer/browsers']).toBe('^3.2.1');
+    expect(overrides['deepmerge-ts']).toBe('^8.0.2');
   });
 
   it('leaves a project without obsidian-dev-utils free of advisory overrides', () => {

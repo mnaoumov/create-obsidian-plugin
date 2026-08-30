@@ -41,7 +41,7 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     manualCheck: 'Must be the @codemirror/language release built against the @codemirror/state version Obsidian peers on. Bump it only together with @codemirror/state.',
     needsOverride: false,
     section: 'devDependencies',
-    version: '6.12.3',
+    version: '6.12.4',
     why: 'Obsidian bundles its own CodeMirror. A @codemirror/language built against a different @codemirror/state duplicates the state package at runtime, and two copies of a CodeMirror facet do not interoperate.'
   },
   '@codemirror/state': {
@@ -118,7 +118,7 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     expect: '^2.2.0',
     manualCheck: 'The check reads @wdio/utils\'s own declared range, not a version, because that range is what makes the override necessary. When it moves to ^3 or later, @wdio/utils no longer pulls extract-zip in and both this override and this entry can go.',
     requires: 'obsidian-dev-utils',
-    spec: '^3.2.0',
+    spec: '^3.2.1',
     why: 'Clears GHSA-jmr9-qjv8-65gv (extract-zip unvalidated symlink path traversal). extract-zip is vulnerable at every published version, so there is nothing to override it to, and the direct dependency cannot be bumped either: even the newest webdriverio reaches extract-zip through @wdio/utils -> @puppeteer/browsers ^2.x. @puppeteer/browsers@3 replaced extract-zip with modern-tar, so forcing 3.x on @wdio/utils, the only consumer left on 2.x, removes the subtree. @wdio/utils imports only install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, computeExecutablePath and the InstallOptions type, all still exported by 3.x, and both packages are ESM-only. Never take the `npm audit fix --force` remedy: it downgrades obsidian-integration-testing to 1.1.2.'
   },
   'deepmerge-ts': {
@@ -126,14 +126,29 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     expect: '^7.0.3',
     manualCheck: 'The check reads the range @wdio/utils declares, which is what forces the override. When it moves to ^8 or later the override and this entry can go. Before lifting it, re-run the deepmergeCustom probe: @wdio/config passes a `mergeArrays` handler that reads `meta.key`, and that is the API 8.0.0 renamed.',
     requires: 'obsidian-dev-utils',
-    spec: '^8.0.0',
+    spec: '^8.0.2',
     why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. Every wdio package still declares ^7.0.3, including the newest, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
   }
 };
 
+// The same source `obsidian-dev-utils/script-utils/version` reads when it stamps `minAppVersion` on a
+// Release, so the scaffold and the project's first `npm run version` agree on where the number comes from.
+const DESKTOP_RELEASES_JSON_URL = 'https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/desktop-releases.json';
+/**
+ * The `minAppVersion` used when the lookup below fails, which is the offline path.
+ *
+ * `0.0.0` is the honest answer there: it claims no minimum rather than inventing one, and the project's
+ * first `npm run version` overwrites it with the real latest.
+ */
+export const FALLBACK_MIN_APP_VERSION = '0.0.0';
+
 const FALLBACK_VERSION = 'latest';
 const JSON_INDENT_SPACES = 2;
 const REGISTRY_URL = 'https://registry.npmjs.org';
+
+interface DesktopReleasesJson {
+  latestVersion?: string;
+}
 
 interface LatestPackument {
   version: string;
@@ -215,6 +230,25 @@ export function buildPinnedVersionsJson(dependencies: readonly Dependency[]): st
   };
 
   return `${JSON.stringify(content, null, JSON_INDENT_SPACES)}\n`;
+}
+
+/**
+ * The latest public desktop Obsidian version, for the generated `manifest.json`'s `minAppVersion`.
+ *
+ * Falls back to a version that claims no minimum when the lookup fails, so generating offline still
+ * produces a valid manifest.
+ */
+export async function fetchLatestObsidianVersion(): Promise<string> {
+  try {
+    const response = await fetch(DESKTOP_RELEASES_JSON_URL);
+    if (!response.ok) {
+      return FALLBACK_MIN_APP_VERSION;
+    }
+    const desktopReleasesJson = await response.json() as DesktopReleasesJson;
+    return desktopReleasesJson.latestVersion ?? FALLBACK_MIN_APP_VERSION;
+  } catch {
+    return FALLBACK_MIN_APP_VERSION;
+  }
 }
 
 /**
