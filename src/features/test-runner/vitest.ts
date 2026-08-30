@@ -35,7 +35,6 @@ export class Vitest extends FeatureOption {
       // The `unit-tests` project `defineObsidianPluginVitestConfig` declares runs in the jsdom
       // Environment, and vitest resolves that from the consuming project, not from obsidian-dev-utils.
       .addPackage('jsdom')
-      .addPackage('obsidian-integration-testing')
       // The `unit-tests` project's `setupFiles` point at `obsidian-test-mocks/vitest-setup`, which the
       // Consuming project has to provide.
       .addPackage('obsidian-test-mocks')

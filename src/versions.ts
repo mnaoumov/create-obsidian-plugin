@@ -34,6 +34,16 @@ export interface PinnedVersion {
  * entry in the generated `pinned-versions.json`.
  */
 export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
+  '@babel/core': {
+    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    checkRequires: '@rollup/plugin-babel',
+    expect: '^7.0.0',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^7.29.7',
+    why: '@babel/core is only ever added alongside @rollup/plugin-babel, whose newest release still peers on `^7.0.0` while the registry tags 8.x as latest. Resolving latest therefore produced an `npm install` that fails outright with ERESOLVE for rollup with preact, react or solid. The check reads the peer range @rollup/plugin-babel itself declares, so the pin retires itself when that widens to ^8.'
+  },
   '@codemirror/language': {
     check: null,
     checkRequires: null,
@@ -73,6 +83,16 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     section: 'devDependencies',
     version: '2.29.4',
     why: 'Obsidian bundles moment 2.29.4 and re-exports it. Type-checking against a newer moment describes an API the running app does not have.'
+  },
+  'obsidian-integration-testing': {
+    check: 'node -e "process.stdout.write(require(\'obsidian-dev-utils/package.json\').peerDependencies[\'obsidian-integration-testing\'])"',
+    checkRequires: 'obsidian-dev-utils',
+    expect: '^10.0.0',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^10.4.0',
+    why: 'obsidian-dev-utils declares `peerOptional obsidian-integration-testing@"^10.0.0"`, while the registry tags 11.0.0 as latest. Resolving latest therefore produced an `npm install` that fails outright with ERESOLVE, on every obsidian-dev-utils preset running vitest -- which is the default preset. The whole plugin fleet is on 10.x for the same reason. The check reads the peer range obsidian-dev-utils itself declares, so the pin retires itself the moment that range widens to ^11.'
   },
   'typescript': {
     check: 'node -e "process.stdout.write(require(\'typescript-eslint/package.json\').peerDependencies.typescript)"',
