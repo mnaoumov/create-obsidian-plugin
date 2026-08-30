@@ -7,7 +7,7 @@ import {
 import {
   Dependency,
   TemplateBuilder
-} from '../src/template-builder.ts';
+} from './template-builder.ts';
 
 describe('Dependency', () => {
   it('leaves the version unset so it can be resolved', () => {

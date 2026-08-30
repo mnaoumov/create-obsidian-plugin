@@ -16,7 +16,7 @@ export class Vitest extends FeatureOption {
       .addScript('test:watch')
       .addFiles([
         'vitest.config.ts',
-        'src/__tests__/sample.test.ts',
+        'src/Plugin.test.ts',
         'scripts/test.ts',
         'scripts/test-watch.ts'
       ]);

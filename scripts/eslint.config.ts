@@ -20,7 +20,6 @@ import tseslint from 'typescript-eslint';
 const typeScriptFiles = [
   'src/**/*.ts',
   'scripts/**/*.ts',
-  '__tests__/**/*.ts',
   'eslint.config.mts',
   'commitlint.config.ts',
   'vitest.config.ts'
@@ -322,7 +321,7 @@ function getImportXConfigs(): Linter.Config[] {
       }
     },
     {
-      files: ['scripts/**/*.ts', 'src/**/*.ts', '__tests__/**/*.ts'],
+      files: ['scripts/**/*.ts', 'src/**/*.ts'],
       rules: {
         'import-x/no-nodejs-modules': 'off'
       }

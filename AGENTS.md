@@ -6,11 +6,10 @@
 
 ## Architecture
 
-- `src/` — Core generator logic (TemplateBuilder, features, prompts, templates)
+- `src/` — Core generator logic (TemplateBuilder, features, prompts, templates), with the vitest unit tests co-located as `foo.test.ts` beside what they test
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
 - `templates/default/` — EJS template files (all must have `.ejs` extension)
 - `scripts/` — All build/lint/test logic lives here
-- `__tests__/` — Unit tests (vitest)
 - `dist/` — Built output (published to npm, not tracked in git)
 
 ## Design Decisions
@@ -162,4 +161,4 @@ Researched all major `create-*` packages. Only create-vue and create-nuxt-app us
 - TypeScript strict mode
 - ESLint with `@eslint/js` + `typescript-eslint`
 - Conventional commits (commitlint)
-- Tests with vitest, test files in `__tests__/`
+- Tests with vitest, co-located next to the source they test — `foo.ts` → `foo.test.ts` (G10h); no `__tests__/` or `test/` directories

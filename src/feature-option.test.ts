@@ -4,13 +4,13 @@ import {
   it
 } from 'vitest';
 
-import type { Answers } from '../src/answers.ts';
+import type { Answers } from './answers.ts';
 
 import {
   FeatureOption,
   resolveFeature
-} from '../src/feature-option.ts';
-import { TemplateBuilder } from '../src/template-builder.ts';
+} from './feature-option.ts';
+import { TemplateBuilder } from './template-builder.ts';
 
 class ConfiguringFeature extends FeatureOption {
   public constructor() {
