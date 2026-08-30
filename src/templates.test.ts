@@ -1012,6 +1012,29 @@ describe('copyTemplates', () => {
     expect(testWatch).toContain('jest --watch');
   });
 
+  // Both halves of what makes a generated jest project able to run its tests at all. Without the explicit
+  // `rootDir`, ts-jest — which compiles WITH emit despite the tsconfig's `noEmit` — fails every suite with
+  // TS5011. Without `useESM` + `extensionsToTreatAsEsm` + the Node flag, jest cannot load the ESM output
+  // Ts-jest produces for a `"type": "module"` project. Either half missing means zero tests run, while
+  // The exit code stays green.
+  it('configures jest to run the emitted ESM suite', () => {
+    copyTemplates(makeAnswers({ testRunner: 'jest' }), targetDir, '1.0.0', null);
+    const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
+    expect(jestConfig).toContain('extensionsToTreatAsEsm');
+    expect(jestConfig).toContain('rootDir: \'.\'');
+    expect(jestConfig).toContain('useESM: true');
+    // The explicit transform replaced `preset: 'ts-jest'`, which had nowhere to carry the options above.
+    // Matched as a top-level key, not as a substring: the comment explaining the swap says
+    // `preset: 'ts-jest'` verbatim.
+    expect(jestConfig).toMatch(/^ {2}transform: \{$/mu);
+    expect(jestConfig).not.toMatch(/^ {2}preset:/mu);
+
+    for (const scriptName of ['scripts/test.ts', 'scripts/test-watch.ts']) {
+      const script = readFileSync(join(targetDir, scriptName), 'utf-8');
+      expect(script, scriptName).toContain('--experimental-vm-modules');
+    }
+  });
+
   it('creates spellcheck script for cspell', () => {
     copyTemplates(makeAnswers({ spellChecker: 'cspell' }), targetDir, '1.0.0', null);
     const spellcheck = readFileSync(join(targetDir, 'scripts/spellcheck.ts'), 'utf-8');
