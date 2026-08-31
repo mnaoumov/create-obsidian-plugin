@@ -23,7 +23,14 @@ export class ConventionalCommits extends FeatureOption {
       // Could not pass its own `npm run lint`.
       .addPackage('nano-staged')
       .addScript('commit')
+      // Husky only writes the hooks into `.git/hooks` when its binary runs, which is what `prepare`
+      // Is for -- npm runs that lifecycle script after every install. Without it the two hook files
+      // Below were emitted, husky was installed, and no hook ever fired: a commit-message linter that
+      // Silently lints nothing, which is precisely the class of failure this project's verification is
+      // Built to refuse.
+      .addScript('prepare')
       .addFiles([
+        'scripts/prepare.ts',
         'commitlint.config.ts',
         'scripts/commit.ts',
         'scripts/commitlint.config.ts',
