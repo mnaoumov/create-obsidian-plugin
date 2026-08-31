@@ -35,6 +35,11 @@ export const config = defineConfig({
       entry: 'src/main.ts',
       formats: ['cjs'],
       fileName: () => 'main.js',
+      // Obsidian loads a plugin's stylesheet from `styles.css` and nothing else. Vite's lib mode names
+      // The CSS asset after the package by default, so without this the emitted file is
+      // `<pluginId>.css` -- shipped, and never read. Vite appends the extension, so the value is the
+      // Stem alone.
+      cssFileName: 'styles',
     },
     rollupOptions: {
       external: EXTERNAL,

@@ -1,0 +1,26 @@
+/*
+ * Names the emitted stylesheet `styles.css`.
+ *
+ * Obsidian loads a plugin's stylesheet from `styles.css` and nothing else. Parcel does not
+ * content-hash an entry bundle, so `src/main.ts` becomes `main.js` -- but the CSS it pulls in is a
+ * SIBLING bundle, and siblings are hashed, so the stylesheet came out as `main.<hash>.css`: shipped
+ * with every build, and read by nothing.
+ *
+ * Every other bundler takes an output name as an option -- `MiniCssExtractPlugin({ filename })`,
+ * `postcss({ extract })`, `build.lib.cssFileName`. Parcel takes a namer, so this is that option, for
+ * the same reason `parcel-resolver-obsidian.cjs` is Parcel's `external` list.
+ *
+ * Returning `null` for everything else defers to the default namer, so the JavaScript entry keeps the
+ * `main.js` it already had.
+ *
+ * CommonJS on purpose, as with the resolver beside it. The project is `"type": "module"`, so a `.mjs`
+ * plugin makes Parcel warn "ES module dependencies are experimental" on every single build.
+ */
+
+const { Namer } = require('@parcel/plugin');
+
+module.exports = new Namer({
+  name({ bundle }) {
+    return bundle.type === 'css' ? 'styles.css' : null;
+  }
+});

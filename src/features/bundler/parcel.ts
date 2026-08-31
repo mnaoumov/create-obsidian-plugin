@@ -11,11 +11,14 @@ export class Parcel extends FeatureOption {
     builder
       .addPackage('parcel')
       .addPackage('@parcel/config-default')
-      // Only Parcel needs a plugin package: its resolver is the only way to mark the modules Obsidian
-      // Supplies at runtime as external. Every other bundler takes a plain `external` list in its config.
+      // Only Parcel needs a plugin package, and it needs it twice: its resolver is the only way to mark
+      // The modules Obsidian supplies at runtime as external, and its namer the only way to name the
+      // Emitted stylesheet. Every other bundler takes a plain `external` list and an output-name option
+      // In its config.
       .addPackage('@parcel/plugin')
       .addFiles([
         '.parcelrc',
+        'parcel-namer-obsidian.cjs',
         'parcel-resolver-obsidian.cjs'
       ]);
 
