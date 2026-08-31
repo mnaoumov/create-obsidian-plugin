@@ -1,5 +1,6 @@
 import type {
   Diagnostic,
+  ImportDeclaration,
   Node,
   SourceFile
 } from 'typescript';
@@ -17,7 +18,14 @@ import {
   forEachChild,
   getModifiers,
   isBlock,
+  isClassDeclaration,
+  isFunctionDeclaration,
   isFunctionLike,
+  isIdentifier,
+  isImportDeclaration,
+  isNamedImports,
+  isNamespaceImport,
+  isVariableStatement,
   ScriptKind,
   ScriptTarget,
   SyntaxKind
@@ -49,6 +57,7 @@ export interface RenderViolation {
  */
 export type RenderViolationKind =
   | 'await-outside-async'
+  | 'duplicate-declaration'
   | 'empty-block'
   | 'empty-file'
   | 'invalid-json'
@@ -212,6 +221,24 @@ function checkPackageJsonScripts(targetDir: string, answers: Answers): RenderVio
   return violations;
 }
 
+/**
+ * Two defects a clean parse does not catch, both of which composition produces.
+ *
+ * A partial does not know what it is being rendered into. `await import(…)` reads fine on its own and
+ * parses fine in the file, but the CLI-bundler build script drops it inside a synchronous function --
+ * TS1308, and a hard `ParseError: Unexpected reserved word 'await'` from the bundler. An empty block is
+ * the other half of the same thing: a wrapper that renders `if (prod) { <partial> }` emits `if (prod) {
+ * }` on every answer contributing no partial, which the generated ESLint config rejects with `no-empty`.
+ * Neither is a syntax error, so the parse pass above sees nothing.
+ */
+function checkStructure(relativePath: string, source: SourceFile): RenderViolation[] {
+  const violations: RenderViolation[] = [];
+
+  walkStructure(source, source, true, violations, relativePath);
+  violations.push(...checkTopLevelDuplicates(relativePath, source));
+  return violations;
+}
+
 function checkSyntax(relativePath: string, fileName: string, content: string): RenderViolation[] {
   if (JSON_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
     try {
@@ -261,20 +288,52 @@ function checkSyntax(relativePath: string, fileName: string, content: string): R
 }
 
 /**
- * Two defects a clean parse does not catch, both of which composition produces.
+ * Names declared more than once at the top level of an emitted file.
  *
- * A partial does not know what it is being rendered into. `await import(…)` reads fine on its own and
- * parses fine in the file, but the CLI-bundler build script drops it inside a synchronous function --
- * TS1308, and a hard `ParseError: Unexpected reserved word 'await'` from the bundler. An empty block is
- * the other half of the same thing: a wrapper that renders `if (prod) { <partial> }` emits `if (prod) {
- * }` on every answer contributing no partial, which the generated ESLint config rejects with `no-empty`.
- * Neither is a syntax error, so the parse pass above sees nothing.
+ * The signature failure of a per-answer partial that is not actually per-answer. Five styling partials
+ * each emitted `import MiniCssExtractPlugin …` and three UI-framework partials each emitted
+ * `import babelModule …` plus its `const babel = …`; the moment a preset forces a second answer in the
+ * same question -- which `demo` does for both styling and uiFramework -- the file carried the line
+ * twice and failed to compile with TS2300 / TS2451. The fix in each case is one partial named for what
+ * it is, contributed by every answer that needs it: `partials` is a Set, so it renders once.
+ *
+ * Deliberately narrow. Interfaces and type aliases merge legally, function overloads declare the same
+ * name on purpose, and `declare module` blocks repeat by design -- none of them is counted.
  */
-function checkStructure(relativePath: string, source: SourceFile): RenderViolation[] {
-  const violations: RenderViolation[] = [];
+function checkTopLevelDuplicates(relativePath: string, source: SourceFile): RenderViolation[] {
+  const seen = new Set<string>();
+  const duplicated = new Set<string>();
 
-  walkStructure(source, source, true, violations, relativePath);
-  return violations;
+  function record(name: string): void {
+    if (seen.has(name)) {
+      duplicated.add(name);
+    }
+    seen.add(name);
+  }
+
+  for (const statement of source.statements) {
+    if (isImportDeclaration(statement)) {
+      for (const name of importedNames(statement)) {
+        record(name);
+      }
+    } else if (isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (isIdentifier(declaration.name)) {
+          record(declaration.name.text);
+        }
+      }
+    } else if (isClassDeclaration(statement) && statement.name) {
+      record(statement.name.text);
+    } else if (isFunctionDeclaration(statement) && statement.name && statement.body) {
+      record(statement.name.text);
+    }
+  }
+
+  return [...duplicated].map((name) => ({
+    detail: `"${name}" is declared more than once at the top level. Two partials emitted the same line -- name one partial for what it is and have every answer that needs it contribute that.`,
+    kind: 'duplicate-declaration' as const,
+    subject: relativePath
+  }));
 }
 
 function excerptAround(content: string, needle: string): string {
@@ -291,8 +350,45 @@ function existsRelative(targetDir: string, relativePath: string): boolean {
   }
 }
 
+/** Every local name an import declaration introduces: default, namespace and each named binding. */
+function importedNames(statement: ImportDeclaration): string[] {
+  const clause = statement.importClause;
+  if (!clause) {
+    return [];
+  }
+
+  const names: string[] = [];
+  if (clause.name) {
+    names.push(clause.name.text);
+  }
+
+  const bindings = clause.namedBindings;
+  if (bindings && isNamespaceImport(bindings)) {
+    names.push(bindings.name.text);
+  } else if (bindings && isNamedImports(bindings)) {
+    for (const element of bindings.elements) {
+      names.push(element.name.text);
+    }
+  }
+
+  return names;
+}
+
 function scriptKindFor(fileName: string): ScriptKind {
   return fileName.endsWith('.tsx') ? ScriptKind.TSX : ScriptKind.TS;
+}
+
+function walk(targetDir: string, relativeDir: string): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(join(targetDir, relativeDir))) {
+    const relativePath = relativeDir === '' ? entry : `${relativeDir}/${entry}`;
+    if (statSync(join(targetDir, relativePath)).isDirectory()) {
+      found.push(...walk(targetDir, relativePath));
+    } else {
+      found.push(relativePath);
+    }
+  }
+  return found;
 }
 
 /**
@@ -337,17 +433,4 @@ function walkStructure(
   forEachChild(node, (child) => {
     walkStructure(child, source, childAwaitAllowed, violations, relativePath);
   });
-}
-
-function walk(targetDir: string, relativeDir: string): string[] {
-  const found: string[] = [];
-  for (const entry of readdirSync(join(targetDir, relativeDir))) {
-    const relativePath = relativeDir === '' ? entry : `${relativeDir}/${entry}`;
-    if (statSync(join(targetDir, relativePath)).isDirectory()) {
-      found.push(...walk(targetDir, relativePath));
-    } else {
-      found.push(relativePath);
-    }
-  }
-  return found;
 }

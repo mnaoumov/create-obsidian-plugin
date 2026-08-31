@@ -1,0 +1,5 @@
+<%# Shared by preact, react and solid rather than copied into each, for the reason the webpack CSS -%>
+<%# partial gives: `demo` forces react on top of the chosen framework, so two copies of this line and -%>
+<%# of its `unwrap` twin collided as TS2300 and TS2451. The per-framework `post-plugin` partials stay -%>
+<%# per-framework -- each passes its own babel presets. -%>
+import babelModule from '@rollup/plugin-babel';

@@ -44,7 +44,8 @@ export class Preact extends FeatureOption {
         .addFiles([
           'babel.config.mjs',
           'scripts/babel.config.ts'
-        ]);
+        ])
+        .addPartial('rollup-babel');
     }
   }
 }

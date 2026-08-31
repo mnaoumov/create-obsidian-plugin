@@ -17,7 +17,8 @@ export class CssModules extends FeatureOption {
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
-        .addPackage('mini-css-extract-plugin');
+        .addPackage('mini-css-extract-plugin')
+        .addPartial('webpack-css-extract');
     }
   }
 }

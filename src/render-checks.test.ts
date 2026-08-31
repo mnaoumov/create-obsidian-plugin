@@ -164,6 +164,35 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('scripts/build.ts')).toEqual([]);
   });
 
+  // What a per-answer partial that is not actually per-answer looks like in the bytes. Five styling
+  // Partials each emitted the same `MiniCssExtractPlugin` import, and three UI-framework partials the
+  // Same babel import and `const`; a preset forcing a second answer in the same question rendered both
+  // Copies, and the file failed to compile with TS2300 / TS2451.
+  it('flags an identifier imported twice at the top level', () => {
+    put('scripts/webpack.config.ts', 'import MiniCssExtractPlugin from \'mini-css-extract-plugin\';\nimport MiniCssExtractPlugin from \'mini-css-extract-plugin\';\n');
+    expect(kindsFor('scripts/webpack.config.ts')).toContain('duplicate-declaration');
+  });
+
+  it('flags a top-level const declared twice', () => {
+    put('scripts/rollup.config.ts', 'const babel = 1;\nconst babel = 2;\n');
+    expect(kindsFor('scripts/rollup.config.ts')).toContain('duplicate-declaration');
+  });
+
+  it('accepts function overloads, which declare one name on purpose', () => {
+    put('src/plugin.ts', 'export function pick(value: string): string;\nexport function pick(value: number): number;\nexport function pick(value: unknown): unknown {\n  return value;\n}\n');
+    expect(kindsFor('src/plugin.ts')).toEqual([]);
+  });
+
+  it('accepts repeated module declarations, which merge by design', () => {
+    put('src/styles/styles.d.ts', 'declare module \'*.css\';\ndeclare module \'*.scss\';\n');
+    expect(kindsFor('src/styles/styles.d.ts')).toEqual([]);
+  });
+
+  it('accepts two imports of the same module under different names', () => {
+    put('scripts/rollup.config.ts', 'import babelModule from \'@rollup/plugin-babel\';\nimport { getBabelOutputPlugin } from \'@rollup/plugin-babel\';\nvoid babelModule;\nvoid getBabelOutputPlugin;\n');
+    expect(kindsFor('scripts/rollup.config.ts')).toEqual([]);
+  });
+
   it('flags a package.json script whose file was not emitted', () => {
     put('package.json', JSON.stringify({ scripts: { build: 'jiti scripts/build.ts' } }));
     expect(kindsFor('scripts/build.ts')).toContain('script-file-missing');

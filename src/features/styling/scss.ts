@@ -28,7 +28,8 @@ export class Scss extends FeatureOption {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')
-        .addPackage('sass');
+        .addPackage('sass')
+        .addPartial('webpack-css-extract');
     }
   }
 }

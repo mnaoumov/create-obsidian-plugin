@@ -31,7 +31,8 @@ export class Tailwind extends FeatureOption {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')
-        .addPackage('postcss-loader');
+        .addPackage('postcss-loader')
+        .addPartial('webpack-css-extract');
     }
   }
 }
