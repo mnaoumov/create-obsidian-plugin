@@ -104,19 +104,17 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     version: '2.29.4',
     why: 'Obsidian bundles moment 2.29.4 and re-exports it. Type-checking against a newer moment describes an API the running app does not have.'
   },
-  'obsidian-integration-testing': {
-    // Read off disk rather than through `require`: obsidian-dev-utils declares an `exports` map that does
-    // Not expose `./package.json`, so the `require` form fails with ERR_PACKAGE_PATH_NOT_EXPORTED and the
-    // Check could never run. The advisory-override checks below read their files the same way.
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/obsidian-dev-utils/package.json\',\'utf8\')).peerDependencies[\'obsidian-integration-testing\'])"',
-    checkRequires: 'obsidian-dev-utils',
-    expect: '^10.0.0',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^10.4.0',
-    why: 'obsidian-dev-utils declares `peerOptional obsidian-integration-testing@"^10.0.0"`, while the registry tags 11.0.0 as latest. Resolving latest therefore produced an `npm install` that fails outright with ERESOLVE, on every obsidian-dev-utils preset running vitest -- which is the default preset. The whole plugin fleet is on 10.x for the same reason. The check reads the peer range obsidian-dev-utils itself declares, so the pin retires itself the moment that range widens to ^11.'
-  },
+  // `obsidian-integration-testing` was pinned to ^10.4.0 here, and RETIRED on 2026-08-31 because the
+  // Condition it was written against stopped holding. The pin existed only because obsidian-dev-utils
+  // Declared `peerOptional obsidian-integration-testing@"^10.0.0"` while the registry tagged 11.0.0 as
+  // Latest, so resolving latest produced an ERESOLVE. Its own `manualCheck` said it "retires itself the
+  // Moment that range widens to ^11" -- and obsidian-dev-utils 96.5.2 widened it. The two agree again,
+  // So the package resolves like any other and needs no entry.
+  //
+  // It retired mid-run, which is worth knowing: 96.5.2 was published while the install tier was going,
+  // So the early cases installed against 96.5.1 and passed while every later one failed at `install`.
+  // A sudden cluster of install failures across unrelated answers is the signature of a dependency
+  // Moving under the run, not of a template defect.
   'typescript': {
     check: 'node -e "process.stdout.write(require(\'typescript-eslint/package.json\').peerDependencies.typescript)"',
     checkRequires: 'typescript-eslint',
