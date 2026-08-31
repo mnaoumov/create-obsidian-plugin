@@ -1,12 +1,19 @@
+<%# Shaped after wdio-obsidian-service's own documented config. The Obsidian version belongs in the -%>
+<%# capability (`browserVersion`), not in a service option: the previous `services: [['obsidian', -%>
+<%# { obsidianVersions: ['latest'] }]]` named an option the service does not have, and the whole object -%>
+<%# was missing the required `capabilities`, so `wdio.conf.ts` failed to type-check with TS2741. -%>
 export const config: WebdriverIO.Config = {
   runner: 'local',
   framework: 'mocha',
   specs: ['./e2e/**/*.spec.ts'],
-  services: [
-    ['obsidian', {
-      obsidianVersions: ['latest'],
-    }],
-  ],
+  capabilities: [{
+    browserName: 'obsidian',
+    browserVersion: 'latest',
+    'wdio:obsidianOptions': {
+      plugins: ['.'],
+    },
+  }],
+  services: ['obsidian'],
   mochaOpts: {
     timeout: 60_000,
     ui: 'bdd',

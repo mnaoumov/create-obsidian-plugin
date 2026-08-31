@@ -1415,6 +1415,47 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(false);
   });
 
+  // Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, and `e2e/` was in
+  // Neither list while the plugin config still linted it -- so every project with an e2e runner and
+  // ESLint died on "You have used a rule which requires type information", the largest single class of
+  // Install-tier failures. The two lists have to agree; that is what these assert.
+  it('puts e2e in the tsconfig include and the ESLint file list on the standalone preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'standalone' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
+  });
+
+  it('puts e2e in the tsconfig include and the ESLint file list on the enhanced preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
+  });
+
+  it('names neither list an e2e directory that was not emitted', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'e2e'))).toBe(false);
+    // The entry, not the substring: both templates carry a comment naming `e2e/` and explaining why the
+    // Two lists must agree.
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).not.toContain('"./e2e/**/*.ts"');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
+  });
+
+  // `WebdriverIO.Config` requires `capabilities`, and the namespace itself only reaches the program
+  // Through these type packages -- TS2741 and TS2503, on every case carrying this answer.
+  it('emits a wdio config that satisfies its own type', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'wdio.conf.ts'), 'utf-8')).toContain('capabilities:');
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('@wdio/globals/types');
+  });
+
+  // Vitest's default glob otherwise sweeps up `e2e/`, and `npm test` reports the end-to-end suite as
+  // Failed unit tests. The odu presets escape it through their per-project `include`, jest through
+  // `roots`; this config had neither.
+  it('restricts the standalone vitest config to src, so the e2e suite is not collected', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8')).toContain('include: [\'src/**/*.test.ts\']');
+  });
+
   it('writes generator config file', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');

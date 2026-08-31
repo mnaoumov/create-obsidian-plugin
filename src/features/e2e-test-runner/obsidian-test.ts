@@ -14,6 +14,7 @@ export class ObsidianTest extends FeatureOption {
       .addFiles([
         'e2e/sample.spec.ts',
         'scripts/test-e2e.ts'
-      ]);
+      ])
+      .addPartial('has-e2e');
   }
 }

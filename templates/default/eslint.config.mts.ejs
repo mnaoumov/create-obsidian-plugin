@@ -12,9 +12,12 @@ const typeScriptFiles = [
   'src/**/*.tsx',
   'scripts/**/*.ts',
   // Root-level config files (`vitest.config.ts`, `commitlint.config.ts`, …). Typed rules need every file
-  // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree.
+  // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree — and `e2e/` is the
+  // Third member whenever an end-to-end runner is chosen. It was in neither list, and the plugin config
+  // Below still reached those files: every project with an e2e runner and ESLint died on "You have used
+  // A rule which requires type information", the largest single class of install-tier failures.
   '*.ts',
-  'eslint.config.mts'
+  'eslint.config.mts'<%- render('extra-files') %>
 ];
 
 export default defineConfig(
