@@ -13,7 +13,7 @@ export class PostCss extends FeatureOption {
       .addPackage('autoprefixer')
       .addPackage('postcss')
       .addFiles([
-        'postcss.config.mjs',
+        'postcss.config.cjs',
         'scripts/postcss.config.ts',
         'src/styles/main.css',
         'src/styles/styles.d.ts'

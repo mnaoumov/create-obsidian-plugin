@@ -1,0 +1,12 @@
+// This file is required by postcss at the root level.
+// The actual configuration lives in scripts/postcss.config.ts
+//
+// `.cjs`, not `.mjs`: every consumer finds this file through `postcss-load-config`, and the copy
+// `esbuild-postcss` bundles is v3, whose search places stop at `postcss.config.cjs`. With an `.mjs`
+// name it found nothing, reported no error, and silently ran the build with NO postcss plugins at all
+// -- so autoprefixer and Tailwind never ran on the standalone esbuild path. `.cjs` is the one name
+// every version of the loader, plus parcel, vite, webpack and rollup, all agree on.
+const { createJiti } = require('jiti');
+
+const jiti = createJiti(__filename);
+module.exports = jiti('./scripts/postcss.config.ts').config;

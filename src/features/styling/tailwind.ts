@@ -10,14 +10,15 @@ export class Tailwind extends FeatureOption {
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
-      .addPackage('autoprefixer')
+      // Tailwind 4 moved the PostCSS plugin into its own package and stopped needing autoprefixer or a
+      // JavaScript config file. `tailwindcss`' own default export is now a stub whose only job is to warn
+      // That you reached for the wrong package -- which is what the emitted config was calling.
+      .addPackage('@tailwindcss/postcss')
       .addPackage('postcss')
       .addPackage('tailwindcss')
       .addFiles([
-        'postcss.config.mjs',
+        'postcss.config.cjs',
         'scripts/postcss.config.ts',
-        'tailwind.config.ts',
-        'scripts/tailwind.config.ts',
         'src/styles/main.css',
         'src/styles/styles.d.ts'
       ]);
