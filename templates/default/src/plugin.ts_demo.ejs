@@ -43,6 +43,10 @@ import {
   SAMPLE_VIEW_TYPE,
   SampleView
 } from './views/sample-view.ts';
+import {
+  SAMPLE_VUE_VIEW_TYPE,
+  SampleVueView
+} from './views/sample-vue-view.ts';
 
 export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
@@ -116,6 +120,7 @@ export class Plugin extends PluginBase {
     this.registerView(SAMPLE_VIEW_TYPE, (leaf) => new SampleView(leaf));
     this.registerView(SAMPLE_SVELTE_VIEW_TYPE, (leaf) => new SampleSvelteView(leaf));
     this.registerView(SAMPLE_REACT_VIEW_TYPE, (leaf) => new SampleReactView(leaf));
+    this.registerView(SAMPLE_VUE_VIEW_TYPE, (leaf) => new SampleVueView(leaf));
 
     this.registerModalCommands();
 

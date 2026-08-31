@@ -21,7 +21,7 @@ class SampleViewPlugin implements PluginValue {
     this.decorations = this.buildDecorations(view);
   }
 
-  public buildDecorations(view: EditorView): DecorationSet {
+  private buildDecorations(view: EditorView): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
 
     for (const { from, to } of view.visibleRanges) {
