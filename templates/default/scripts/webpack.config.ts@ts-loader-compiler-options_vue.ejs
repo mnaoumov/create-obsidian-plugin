@@ -1,0 +1,5 @@
+<%# Only for this compile, not in `tsconfig.json`. `appendTsSuffixTo` hands ts-loader the component's -%>
+<%# `<script>` block as a standalone module, WITHOUT the template that uses its bindings, so every -%>
+<%# handler the template calls reads as unused: TS6133 "'increment' is declared but its value is never -%>
+<%# read". The gate's own `tsc --noEmit`, and the editor, still enforce it on real `.ts` files. -%>
+              noUnusedLocals: false,

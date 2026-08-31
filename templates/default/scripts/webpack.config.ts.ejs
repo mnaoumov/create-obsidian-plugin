@@ -61,8 +61,10 @@ export const config: Configuration = {
         use: {
           loader: 'ts-loader',
           options: {
+<%- render('ts-loader-options') -%>
             compilerOptions: {
               noEmit: false,
+<%- render('ts-loader-compiler-options') -%>
               rewriteRelativeImportExtensions: true,
             },
             onlyCompileBundledFiles: true,
