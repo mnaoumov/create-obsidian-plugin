@@ -29,6 +29,7 @@
     "spellcheck": "jiti scripts/spellcheck.ts",
     "test": "jiti scripts/test.ts",
     "verify:answer-space": "jiti scripts/verify-answer-space.ts",
+    "verify:fleet-drift": "jiti scripts/verify-fleet-drift.ts",
     "verify:projects": "jiti scripts/verify-generated-projects.ts",
     "verify:rendering": "jiti scripts/verify-rendering.ts"
   },

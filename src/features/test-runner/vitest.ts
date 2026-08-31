@@ -41,9 +41,20 @@ export class Vitest extends FeatureOption {
       .addPackage('@vitest/coverage-v8')
       .addScript('test:coverage')
       .addScript('test:integration')
+      // The three below are declared by `defineObsidianPluginVitestConfig` and are deliberately NOT run
+      // By `test:integration`, which says why: one drives a real Obsidian install and one needs a
+      // Provisioned Android emulator, so a freshly generated project would fail its own aggregate task
+      // On any machine that has neither. They still get their own script, because that is how the
+      // Fleet reaches them once those are set up.
+      .addScript('test:integration:android')
       .addScript('test:integration:demo-vault')
+      .addScript('test:integration:desktop')
+      .addScript('test:integration:desktop:performance')
       .addScript('test:integration:no-app')
       .addFiles([
+        'scripts/test-integration-android.ts',
+        'scripts/test-integration-desktop.ts',
+        'scripts/test-integration-desktop-performance.ts',
         'scripts/demo-vault-global-setup.ts',
         'scripts/framework-component-stub.ts',
         'scripts/test-coverage.ts',

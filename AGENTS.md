@@ -11,6 +11,7 @@
 - `templates/default/` — EJS template files (all must have `.ejs` extension)
 - `scripts/` — All build/lint/test logic lives here
 - `dist/` — Built output (published to npm, not tracked in git)
+- `fleet-drift-baseline.json` — the differences between the emitted odu presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
 
 ## Design Decisions
 
@@ -354,6 +355,47 @@ Three rules that are easy to get wrong and were:
   to the literal `latest` when a registry lookup fails, so that generating offline works; the cost is that
   a typo'd or dead package name looks ordinary until `npm install`. `npm run verify:answer-space --
   --check-registry` is the pass that catches it, and it is worth running before any release.
+
+### A fourth check asks whether the output looks like a real plugin
+
+The three tiers above all ask the same question — is the output valid? — over as much of the answer space
+as each can afford. `verify:fleet-drift` (`src/fleet-drift-checks.ts`) asks a different one, over a single
+point in that space: does what the obsidian-dev-utils presets emit actually look like the 29 plugins
+checked out beside this repo? The README advertises `obsidian-sample-plugin-extended` as the "Sample
+output", so a divergence there is a documented promise being broken, and nothing measured it until this
+existed. It found, among other things, that the conventional-commits answer had never registered husky:
+the hooks were emitted, husky was installed, and no hook had ever fired.
+
+Four things about it are load-bearing.
+
+**The comparison runs against fleet-shaped answers, not the defaults.** `FLEET_SHAPED_ANSWERS` is measured
+across the fleet rather than chosen — esbuild and vitest are unanimous, all 29 carry
+`@obsidian-typings/obsidian-public-latest`, 27 of 29 are not desktop-only. Comparing a
+`webpack + biome + jest` generation against the fleet would report drift that is really just "the user
+answered differently", which is noise that would swamp the signal. `gitHubActions: 'none'` is the answer
+that reads oddly: no fleet plugin has a `ci.yml`, and asking for one would bury the finding that the one
+workflow all 29 DO ship — `attest-release-assets.yml` — was emitted by no answer at all.
+
+**A trait counts as the fleet's only at unanimity, and there is a floor below which a divided trait is not
+reported.** The first run had no floor and produced 1793 findings, all but a few dozen being one plugin's
+own demo-vault notes and vendored files at 1 of 29. Below a majority the fleet has no shape to match, only
+contents.
+
+**Findings are scoped by preset.** `enhanced` and `demo` do not emit the same project, so a baseline entry
+naming only the trait would let one of demo's forced framework components silence the same key under
+`enhanced`, where it would be a genuine surprise.
+
+**`fleet-drift-baseline.json` is reconciled in both directions**, exactly as G100 requires of
+`pinned-versions.json`: an unrecorded difference fails, an entry whose difference has since gone fails,
+and a moved `fleetCount` fails — the count is the evidence behind most of the judgements recorded there.
+
+Dependencies and tsconfig `types` are deliberately not compared. T699-P42 settled both by following the
+fleet, and re-reporting them would re-litigate a closed decision.
+
+The fleet is discovered by scanning the parent directory for anything with both a `manifest.json` and a
+`src/main.ts` — the same test `PROJECTS.md` applies, run against the filesystem rather than read out of a
+roster that can drift. It reads the tracked set (`git ls-files`) on the fleet side and walks the tree on
+the generated side, because a generated project is not a repository yet.
 
 ### Template engine: EJS
 
