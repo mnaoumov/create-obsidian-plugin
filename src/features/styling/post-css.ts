@@ -22,7 +22,9 @@ export class PostCss extends FeatureOption {
       builder.addPackage('esbuild-postcss');
     }
     if (answers.bundler === 'rollup') {
-      builder.addPackage('rollup-plugin-postcss');
+      builder
+        .addPackage('rollup-plugin-postcss')
+        .addPartial('rollup-postcss');
     }
     if (answers.bundler === 'webpack') {
       builder

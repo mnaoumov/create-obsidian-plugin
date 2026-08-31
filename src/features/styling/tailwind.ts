@@ -28,7 +28,9 @@ export class Tailwind extends FeatureOption {
     // Natively, and the other four keep the plumbing that extracts it. No PostCSS anywhere -- the CLI
     // Has already run by the time any of them look at the file.
     if (answers.bundler === 'rollup') {
-      builder.addPackage('rollup-plugin-postcss');
+      builder
+        .addPackage('rollup-plugin-postcss')
+        .addPartial('rollup-postcss');
     }
     if (answers.bundler === 'webpack') {
       builder
