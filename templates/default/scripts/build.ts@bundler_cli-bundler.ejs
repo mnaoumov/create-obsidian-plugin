@@ -8,6 +8,7 @@ import {
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
+<%- render('import') -%>
 
 const prod = process.argv[2] !== 'dev';
 <%# The `if (prod)` guard belongs to the partial, not to this wrapper. Wrapping it here emitted an -%>

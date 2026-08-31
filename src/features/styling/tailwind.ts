@@ -10,21 +10,23 @@ export class Tailwind extends FeatureOption {
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
-      // Tailwind 4 moved the PostCSS plugin into its own package and stopped needing autoprefixer or a
-      // JavaScript config file. `tailwindcss`' own default export is now a stub whose only job is to warn
-      // That you reached for the wrong package -- which is what the emitted config was calling.
-      .addPackage('@tailwindcss/postcss')
-      .addPackage('postcss')
+      // Tailwind 4 is compiled by its own CLI rather than through PostCSS. PostCSS is not reachable on
+      // Every path this generator emits -- the obsidian-dev-utils presets call that library's esbuild
+      // Build, which has no PostCSS step and registers `esbuild-sass-plugin` (whose default filter
+      // Claims `.css`, not just `.scss`) ahead of the `customEsbuildPlugins` seam a project can add to.
+      // Compiling first means every bundler receives ordinary, already-expanded CSS and the question
+      // Does not arise. It also drops autoprefixer and the JavaScript config v3 needed.
+      .addPackage('@tailwindcss/cli')
       .addPackage('tailwindcss')
+      .addScript('build:styles')
       .addFiles([
-        'postcss.config.cjs',
-        'scripts/postcss.config.ts',
+        'scripts/build-styles.ts',
         'src/styles/main.css',
         'src/styles/styles.d.ts'
       ]);
-    if (answers.bundler === 'esbuild') {
-      builder.addPackage('esbuild-postcss');
-    }
+    // What each bundler needs to carry ORDINARY css, which is all it ever sees now: esbuild loads it
+    // Natively, and the other four keep the plumbing that extracts it. No PostCSS anywhere -- the CLI
+    // Has already run by the time any of them look at the file.
     if (answers.bundler === 'rollup') {
       builder.addPackage('rollup-plugin-postcss');
     }
@@ -32,7 +34,6 @@ export class Tailwind extends FeatureOption {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')
-        .addPackage('postcss-loader')
         .addPartial('webpack-css-extract');
     }
   }

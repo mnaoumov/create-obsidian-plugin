@@ -311,7 +311,7 @@ describe('buildTemplate', () => {
       expect(packages).toContain('parcel-transformer-svelte');
       expect(packages).not.toContain('@parcel/transformer-svelte');
     });
-  });
+ });
 
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
@@ -479,12 +479,14 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ styling: 'tailwind' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('tailwindcss');
-      // Tailwind 4's PostCSS plugin lives in its own package. `tailwindcss`' default export is a stub
-      // That only warns you reached for the wrong one, and its return type is `void` -- which is how the
-      // Emitted PostCSS config came to fail `no-confusing-void-expression`.
-      expect(depNames).toContain('@tailwindcss/postcss');
-      expect(depNames).toContain('postcss');
-      expect([...builder.templateFiles]).toContain('scripts/postcss.config.ts');
+      // Tailwind 4 is compiled by its own CLI, not through PostCSS: PostCSS is unreachable on the
+      // Obsidian-dev-utils esbuild path, whose sass plugin claims `.css` ahead of the seam a project can
+      // Add plugins to. Compiling first means every bundler receives ordinary CSS.
+      expect(depNames).toContain('@tailwindcss/cli');
+      expect(depNames).not.toContain('@tailwindcss/postcss');
+      expect(depNames).not.toContain('postcss');
+      expect([...builder.templateFiles]).toContain('scripts/build-styles.ts');
+      expect([...builder.templateFiles]).not.toContain('scripts/postcss.config.ts');
       // Tailwind 4 detects its sources itself and needs no JavaScript config, so neither file is emitted
       // Any more. A v3-shaped `content` array would have been read by nothing.
       expect([...builder.templateFiles]).not.toContain('tailwind.config.ts');

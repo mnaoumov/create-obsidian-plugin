@@ -1,0 +1,12 @@
+import { execSync } from 'node:child_process';
+
+// Tailwind 4 is compiled by its own CLI rather than through PostCSS, because PostCSS is not reachable on
+// Every path this generator emits: the obsidian-dev-utils presets call that library's esbuild build,
+// Which registers no PostCSS step at all AND registers `esbuild-sass-plugin` -- whose default filter is
+// `/\.(s[ac]ss|css)$/`, so it claims `.css` too -- ahead of the `customEsbuildPlugins` seam a project can
+// Add to. A PostCSS plugin appended there would never see the file. Running the CLI first sidesteps the
+// Question entirely: every bundler then receives ordinary, already-expanded CSS.
+//
+// `src/styles/main.css` is the SOURCE (it carries `@import "tailwindcss"`); nothing imports it directly.
+// `src/main.ts` imports the generated file below, which is git-ignored.
+execSync('npx @tailwindcss/cli --input src/styles/main.css --output src/styles/tailwind.generated.css', { stdio: 'inherit' });
