@@ -1,0 +1,7 @@
+<%# build.ts already IS the watch script for the four command-line bundlers: it reads `dev` off argv -%>
+<%# and derives watchFlag, dist/dev, sourcemaps, the .hotreload marker and the vault copy from it. So -%>
+<%# `dev` re-enters it rather than restating any of that. Byte-identical to the esbuild+standalone -%>
+<%# partial, and deliberately a second copy: one shared partial contributed by both the CLI bundlers -%>
+<%# and `standalone` would render TWICE on standalone plus a command-line bundler. -%>
+process.argv[2] = 'dev';
+await import('./build.ts');

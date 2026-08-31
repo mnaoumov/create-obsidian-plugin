@@ -1179,6 +1179,40 @@ describe('copyTemplates', () => {
     expect(devScript).toContain('import(\'./build.ts\')');
   });
 
+  // The defect this guards is silent by construction: both scripts compile, both run a real bundler,
+  // And no verification tier executes `dev` -- a watch task does not terminate -- so the two disagreeing
+  // About what builds the plugin looked exactly like them agreeing. `build.ts` was keyed on the bundler
+  // While `dev.ts` was still keyed on the preset, which left every obsidian-dev-utils preset watching
+  // With esbuild whatever was answered, its chosen bundler's config emitted, installed and unread.
+  it('dev.ts and build.ts pick the same bundler on every preset', () => {
+    const presets = ['demo', 'enhanced', 'standalone'];
+    const bundlers = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
+    const oduDevImport = 'obsidian-dev-utils/script-utils/bundlers/esbuild';
+
+    for (const preset of presets) {
+      for (const bundler of bundlers) {
+        const caseDir = join(targetDir, `${preset}-${bundler}`);
+        copyTemplates(makeAnswers({ bundler, preset }), caseDir, '1.0.0', null);
+        const devScript = readFileSync(join(caseDir, 'scripts/dev.ts'), 'utf-8');
+        const label = `${preset} + ${bundler}`;
+
+        if (preset !== 'standalone' && bundler === 'esbuild') {
+          // The one path that genuinely differs: obsidian-dev-utils' `dev()` also watches node_modules
+          // And re-runs build:compile, which its `build()` cannot do and no CLI bundler offers.
+          expect(devScript, label).toContain(`import { dev } from '${oduDevImport}'`);
+          expect(devScript, label).toContain('dev({ customEsbuildPlugins })');
+          continue;
+        }
+
+        // Everywhere else `dev` IS `build` in watch mode, so it re-enters build.ts rather than
+        // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
+        expect(devScript, label).toContain('process.argv[2] = \'dev\'');
+        expect(devScript, label).toContain('import(\'./build.ts\')');
+        expect(devScript, label).not.toContain(oduDevImport);
+      }
+    }
+  });
+
   it('creates version.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'scripts/version.ts'))).toBe(true);
