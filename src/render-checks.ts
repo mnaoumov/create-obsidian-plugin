@@ -1,5 +1,6 @@
 import type {
   Diagnostic,
+  Node,
   SourceFile
 } from 'typescript';
 
@@ -10,10 +11,16 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import {
+  canHaveModifiers,
   createSourceFile,
   flattenDiagnosticMessageText,
+  forEachChild,
+  getModifiers,
+  isBlock,
+  isFunctionLike,
   ScriptKind,
-  ScriptTarget
+  ScriptTarget,
+  SyntaxKind
 } from 'typescript';
 import { parse as parseYaml } from 'yaml';
 
@@ -41,6 +48,8 @@ export interface RenderViolation {
  * "no configuration", and every existence check passes.
  */
 export type RenderViolationKind =
+  | 'await-outside-async'
+  | 'empty-block'
   | 'empty-file'
   | 'invalid-json'
   | 'invalid-typescript'
@@ -240,7 +249,7 @@ function checkSyntax(relativePath: string, fileName: string, content: string): R
   const source = createSourceFile(fileName, content, ScriptTarget.ESNext, true, scriptKindFor(fileName));
   const diagnostics = (source as ParsedSourceFile).parseDiagnostics ?? [];
   if (diagnostics.length === 0) {
-    return [];
+    return checkStructure(relativePath, source);
   }
 
   const first = diagnostics[0];
@@ -249,6 +258,23 @@ function checkSyntax(relativePath: string, fileName: string, content: string): R
     kind: 'invalid-typescript',
     subject: relativePath
   }];
+}
+
+/**
+ * Two defects a clean parse does not catch, both of which composition produces.
+ *
+ * A partial does not know what it is being rendered into. `await import(…)` reads fine on its own and
+ * parses fine in the file, but the CLI-bundler build script drops it inside a synchronous function --
+ * TS1308, and a hard `ParseError: Unexpected reserved word 'await'` from the bundler. An empty block is
+ * the other half of the same thing: a wrapper that renders `if (prod) { <partial> }` emits `if (prod) {
+ * }` on every answer contributing no partial, which the generated ESLint config rejects with `no-empty`.
+ * Neither is a syntax error, so the parse pass above sees nothing.
+ */
+function checkStructure(relativePath: string, source: SourceFile): RenderViolation[] {
+  const violations: RenderViolation[] = [];
+
+  walkStructure(source, source, true, violations, relativePath);
+  return violations;
 }
 
 function excerptAround(content: string, needle: string): string {
@@ -267,6 +293,50 @@ function existsRelative(targetDir: string, relativePath: string): boolean {
 
 function scriptKindFor(fileName: string): ScriptKind {
   return fileName.endsWith('.tsx') ? ScriptKind.TSX : ScriptKind.TS;
+}
+
+/**
+ * Recurses one node, carrying whether `await` is legal where we are.
+ *
+ * Legal at the top level of a module and inside an `async` function; illegal inside a synchronous one.
+ * Crossing into any function-like node therefore replaces the flag rather than inheriting it.
+ */
+function walkStructure(
+  node: Node,
+  source: SourceFile,
+  awaitAllowed: boolean,
+  violations: RenderViolation[],
+  relativePath: string
+): void {
+  if (node.kind === SyntaxKind.AwaitExpression && !awaitAllowed) {
+    violations.push({
+      detail: `\`await\` inside a synchronous function: ${JSON.stringify(node.getText(source).slice(0, DETAIL_LENGTH))}`,
+      kind: 'await-outside-async',
+      subject: relativePath
+    });
+  }
+
+  // A function body is deliberately exempt: an empty one is legal and sometimes meant (ESLint splits
+  // These into `no-empty` and `no-empty-function` for the same reason). A block holding only a comment
+  // Is exempt too -- `no-empty` ignores those, and the emitted `catch` blocks rely on it.
+  if (isBlock(node) && node.statements.length === 0 && !isFunctionLike(node.parent)) {
+    const inner = source.text.slice(node.getStart(source) + 1, node.getEnd() - 1);
+    if (inner.trim() === '') {
+      violations.push({
+        detail: 'Empty block statement. A wrapper rendered a section that contributed nothing.',
+        kind: 'empty-block',
+        subject: relativePath
+      });
+    }
+  }
+
+  const childAwaitAllowed = isFunctionLike(node)
+    ? (canHaveModifiers(node) ? getModifiers(node) : undefined)?.some((modifier) => modifier.kind === SyntaxKind.AsyncKeyword) ?? false
+    : awaitAllowed;
+
+  forEachChild(node, (child) => {
+    walkStructure(child, source, childAwaitAllowed, violations, relativePath);
+  });
 }
 
 function walk(targetDir: string, relativeDir: string): string[] {

@@ -123,6 +123,47 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('src/view.tsx')).toEqual([]);
   });
 
+  // A partial does not know what it is rendered into. `await import(…)` parses fine and reads fine on
+  // Its own, but the CLI-bundler build script drops the hot-reload partial inside a SYNCHRONOUS
+  // Function -- TS1308, plus a hard `ParseError: Unexpected reserved word 'await'` from the bundler.
+  it('flags await inside a synchronous function', () => {
+    put('scripts/build.ts', 'export function reload(): void {\n  const { execSync } = await import(\'node:child_process\');\n  execSync(\'x\');\n}\n');
+    expect(kindsFor('scripts/build.ts')).toContain('await-outside-async');
+  });
+
+  it('accepts await at the top level of a module', () => {
+    put('scripts/build.ts', 'const { execSync } = await import(\'node:child_process\');\nexecSync(\'x\');\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts await inside an async function', () => {
+    put('scripts/build.ts', 'export async function reload(): Promise<void> {\n  await Promise.resolve();\n}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts await inside an async arrow function', () => {
+    put('scripts/build.ts', 'export const reload = async (): Promise<void> => {\n  await Promise.resolve();\n};\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  // The other half of the same trap: a wrapper rendering `if (prod) { <section> }` emits an EMPTY
+  // `if (prod) { }` on every answer that contributes no partial, which the generated ESLint config
+  // Rejects with `no-empty`.
+  it('flags an empty block statement', () => {
+    put('scripts/build.ts', 'const prod = true;\nif (prod) {\n}\n');
+    expect(kindsFor('scripts/build.ts')).toContain('empty-block');
+  });
+
+  it('accepts an empty block that holds a comment, as no-empty does', () => {
+    put('scripts/build.ts', 'try {\n  JSON.parse(\'{}\');\n} catch {\n  // Nothing to do.\n}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts an empty function body, which no-empty also leaves alone', () => {
+    put('scripts/build.ts', 'export function noop(): void {}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
   it('flags a package.json script whose file was not emitted', () => {
     put('package.json', JSON.stringify({ scripts: { build: 'jiti scripts/build.ts' } }));
     expect(kindsFor('scripts/build.ts')).toContain('script-file-missing');
