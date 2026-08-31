@@ -305,6 +305,27 @@ export function buildPinnedVersionsJson(dependencies: readonly Dependency[]): st
 }
 
 /**
+ * The same forcing, spelled the way yarn and pnpm read it.
+ *
+ * `overrides` is npm's field and **yarn ignores it entirely**, so a yarn project got no forcing at all:
+ * `@codemirror/view` brought its own nested `@codemirror/state`, and the two copies of a CodeMirror
+ * facet do not interoperate -- which surfaced as `Type 'RangeSet<Decoration>' is not assignable to type
+ * 'DecorationSet'` against two different `@codemirror/state` paths. Both blocks are emitted for every
+ * project rather than only for the chosen package manager: which tool installs a checkout is not a
+ * property of the checkout, and each manager ignores the field that is not its own.
+ *
+ * Specs are literal here. npm's `$<name>` shorthand means nothing to yarn, which would read it as a
+ * version string.
+ */
+export function buildResolutions(dependencies: readonly Dependency[]): Record<string, string> {
+  const resolutions: Record<string, string> = {};
+  for (const [packageName, spec] of Object.entries(buildOverrides(dependencies))) {
+    resolutions[packageName] = spec.startsWith('$') ? PINNED_VERSIONS[spec.slice(1)]?.version ?? spec : spec;
+  }
+  return resolutions;
+}
+
+/**
  * The latest public desktop Obsidian version, for the generated `manifest.json`'s `minAppVersion`.
  *
  * Falls back to a version that claims no minimum when the lookup fails, so generating offline still

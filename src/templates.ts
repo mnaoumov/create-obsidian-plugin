@@ -46,6 +46,7 @@ import { TemplateBuilder } from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
+  buildResolutions,
   FALLBACK_MIN_APP_VERSION,
   PINNED_VERSIONS
 } from './versions.ts';
@@ -210,6 +211,7 @@ export function copyTemplates(
     _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _pinnedVersionsJson: buildPinnedVersionsJson(dependencies),
+    _resolutions: Object.entries(buildResolutions(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _scripts: builder.scripts,
     _sentenceCaseBrands: builder.sentenceCaseBrands,
     render(options?: RenderOptions | string): string {

@@ -19,6 +19,11 @@
     "<%- override.packageName %>": "<%- override.spec %>"<%= i < _overrides.length - 1 ? ',' : '' %>
 <% }); -%>
   },
+  "resolutions": {
+<% _resolutions.forEach((resolution, i) => { -%>
+    "<%- resolution.packageName %>": "<%- resolution.spec %>"<%= i < _resolutions.length - 1 ? ',' : '' %>
+<% }); -%>
+  },
   "devDependencies": {
 <% _dependencies.forEach((dep, i) => { -%>
     "<%- dep.packageName %>": "<%- dep.version %>"<%= i < _dependencies.length - 1 ? ',' : '' %>
