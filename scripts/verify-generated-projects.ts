@@ -210,8 +210,18 @@ function reportOutcomes(outcomes: readonly CaseOutcome[]): void {
  *
  * Resolution is answer-independent -- a package's spec comes from the pin table or the registry's
  * current `latest`, not from the case -- so resolving per case would be the same lookups repeated fifty
- * times. Doing it once also means every case in a run is gated against the SAME dependency versions,
- * which is what makes two cases' results comparable.
+ * times.
+ *
+ * It does NOT make the cases comparable, and this comment used to claim it did. What is resolved once
+ * is a caret RANGE (`^96.5.1`), and `npm install` re-resolves that range per case -- so a package
+ * published mid-run reaches the later cases and not the earlier ones. Only the exact pins are actually
+ * frozen. Measured on 2026-08-31: obsidian-dev-utils 96.5.2 was published while the tier was running
+ * and widened a peer range, and every case after the publish failed at `install` while every case
+ * before it had passed. **A sudden cluster of install failures across unrelated answers is that, not a
+ * template defect.**
+ *
+ * Freezing exact versions for the duration of a run would buy comparability, and cost the tier its
+ * ability to notice a bad new release -- which is half of what it is for. Left floating deliberately.
  */
 async function resolveOnce(cases: readonly Answers[], resolvedPath: string): Promise<void> {
   const names = new Set<string>();
