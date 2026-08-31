@@ -33,7 +33,7 @@ export class ConventionalCommits extends FeatureOption {
         'scripts/prepare.ts',
         'commitlint.config.ts',
         'scripts/commit.ts',
-        'scripts/commitlint.config.ts',
+        'scripts/commitlint-config.ts',
         '.husky/commit-msg',
         '.husky/pre-commit',
         '.nano-staged.mjs',

@@ -573,7 +573,7 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits' }));
       const files = [...builder.templateFiles];
       expect(files).toContain('commitlint.config.ts');
-      expect(files).toContain('scripts/commitlint.config.ts');
+      expect(files).toContain('scripts/commitlint-config.ts');
       expect(files).toContain('.husky/commit-msg');
       expect(files).toContain('.husky/pre-commit');
       expect(files).toContain('.nano-staged.mjs');
@@ -1459,7 +1459,7 @@ describe('copyTemplates', () => {
 
   it('creates commitlint config for conventional-commits', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
-    const config = readFileSync(join(targetDir, 'scripts/commitlint.config.ts'), 'utf-8');
+    const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
     expect(config).toContain('@commitlint/config-conventional');
   });
 

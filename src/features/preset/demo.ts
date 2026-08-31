@@ -31,6 +31,10 @@ export class Demo extends FeatureOption {
       .addScript('find-overexposed:fix')
       .addScript('version')
       .addFiles([
+        // Not gated on the gitHubActions answer, and deliberately so: this attests the assets of a
+        // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin in the fleet
+        // Ships this workflow and no other -- they have no ci.yml at all.
+        '.github/workflows/attest-release-assets.yml',
         'scripts/build.ts',
         'scripts/build-clean.ts',
         'scripts/build-compile.ts',
