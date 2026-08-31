@@ -1,9 +1,9 @@
-import { LitElement, css, html } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 @customElement('sample-lit-element')
 export class SampleLitElement extends LitElement {
-  static override styles = css`
+  public static override styles = css`
     :host {
       display: block;
       padding: 16px;
@@ -19,18 +19,21 @@ export class SampleLitElement extends LitElement {
   @property({ type: String })
   public vaultName = '';
 
-  override render(): unknown {
+  // An arrow property rather than a method: the template below hands `this.increment` to lit as a bare
+  // Reference, and a method detached from its object is what `@typescript-eslint/unbound-method`
+  // Forbids. Binding at the declaration is the fix lit's own docs reach for too.
+  private readonly increment = (): void => {
+    this.count++;
+  };
+
+  public override render(): unknown {
     return html`
       <h4>Sample Lit Element!</h4>
       <div>
         <span>My number is ${this.count}!</span>
       </div>
-      <button @click=${this.increment}>Increment</button>
+      <button type="button" @click=${this.increment}>Increment</button>
       <div>Vault name: ${this.vaultName}</div>
     `;
-  }
-
-  private increment(): void {
-    this.count++;
   }
 }

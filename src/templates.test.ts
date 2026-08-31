@@ -164,7 +164,7 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ linter: 'biome' }));
       expect(builder.scripts['lint']).toBe('jiti scripts/lint.ts');
       expect(builder.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
-      expect([...builder.templateFiles]).toContain('biome.json');
+      expect([...builder.templateFiles]).toContain('biome.jsonc');
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('@biomejs/biome');
     });
@@ -198,7 +198,7 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ formatter: 'biome' }));
       expect(builder.scripts['format']).toBe('jiti scripts/format.ts');
       expect(builder.scripts['format:check']).toBe('jiti scripts/format-check.ts');
-      expect([...builder.templateFiles]).toContain('biome.json');
+      expect([...builder.templateFiles]).toContain('biome.jsonc');
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('@biomejs/biome');
     });
@@ -1016,7 +1016,9 @@ describe('copyTemplates', () => {
   // It. Biome wants a bare `!**/dist`: its own `useBiomeIgnoreFolder` rule rejects the `/**` form too.
   it('excludes build output from biome in the form biome actually honours', () => {
     copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome' }), targetDir, '1.0.0', null);
-    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.json'), 'utf-8')) as Record<string, Record<string, string[]>>;
+    // `.jsonc`, so the config can carry the reasoning for the two rules it turns off. Biome parses its
+    // Own config as JSONC whatever the extension; the name is what lets the comments ship.
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.jsonc'), 'utf-8').replaceAll(/^\s*\/\/.*$/gmu, '')) as Record<string, Record<string, string[]>>;
     const includes = biome['files']?.['includes'] ?? [];
     expect(includes).toContain('!**/dist');
     for (const entry of includes) {
@@ -1051,7 +1053,7 @@ describe('copyTemplates', () => {
 
   it('creates biome config and lint scripts when biome is selected', () => {
     copyTemplates(makeAnswers({ linter: 'biome' }), targetDir, '1.0.0', null);
-    expect(existsSync(join(targetDir, 'biome.json'))).toBe(true);
+    expect(existsSync(join(targetDir, 'biome.jsonc'))).toBe(true);
     const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
     expect(lint).toContain('biome lint');
     const lintFix = readFileSync(join(targetDir, 'scripts/lint-fix.ts'), 'utf-8');
