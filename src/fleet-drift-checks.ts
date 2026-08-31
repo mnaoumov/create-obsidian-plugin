@@ -335,7 +335,7 @@ export function compareToFleet(consensus: FleetConsensus, generated: ProjectProf
     }
   }
 
-  return findings.sort((a, b) => findingKey(a).localeCompare(findingKey(b)));
+  return findings.sort((a, b) => traitKey(a).localeCompare(traitKey(b)));
 }
 
 /** One finding, as a line a reader can act on. */
@@ -397,9 +397,16 @@ export function extractProfile(projectDir: string, files: readonly string[]): Pr
   ]);
 }
 
-/** The `<dimension>/<kind>/<key>` a finding is filed under in the baseline. */
-export function findingKey(finding: DriftFinding): string {
-  return `${finding.dimension}/${finding.kind}/${finding.key}`;
+/**
+ * The `<scope>/<dimension>/<kind>/<key>` a finding is filed under in the baseline.
+ *
+ * The scope is the preset the case was generated for, and it is part of the key rather than dropped
+ * because the presets do not emit the same project. Without it, baselining a `demo`-only extra -- one of
+ * the framework components that preset forces in -- would silence the same key under `enhanced`, where
+ * it would be a genuine surprise.
+ */
+export function findingKey(finding: DriftFinding, scope: string): string {
+  return `${scope}/${traitKey(finding)}`;
 }
 
 /** The complete answers for one preset, shaped like the fleet. */
@@ -447,30 +454,32 @@ export function listTrackedFiles(projectDir: string): string[] {
  * difference that no longer exists. A moved `fleetCount` fails too -- the count IS the evidence behind
  * most of these judgements, and a trait that went from 25 of 29 to 29 of 29 needs the call made again.
  */
-export function reconcileBaseline(findings: readonly DriftFinding[], baseline: Readonly<Record<string, BaselineEntry>>): BaselineViolation[] {
+export function reconcileBaseline(findingsByScope: ReadonlyMap<string, readonly DriftFinding[]>, baseline: Readonly<Record<string, BaselineEntry>>): BaselineViolation[] {
   const violations: BaselineViolation[] = [];
   const seen = new Set<string>();
 
-  for (const finding of findings) {
-    const key = findingKey(finding);
-    seen.add(key);
-    const entry = baseline[key];
+  for (const [scope, findings] of findingsByScope) {
+    for (const finding of findings) {
+      const key = findingKey(finding, scope);
+      seen.add(key);
+      const entry = baseline[key];
 
-    if (!entry) {
-      violations.push({
-        detail: describeFinding(finding),
-        key,
-        kind: 'unbaselined-drift'
-      });
-      continue;
-    }
+      if (!entry) {
+        violations.push({
+          detail: describeFinding(finding),
+          key,
+          kind: 'unbaselined-drift'
+        });
+        continue;
+      }
 
-    if (entry.fleetCount !== finding.fleetCount) {
-      violations.push({
-        detail: `Recorded at ${String(entry.fleetCount)} of the fleet, now ${String(finding.fleetCount)} of ${String(finding.fleetTotal)}. Re-judge: ${entry.why}`,
-        key,
-        kind: 'baseline-count-moved'
-      });
+      if (entry.fleetCount !== finding.fleetCount) {
+        violations.push({
+          detail: `Recorded at ${String(entry.fleetCount)} of the fleet, now ${String(finding.fleetCount)} of ${String(finding.fleetTotal)}. Re-judge: ${entry.why}`,
+          key,
+          kind: 'baseline-count-moved'
+        });
+      }
     }
   }
 
@@ -657,6 +666,11 @@ function parseSource(projectDir: string, relativePath: string): null | SourceFil
   }
 
   return createSourceFile(relativePath, readFileSync(fullPath, 'utf-8'), ScriptTarget.ESNext, true);
+}
+
+/** A finding without its scope -- the stable part, used for ordering the report. */
+function traitKey(finding: DriftFinding): string {
+  return `${finding.dimension}/${finding.kind}/${finding.key}`;
 }
 
 function walk(projectDir: string, relativeDir: string): string[] {

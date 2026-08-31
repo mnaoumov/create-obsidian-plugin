@@ -146,24 +146,39 @@ describe('fleetShapedAnswers', () => {
 
 describe('reconcileBaseline', () => {
   it('fails a drift with no entry', () => {
-    const violations = reconcileBaseline([finding('scripts', 'missing', 'prepare', FLEET_SIZE)], {});
+    const violations = reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', FLEET_SIZE)]), {});
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('unbaselined-drift');
-    expect(violations[0]?.key).toBe('scripts/missing/prepare');
+    expect(violations[0]?.key).toBe('enhanced/scripts/missing/prepare');
   });
 
   it('accepts a drift the baseline records at the same count', () => {
-    expect(reconcileBaseline([finding('scripts', 'missing', 'prepare', FLEET_SIZE)], {
-      'scripts/missing/prepare': entry(FLEET_SIZE)
+    expect(reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', FLEET_SIZE)]), {
+      'enhanced/scripts/missing/prepare': entry(FLEET_SIZE)
     })).toEqual([]);
+  });
+
+  // The presets do not emit the same project, so baselining a demo-only difference must not silence the
+  // Same key under enhanced, where it would be a genuine surprise.
+  it('keeps the entry for one preset from silencing the other', () => {
+    const violations = reconcileBaseline(
+      new Map([
+        ['demo', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]],
+        ['enhanced', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]]
+      ]),
+      { 'demo/layout/extra/src/react-components/sample.tsx': entry(0) }
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.key).toBe('enhanced/layout/extra/src/react-components/sample.tsx');
   });
 
   // The count IS the evidence behind most of these judgements, so a trait that went from a divided
   // Majority to unanimous needs the call made again rather than silently kept.
   it('re-reports an entry whose fleet count has moved', () => {
-    const violations = reconcileBaseline([finding('scripts', 'partial', 'capture:screenshots', FLEET_SIZE)], {
-      'scripts/partial/capture:screenshots': entry(FLEET_SIZE - PAIR)
+    const violations = reconcileBaseline(scoped([finding('scripts', 'partial', 'capture:screenshots', FLEET_SIZE)]), {
+      'enhanced/scripts/partial/capture:screenshots': entry(FLEET_SIZE - PAIR)
     });
 
     expect(violations).toHaveLength(1);
@@ -173,7 +188,7 @@ describe('reconcileBaseline', () => {
   // The direction that is easy to forget: fixing a drift without deleting its justification leaves the
   // File describing a difference that no longer exists, which is the drift G100 forbids of a pin table.
   it('fails an entry whose drift has gone', () => {
-    const violations = reconcileBaseline([], { 'scripts/missing/prepare': entry(FLEET_SIZE) });
+    const violations = reconcileBaseline(scoped([]), { 'enhanced/scripts/missing/prepare': entry(FLEET_SIZE) });
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('stale-baseline-entry');
@@ -181,8 +196,8 @@ describe('reconcileBaseline', () => {
 });
 
 describe('findingKey', () => {
-  it('files a finding under dimension, kind and key, so a baseline entry names all three', () => {
-    expect(findingKey(finding('scripts', 'missing', 'build:clean', FLEET_SIZE))).toBe('scripts/missing/build:clean');
+  it('files a finding under preset, dimension, kind and key, so an entry names all four', () => {
+    expect(findingKey(finding('scripts', 'missing', 'build:clean', FLEET_SIZE), 'enhanced')).toBe('enhanced/scripts/missing/build:clean');
   });
 });
 
@@ -209,7 +224,13 @@ function finding(dimension: DriftDimension, kind: DriftFinding['kind'], key: str
 }
 
 function profile(traits: Partial<Record<DriftDimension, Record<string, string>>>): ProjectProfile {
-  return new Map(Object.entries(traits).map(([dimension, keys]) => [dimension as DriftDimension, new Map(Object.entries(keys))]));
+  const entries = Object.entries(traits) as [DriftDimension, Record<string, string>][];
+  return new Map(entries.map(([dimension, keys]) => [dimension, new Map(Object.entries(keys))]));
+}
+
+/** The findings of a single `enhanced` run, which is the scope every reconciliation test but one uses. */
+function scoped(findings: readonly DriftFinding[]): ReadonlyMap<string, readonly DriftFinding[]> {
+  return new Map([['enhanced', findings]]);
 }
 
 /** A consensus in which all {@link FLEET_SIZE} plugins carry every given script. */
