@@ -1,11 +1,14 @@
-import type { BaseTranslation } from 'typesafe-i18n';
-
-import { i18n } from 'typesafe-i18n';
+import { i18nObject } from 'typesafe-i18n';
 
 import en from './en/index.ts';
 
-const { t: translate } = i18n<BaseTranslation>('en', { en });
+<%# `i18nObject(locale, translations)`, not `i18n(...)`. `i18n` takes `(translations, formatters)` -- both -%>
+<%# keyed BY LOCALE -- and returns a locale-keyed map, so the old `i18n<BaseTranslation>('en', { en })` -%>
+<%# passed a locale where a translation map belongs, and then destructured `t` off the result as though -%>
+<%# it were a locale name. That failed to compile (TS2339, TS2558) and, once a test finally loaded the -%>
+<%# module, handed `new PluralRules('t')` a garbage tag: `RangeError: Invalid language tag: t`. -%>
+const translate = i18nObject('en', en);
 
-export function t(key: string): string {
-  return translate(key);
+export function t(key: keyof typeof en): string {
+  return translate[key]();
 }
