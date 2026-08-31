@@ -88,6 +88,23 @@ Worth knowing:
   `fleet-drift-baseline.json` with the reason it is deliberate;
   `npm run verify:fleet-drift -- --print-baseline` prints a skeleton to fill in.
 
+### Look at one combination
+
+Every script above sweeps the space, which is what makes none of them the tool for the question asked
+while actually changing a template: *what does this one combination emit?*
+
+```bash
+npm run render:case -- preset=enhanced bundler=webpack --show=scripts/dev.ts,scripts/build.ts
+```
+
+Bare `question=answer` arguments override individual answers; everything else takes its default. Both
+halves are checked against the answer space, so a misspelt question is an error rather than a silent
+default. Without `--show` it lists every path the case emitted, and `--out=<dir>` keeps the rendered
+project instead of discarding it.
+
+It distinguishes a file that was never emitted from one emitted empty. That is not a nicety: an
+unresolved partial writes the file **empty** rather than failing, and an empty `.ts` compiles.
+
 ## Pull Requests
 
 - Base your PR on the `main` branch.

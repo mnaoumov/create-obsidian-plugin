@@ -24,7 +24,28 @@ The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, 
 - **Enhanced/demo presets**: thin wrapper scripts that call the matching `obsidian-dev-utils` module — `script-utils/bundlers/esbuild`, `script-utils/linters/eslint`, `script-utils/test-runners/vitest`, `script-utils/version`, and so on, each wrapped in `wrapCliTask`. Updates propagate via `npm update`. There is no `script-utils/commands` barrel; every command has its own module.
 - **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
 
-**The two format scripts are the documented exception: they split on the tool first, not the preset.**
+**Four scripts are the documented exceptions: they split on the TOOL first, not the preset.**
+
+`build.ts` and `dev.ts` split on the **bundler**, and they must stay the same decision made once —
+`dev` is `build` in watch mode. Splitting on the preset first is what made every odu preset run
+esbuild whatever was answered, while still installing the chosen bundler and emitting its config for
+nothing to read. `build.ts` was fixed in `9fe2d67` and `dev.ts` was left behind, which is exactly how
+the two came to disagree: `npm run build` ran webpack, `npm run dev` ran esbuild, both green.
+
+Under each, only esbuild splits again by preset — obsidian-dev-utils supplies a build and a watcher
+for it, standalone writes its own inline — and the four command-line bundlers share one script. On the
+`dev` side that shared script is two lines: `build.ts` already reads `dev` off `process.argv` and
+derives the watch flag, `dist/dev`, sourcemaps, the `.hotreload` marker and the vault copy from it, so
+`dev` re-enters it rather than restating any of that.
+
+**Standalone deliberately does not gain obsidian-dev-utils' `dev()` behavior.** That `dev()` is not
+just a watcher: it also watches `node_modules` recursively and, on a change, disposes the esbuild
+context and re-runs the whole pipeline including `build:compile`. That exists to compensate for
+dev-utils' own `build:compile` step, which standalone has not got — and standalone's premise is a
+self-contained script with no dev-utils. Porting it would buy ~25 lines of debounced fs watching and
+process restart for no equivalent benefit. T764-P42 asked and answered it; do not re-open it.
+
+The two format scripts split on the **formatter** for the same class of reason.
 What `npm run format` runs is decided by the formatter answer, and only dprint has a preset-specific
 runner (dev-utils resolves `dprint.json` from the repo root and falls back to its bundled copy).
 prettier and biome are a plain `execSync`, identical everywhere, so they are one file each shared by
@@ -318,6 +339,13 @@ and SCSS work on these presets untouched — but nothing for Vue, so `esbuild-pl
 and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the odu presets when the
 bundler is esbuild, and both `build.ts` and `dev.ts` pass it.
 
+Both import it **unconditionally**, because both live under `@bundler_esbuild` where the answer is
+guaranteed. `dev.ts` used to gate the import and the argument on the `esbuild` partial
+(`dev.ts_odu@import_esbuild`, `dev.ts_odu@options_esbuild`) from a position where the bundler was
+*not* yet decided — so on any other bundler that gate rendered a bare `dev()` with no plugin list at
+all. A partial keyed on the answer its own branch already guarantees is a tautology in the good case
+and a silent hole in the bad one.
+
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.
@@ -358,6 +386,12 @@ three, each covering as much as its per-case cost allows.
 | render (`src/render-checks.ts`) | ~215 ms | strength-2 in `npm test`; `npm run verify:rendering` | strength 3, 265 cases, ~40 s across processes |
 | install and gate (`src/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under npm, ~50 cases, plus one case each for bun/pnpm/yarn |
 
+None of them answers the question asked while actually editing a template — *what does this one
+combination emit?* — because all three sweep. `npm run render:case -- <question>=<answer> …
+--show=<paths>` (`scripts/render-one-case.ts`) renders exactly one case and prints the files named,
+distinguishing "never emitted" from "emitted empty". Use it instead of writing another scratch
+renderer; that habit is how a wrong transcript ended up quoted in T764's own report.
+
 `--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
 single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
 
@@ -373,6 +407,14 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    three of the six bundler paths named it something else — so the gate tier's `styles` step checks the
    emitted artifact rather than the build's exit code. See "Every bundler has to be told to name the
    stylesheet `styles.css`" above.
+
+**No tier runs `npm run dev`, and none can: a watch task does not terminate.** The gate tier runs each
+emitted script to completion, so `dev` is the one script whose *presence and text* are verified and
+whose behavior never is. That is the whole reason `dev.ts` and `build.ts` could name different
+bundlers on eight of the fifteen preset x bundler combinations while every tier stayed green. What
+guards it instead is a unit test in `src/templates.test.ts` asserting the two scripts make the same
+bundler decision across all fifteen — cheap, because it reads the rendered bytes rather than running
+them. Anything else `dev` alone decides needs the same treatment; do not assume a tier will catch it.
 
 The render tier also carries three **structural** checks, because a clean parse is not a clean file and
 each of these is something composition produces rather than something a template author writes.

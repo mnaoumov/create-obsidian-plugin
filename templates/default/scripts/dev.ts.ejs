@@ -1,0 +1,6 @@
+<%# The twin of build.ts.ejs, and it has to be: `dev` is `build` in watch mode, so the two scripts are -%>
+<%# one decision made once. Keyed on the BUNDLER first for that reason -- keying it on the PRESET is -%>
+<%# what left every obsidian-dev-utils preset watching with esbuild whatever bundler was answered, -%>
+<%# while `npm run build` ran the answered one and the emitted config, loaders and plugins went unread -%>
+<%# by the path a developer actually spends the day in. -%>
+<%- render('bundler') -%>
