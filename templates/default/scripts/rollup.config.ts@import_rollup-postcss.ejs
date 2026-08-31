@@ -1,0 +1,4 @@
+<%# Shared by every styling answer that reaches rollup through rollup-plugin-postcss, rather than one -%>
+<%# identical copy per answer: `demo` forces a second styling answer on top of the chosen one, and two -%>
+<%# copies of this line collide as TS2300. Its `unwrap` twin is shared for the same reason. -%>
+import postcssModule from 'rollup-plugin-postcss';

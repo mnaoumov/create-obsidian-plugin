@@ -16,6 +16,12 @@ export default defineConfig({
     // `window`, none of which exist in the `node` environment.
     environment: 'jsdom',
     globals: true,
+    // Without this, vitest's default glob sweeps up `e2e/`, and `npm run test` reports the end-to-end
+    // Suite as three failed unit tests -- "browser is not defined" under wdio, and a missing
+    // `obsidian` package under obsidian-test. The odu presets escape it because
+    // `defineObsidianPluginVitestConfig` gives each of its projects an `include` of its own, and the
+    // Jest answer escapes it through `roots: ['<rootDir>/src']`; this config had neither.
+    include: ['src/**/*.test.ts'],
     setupFiles: [
       'obsidian-test-mocks/vitest-setup',
       'obsidian-test-mocks/obsidian-typings/vitest-setup'

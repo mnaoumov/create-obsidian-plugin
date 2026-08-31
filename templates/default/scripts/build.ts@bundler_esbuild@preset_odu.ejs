@@ -1,4 +1,7 @@
 import { build } from 'obsidian-dev-utils/script-utils/bundlers/esbuild';
 import { wrapCliTask } from 'obsidian-dev-utils/script-utils/cli-utils';
+<%- render('odu-pre-build') -%>
 
-await wrapCliTask(() => build());
+import { customEsbuildPlugins } from './esbuild-plugins.ts';
+
+await wrapCliTask(() => build({ customEsbuildPlugins }));

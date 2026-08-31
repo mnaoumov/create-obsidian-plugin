@@ -1,1 +1,15 @@
-<%- render('preset') -%>
+<%# Composed from list sections rather than from three whole-file partials, each of which declared its -%>
+<%# own `export const config`. A preset forcing a second UI framework on top of the chosen one -- which -%>
+<%# `demo` does with react -- rendered two of them into one file: TS2451. The file now declares `config` -%>
+<%# exactly once however many frameworks are active. -%>
+<%# -%>
+<%# What SHOULD happen when two JSX transforms are both active is a separate question, and not this -%>
+<%# file's to answer: it is the same demo-collision question the forced frameworks raise everywhere. -%>
+export const config = {
+  presets: [
+<%- render('babel-preset') -%>
+  ],
+  plugins: [
+<%- render('babel-plugin') -%>
+  ],
+};

@@ -46,6 +46,7 @@ import { TemplateBuilder } from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
+  buildResolutions,
   FALLBACK_MIN_APP_VERSION,
   PINNED_VERSIONS
 } from './versions.ts';
@@ -68,6 +69,11 @@ const BASE_TEMPLATE_FILES = [
   'manifest.json',
   'package.json',
   'pinned-versions.json',
+  // Emitted for every project, not only the pnpm answer, for the same reason `resolutions` is: which
+  // Tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with
+  // ERR_PNPM_IGNORED_BUILDS -- pnpm blocks dependency install scripts by default and, since 10, treats
+  // That as an error rather than a warning.
+  'pnpm-workspace.yaml',
   'src/main.ts',
   'src/plugin.ts',
   'tsconfig.json',
@@ -210,6 +216,7 @@ export function copyTemplates(
     _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _pinnedVersionsJson: buildPinnedVersionsJson(dependencies),
+    _resolutions: Object.entries(buildResolutions(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _scripts: builder.scripts,
     _sentenceCaseBrands: builder.sentenceCaseBrands,
     render(options?: RenderOptions | string): string {

@@ -89,7 +89,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   const passed: GateStep[] = [];
   const skipped: GateStep[] = [];
 
-  const install = run(getInstallCommand(answers.packageManager), targetDir);
+  const install = run(installCommand(answers.packageManager), targetDir);
   if (!install.ok) {
     violations.push({ detail: install.output, kind: 'step-failed', step: 'install' });
     return {
@@ -103,7 +103,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
 
   violations.push(...checkAudit(targetDir, answers, skipped, passed));
 
-  const compile = run('npx tsc --noEmit', targetDir);
+  const compile = run(`${execCommand(answers.packageManager)} tsc --noEmit`, targetDir);
   if (compile.ok) {
     passed.push('compile');
   } else {
@@ -203,6 +203,39 @@ function checkTests(targetDir: string, answers: Answers, scripts: Readonly<Recor
 
   passed.push('test');
   return [];
+}
+
+/**
+ * How to run a binary out of the project's own `node_modules`, per package manager.
+ *
+ * Not always `npx`. On Windows, `bun install` writes `tsc.bunx` and `tsc.exe` into `node_modules/.bin`
+ * and NOT the `tsc.cmd` npm's `npx` looks for, so `npx tsc` misses the local install and fetches from
+ * the registry instead -- which for `tsc` means the decoy package, whose entire output is "This is not
+ * the tsc command you are looking for". The project itself was fine: `bun x tsc --noEmit` and the
+ * binary called directly both type-check it clean. Gating a project with a command its own package
+ * manager would never issue tests the harness, not the project.
+ */
+function execCommand(packageManager: string): string {
+  // Bun is the only exception. npm, pnpm and yarn all write npm-compatible `.cmd` shims, and `npx tsc`
+  // Was measured working under each; `yarn exec` is the one that does NOT work (yarn 1 answers
+  // "Couldn't find the binary tsc"), so reaching for every manager's own exec subcommand would trade
+  // One broken case for another.
+  return packageManager === 'bun' ? 'bun x' : 'npx';
+}
+
+/**
+ * The install command, with the one policy this tier has to opt out of.
+ *
+ * pnpm 12 refuses a lockfile containing anything published within `minimumReleaseAge` (a day by
+ * default) -- `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`. This tier resolves every package to the
+ * registry's current `latest` ON PURPOSE, so any day a dependency cut a release, the pnpm case fails on
+ * a supply-chain policy rather than on anything about the generated project. Turning it off HERE, in
+ * the harness, and not in the emitted `pnpm-workspace.yaml`, is the point: a real project should keep
+ * the protection, and does.
+ */
+function installCommand(packageManager: string): string {
+  const command = getInstallCommand(packageManager);
+  return packageManager === 'pnpm' ? `${command} --config.minimumReleaseAge=0` : command;
 }
 
 function readScripts(targetDir: string): Record<string, string> {

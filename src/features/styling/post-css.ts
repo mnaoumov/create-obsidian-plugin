@@ -13,7 +13,7 @@ export class PostCss extends FeatureOption {
       .addPackage('autoprefixer')
       .addPackage('postcss')
       .addFiles([
-        'postcss.config.mjs',
+        'postcss.config.cjs',
         'scripts/postcss.config.ts',
         'src/styles/main.css',
         'src/styles/styles.d.ts'
@@ -22,13 +22,16 @@ export class PostCss extends FeatureOption {
       builder.addPackage('esbuild-postcss');
     }
     if (answers.bundler === 'rollup') {
-      builder.addPackage('rollup-plugin-postcss');
+      builder
+        .addPackage('rollup-plugin-postcss')
+        .addPartial('rollup-postcss');
     }
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
         .addPackage('mini-css-extract-plugin')
-        .addPackage('postcss-loader');
+        .addPackage('postcss-loader')
+        .addPartial('webpack-css-extract');
     }
   }
 }

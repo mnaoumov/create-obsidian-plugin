@@ -1,0 +1,4 @@
+<%# One instance, for the reason its import partial gives: two plugins both writing `styles.css` is -%>
+<%# what five per-answer copies produced. The per-answer `rule` partials stay per-answer -- they test -%>
+<%# different extensions and are meant to coexist. -%>
+    new MiniCssExtractPlugin({ filename: 'styles.css' }),

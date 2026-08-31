@@ -15,7 +15,7 @@ export interface SampleSolidComponentProps {
 
 export function SampleSolidComponent(props: SampleSolidComponentProps): JSX.Element {
   const [count, setCount] = createSignal(props.startCount);
-  const app = useContext(AppContext)!;
+  const app = useContext(AppContext);
 
   function increment(): void {
     setCount(count() + 1);
@@ -32,7 +32,7 @@ export function SampleSolidComponent(props: SampleSolidComponentProps): JSX.Elem
         </span>
       </div>
 
-      <button onClick={increment}>Increment</button>
+      <button type="button" onClick={increment}>Increment</button>
       <div>
         Vault name: {app.vault.getName()}
       </div>

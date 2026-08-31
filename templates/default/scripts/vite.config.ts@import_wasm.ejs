@@ -1,1 +1,10 @@
-import wasm from 'vite-plugin-wasm';
+import type { PluginOption } from 'vite';
+
+import wasmModule from 'vite-plugin-wasm';
+
+// `vite-plugin-wasm` ships an ESM build whose default export IS the plugin factory, but declares its
+// Types from one CommonJS-shaped `.d.ts`. Under `moduleResolution: node16` TypeScript therefore models
+// The default import as the module OBJECT and rejects the call with TS2349 "has no call signatures",
+// While at runtime the import really is the factory. This follows the runtime, exactly as
+// `asPluginFactory` does in the rollup config for the same reason.
+const wasm = wasmModule as unknown as () => PluginOption;

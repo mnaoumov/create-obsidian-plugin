@@ -33,7 +33,8 @@ export class Solid extends FeatureOption {
         .addFiles([
           'babel.config.mjs',
           'scripts/babel.config.ts'
-        ]);
+        ])
+        .addPartial('rollup-babel');
     }
     if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-plugin-solid');

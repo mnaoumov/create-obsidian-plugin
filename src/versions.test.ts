@@ -10,6 +10,7 @@ import { Dependency } from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
+  buildResolutions,
   PINNED_VERSIONS,
   resolveVersions
 } from './versions.ts';
@@ -108,6 +109,22 @@ describe('buildOverrides', () => {
     const overrides = buildOverrides([new Dependency('typescript')]);
     expect(overrides).not.toHaveProperty('@puppeteer/browsers');
     expect(overrides).not.toHaveProperty('deepmerge-ts');
+  });
+
+  // Yarn ignores `overrides` outright, so a yarn project got no forcing at all and `@codemirror/view`
+  // Brought a second `@codemirror/state` -- two copies of a CodeMirror facet, which do not interoperate.
+  it('states the same forcing as literal resolutions, which is what yarn and pnpm read', () => {
+    const dependencies = [new Dependency('@codemirror/state'), new Dependency('obsidian-dev-utils')];
+    const resolutions = buildResolutions(dependencies);
+    expect(resolutions['@codemirror/state']).toBe('6.5.0');
+    expect(resolutions['deepmerge-ts']).toBe('^8.0.2');
+    expect(Object.keys(resolutions)).toEqual(Object.keys(buildOverrides(dependencies)));
+  });
+
+  it('resolves npm\'s $-shorthand, which means nothing to yarn', () => {
+    for (const spec of Object.values(buildResolutions([new Dependency('@codemirror/view')]))) {
+      expect(spec.startsWith('$'), `"${spec}" is npm-only shorthand`).toBe(false);
+    }
   });
 });
 

@@ -1,0 +1,17 @@
+import type { Plugin } from 'esbuild';
+<%- render('odu-import') -%>
+
+/**
+ * The esbuild plugins obsidian-dev-utils' own build does not already register.
+ *
+ * `build()` and `dev()` spread `customEsbuildPlugins` into their plugin list, which is the whole seam.
+ * They ship a svelte wrapper and a sass plugin built in -- which is exactly why svelte and SCSS work on
+ * these presets untouched -- but nothing for Vue, so `esbuild-plugin-vue3` was installed and never
+ * wired in, and any project reaching a `.vue` file from its module graph failed with "No loader is
+ * configured for `.vue` files".
+ *
+ * Shared by `build.ts` and `dev.ts` rather than written into each: one list, one place to add to.
+ */
+export const customEsbuildPlugins: Plugin[] = [
+<%- render('odu-plugin') -%>
+];

@@ -1,0 +1,67 @@
+/*
+ * Compiles `.svelte` single-file components.
+ *
+ * Shipped here rather than installed, because no working package exists. Parcel publishes a scoped
+ * transformer for Vue but never has for Svelte, and the community `parcel-transformer-svelte` peers on
+ * `svelte@^3` and reaches for `svelte/compiler.js` -- a path Svelte 5 does not ship. Every parcel build
+ * that touched a `.svelte` file therefore died, first with "No transformers found" and then, once the
+ * package was registered, with "Could not resolve module svelte/compiler.js".
+ *
+ * The whole job is `compile()` plus handing Parcel the component's styles back as a separate asset, so
+ * carrying it is cheaper than depending on an unmaintained package. Same reasoning, and the same
+ * CommonJS-on-purpose note, as `parcel-resolver-obsidian.cjs`.
+ */
+
+const { Transformer } = require('@parcel/plugin');
+const { compile } = require('svelte/compiler');
+
+module.exports = new Transformer({
+  async transform({ asset }) {
+    const source = await asset.getCode();
+
+    const { css, js, warnings } = compile(source, {
+      css: 'external',
+      dev: process.env.BUILD !== 'production',
+      filename: asset.filePath,
+      name: toComponentName(asset.filePath)
+    });
+
+    for (const warning of warnings) {
+      // Parcel has no per-asset warning channel a transformer can write to, and swallowing them would
+      // Hide real problems in the component.
+      console.warn(`[svelte] ${warning.filename ?? asset.filePath}: ${warning.message}`);
+    }
+
+    asset.type = 'js';
+    asset.setCode(js.code);
+
+    const assets = [asset];
+
+    // `css: 'external'` keeps the styles out of the JavaScript so Parcel can extract them into the
+    // Plugin's stylesheet, which is what Obsidian loads. A component with no `<style>` block yields
+    // Nothing here.
+    if (css?.code) {
+      asset.addDependency({
+        specifier: `./${asset.id}.css`,
+        specifierType: 'esm'
+      });
+      assets.push({
+        content: css.code,
+        type: 'css',
+        uniqueKey: `${asset.id}.css`
+      });
+    }
+
+    return assets;
+  }
+});
+
+/** Svelte wants a valid JavaScript identifier for the component; the file name is the conventional one. */
+function toComponentName(filePath) {
+  const base = filePath.split(/[\\/]/u).pop().replace(/\.svelte$/u, '');
+  return base
+    .split(/[^A-Za-z0-9]/u)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('') || 'Component';
+}

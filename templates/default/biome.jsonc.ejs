@@ -1,0 +1,47 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "complexity": {
+        // TypeScript's `noPropertyAccessFromIndexSignature` REQUIRES `process.env['BUILD']` and rejects
+        // the dotted form this rule asks for. The two tools disagree about the same line; the compiler
+        // wins, because its complaint is an error and this one is a preference.
+        "useLiteralKeys": "off"
+      }
+    }
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "none"
+    }
+  },
+  "json": {
+    "formatter": {
+      "trailingCommas": "none"
+    }
+  },
+  "files": {
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/demo-vault", "!**/*-lock.json"]
+  },
+  "overrides": [
+    {
+      // Biome reads a single-file component's `<script>` block but not its markup, so every binding the
+      // template uses looks unused to it.
+      "includes": ["**/*.svelte", "**/*.vue"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    }
+  ]
+}

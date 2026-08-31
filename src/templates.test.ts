@@ -164,7 +164,7 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ linter: 'biome' }));
       expect(builder.scripts['lint']).toBe('jiti scripts/lint.ts');
       expect(builder.scripts['lint:fix']).toBe('jiti scripts/lint-fix.ts');
-      expect([...builder.templateFiles]).toContain('biome.json');
+      expect([...builder.templateFiles]).toContain('biome.jsonc');
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('@biomejs/biome');
     });
@@ -198,7 +198,7 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ formatter: 'biome' }));
       expect(builder.scripts['format']).toBe('jiti scripts/format.ts');
       expect(builder.scripts['format:check']).toBe('jiti scripts/format-check.ts');
-      expect([...builder.templateFiles]).toContain('biome.json');
+      expect([...builder.templateFiles]).toContain('biome.jsonc');
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('@biomejs/biome');
     });
@@ -306,10 +306,27 @@ describe('buildTemplate', () => {
       expect(packages).toContain('preact');
     });
 
-    it('uses the community parcel svelte transformer, the only one that exists', () => {
-      const packages = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' })).dependencies.map((d) => d.packageName);
-      expect(packages).toContain('parcel-transformer-svelte');
+    // Parcel + Svelte has no usable package at all. The scoped `@parcel/transformer-svelte` has never
+    // Existed, and the community `parcel-transformer-svelte` is Svelte 3-era: it peers on `svelte@^3`
+    // And calls `svelte/compiler.js`, which Svelte 5 does not ship, so registering it only moved the
+    // Failure from "No transformers found" to "Could not resolve module". The project ships its own.
+    it('ships its own parcel svelte transformer, because no working package exists', () => {
+      const builder = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }));
+      const packages = builder.dependencies.map((d) => d.packageName);
+      expect(packages).not.toContain('parcel-transformer-svelte');
       expect(packages).not.toContain('@parcel/transformer-svelte');
+      expect([...builder.templateFiles]).toContain('parcel-transformer-svelte.cjs');
+    });
+
+    it('registers that transformer in .parcelrc, which declares none by default', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-parcelrc-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
+        const parcelrc = readFileSync(join(targetDir, '.parcelrc'), 'utf-8');
+        expect(parcelrc).toContain('./parcel-transformer-svelte.cjs');
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
     });
   });
 
@@ -471,7 +488,7 @@ describe('buildTemplate', () => {
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('postcss');
       expect(depNames).toContain('autoprefixer');
-      expect([...builder.templateFiles]).toContain('postcss.config.mjs');
+      expect([...builder.templateFiles]).toContain('postcss.config.cjs');
       expect([...builder.templateFiles]).toContain('scripts/postcss.config.ts');
     });
 
@@ -479,9 +496,18 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ styling: 'tailwind' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('tailwindcss');
-      expect(depNames).toContain('postcss');
-      expect([...builder.templateFiles]).toContain('tailwind.config.ts');
-      expect([...builder.templateFiles]).toContain('scripts/tailwind.config.ts');
+      // Tailwind 4 is compiled by its own CLI, not through PostCSS: PostCSS is unreachable on the
+      // Obsidian-dev-utils esbuild path, whose sass plugin claims `.css` ahead of the seam a project can
+      // Add plugins to. Compiling first means every bundler receives ordinary CSS.
+      expect(depNames).toContain('@tailwindcss/cli');
+      expect(depNames).not.toContain('@tailwindcss/postcss');
+      expect(depNames).not.toContain('postcss');
+      expect([...builder.templateFiles]).toContain('scripts/build-styles.ts');
+      expect([...builder.templateFiles]).not.toContain('scripts/postcss.config.ts');
+      // Tailwind 4 detects its sources itself and needs no JavaScript config, so neither file is emitted
+      // Any more. A v3-shaped `content` array would have been read by nothing.
+      expect([...builder.templateFiles]).not.toContain('tailwind.config.ts');
+      expect([...builder.templateFiles]).not.toContain('scripts/tailwind.config.ts');
     });
 
     it('adds css modules files', () => {
@@ -1009,7 +1035,9 @@ describe('copyTemplates', () => {
   // It. Biome wants a bare `!**/dist`: its own `useBiomeIgnoreFolder` rule rejects the `/**` form too.
   it('excludes build output from biome in the form biome actually honours', () => {
     copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome' }), targetDir, '1.0.0', null);
-    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.json'), 'utf-8')) as Record<string, Record<string, string[]>>;
+    // `.jsonc`, so the config can carry the reasoning for the two rules it turns off. Biome parses its
+    // Own config as JSONC whatever the extension; the name is what lets the comments ship.
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.jsonc'), 'utf-8').replaceAll(/^\s*\/\/.*$/gmu, '')) as Record<string, Record<string, string[]>>;
     const includes = biome['files']?.['includes'] ?? [];
     expect(includes).toContain('!**/dist');
     for (const entry of includes) {
@@ -1044,7 +1072,7 @@ describe('copyTemplates', () => {
 
   it('creates biome config and lint scripts when biome is selected', () => {
     copyTemplates(makeAnswers({ linter: 'biome' }), targetDir, '1.0.0', null);
-    expect(existsSync(join(targetDir, 'biome.json'))).toBe(true);
+    expect(existsSync(join(targetDir, 'biome.jsonc'))).toBe(true);
     const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
     expect(lint).toContain('biome lint');
     const lintFix = readFileSync(join(targetDir, 'scripts/lint-fix.ts'), 'utf-8');
@@ -1413,6 +1441,47 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ gitHubActions: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/workflows/ci.yml'))).toBe(false);
     expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(false);
+  });
+
+  // Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, and `e2e/` was in
+  // Neither list while the plugin config still linted it -- so every project with an e2e runner and
+  // ESLint died on "You have used a rule which requires type information", the largest single class of
+  // Install-tier failures. The two lists have to agree; that is what these assert.
+  it('puts e2e in the tsconfig include and the ESLint file list on the standalone preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'standalone' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
+  });
+
+  it('puts e2e in the tsconfig include and the ESLint file list on the enhanced preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
+  });
+
+  it('names neither list an e2e directory that was not emitted', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'e2e'))).toBe(false);
+    // The entry, not the substring: both templates carry a comment naming `e2e/` and explaining why the
+    // Two lists must agree.
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).not.toContain('"./e2e/**/*.ts"');
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
+  });
+
+  // `WebdriverIO.Config` requires `capabilities`, and the namespace itself only reaches the program
+  // Through these type packages -- TS2741 and TS2503, on every case carrying this answer.
+  it('emits a wdio config that satisfies its own type', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'wdio.conf.ts'), 'utf-8')).toContain('capabilities:');
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('@wdio/globals/types');
+  });
+
+  // Vitest's default glob otherwise sweeps up `e2e/`, and `npm test` reports the end-to-end suite as
+  // Failed unit tests. The odu presets escape it through their per-project `include`, jest through
+  // `roots`; this config had neither.
+  it('restricts the standalone vitest config to src, so the e2e suite is not collected', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8')).toContain('include: [\'src/**/*.test.ts\']');
   });
 
   it('writes generator config file', () => {

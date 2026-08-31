@@ -1,7 +1,10 @@
 import type { BaseTranslation } from 'typesafe-i18n';
 
-const en: BaseTranslation = {
+<%# `satisfies` rather than an annotation: annotating widens the object to `BaseTranslation`, whose -%>
+<%# index signature erases the keys, and `TranslationFunctions<BaseTranslation>` is then indexed by -%>
+<%# `string` instead of by the messages this file actually declares. -%>
+const en = {
   greeting: 'Hello from <%= pluginName %>!'
-};
+} satisfies BaseTranslation;
 
 export default en;

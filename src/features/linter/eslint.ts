@@ -11,6 +11,12 @@ export class Eslint extends FeatureOption {
     builder
       .addLintStagedCommand('*.{ts,tsx,mts}', 'eslint --fix')
       .addPackage('@eslint/js')
+      // ESLint ITSELF, which this answer never declared. `eslint.config.mts` imports `eslint/config`
+      // And `scripts/lint.ts` runs the binary, but the package was only ever present because npm hoists
+      // Typescript-eslint's peer copy into the root. pnpm's strict layout does not, so the config could
+      // Not resolve `eslint/config` at all -- the exact class of defect a non-npm package manager
+      // Exists to expose, and invisible for as long as the tier only ever ran npm.
+      .addPackage('eslint')
       .addPackage('eslint-plugin-obsidianmd')
       .addPackage('globals')
       .addPackage('typescript-eslint')

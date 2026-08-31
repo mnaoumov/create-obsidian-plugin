@@ -1,0 +1,5 @@
+<%# Without this, ts-loader does not recognize vue-loader's `?vue&type=script&lang=ts` request as -%>
+<%# TypeScript, and TypeScript resolves the block against the WRONG file: the build failed with -%>
+<%# "Can't resolve './styles/main.module.css' in src/vue-components" -- which is `src/main.ts`'s import, -%>
+<%# reported from the component's directory. -%>
+            appendTsSuffixTo: [/\.vue$/u],

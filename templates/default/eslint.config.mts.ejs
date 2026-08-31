@@ -12,9 +12,12 @@ const typeScriptFiles = [
   'src/**/*.tsx',
   'scripts/**/*.ts',
   // Root-level config files (`vitest.config.ts`, `commitlint.config.ts`, …). Typed rules need every file
-  // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree.
+  // ESLint reaches to be in the tsconfig `include`, so these two lists have to agree — and `e2e/` is the
+  // Third member whenever an end-to-end runner is chosen. It was in neither list, and the plugin config
+  // Below still reached those files: every project with an e2e runner and ESLint died on "You have used
+  // A rule which requires type information", the largest single class of install-tier failures.
   '*.ts',
-  'eslint.config.mts'
+  'eslint.config.mts'<%- render('extra-files') %>
 ];
 
 export default defineConfig(
@@ -49,6 +52,12 @@ export default defineConfig(
       }
     },
     rules: {
+      // `process.env['BUILD']` is not a style choice. TypeScript's `noPropertyAccessFromIndexSignature`
+      // — which `@tsconfig/strictest` turns on, and the obsidian-dev-utils presets inherit — REJECTS the
+      // Dotted form on an index signature, so the compiler and this rule disagree about the same line.
+      // The compiler wins, because its complaint is an error and this one is a preference. Biome's
+      // `useLiteralKeys` is turned off in `biome.jsonc` for exactly the same reason.
+      '@typescript-eslint/dot-notation': ['error', { allowIndexSignaturePropertyAccess: true }],
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/explicit-member-accessibility': 'error',
       '@typescript-eslint/no-unused-vars': [

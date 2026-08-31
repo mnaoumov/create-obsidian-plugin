@@ -123,6 +123,97 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('src/view.tsx')).toEqual([]);
   });
 
+  // A partial does not know what it is rendered into. `await import(…)` parses fine and reads fine on
+  // Its own, but the CLI-bundler build script drops the hot-reload partial inside a SYNCHRONOUS
+  // Function -- TS1308, plus a hard `ParseError: Unexpected reserved word 'await'` from the bundler.
+  it('flags await inside a synchronous function', () => {
+    put('scripts/build.ts', 'export function reload(): void {\n  const { execSync } = await import(\'node:child_process\');\n  execSync(\'x\');\n}\n');
+    expect(kindsFor('scripts/build.ts')).toContain('await-outside-async');
+  });
+
+  it('accepts await at the top level of a module', () => {
+    put('scripts/build.ts', 'const { execSync } = await import(\'node:child_process\');\nexecSync(\'x\');\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts await inside an async function', () => {
+    put('scripts/build.ts', 'export async function reload(): Promise<void> {\n  await Promise.resolve();\n}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts await inside an async arrow function', () => {
+    put('scripts/build.ts', 'export const reload = async (): Promise<void> => {\n  await Promise.resolve();\n};\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  // The other half of the same trap: a wrapper rendering `if (prod) { <section> }` emits an EMPTY
+  // `if (prod) { }` on every answer that contributes no partial, which the generated ESLint config
+  // Rejects with `no-empty`.
+  it('flags an empty block statement', () => {
+    put('scripts/build.ts', 'const prod = true;\nif (prod) {\n}\n');
+    expect(kindsFor('scripts/build.ts')).toContain('empty-block');
+  });
+
+  it('accepts an empty block that holds a comment, as no-empty does', () => {
+    put('scripts/build.ts', 'try {\n  JSON.parse(\'{}\');\n} catch {\n  // Nothing to do.\n}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  it('accepts an empty function body, which no-empty also leaves alone', () => {
+    put('scripts/build.ts', 'export function noop(): void {}\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
+  // What a per-answer partial that is not actually per-answer looks like in the bytes. Five styling
+  // Partials each emitted the same `MiniCssExtractPlugin` import, and three UI-framework partials the
+  // Same babel import and `const`; a preset forcing a second answer in the same question rendered both
+  // Copies, and the file failed to compile with TS2300 / TS2451.
+  it('flags an identifier imported twice at the top level', () => {
+    put('scripts/webpack.config.ts', 'import MiniCssExtractPlugin from \'mini-css-extract-plugin\';\nimport MiniCssExtractPlugin from \'mini-css-extract-plugin\';\n');
+    expect(kindsFor('scripts/webpack.config.ts')).toContain('duplicate-declaration');
+  });
+
+  it('flags a top-level const declared twice', () => {
+    put('scripts/rollup.config.ts', 'const babel = 1;\nconst babel = 2;\n');
+    expect(kindsFor('scripts/rollup.config.ts')).toContain('duplicate-declaration');
+  });
+
+  it('accepts function overloads, which declare one name on purpose', () => {
+    put('src/plugin.ts', 'export function pick(value: string): string;\nexport function pick(value: number): number;\nexport function pick(value: unknown): unknown {\n  return value;\n}\n');
+    expect(kindsFor('src/plugin.ts')).toEqual([]);
+  });
+
+  it('accepts repeated module declarations, which merge by design', () => {
+    put('src/styles/styles.d.ts', 'declare module \'*.css\';\ndeclare module \'*.scss\';\n');
+    expect(kindsFor('src/styles/styles.d.ts')).toEqual([]);
+  });
+
+  // `obsidian` rather than a bundler plugin, because the fixture has to name a package the default
+  // Answers actually declare -- otherwise `undeclared-dependency` fires and the assertion is about the
+  // Wrong thing.
+  it('accepts two imports of the same module under different names', () => {
+    put('scripts/rollup.config.ts', 'import obsidianDefault from \'obsidian\';\nimport { Plugin } from \'obsidian\';\nvoid obsidianDefault;\nvoid Plugin;\n');
+    expect(kindsFor('scripts/rollup.config.ts')).toEqual([]);
+  });
+
+  // Npm hoists a transitive peer into the root, so an undeclared package resolves exactly like a
+  // Declared one and the project works by accident. pnpm's strict layout does not. That is how the
+  // ESLint answer went its whole life without declaring `eslint`.
+  it('flags a package that is imported but never declared', () => {
+    put('scripts/lint.ts', 'import { chunk } from \'lodash\';\nvoid chunk;\n');
+    expect(kindsFor('scripts/lint.ts')).toContain('undeclared-dependency');
+  });
+
+  it('accepts a subpath of a declared package', () => {
+    put('src/plugin.ts', 'import { Plugin } from \'obsidian/some/subpath\';\nvoid Plugin;\n');
+    expect(kindsFor('src/plugin.ts')).toEqual([]);
+  });
+
+  it('accepts node builtins, with and without the node: prefix', () => {
+    put('scripts/build.ts', 'import { join } from \'node:path\';\nimport { EOL } from \'os\';\nvoid join;\nvoid EOL;\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
+  });
+
   it('flags a package.json script whose file was not emitted', () => {
     put('package.json', JSON.stringify({ scripts: { build: 'jiti scripts/build.ts' } }));
     expect(kindsFor('scripts/build.ts')).toContain('script-file-missing');

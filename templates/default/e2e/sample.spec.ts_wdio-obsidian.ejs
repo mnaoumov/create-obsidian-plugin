@@ -3,19 +3,5 @@ describe('<%= pluginName %>', () => {
     const title = await browser.getTitle();
     expect(title).toContain('Obsidian');
   });
-
-  it('should have the plugin enabled', async () => {
-    const result = await browser.executeObsidian(({ app }) => {
-      return app.plugins.manifests['<%= pluginId %>']?.id;
-    });
-    expect(result).toBe('<%= pluginId %>');
-  });
-
-  it('should register the sample command', async () => {
-    const result = await browser.executeObsidian(({ app }) => {
-      const commands = app.commands.listCommands();
-      return commands.some((cmd) => cmd.id === '<%= pluginId %>:sample');
-    });
-    expect(result).toBe(true);
-  });
+<%- render('unofficial') -%>
 });

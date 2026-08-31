@@ -20,7 +20,7 @@ export class Biome extends FeatureOption {
       .addScript('format')
       .addScript('format:check')
       .addFiles([
-        'biome.json',
+        'biome.jsonc',
         'scripts/format.ts',
         'scripts/format-check.ts'
       ]);

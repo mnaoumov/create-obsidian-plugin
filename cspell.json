@@ -15,7 +15,9 @@
     "collab",
     "coprime",
     "creatordate",
+    "edgedriver",
     "ERESOLVE",
+    "geckodriver",
     "GHSA",
     "hotreload",
     "Invocables",
@@ -39,6 +41,9 @@
     "wdio",
     "wikilink",
     "wikilinks"
+  ],
+  "ignoreRegExpList": [
+    "GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}"
   ],
   "ignoreWords": [],
   "import": [],

@@ -14,7 +14,7 @@ export class Biome extends FeatureOption {
       .addScript('lint')
       .addScript('lint:fix')
       .addFiles([
-        'biome.json',
+        'biome.jsonc',
         'scripts/lint.ts',
         'scripts/lint-fix.ts'
       ]);
