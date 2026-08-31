@@ -23,11 +23,19 @@ export class Demo extends FeatureOption {
       .addPackage('type-fest')
       .addScript('dev')
       .addScript('build')
+      .addScript('build:clean')
       .addScript('build:compile')
+      // obsidian-dev-utils' over-exposure linter, which every plugin in the fleet runs. It reports
+      // Members exported more widely than anything imports them, so it needs no configuration here.
+      .addScript('find-overexposed')
+      .addScript('find-overexposed:fix')
       .addScript('version')
       .addFiles([
         'scripts/build.ts',
+        'scripts/build-clean.ts',
         'scripts/build-compile.ts',
+        'scripts/find-overexposed.ts',
+        'scripts/find-overexposed-fix.ts',
         'scripts/dev.ts',
         'scripts/version.ts',
         'src/modals/sample-form-modal.ts',
