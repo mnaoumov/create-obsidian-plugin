@@ -306,12 +306,29 @@ describe('buildTemplate', () => {
       expect(packages).toContain('preact');
     });
 
-    it('uses the community parcel svelte transformer, the only one that exists', () => {
-      const packages = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' })).dependencies.map((d) => d.packageName);
-      expect(packages).toContain('parcel-transformer-svelte');
+    // Parcel + Svelte has no usable package at all. The scoped `@parcel/transformer-svelte` has never
+    // Existed, and the community `parcel-transformer-svelte` is Svelte 3-era: it peers on `svelte@^3`
+    // And calls `svelte/compiler.js`, which Svelte 5 does not ship, so registering it only moved the
+    // Failure from "No transformers found" to "Could not resolve module". The project ships its own.
+    it('ships its own parcel svelte transformer, because no working package exists', () => {
+      const builder = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }));
+      const packages = builder.dependencies.map((d) => d.packageName);
+      expect(packages).not.toContain('parcel-transformer-svelte');
       expect(packages).not.toContain('@parcel/transformer-svelte');
+      expect([...builder.templateFiles]).toContain('parcel-transformer-svelte.cjs');
     });
- });
+
+    it('registers that transformer in .parcelrc, which declares none by default', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-parcelrc-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
+        const parcelrc = readFileSync(join(targetDir, '.parcelrc'), 'utf-8');
+        expect(parcelrc).toContain('./parcel-transformer-svelte.cjs');
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
+    });
+  });
 
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
