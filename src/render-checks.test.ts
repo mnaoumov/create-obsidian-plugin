@@ -96,6 +96,19 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('manifest.json')).toEqual([]);
   });
 
+  // The shape T735 shipped: two frameworks' `compiler-options` partials each writing `"jsx"`. Valid
+  // JSON, `JSON.parse` keeps the last one without a word, and the project does not compile.
+  it('flags a JSON key set twice in the same object', () => {
+    put('tsconfig.json', '{ "compilerOptions": { "jsx": "preserve", "jsxImportSource": "solid-js", "jsx": "react-jsx" } }');
+    expect(kindsFor('tsconfig.json')).toContain('duplicate-json-key');
+    expect(detailFor('tsconfig.json')).toContain('"jsx"');
+  });
+
+  it('accepts the same key in two different objects', () => {
+    put('tsconfig.json', '{ "compilerOptions": { "jsx": "react-jsx" }, "ts-node": { "jsx": "react-jsx" } }');
+    expect(kindsFor('tsconfig.json')).toEqual([]);
+  });
+
   // Workflow steps are concatenated from partials, so a partial indented one level off produces YAML
   // That is still text but no longer the document anyone intended.
   it('flags YAML that does not parse', () => {

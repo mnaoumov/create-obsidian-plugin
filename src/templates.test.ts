@@ -621,6 +621,34 @@ describe('buildTemplate', () => {
       expect(builder.partials.has('scss')).toBe(true);
       expect(builder.partials.has('codemirror')).toBe(true);
     });
+
+    // The one thing the demo preset cannot force a second answer into. `jsx` / `jsxImportSource` are
+    // Project-global -- once in `tsconfig.json`, once more in whichever bundler config was chosen -- so
+    // Forcing react in beside `preact` or `solid` emitted a duplicate `"jsx"` key and compiled one
+    // Framework's components against the other's runtime (TS2345). The explicit answer wins, exactly as
+    // It does for demo + biome above. Svelte and Vue own no pragma and stay forced beside everything,
+    // Which is what keeps the reachable demo case -- `prompts.ts` pins `uiFramework` to `none` for this
+    // Preset -- emitting all three.
+    it('drops a forced UI framework that would fight the chosen one for the JSX runtime', () => {
+      const expected = [
+        ['none', true],
+        ['lit', true],
+        ['react', true],
+        ['svelte', true],
+        ['vue', true],
+        ['preact', false],
+        ['solid', false]
+      ] as const;
+
+      for (const [uiFramework, forcesReact] of expected) {
+        const builder = buildTemplate(makeAnswers({ preset: 'demo', uiFramework }));
+        expect(builder.partials.has('react'), `demo + ${uiFramework}`).toBe(forcesReact);
+        expect(builder.partials.has(uiFramework), `demo + ${uiFramework}`).toBe(true);
+        // Neither owns a JSX pragma, so no answer can displace them.
+        expect(builder.partials.has('svelte'), `demo + ${uiFramework}`).toBe(true);
+        expect(builder.partials.has('vue'), `demo + ${uiFramework}`).toBe(true);
+      }
+    });
   });
 
   describe('all scripts use default convention', () => {
@@ -996,6 +1024,33 @@ describe('copyTemplates', () => {
       // One runner, not two concatenated: a file composed from two matching tool partials would carry
       // Both import blocks and fail to compile.
       expect(lint.match(/^import process/gm)?.length ?? 0, `${String(preset)} + ${String(linter)}`).toBe(1);
+    }
+  });
+
+  // The rendered half of "drops a forced UI framework that would fight the chosen one". `JSON.parse`
+  // Accepts a duplicate key and silently keeps the last, so a tsconfig carrying both frameworks' blocks
+  // Is valid JSON describing a project that cannot compile -- assert the emitted bytes, not the parse.
+  it('emits one JSX runtime, whichever framework the demo preset was given', () => {
+    const expected = [
+      ['none', '"jsx": "react-jsx"', true],
+      ['preact', '"jsxImportSource": "preact"', false],
+      ['solid', '"jsxImportSource": "solid-js"', false]
+    ] as const;
+
+    for (const [uiFramework, pragma, hasReactSample] of expected) {
+      // A fresh directory per case: `copyTemplates` writes, it does not prune, so the shared one would
+      // Still hold the previous case's react sample and the absence assertion would never fail.
+      const caseDir = mkdtempSync(join(tmpdir(), 'cop-demo-jsx-'));
+      try {
+        copyTemplates(makeAnswers({ preset: 'demo', uiFramework }), caseDir, '1.0.0', null);
+        const tsconfig = readFileSync(join(caseDir, 'tsconfig.json'), 'utf-8');
+        expect(tsconfig, `demo + ${uiFramework}`).toContain(pragma);
+        expect(tsconfig.match(/"jsx":/g)?.length ?? 0, `demo + ${uiFramework}`).toBe(1);
+        expect(existsSync(join(caseDir, 'src/react-components/sample-react-component.tsx')), `demo + ${uiFramework}`).toBe(hasReactSample);
+        expect(existsSync(join(caseDir, 'src/svelte-components/sample-svelte-component.svelte')), `demo + ${uiFramework}`).toBe(true);
+      } finally {
+        rmSync(caseDir, { force: true, recursive: true });
+      }
     }
   });
 

@@ -10,7 +10,7 @@ const BUILD_PLUGINS: Record<string, string> = {
 
 export class Solid extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Fine-grained reactivity, no virtual DOM', promptLabel: 'Solid', settingValue: 'solid' });
+    super({ jsxImportSource: 'solid-js', promptHint: 'Fine-grained reactivity, no virtual DOM', promptLabel: 'Solid', settingValue: 'solid' });
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {

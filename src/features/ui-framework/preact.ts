@@ -21,7 +21,7 @@ const BUILD_PLUGINS: Record<string, string> = {
 
 export class Preact extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Lightweight React alternative (3kB)', promptLabel: 'Preact', settingValue: 'preact' });
+    super({ jsxImportSource: 'preact', promptHint: 'Lightweight React alternative (3kB)', promptLabel: 'Preact', settingValue: 'preact' });
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {

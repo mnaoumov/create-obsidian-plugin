@@ -204,7 +204,30 @@ shape: three whole-file partials each declaring `export const config` became one
 `babel-preset` and `babel-plugin` list sections.
 
 `render-checks.ts` carries this as `duplicate-declaration`, which is what found the `babel.config.ts`
-case — the install tier's 56 cases never reach it.
+case — the install tier's 56 cases never reach it. Its JSON twin is `duplicate-json-key`: `JSON.parse`
+accepts a repeated key silently and keeps the last, so `invalid-json` cannot see the same failure in a
+`.json` file.
+
+### The demo preset forces a second answer — except where the project can only hold one
+
+`DEMO_OVERRIDES` (`src/templates.ts`) is what makes the demo vault show every feature: where the chosen
+answer differs from the demo value, the demo value is configured *as well*. It works because almost
+everything a feature contributes is additive — another partial, another package, another sample file.
+
+The exception is a setting that is a property of the *project* rather than of a file, and the JSX runtime
+is the one such setting today. `jsx` / `jsxImportSource` are compiler options, global twice over: once in
+`tsconfig.json`, once more in whichever bundler config was chosen (`build.ts@bundler_esbuild@options_*`
+writes them directly, `rollup.config.ts@post-plugin_*` a whole `babel({...})` block, `vite.config.ts` a
+plugin). A per-file `/** @jsxImportSource */` pragma does not rescue it, because the bundler half is
+global by construction. So a generated project demonstrates exactly ONE JSX runtime.
+
+`FeatureOption.jsxImportSource` records which options claim one — `react`, `preact`, `solid` — and
+`buildTemplate` skips a demo override that claims a different one from the chosen answer. **The explicit
+answer wins**, which is the same call the demo + biome linter case makes. `svelte` and `vue` compile their
+own single-file components and `lit` uses tagged templates, so none of them claims a runtime and all three
+stay forced beside anything. Note this changes nothing a user can reach: `src/prompts.ts` skips the
+`uiFramework` question for `preset: demo` and pins it to `none`, so the demo vault still gets react,
+svelte and vue. It is `buildTemplate` that had to stop emitting a project that cannot compile.
 
 ### Three lists have to agree about which files are in the program
 

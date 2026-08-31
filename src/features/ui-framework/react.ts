@@ -10,7 +10,10 @@ const BUILD_PLUGINS: Record<string, string> = {
 
 export class React extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Component-based UI with JSX', promptLabel: 'React', settingValue: 'react' });
+    // Named even though `tsconfig.json_*@compiler-options_react` omits it -- `react` IS TypeScript's
+    // Default for `jsx: react-jsx`, and what the demo-override collision check compares is the value,
+    // Not whether a line was emitted.
+    super({ jsxImportSource: 'react', promptHint: 'Component-based UI with JSX', promptLabel: 'React', settingValue: 'react' });
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
