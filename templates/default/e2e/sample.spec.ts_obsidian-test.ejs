@@ -4,7 +4,11 @@ import test from 'node:test';
 import { embedded } from 'obsidian-test';
 
 embedded((app) => {
-  test('<%= pluginName %> loads successfully', () => {
+  // `node:test`'s `test()` returns a promise that the runner owns and awaits itself, so nothing here
+  // Should await it -- but that makes every call a floating promise. `void` is the marker
+  // `@typescript-eslint/no-floating-promises` accepts for exactly this case, and it keeps the rule
+  // Armed for the tests you write yourself.
+  void test('<%= pluginName %> loads successfully', () => {
     assert.ok(app.workspace, 'Workspace should be available');
   });
 <%- render('unofficial') -%>
