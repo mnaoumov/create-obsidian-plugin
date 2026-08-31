@@ -188,9 +188,30 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('src/styles/styles.d.ts')).toEqual([]);
   });
 
+  // `obsidian` rather than a bundler plugin, because the fixture has to name a package the default
+  // Answers actually declare -- otherwise `undeclared-dependency` fires and the assertion is about the
+  // Wrong thing.
   it('accepts two imports of the same module under different names', () => {
-    put('scripts/rollup.config.ts', 'import babelModule from \'@rollup/plugin-babel\';\nimport { getBabelOutputPlugin } from \'@rollup/plugin-babel\';\nvoid babelModule;\nvoid getBabelOutputPlugin;\n');
+    put('scripts/rollup.config.ts', 'import obsidianDefault from \'obsidian\';\nimport { Plugin } from \'obsidian\';\nvoid obsidianDefault;\nvoid Plugin;\n');
     expect(kindsFor('scripts/rollup.config.ts')).toEqual([]);
+  });
+
+  // Npm hoists a transitive peer into the root, so an undeclared package resolves exactly like a
+  // Declared one and the project works by accident. pnpm's strict layout does not. That is how the
+  // ESLint answer went its whole life without declaring `eslint`.
+  it('flags a package that is imported but never declared', () => {
+    put('scripts/lint.ts', 'import { chunk } from \'lodash\';\nvoid chunk;\n');
+    expect(kindsFor('scripts/lint.ts')).toContain('undeclared-dependency');
+  });
+
+  it('accepts a subpath of a declared package', () => {
+    put('src/plugin.ts', 'import { Plugin } from \'obsidian/some/subpath\';\nvoid Plugin;\n');
+    expect(kindsFor('src/plugin.ts')).toEqual([]);
+  });
+
+  it('accepts node builtins, with and without the node: prefix', () => {
+    put('scripts/build.ts', 'import { join } from \'node:path\';\nimport { EOL } from \'os\';\nvoid join;\nvoid EOL;\n');
+    expect(kindsFor('scripts/build.ts')).toEqual([]);
   });
 
   it('flags a package.json script whose file was not emitted', () => {

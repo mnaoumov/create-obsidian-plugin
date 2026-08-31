@@ -69,6 +69,11 @@ const BASE_TEMPLATE_FILES = [
   'manifest.json',
   'package.json',
   'pinned-versions.json',
+  // Emitted for every project, not only the pnpm answer, for the same reason `resolutions` is: which
+  // Tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with
+  // ERR_PNPM_IGNORED_BUILDS -- pnpm blocks dependency install scripts by default and, since 10, treats
+  // That as an error rather than a warning.
+  'pnpm-workspace.yaml',
   'src/main.ts',
   'src/plugin.ts',
   'tsconfig.json',

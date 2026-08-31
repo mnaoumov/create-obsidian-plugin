@@ -11,6 +11,9 @@ export class ConventionalCommits extends FeatureOption {
     builder
       .addPackage('@commitlint/cli')
       .addPackage('@commitlint/config-conventional')
+      // `scripts/commitlint.config.ts` imports `UserConfig` from here. It resolved anyway under npm,
+      // Which hoists @commitlint/cli's own copy into the root, and would not have under pnpm.
+      .addPackage('@commitlint/types')
       // `czg` and the `commit` script it backs: commitlint only REJECTS a bad message, so without a
       // Prompt the contributor has to know the Conventional Commits grammar by heart to get past the hook.
       .addPackage('czg')

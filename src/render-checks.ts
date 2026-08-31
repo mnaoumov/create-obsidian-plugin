@@ -10,6 +10,7 @@ import {
   readFileSync,
   statSync
 } from 'node:fs';
+import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import {
   canHaveModifiers,
@@ -19,12 +20,14 @@ import {
   getModifiers,
   isBlock,
   isClassDeclaration,
+  isExportDeclaration,
   isFunctionDeclaration,
   isFunctionLike,
   isIdentifier,
   isImportDeclaration,
   isNamedImports,
   isNamespaceImport,
+  isStringLiteral,
   isVariableStatement,
   ScriptKind,
   ScriptTarget,
@@ -67,6 +70,7 @@ export type RenderViolationKind =
   | 'render-threw'
   | 'script-file-missing'
   | 'script-mismatch'
+  | 'undeclared-dependency'
   | 'unrendered-ejs';
 
 interface PackageJsonScripts {
@@ -106,6 +110,9 @@ const DETAIL_LENGTH = 200;
 /** Characters of context on each side of a leaked placeholder, so the excerpt shows what surrounds it. */
 const EXCERPT_RADIUS = 100;
 
+/** `@scope/name` — the two path segments a scoped package's name occupies in an import specifier. */
+const SCOPED_PACKAGE_SEGMENTS = 2;
+
 /** Checks an already-rendered project directory against the answers that produced it. */
 export function checkRenderedProject(targetDir: string, answers: Answers): RenderViolation[] {
   const violations: RenderViolation[] = [];
@@ -115,6 +122,7 @@ export function checkRenderedProject(targetDir: string, answers: Answers): Rende
   }
 
   violations.push(...checkPackageJsonScripts(targetDir, answers));
+  violations.push(...checkDeclaredDependencies(targetDir, answers));
   return violations;
 }
 
@@ -136,6 +144,44 @@ export function renderAndCheck(answers: Answers, targetDir: string): RenderViola
   }
 
   return checkRenderedProject(targetDir, answers);
+}
+
+/**
+ * Every package an emitted file imports must be one the project actually declares.
+ *
+ * npm hoists, so a package that is only a transitive peer sits in the root `node_modules` and resolves
+ * exactly like a declared one -- and the project works, on npm, by accident. pnpm's strict layout does
+ * not hoist, and the accident stops. That is how the ESLint answer ran for its whole life without ever
+ * declaring `eslint`: `eslint.config.mts` imports `eslint/config` and `scripts/lint.ts` runs the binary,
+ * both satisfied by typescript-eslint's peer copy under npm and by nothing at all under pnpm.
+ *
+ * Static, so it does not need an install -- which matters because the install tier reaches pnpm in
+ * exactly one of its 56 cases, and that case is the slowest feedback in the project.
+ */
+function checkDeclaredDependencies(targetDir: string, answers: Answers): RenderViolation[] {
+  const declared = new Set(buildTemplate(answers).dependencies.map((dependency) => dependency.packageName));
+  const violations: RenderViolation[] = [];
+
+  for (const relativePath of walk(targetDir, '')) {
+    const fileName = relativePath.split('/').pop() ?? '';
+    if (!TYPESCRIPT_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
+      continue;
+    }
+
+    const content = readFileSync(join(targetDir, relativePath), 'utf-8');
+    const source = createSourceFile(fileName, content, ScriptTarget.ESNext, true, scriptKindFor(fileName));
+    for (const packageName of new Set(importedPackages(source))) {
+      if (!declared.has(packageName)) {
+        violations.push({
+          detail: `Imports "${packageName}", which the project does not declare. npm hoists a transitive copy into place and hides this; pnpm does not.`,
+          kind: 'undeclared-dependency',
+          subject: relativePath
+        });
+      }
+    }
+  }
+
+  return violations;
 }
 
 function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
@@ -369,6 +415,36 @@ function importedNames(statement: ImportDeclaration): string[] {
     for (const element of bindings.elements) {
       names.push(element.name.text);
     }
+  }
+
+  return names;
+}
+
+/**
+ * The bare package names a source file imports, ignoring everything that is not a package.
+ *
+ * Relative and absolute specifiers are the file's own tree. Node builtins are the runtime's, with or
+ * without the `node:` prefix. Everything else is a package, and its name is the first path segment --
+ * two for a scoped one, so `obsidian-dev-utils/script-utils/version` and `@codemirror/state/dist` both
+ * reduce to what `package.json` would have to declare.
+ */
+function importedPackages(source: SourceFile): string[] {
+  const names: string[] = [];
+
+  for (const statement of source.statements) {
+    let specifier: string | undefined;
+    if (isImportDeclaration(statement) && isStringLiteral(statement.moduleSpecifier)) {
+      specifier = statement.moduleSpecifier.text;
+    } else if (isExportDeclaration(statement) && statement.moduleSpecifier && isStringLiteral(statement.moduleSpecifier)) {
+      specifier = statement.moduleSpecifier.text;
+    }
+
+    if (specifier === undefined || specifier.startsWith('.') || specifier.startsWith('/') || specifier.startsWith('node:') || builtinModules.includes(specifier)) {
+      continue;
+    }
+
+    const segments = specifier.split('/');
+    names.push(specifier.startsWith('@') ? segments.slice(0, SCOPED_PACKAGE_SEGMENTS).join('/') : segments[0] ?? specifier);
   }
 
   return names;

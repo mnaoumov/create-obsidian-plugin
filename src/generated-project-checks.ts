@@ -89,7 +89,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   const passed: GateStep[] = [];
   const skipped: GateStep[] = [];
 
-  const install = run(getInstallCommand(answers.packageManager), targetDir);
+  const install = run(installCommand(answers.packageManager), targetDir);
   if (!install.ok) {
     violations.push({ detail: install.output, kind: 'step-failed', step: 'install' });
     return {
@@ -221,6 +221,21 @@ function execCommand(packageManager: string): string {
   // "Couldn't find the binary tsc"), so reaching for every manager's own exec subcommand would trade
   // One broken case for another.
   return packageManager === 'bun' ? 'bun x' : 'npx';
+}
+
+/**
+ * The install command, with the one policy this tier has to opt out of.
+ *
+ * pnpm 12 refuses a lockfile containing anything published within `minimumReleaseAge` (a day by
+ * default) -- `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`. This tier resolves every package to the
+ * registry's current `latest` ON PURPOSE, so any day a dependency cut a release, the pnpm case fails on
+ * a supply-chain policy rather than on anything about the generated project. Turning it off HERE, in
+ * the harness, and not in the emitted `pnpm-workspace.yaml`, is the point: a real project should keep
+ * the protection, and does.
+ */
+function installCommand(packageManager: string): string {
+  const command = getInstallCommand(packageManager);
+  return packageManager === 'pnpm' ? `${command} --config.minimumReleaseAge=0` : command;
 }
 
 function readScripts(targetDir: string): Record<string, string> {
