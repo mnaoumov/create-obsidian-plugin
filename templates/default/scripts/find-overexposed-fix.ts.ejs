@@ -12,7 +12,6 @@ import {
 const [, , ...$arguments] = process.argv;
 
 const { values } = parseArgs({
-  // eslint-disable-next-line unicorn/name-replacements -- `args` is a `node:util` `parseArgs` option name.
   args: $arguments,
   options: {
     force: { type: 'boolean' }
