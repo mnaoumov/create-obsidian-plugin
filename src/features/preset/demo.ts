@@ -25,7 +25,7 @@ export class Demo extends FeatureOption {
       .addScript('build')
       .addScript('build:clean')
       .addScript('build:compile')
-      // obsidian-dev-utils' over-exposure linter, which every plugin in the fleet runs. It reports
+      // The over-exposure linter from obsidian-dev-utils, which every plugin in the fleet runs. It reports
       // Members exported more widely than anything imports them, so it needs no configuration here.
       .addScript('find-overexposed')
       .addScript('find-overexposed:fix')
