@@ -1,5 +1,6 @@
 {
   "extends": "@parcel/config-default",
 <%- render('transformers') -%>
+  "namers": ["./parcel-namer-obsidian.cjs", "..."],
   "resolvers": ["./parcel-resolver-obsidian.cjs", "..."]
 }

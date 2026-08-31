@@ -1,5 +1,10 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync
+} from 'node:fs';
 import { join } from 'node:path';
 
 import type { Answers } from './answers.ts';
@@ -24,6 +29,7 @@ export type GateStep =
   | 'format'
   | 'install'
   | 'lint'
+  | 'styles'
   | 'test';
 
 /** One gate step's verdict on one generated project. */
@@ -37,12 +43,14 @@ export interface GateViolation {
 /**
  * How a gate step failed.
  *
- * `no-tests-collected` is separate from `step-failed` because it is the one failure a green exit code
- * hides: the runner ran, reported success, and collected nothing.
+ * `no-tests-collected` and `unreadable-stylesheet` are separate from `step-failed` because they are the
+ * failures a green exit code hides: the runner ran, reported success, and collected nothing; the bundler
+ * ran, reported success, and wrote the stylesheet under a name Obsidian does not read.
  */
 export type GateViolationKind =
   | 'no-tests-collected'
-  | 'step-failed';
+  | 'step-failed'
+  | 'unreadable-stylesheet';
 
 interface CommandResult {
   ok: boolean;
@@ -67,6 +75,28 @@ const AUDIT_LEVEL = 'high';
 const OUTPUT_LIMIT = 4000;
 
 const COMMAND_TIMEOUT_MS = 900_000;
+
+/**
+ * Where a production build lands, for every preset and every bundler this generator emits.
+ *
+ * Written with a forward slash rather than through `join`, because it is also printed: `join` yields
+ * `dist\build` on Windows, and a violation naming `dist\build/styles.css` reads as a harness bug.
+ * `join(targetDir, BUILD_DIST_FOLDER)` normalizes it for the filesystem either way.
+ */
+const BUILD_DIST_FOLDER = 'dist/build';
+
+/** The one stylesheet name Obsidian loads. Anything else ships with the plugin and is never read. */
+const STYLES_CSS = 'styles.css';
+
+/**
+ * Matches the side-effect stylesheet import in the emitted `src/main.ts`.
+ *
+ * Read out of the generated file rather than derived from `answers.styling`, for the reason
+ * {@link runScriptStep} gives about scripts: `DEMO_OVERRIDES` forces `styling: 'scss'` on the demo
+ * preset whatever was answered, so an expectation built from the raw answers calls a correct project
+ * wrong. The import is the thing that makes the bundler emit CSS, so the import is the trigger.
+ */
+const STYLESHEET_IMPORT_PATTERN = /^import '[^']+\.(?:css|less|sass|scss)';/m;
 
 /**
  * Matches the collected test count in either runner's summary.
@@ -112,6 +142,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
 
   const scripts = readScripts(targetDir);
   violations.push(...runScriptStep('build', 'build', targetDir, answers, scripts, passed, skipped));
+  violations.push(...checkStyles(targetDir, passed, skipped));
   violations.push(...runScriptStep('lint', 'lint', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkFormat(targetDir, answers, scripts, passed, skipped));
   violations.push(...checkTests(targetDir, answers, scripts, passed, skipped));
@@ -173,6 +204,74 @@ function checkFormat(targetDir: string, answers: Answers, scripts: Readonly<Reco
   }
 
   return runScriptStep('format', 'format:check', targetDir, answers, scripts, passed, skipped);
+}
+
+/**
+ * Insists that a project which imports a stylesheet ships one Obsidian will actually read.
+ *
+ * The `build` step above proves only that the bundler exited 0. Obsidian loads a plugin's stylesheet
+ * from `styles.css` and nothing else, and half the bundler paths named it something else while
+ * building perfectly: standalone esbuild wrote `main.css` (the CSS lands beside `outfile`), vite named
+ * it after the package, and parcel content-hashed it as a sibling bundle. Each of those ships a
+ * stylesheet with every release that the app never opens, and no exit code says so.
+ *
+ * Three things are asserted, because each fails silently on its own: the file exists, it is not empty
+ * (an empty `styles.css` is exactly as inert), and it is the ONLY css in the folder -- which is what
+ * catches a half-fix that writes `styles.css` and leaves the misnamed original beside it.
+ */
+function checkStyles(targetDir: string, passed: GateStep[], skipped: GateStep[]): GateViolation[] {
+  if (!passed.includes('build')) {
+    skipped.push('styles');
+    return [];
+  }
+
+  let mainTs: string;
+  try {
+    mainTs = readFileSync(join(targetDir, 'src', 'main.ts'), 'utf-8');
+  } catch {
+    mainTs = '';
+  }
+
+  if (!STYLESHEET_IMPORT_PATTERN.test(mainTs)) {
+    skipped.push('styles');
+    return [];
+  }
+
+  const distFolder = join(targetDir, BUILD_DIST_FOLDER);
+  let emitted: string[];
+  try {
+    emitted = readdirSync(distFolder, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.css'))
+      .map((entry) => entry.name);
+  } catch {
+    emitted = [];
+  }
+
+  const stylesPath = join(distFolder, STYLES_CSS);
+  const problems: string[] = [];
+
+  if (!existsSync(stylesPath)) {
+    problems.push(`\`${BUILD_DIST_FOLDER}/${STYLES_CSS}\` does not exist.`);
+  } else if (statSync(stylesPath).size === 0) {
+    problems.push(`\`${BUILD_DIST_FOLDER}/${STYLES_CSS}\` is empty.`);
+  }
+
+  const stray = emitted.filter((name) => name !== STYLES_CSS);
+  if (stray.length > 0) {
+    problems.push(`Obsidian will not read ${stray.map((name) => `\`${name}\``).join(', ')}.`);
+  }
+
+  if (problems.length === 0) {
+    passed.push('styles');
+    return [];
+  }
+
+  return [{
+    detail: `\`src/main.ts\` imports a stylesheet, so the build emits one, but ${problems.join(' ')}\n`
+      + `CSS in \`${BUILD_DIST_FOLDER}\`: ${emitted.length > 0 ? emitted.join(', ') : '(none)'}`,
+    kind: 'unreadable-stylesheet',
+    step: 'styles'
+  }];
 }
 
 /**

@@ -274,6 +274,42 @@ own default export is now a stub that warns you reached for the wrong package, a
 `void`, which is why the v3-shaped config failed `no-confusing-void-expression`. The lint error was the
 compiler pointing at a real fault, not a style complaint.
 
+### Every bundler has to be told to name the stylesheet `styles.css`
+
+`src/main.ts` imports the stylesheet purely for its side effect, so the bundler emits one — that is what
+every `src/main.ts@import_*.ejs` comment means by "if you want to have a styles.css file in your build
+output". Obsidian loads a plugin's stylesheet from **`styles.css` and nothing else**, and no bundler
+picks that name on its own. Three of the six paths shipped a stylesheet the app never opened, with a
+green build the whole time:
+
+| path | emitted before | what names it now |
+| --- | --- | --- |
+| webpack | `styles.css` | `MiniCssExtractPlugin({ filename: 'styles.css' })` — always did |
+| rollup | `styles.css` | `postcss({ extract: … })` / `scss({ output: … })` — always did |
+| esbuild (odu) | `styles.css` | obsidian-dev-utils' own `renameCssPlugin` — always did |
+| esbuild (standalone) | `main.css` | a local `renameCssPlugin`; the CSS lands beside `outfile` |
+| vite | `<pluginId>.css` | `build.lib.cssFileName`; lib mode names it after the package |
+| parcel | `main.<hash>.css` | `parcel-namer-obsidian.cjs`; sibling bundles are content-hashed |
+
+**Each fix is config-level, and a shared post-build rename would have been wrong.** `dev` runs the four
+CLI bundlers under `--watch` (`build.ts@bundler_cli-bundler.ejs`), so a rename after `execSync` returns
+fires once and never again on a rebuild — and `dist/dev` is copied wholesale into the vault, so the
+name has to be right there too. The two esbuild paths use `build.onEnd`, which does run per rebuild;
+the standalone one is registered **before** `copyToObsidianPluginsFolderPlugin`, since esbuild runs
+`onEnd` callbacks in plugin order and the copy has to see the renamed file.
+
+Parcel needed a second plugin file for the same reason it needed the first: every other bundler takes an
+output name as an option, and Parcel takes a namer — as it takes a resolver where the others take an
+`external` list.
+
+**The gate tier asserts the artifact, not the exit code.** `npm run build` exiting 0 is what let this
+live: `checkStyles` (`src/generated-project-checks.ts`) now runs after `build` and, when the emitted
+`src/main.ts` imports a stylesheet, insists that `dist/build/styles.css` exists, is non-empty, and is
+the only `.css` in the folder — the last clause being what catches a half-fix that writes `styles.css`
+and leaves the misnamed original beside it. The trigger is read out of the generated `src/main.ts`
+rather than from `answers.styling`, for the reason `runScriptStep` gives about scripts: `DEMO_OVERRIDES`
+forces `styling: 'scss'` on the demo preset whatever was answered.
+
 ### The odu presets pass their extra esbuild plugins through `customEsbuildPlugins`
 
 obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
@@ -325,7 +361,7 @@ three, each covering as much as its per-case cost allows.
 `--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
 single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
 
-**Two failure modes make a silent pass the default here, and every tier is shaped around them.**
+**Three failure modes make a silent pass the default here, and every tier is shaped around them.**
 
 1. **An unresolved partial renders as `''`, not an error.** A registered file whose partials were all
    left unresolved is written EMPTY — and an empty `.ts` compiles, an empty config reads as "no
@@ -333,6 +369,10 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    (`empty-emitted-file`); the render tier catches it in the bytes (`empty-file`).
 2. **A test runner that collects nothing exits 0.** Jest and vitest both do, so the gate tier reads the
    collected test count out of the runner's summary and treats zero as a failure.
+3. **A bundler that misnames the stylesheet exits 0.** Obsidian reads `styles.css` and nothing else, and
+   three of the six bundler paths named it something else — so the gate tier's `styles` step checks the
+   emitted artifact rather than the build's exit code. See "Every bundler has to be told to name the
+   stylesheet `styles.css`" above.
 
 The render tier also carries three **structural** checks, because a clean parse is not a clean file and
 each of these is something composition produces rather than something a template author writes.

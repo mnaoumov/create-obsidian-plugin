@@ -2,6 +2,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  renameSync,
   rmSync<%- render('fs-import') %>
 } from 'node:fs';
 import { builtinModules } from 'node:module';
@@ -71,6 +72,7 @@ const context = await esbuild.context({
 <%- render('options') -%>
   plugins: [
 <%- render('plugin') -%>
+    renameCssPlugin(distFolder),
     copyToObsidianPluginsFolderPlugin(prod, distFolder)
   ]
 });
@@ -104,6 +106,32 @@ function copyToObsidianPluginsFolderPlugin(isProduction: boolean, dist: string):
         const { cpSync } = await import('node:fs');
         cpSync(dist, pluginFolder, { recursive: true });
 <%- render({ section: 'reload', indentLevel: 4 }) -%>
+      });
+    }
+  };
+}
+
+/**
+ * Renames the emitted stylesheet to the only name Obsidian reads.
+ *
+ * `outfile` is `<dist>/main.js`, so esbuild writes the bundled CSS beside it as `<dist>/main.css`.
+ * Obsidian loads a plugin's stylesheet from `styles.css` and nothing else, so without this the file
+ * ships and is never read -- a build that succeeds and a plugin with no styles.
+ *
+ * Registered BEFORE `copyToObsidianPluginsFolderPlugin`: esbuild runs `onEnd` callbacks in plugin
+ * order, and the copy into the vault has to see the renamed file. Unconditional and existence-guarded
+ * rather than gated on the styling answer, so there is nothing to keep in sync -- a project with no
+ * stylesheet simply has nothing to rename.
+ */
+function renameCssPlugin(dist: string): esbuild.Plugin {
+  return {
+    name: 'rename-css',
+    setup(build): void {
+      build.onEnd(() => {
+        const mainCssPath = join(dist, 'main.css');
+        if (existsSync(mainCssPath)) {
+          renameSync(mainCssPath, join(dist, 'styles.css'));
+        }
       });
     }
   };
