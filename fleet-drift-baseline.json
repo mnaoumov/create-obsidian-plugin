@@ -1,0 +1,343 @@
+{
+  "comment": [
+    "Differences between what the generator emits for the obsidian-dev-utils presets and what the 29 real",
+    "plugins in the fleet actually look like, each one recorded as deliberate with the reason it is.",
+    "`npm run verify:fleet-drift` fails on any difference that is NOT listed here, on any entry here whose",
+    "difference has since gone, and on any entry whose `fleetCount` has moved -- the count is the evidence",
+    "behind most of these judgements, so a trait that goes from divided to unanimous needs the call made",
+    "again. That two-way check is the same discipline G100 requires of pinned-versions.json.",
+    "",
+    "Keys are `<preset>/<dimension>/<kind>/<trait>`. The preset is part of the key because the two presets",
+    "do not emit the same project: without it, accepting one of demo's forced framework components would",
+    "silence the same key under enhanced, where it would be a genuine surprise.",
+    "",
+    "Dependencies and tsconfig `types` are not compared at all. T699-P42 settled both by following the",
+    "fleet, and re-reporting them here would re-litigate a closed decision."
+  ],
+  "accepted": {
+    "demo/layout/extra/.create-obsidian-plugin.json": {
+      "fleetCount": 0,
+      "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No fleet plugin was made by the generator, so none has one."
+    },
+    "demo/layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml": {
+      "fleetCount": 0,
+      "why": "Kebab-case here is forced by the composition system, not chosen. `isPartialFile` treats ANY `_` in a basename as the partial marker, so the fleet's `bug_report.yml` was skipped by the render loop entirely and every project asking for issue templates shipped only `config.yml`, pointing at forms that were never written (fixed in d1077c1). GitHub does not care what the files are called."
+    },
+    "demo/layout/extra/.github/ISSUE_TEMPLATE/feature-request.yml": {
+      "fleetCount": 0,
+      "why": "The other half of the `bug-report.yml` rename; see that entry. `feature_request.yml` would be skipped by the render loop for the same reason."
+    },
+    "demo/layout/extra/demo-vault/01 Sample commands.md": {
+      "fleetCount": 0,
+      "why": "The scaffold's starter demo vault. Each fleet plugin's vault documents that plugin's own features, so no note title is common across all 29 -- the generator ships a starter set instead of copying one plugin's notes."
+    },
+    "demo/layout/extra/demo-vault/Materials/01 Sample commands/Scratch note.md": {
+      "fleetCount": 0,
+      "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
+    },
+    "demo/layout/extra/pnpm-workspace.yaml": {
+      "fleetCount": 0,
+      "why": "Emitted for every project regardless of the package-manager answer, because which tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with ERR_PNPM_IGNORED_BUILDS. The fleet is installed with npm throughout, so no plugin has one."
+    },
+    "demo/layout/extra/scripts/esbuild-plugins.ts": {
+      "fleetCount": 0,
+      "why": "The generator supports UI-framework answers the fleet does not use, and Vue needs an esbuild plugin obsidian-dev-utils does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The fleet needs no such file because svelte and sass are already wired in upstream."
+    },
+    "demo/layout/extra/scripts/framework-component-stub.ts": {
+      "fleetCount": 0,
+      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the fleet, being one fixed set of answers, does not have."
+    },
+    "demo/layout/extra/src/modals/sample-form-modal.ts": {
+      "fleetCount": 0,
+      "why": "Content the demo preset forces in so the demo vault can show every feature. No single fleet plugin demonstrates all of them, so none of these files is common across the fleet."
+    },
+    "demo/layout/extra/src/modals/sample-suggest-modal.ts": {
+      "fleetCount": 0,
+      "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
+    },
+    "demo/layout/extra/src/styles/styles.d.ts": {
+      "fleetCount": 0,
+      "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The fleet, being scss throughout, names its copy after the extension."
+    },
+    "demo/layout/extra/src/views/sample-vue-view.ts": {
+      "fleetCount": 0,
+      "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
+    },
+    "demo/layout/extra/src/vue-components/sample-vue-component.d.ts": {
+      "fleetCount": 0,
+      "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
+    },
+    "demo/layout/extra/src/vue-components/sample-vue-component.vue": {
+      "fleetCount": 0,
+      "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
+    },
+    "demo/layout/missing/.depcheckrc.json": {
+      "fleetCount": 29,
+      "why": "Configures depcheck for `update-npm-deps.ps1`, a dependency-sweep script that lives on the maintainer's machine and is not shipped with any plugin. A generated project handed to someone else gains nothing from it. Whether the scaffold should emit one anyway is a decision recorded as a follow-up, not something to settle by copying."
+    },
+    "demo/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
+      "fleetCount": 29,
+      "why": "The fleet's side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
+    },
+    "demo/layout/missing/.github/ISSUE_TEMPLATE/feature_request.yml": {
+      "fleetCount": 29,
+      "why": "The fleet's side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
+    },
+    "demo/layout/missing/AGENTS.md": {
+      "fleetCount": 29,
+      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a fleet AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says. Recorded as a follow-up rather than guessed at."
+    },
+    "demo/layout/missing/scripts/build-compile-typescript.ts": {
+      "fleetCount": 29,
+      "why": "The fleet's `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the fleet, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
+    },
+    "demo/layout/missing/scripts/eslint-config.ts": {
+      "fleetCount": 29,
+      "why": "The fleet's ESLint config is obsidian-dev-utils' `defineEslintConfigs` with a per-plugin override. The generator emits a self-contained `eslint.config.mts` because the same config has to serve the standalone preset, which depends on nothing from the ecosystem. Adopting the shared config on the odu presets is a design change, not a file move; recorded as a follow-up."
+    },
+    "demo/layout/partial/CHANGELOG.md": {
+      "fleetCount": 28,
+      "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-desktop-1.png": {
+      "fleetCount": 25,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-desktop-2.png": {
+      "fleetCount": 24,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-desktop-3.png": {
+      "fleetCount": 16,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-mobile-1.png": {
+      "fleetCount": 23,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-mobile-2.png": {
+      "fleetCount": 23,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/images/screenshots/screenshot-mobile-3.png": {
+      "fleetCount": 15,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "demo/layout/partial/scripts/capture-screenshots.ts": {
+      "fleetCount": 25,
+      "why": "The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, and 4 of the 29 plugins do without it. Whether the scaffold should ship it is a judgement recorded as a follow-up."
+    },
+    "demo/layout/partial/src/main.test.ts": {
+      "fleetCount": 26,
+      "why": "The generator emits one sample unit test, `src/plugin.test.ts`, and that one is load-bearing: it imports the plugin, which is what forces every piece of the mock wiring. Co-located tests for `main.ts` and the settings trio are sample code rather than verification, and each has to pass the install tier on every combination. Recorded as a follow-up."
+    },
+    "demo/layout/partial/src/plugin-settings-component.test.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "demo/layout/partial/src/plugin-settings-tab.test.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "demo/layout/partial/src/plugin-settings.test.ts": {
+      "fleetCount": 26,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "demo/layout/partial/src/plugin.android.integration.test.ts": {
+      "fleetCount": 22,
+      "why": "An integration suite that drives a provisioned Android emulator. The generator already declines to run that project from `test:integration` for the same reason -- a fresh project would fail on a machine without one -- so shipping the suite would mean shipping a test nothing can run."
+    },
+    "demo/layout/partial/src/plugin.desktop.integration.test.ts": {
+      "fleetCount": 22,
+      "why": "An integration suite that drives a real desktop Obsidian install; see the android entry beside it."
+    },
+    "demo/layout/partial/src/screenshots.android-capture.integration.test.ts": {
+      "fleetCount": 23,
+      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "demo/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
+      "fleetCount": 25,
+      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "demo/layout/partial/src/styles/scss.d.ts": {
+      "fleetCount": 19,
+      "why": "The fleet's side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
+    },
+    "demo/odu-modules/missing/scripts/build-compile-typescript.ts": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the fleet's duplicate of `build-compile.ts`."
+    },
+    "demo/odu-modules/missing/scripts/eslint-config.ts": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/eslint-config.ts` -- the generator's ESLint config is self-contained rather than wrapping obsidian-dev-utils'."
+    },
+    "demo/odu-modules/missing/scripts/nano-staged-config.ts": {
+      "fleetCount": 29,
+      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the fleet's own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
+    },
+    "demo/odu-modules/partial/scripts/capture-screenshots.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "demo/scripts/missing/build:compile:typescript": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the fleet's duplicate of `build-compile.ts`."
+    },
+    "demo/scripts/partial/capture:screenshots": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "enhanced/layout/extra/.create-obsidian-plugin.json": {
+      "fleetCount": 0,
+      "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No fleet plugin was made by the generator, so none has one."
+    },
+    "enhanced/layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml": {
+      "fleetCount": 0,
+      "why": "Kebab-case here is forced by the composition system, not chosen. `isPartialFile` treats ANY `_` in a basename as the partial marker, so the fleet's `bug_report.yml` was skipped by the render loop entirely and every project asking for issue templates shipped only `config.yml`, pointing at forms that were never written (fixed in d1077c1). GitHub does not care what the files are called."
+    },
+    "enhanced/layout/extra/.github/ISSUE_TEMPLATE/feature-request.yml": {
+      "fleetCount": 0,
+      "why": "The other half of the `bug-report.yml` rename; see that entry. `feature_request.yml` would be skipped by the render loop for the same reason."
+    },
+    "enhanced/layout/extra/demo-vault/01 Sample commands.md": {
+      "fleetCount": 0,
+      "why": "The scaffold's starter demo vault. Each fleet plugin's vault documents that plugin's own features, so no note title is common across all 29 -- the generator ships a starter set instead of copying one plugin's notes."
+    },
+    "enhanced/layout/extra/demo-vault/Materials/01 Sample commands/Scratch note.md": {
+      "fleetCount": 0,
+      "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
+    },
+    "enhanced/layout/extra/pnpm-workspace.yaml": {
+      "fleetCount": 0,
+      "why": "Emitted for every project regardless of the package-manager answer, because which tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with ERR_PNPM_IGNORED_BUILDS. The fleet is installed with npm throughout, so no plugin has one."
+    },
+    "enhanced/layout/extra/scripts/esbuild-plugins.ts": {
+      "fleetCount": 0,
+      "why": "The generator supports UI-framework answers the fleet does not use, and Vue needs an esbuild plugin obsidian-dev-utils does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The fleet needs no such file because svelte and sass are already wired in upstream."
+    },
+    "enhanced/layout/extra/scripts/framework-component-stub.ts": {
+      "fleetCount": 0,
+      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the fleet, being one fixed set of answers, does not have."
+    },
+    "enhanced/layout/extra/src/styles/styles.d.ts": {
+      "fleetCount": 0,
+      "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The fleet, being scss throughout, names its copy after the extension."
+    },
+    "enhanced/layout/missing/.depcheckrc.json": {
+      "fleetCount": 29,
+      "why": "Configures depcheck for `update-npm-deps.ps1`, a dependency-sweep script that lives on the maintainer's machine and is not shipped with any plugin. A generated project handed to someone else gains nothing from it. Whether the scaffold should emit one anyway is a decision recorded as a follow-up, not something to settle by copying."
+    },
+    "enhanced/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
+      "fleetCount": 29,
+      "why": "The fleet's side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
+    },
+    "enhanced/layout/missing/.github/ISSUE_TEMPLATE/feature_request.yml": {
+      "fleetCount": 29,
+      "why": "The fleet's side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
+    },
+    "enhanced/layout/missing/AGENTS.md": {
+      "fleetCount": 29,
+      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a fleet AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says. Recorded as a follow-up rather than guessed at."
+    },
+    "enhanced/layout/missing/scripts/build-compile-typescript.ts": {
+      "fleetCount": 29,
+      "why": "The fleet's `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the fleet, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
+    },
+    "enhanced/layout/missing/scripts/eslint-config.ts": {
+      "fleetCount": 29,
+      "why": "The fleet's ESLint config is obsidian-dev-utils' `defineEslintConfigs` with a per-plugin override. The generator emits a self-contained `eslint.config.mts` because the same config has to serve the standalone preset, which depends on nothing from the ecosystem. Adopting the shared config on the odu presets is a design change, not a file move; recorded as a follow-up."
+    },
+    "enhanced/layout/partial/CHANGELOG.md": {
+      "fleetCount": 28,
+      "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-desktop-1.png": {
+      "fleetCount": 25,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-desktop-2.png": {
+      "fleetCount": 24,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-desktop-3.png": {
+      "fleetCount": 16,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-mobile-1.png": {
+      "fleetCount": 23,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-mobile-2.png": {
+      "fleetCount": 23,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/images/screenshots/screenshot-mobile-3.png": {
+      "fleetCount": 15,
+      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+    },
+    "enhanced/layout/partial/scripts/capture-screenshots.ts": {
+      "fleetCount": 25,
+      "why": "The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, and 4 of the 29 plugins do without it. Whether the scaffold should ship it is a judgement recorded as a follow-up."
+    },
+    "enhanced/layout/partial/src/main.test.ts": {
+      "fleetCount": 26,
+      "why": "The generator emits one sample unit test, `src/plugin.test.ts`, and that one is load-bearing: it imports the plugin, which is what forces every piece of the mock wiring. Co-located tests for `main.ts` and the settings trio are sample code rather than verification, and each has to pass the install tier on every combination. Recorded as a follow-up."
+    },
+    "enhanced/layout/partial/src/plugin-settings-component.test.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "enhanced/layout/partial/src/plugin-settings-tab.test.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "enhanced/layout/partial/src/plugin-settings.test.ts": {
+      "fleetCount": 26,
+      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+    },
+    "enhanced/layout/partial/src/plugin.android.integration.test.ts": {
+      "fleetCount": 22,
+      "why": "An integration suite that drives a provisioned Android emulator. The generator already declines to run that project from `test:integration` for the same reason -- a fresh project would fail on a machine without one -- so shipping the suite would mean shipping a test nothing can run."
+    },
+    "enhanced/layout/partial/src/plugin.desktop.integration.test.ts": {
+      "fleetCount": 22,
+      "why": "An integration suite that drives a real desktop Obsidian install; see the android entry beside it."
+    },
+    "enhanced/layout/partial/src/screenshots.android-capture.integration.test.ts": {
+      "fleetCount": 23,
+      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "enhanced/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
+      "fleetCount": 25,
+      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "enhanced/layout/partial/src/styles/scss.d.ts": {
+      "fleetCount": 19,
+      "why": "The fleet's side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
+    },
+    "enhanced/odu-modules/missing/scripts/build-compile-typescript.ts": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the fleet's duplicate of `build-compile.ts`."
+    },
+    "enhanced/odu-modules/missing/scripts/eslint-config.ts": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/eslint-config.ts` -- the generator's ESLint config is self-contained rather than wrapping obsidian-dev-utils'."
+    },
+    "enhanced/odu-modules/missing/scripts/nano-staged-config.ts": {
+      "fleetCount": 29,
+      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the fleet's own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
+    },
+    "enhanced/odu-modules/partial/scripts/capture-screenshots.ts": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+    },
+    "enhanced/scripts/missing/build:compile:typescript": {
+      "fleetCount": 29,
+      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the fleet's duplicate of `build-compile.ts`."
+    },
+    "enhanced/scripts/partial/capture:screenshots": {
+      "fleetCount": 25,
+      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+    }
+  }
+}
