@@ -63,6 +63,13 @@ npm run verify:rendering      # ~40s: renders 265 projects and checks the emitte
 npm run verify:projects       # the long one: generates, installs and gates ~50 real projects
 ```
 
+A fourth script asks a different question — not whether the output is valid, but whether it looks like a
+real plugin. It is the only one that reads anything outside this repo:
+
+```bash
+npm run verify:fleet-drift    # ~2s: the two obsidian-dev-utils presets against the real plugins
+```
+
 Worth knowing:
 
 - **Run `npm run verify:answer-space -- --check-registry` before a release.** It asks the registry about
@@ -74,6 +81,12 @@ Worth knowing:
   path lengths bite.
 - `verify:answer-space --exhaustive` checks all 15,049,359,360 combinations. It prints its projected cost
   first — on a 12-core machine that is roughly 13 hours.
+- `verify:fleet-drift` scans the checkout's parent directory for plugins — anything with both a
+  `manifest.json` and a `src/main.ts` — so it only does anything on a machine that has them checked out
+  beside this repo. `--fleet <dir>` points it elsewhere. It exits 1 rather than reporting a clean pass
+  when it finds none. Every difference it reports has to be either fixed or recorded in
+  `fleet-drift-baseline.json` with the reason it is deliberate;
+  `npm run verify:fleet-drift -- --print-baseline` prints a skeleton to fill in.
 
 ## Pull Requests
 
