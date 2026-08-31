@@ -173,11 +173,18 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
 
   if (answers.preset === 'demo') {
     for (const override of DEMO_OVERRIDES) {
-      if (String(answers[override.answerKey]) !== override.demoValue) {
-        const option = resolveFeature(override.options, override.demoValue);
-        option.configure(builder, answers);
-        builder.addPartial(option.partialName);
+      const chosenValue = String(answers[override.answerKey]);
+      if (chosenValue === override.demoValue) {
+        continue;
       }
+
+      const option = resolveFeature(override.options, override.demoValue);
+      if (conflictsOverJsxRuntime(resolveFeature(override.options, chosenValue), option)) {
+        continue;
+      }
+
+      option.configure(builder, answers);
+      builder.addPartial(option.partialName);
     }
   }
 
@@ -346,6 +353,28 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   const raw = parsed as Record<string, unknown>;
   migrateAnswers(raw);
   return parsed as GeneratorConfig;
+}
+
+/**
+ * Whether a demo override and the answer actually chosen want different JSX runtimes.
+ *
+ * The demo preset deliberately forces a SECOND answer into a question so the demo vault shows every
+ * feature -- and that works for everything except the one setting a project can only hold one of.
+ * `jsx` / `jsxImportSource` are compiler options, not per-file ones, and they are global twice over: once
+ * in `tsconfig.json`, once more in whichever bundler config was chosen (`build.ts@bundler_esbuild@options_*`
+ * writes them directly, `rollup.config.ts@post-plugin_*` a whole `babel({...})` block, `vite.config.ts` a
+ * plugin). Forcing react in beside `preact` or `solid` therefore emitted a duplicate `"jsx"` key and
+ * components compiled against the wrong runtime -- TS2345, `Element` is not assignable.
+ *
+ * So the explicit answer wins and the override is skipped, which is the same call the demo + biome linter
+ * case already makes (see `src/templates.test.ts`). Only the three JSX frameworks declare a
+ * `jsxImportSource`: `svelte` and `vue` compile their own single-file components and `lit` uses tagged
+ * templates, so all three stay forced beside anything.
+ */
+function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): boolean {
+  return chosen.jsxImportSource !== undefined
+    && demo.jsxImportSource !== undefined
+    && chosen.jsxImportSource !== demo.jsxImportSource;
 }
 
 function isPartialFile(templatePath: string): boolean {

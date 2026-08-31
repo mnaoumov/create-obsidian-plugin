@@ -27,8 +27,11 @@ import {
   isImportDeclaration,
   isNamedImports,
   isNamespaceImport,
+  isObjectLiteralExpression,
+  isPropertyAssignment,
   isStringLiteral,
   isVariableStatement,
+  parseJsonText,
   ScriptKind,
   ScriptTarget,
   SyntaxKind
@@ -61,6 +64,7 @@ export interface RenderViolation {
 export type RenderViolationKind =
   | 'await-outside-async'
   | 'duplicate-declaration'
+  | 'duplicate-json-key'
   | 'empty-block'
   | 'empty-file'
   | 'invalid-json'
@@ -184,6 +188,46 @@ function checkDeclaredDependencies(targetDir: string, answers: Answers): RenderV
   return violations;
 }
 
+/**
+ * Keys an emitted JSON file sets more than once in the same object.
+ *
+ * The JSON twin of {@link checkTopLevelDuplicates}, and the same failure: two partials that are not
+ * really per-answer both writing the same line. `JSON.parse` accepts a duplicate key SILENTLY and keeps
+ * the last one, so `invalid-json` cannot see it -- which is how a `tsconfig.json` composed from two
+ * frameworks' `compiler-options` partials (`"jsx": "preserve"` from solid, then `"jsx": "react-jsx"`
+ * forced in by the demo preset) parsed clean while the project it describes could not compile, and only
+ * the hour-long install tier reported it.
+ *
+ * Never a deliberate duplicate: a JSON object holds one value per key by definition.
+ */
+function checkDuplicateJsonKeys(relativePath: string, fileName: string, content: string): RenderViolation[] {
+  const duplicated = new Set<string>();
+
+  function visit(node: Node): void {
+    if (isObjectLiteralExpression(node)) {
+      const seen = new Set<string>();
+      for (const property of node.properties) {
+        if (!isPropertyAssignment(property) || !isStringLiteral(property.name)) {
+          continue;
+        }
+        if (seen.has(property.name.text)) {
+          duplicated.add(property.name.text);
+        }
+        seen.add(property.name.text);
+      }
+    }
+    forEachChild(node, visit);
+  }
+
+  visit(parseJsonText(fileName, content));
+
+  return [...duplicated].map((name) => ({
+    detail: `"${name}" is set more than once in the same object. \`JSON.parse\` keeps the last one without complaining, so two partials each writing the key leave the file valid and wrong.`,
+    kind: 'duplicate-json-key' as const,
+    subject: relativePath
+  }));
+}
+
 function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
   const violations: RenderViolation[] = [];
   const content = readFileSync(join(targetDir, relativePath), 'utf-8');
@@ -296,7 +340,7 @@ function checkSyntax(relativePath: string, fileName: string, content: string): R
         subject: relativePath
       }];
     }
-    return [];
+    return checkDuplicateJsonKeys(relativePath, fileName, content);
   }
 
   if (YAML_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
