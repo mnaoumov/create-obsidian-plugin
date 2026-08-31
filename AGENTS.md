@@ -187,6 +187,77 @@ therefore collected on `TemplateBuilder` and rendered with a `forEach` that know
 `addScript`, `addPackage`, `addLintStagedCommand`, `addSentenceCaseBrand`. Partials stay for content that
 is a block, not an item.
 
+### A line that is not really per-answer gets ONE partial, named for what it is
+
+The sibling of the trailing-comma rule, and the more dangerous one. Writing the same line into one
+partial per answer looks harmless while only one answer can be active — and then a preset forces a
+**second** answer in the same question (`demo` does, with `scss` for styling and react for uiFramework)
+and both copies render into one file. That is a duplicate declaration, not a duplicate line: TS2300 for
+an import, TS2451 for a `const`.
+
+So a line every answer needs is contributed by every answer that needs it, through one partial named
+for the line rather than for any answer — `webpack-css-extract`, `rollup-babel`, `has-e2e`. `partials`
+is a `Set`, so it renders exactly once however many answers asked for it. Where the per-answer
+contributions genuinely differ (each framework's babel presets, each styling answer's webpack `rule`),
+they stay per-answer; only what is identical is hoisted. `scripts/babel.config.ts` shows the third
+shape: three whole-file partials each declaring `export const config` became one file composed from
+`babel-preset` and `babel-plugin` list sections.
+
+`render-checks.ts` carries this as `duplicate-declaration`, which is what found the `babel.config.ts`
+case — the install tier's 56 cases never reach it.
+
+### Three lists have to agree about which files are in the program
+
+Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the emitted
+`eslint.config.mts`'s `typeScriptFiles`, the emitted `tsconfig.json`'s `include`, and the set of files
+actually written have to say the same thing. `e2e/` was in neither list while
+`obsidianmd.configs.recommended` still linted it, which is the whole of "You have used a rule which
+requires type information" — the largest single class of install-tier failures. It reaches both lists
+through the shared `has-e2e` partial, and only when an end-to-end runner was chosen.
+
+Putting a directory into the program is not free: it starts being type-checked. That is what exposed
+`wdio.conf.ts` never having compiled, and both sample specs asserting over `app.plugins` /
+`app.commands` regardless of the `apiSubset` answer — so those assertions now sit behind an
+`unofficial` section.
+
+### Where the linters and the compiler disagree, the compiler wins
+
+`@tsconfig/strictest` turns on `noPropertyAccessFromIndexSignature`, which the obsidian-dev-utils
+presets inherit, and it REJECTS `process.env.BUILD`. ESLint's `dot-notation` and biome's
+`useLiteralKeys` both ask for exactly that form. The compiler's complaint is an error and the linters'
+is a preference, so `dot-notation` is configured with `allowIndexSignaturePropertyAccess` and
+`useLiteralKeys` is turned off — each with the reason written where the rule is silenced, not here.
+
+The biome config is `biome.jsonc` so it can carry those reasons. Biome parses its own config as JSONC
+whatever the extension, but it rejects a `"//"` key as unknown, and real comments in a file named
+`.json` would fail the render tier's JSON check. It also turns `noUnusedVariables` off for `.svelte`
+and `.vue`, where biome reads the script block but not the markup and reports every binding the
+template uses as unused.
+
+### The PostCSS config must be named `postcss.config.cjs`, and Tailwind is v4
+
+Two silent failures, stacked. Every consumer finds the config through `postcss-load-config`, and the
+copy `esbuild-postcss` bundles is v3, whose search places stop at `postcss.config.cjs`. An `.mjs` name
+matched nothing — and finding nothing is not an error there, it just runs with no plugins — so on
+`standalone` + `esbuild` neither autoprefixer nor Tailwind had ever run, with the build green
+throughout. `.cjs` is the one name every version of the loader, plus parcel, vite, webpack and rollup,
+agree on; it still loads the real config from `scripts/postcss.config.ts` through jiti.
+
+Tailwind is configured for **4**, which is what gets installed: the PostCSS plugin is
+`@tailwindcss/postcss`, the stylesheet says `@import "tailwindcss"` rather than the three `@tailwind`
+directives, and there is no JavaScript config at all — v4 detects its sources itself. `tailwindcss`'
+own default export is now a stub that warns you reached for the wrong package, and its return type is
+`void`, which is why the v3-shaped config failed `no-confusing-void-expression`. The lint error was the
+compiler pointing at a real fault, not a style complaint.
+
+### The odu presets pass their extra esbuild plugins through `customEsbuildPlugins`
+
+obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
+own plugin list. They already register a svelte wrapper and a sass plugin — which is exactly why svelte
+and SCSS work on these presets untouched — but nothing for Vue, so `esbuild-plugin-vue3` was installed
+and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the odu presets when the
+bundler is esbuild, and both `build.ts` and `dev.ts` pass it.
+
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.
@@ -238,6 +309,14 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    (`empty-emitted-file`); the render tier catches it in the bytes (`empty-file`).
 2. **A test runner that collects nothing exits 0.** Jest and vitest both do, so the gate tier reads the
    collected test count out of the runner's summary and treats zero as a failure.
+
+The render tier also carries three **structural** checks, because a clean parse is not a clean file and
+each of these is something composition produces rather than something a template author writes.
+`await-outside-async` — a partial holding `await import(…)` rendered into a synchronous function, which
+is TS1308 and a hard bundler parse error. `empty-block` — a wrapper that renders `if (prod) { <section> }`
+emits `if (prod) { }` on every answer contributing nothing, which the emitted ESLint config rejects with
+`no-empty`. `duplicate-declaration` — the per-answer-partial trap above. None of the three is a syntax
+error, so the parse pass sees nothing; all three are cheap enough to run over all 265 cases.
 
 Three rules that are easy to get wrong and were:
 
