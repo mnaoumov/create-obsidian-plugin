@@ -1,27 +1,29 @@
-# WASM Support
+# WebAssembly
 
-This plugin is configured with WASM support. Place your `.wasm` files in this directory.
+This folder holds a working WebAssembly module and the code that calls it. It is a sample: replace it with your own, and this note with what yours does.
 
-## Getting Started
+WebAssembly is how you use code written in Rust, C, Go or AssemblyScript from a plugin. Unlike a native Node binary it runs on **mobile** too, so it is the portable route — which is why it is worth a sample rather than a paragraph of instructions.
 
-### Option 1: Rust (via wasm-pack)
+## What is here
 
-1. Install [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-2. Create a Rust project: `wasm-pack new my-wasm`
-3. Build: `wasm-pack build --target web`
-4. Copy the `.wasm` output to this directory
+| File | What it is |
+| --- | --- |
+| `module.wasm` | The compiled module: 39 bytes, one export, `answer()`, returning `42`. |
+| `module.wat` | The same module in WebAssembly's text format, so the binary is not opaque. Documentation only — nothing in the build reads it. |
+| `answer.ts` | Loads the module and exposes `getWasmAnswer()`. Written against the bundler you chose. |
 
-### Option 2: AssemblyScript
+`src/plugin.ts` registers a **Sample WASM answer** command that calls `getWasmAnswer()` and shows the result. That call is not decoration: a bundler tree-shakes an export nothing uses, so without a real call site the module would be dropped from `main.js` and the whole WebAssembly integration would be dead with the build still green.
 
-1. Install: `npm install assemblyscript`
-2. Create `assembly/index.ts` with your code
-3. Build: `npx asc assembly/index.ts --outFile src/wasm/module.wasm`
+## Replacing it with your own
 
-## Usage
+1. Build a `.wasm` and put it in this folder. With Rust: install [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/), `wasm-pack new my-wasm`, `wasm-pack build --target web`. With [AssemblyScript](https://www.assemblyscript.org/): `npm install assemblyscript`, then `npx asc assembly/index.ts --outFile src/wasm/module.wasm`.
+2. Point `answer.ts` at it and name your own exports. `src/wasm.d.ts` declares what a `.wasm` import yields under this project's bundler — that differs between bundlers, which is why the file is generated rather than copied.
+3. Keep something in `src/` calling into it, for the tree-shaking reason above.
 
-```typescript
-import wasmModule from './wasm/module.wasm';
+## The one rule that is not obvious
 
-const instance = await WebAssembly.instantiate(wasmModule);
-const { add } = instance.exports as { add(a: number, b: number): number };
-```
+Obsidian ships a plugin as `main.js` and `styles.css` and nothing else. A bundler that emits the module as a **separate** `.wasm` file next to the bundle produces a plugin that works in your repo and breaks the moment it is released — the file is simply not there. So the build is configured to **inline** the module into `main.js`, and every bundler needs telling that in its own way. If you swap bundlers, check that first.
+
+## Provenance
+
+`module.wasm` is the sample module from [CodeScript Toolkit](https://github.com/mnaoumov/obsidian-codescript-toolkit)'s demo vault, hand-written and 39 bytes long. `module.wat` is its source.

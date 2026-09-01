@@ -40,6 +40,7 @@ function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInve
   }
 
   return {
+    assetTemplates: new Set<string>(),
     directTemplates: new Set<string>(),
     emptyTemplates: new Set<string>(),
     renderSites: [],

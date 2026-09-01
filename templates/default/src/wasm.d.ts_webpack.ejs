@@ -1,0 +1,7 @@
+// Webpack's `experiments.asyncWebAssembly` emits the module as a SEPARATE `.wasm` chunk that the bundle
+// Fetches at runtime. Obsidian ships `main.js` and `styles.css` and nothing else, so that chunk never
+// Reaches a user. An `asset/inline` rule carries the module inside the bundle as a `data:` URL instead.
+declare module '*.wasm' {
+  const dataUrl: string;
+  export default dataUrl;
+}

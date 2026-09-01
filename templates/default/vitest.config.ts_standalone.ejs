@@ -1,15 +1,33 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
+
+/**
+ * Where every `.wasm` import in a unit test's module graph is sent. ABSOLUTE, because a vite alias
+ * replacement is resolved relative to the IMPORTER -- so a relative one sends `src/wasm/answer.ts` to
+ * `src/wasm/scripts/wasm-module-stub.ts`, which does not exist.
+ */
+const WASM_MODULE_STUB_PATH = fileURLToPath(new URL('./scripts/wasm-module-stub.ts', import.meta.url));
 
 export default defineConfig({
 <%- render('jsx') -%>
   resolve: {
-    // The `obsidian` npm package is types-only: `"main": ""`, and a published tarball carrying nothing
-    // But `.d.ts` files. Vite has to resolve the specifier before `vi.mock` is ever consulted, so the
-    // Setup file below is not enough on its own -- without this alias every test that touches the
-    // Plugin's own code fails to resolve `obsidian` at all.
-    alias: {
-      obsidian: 'obsidian-test-mocks/obsidian'
-    }
+    // The ARRAY form, not the object map: the two WebAssembly entries below have to be regular
+    // Expressions, and vite takes one form or the other for the whole list.
+    alias: [
+      // The `obsidian` npm package is types-only: `"main": ""`, and a published tarball carrying nothing
+      // But `.d.ts` files. Vite has to resolve the specifier before `vi.mock` is ever consulted, so the
+      // Setup file below is not enough on its own -- without this alias every test that touches the
+      // Plugin's own code fails to resolve `obsidian` at all. Anchored rather than left as a bare
+      // String, because a string `find` matches by PREFIX -- and its own replacement starts with
+      // `obsidian`, which would alias the alias.
+      { find: /^obsidian$/u, replacement: 'obsidian-test-mocks/obsidian' },
+      // Loading a `.wasm` is the bundler's job, and vitest resolves one through vite's own WebAssembly
+      // Helper, which fetches it from a URL that exists only under a dev server. Two patterns because
+      // Two bundlers do not write the import plainly: vite asks for the asset's URL
+      // (`./module.wasm?url`) and parcel uses a scheme (`data-url:./module.wasm`).
+      { find: /^.+\.wasm(?:\?.*)?$/u, replacement: WASM_MODULE_STUB_PATH },
+      { find: /^data-url:.+$/u, replacement: WASM_MODULE_STUB_PATH }
+    ]
   },
   test: {
     // `obsidian-test-mocks`' `setup()` writes to `Document.prototype`, `Element.prototype` and

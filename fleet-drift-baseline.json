@@ -47,6 +47,10 @@
       "fleetCount": 0,
       "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the fleet, being one fixed set of answers, does not have."
     },
+    "demo/layout/extra/scripts/wasm-module-stub.ts": {
+      "fleetCount": 0,
+      "why": "The unit runners' stand-in for a `.wasm` import, and the sibling of `framework-component-stub.ts` above: loading one is the bundler's job, vitest resolves it through vite's WebAssembly helper and jest has no transform for the extension at all. Emitted for every project with a test runner rather than only for the `wasm` answer, which is what keeps one runner config identical across the matrix. No fleet plugin imports WebAssembly, so none has one."
+    },
     "demo/layout/extra/src/modals/sample-form-modal.ts": {
       "fleetCount": 0,
       "why": "Content the demo preset forces in so the demo vault can show every feature. No single fleet plugin demonstrates all of them, so none of these files is common across the fleet."
@@ -218,6 +222,10 @@
     "enhanced/layout/extra/scripts/framework-component-stub.ts": {
       "fleetCount": 0,
       "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the fleet, being one fixed set of answers, does not have."
+    },
+    "enhanced/layout/extra/scripts/wasm-module-stub.ts": {
+      "fleetCount": 0,
+      "why": "The unit runners' stand-in for a `.wasm` import, and the sibling of `framework-component-stub.ts` above: loading one is the bundler's job, vitest resolves it through vite's WebAssembly helper and jest has no transform for the extension at all. Emitted for every project with a test runner rather than only for the `wasm` answer, which is what keeps one runner config identical across the matrix. No fleet plugin imports WebAssembly, so none has one."
     },
     "enhanced/layout/extra/src/styles/styles.d.ts": {
       "fleetCount": 0,

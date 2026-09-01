@@ -1,0 +1,19 @@
+import load from './module.wasm';
+
+/**
+ * Instantiates the sample WebAssembly module and calls its one export.
+ *
+ * The signature is the same on every bundler; the two lines above and below are not. A `.wasm` import
+ * yields something different under each of them -- a loader function here, bytes under esbuild, a
+ * `data:` URL under vite, webpack and parcel -- so this file is written per bundler and everything else
+ * in the plugin talks to `getWasmAnswer()`.
+ *
+ * `@rollup/plugin-wasm` replaces the import with a function that decodes the inlined base64 and
+ * instantiates it. The empty imports object is load-bearing: without an argument the plugin compiles
+ * rather than instantiates, and resolves to a module with no `exports` on it.
+ */
+export async function getWasmAnswer(): Promise<number> {
+  const { instance } = await load({});
+  const answer = instance.exports['answer'] as () => number;
+  return answer();
+}

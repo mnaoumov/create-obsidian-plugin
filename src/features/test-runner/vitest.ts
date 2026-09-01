@@ -25,7 +25,12 @@ export class Vitest extends FeatureOption {
         'vitest.config.ts',
         'src/plugin.test.ts',
         'scripts/test.ts',
-        'scripts/test-watch.ts'
+        'scripts/test-watch.ts',
+        // Both presets, not just the odu ones: the emitted `src/plugin.ts` reaches `src/wasm/answer.ts`
+        // On every preset when the `wasm` answer is chosen, so every vitest config aliases `.wasm` to
+        // This stub. `framework-component-stub.ts` is odu-only because only those presets' `plugin.ts`
+        // Reaches a single-file component.
+        'scripts/wasm-module-stub.ts'
       ]);
 
     if (!isOduPreset(answers.preset)) {

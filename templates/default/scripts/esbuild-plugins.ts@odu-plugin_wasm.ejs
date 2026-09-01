@@ -1,0 +1,13 @@
+  // obsidian-dev-utils' `build()` owns the esbuild options, so the `.wasm` loader is set from inside a
+  // Plugin -- the one seam it exposes. Same decision as the standalone preset makes with a plain
+  // `loader` option, and for the same reason: `esbuild-plugin-wasm` emits a top-level `await`, which
+  // Esbuild supports only for `esm` output, and an Obsidian bundle is `cjs`.
+  {
+    name: 'wasm-binary-loader',
+    setup(build): void {
+      build.initialOptions.loader = {
+        ...build.initialOptions.loader,
+        '.wasm': 'binary'
+      };
+    }
+  },

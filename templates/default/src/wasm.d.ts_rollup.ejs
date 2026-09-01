@@ -1,0 +1,8 @@
+// `@rollup/plugin-wasm` turns a `.wasm` import into a LOADER FUNCTION: call it and it decodes the
+// Inlined base64 and instantiates the module. Passing an imports object -- even an empty one -- is what
+// Makes it resolve to `{ module, instance }`; called with nothing it resolves to a bare
+// `WebAssembly.Module` instead, which has no `exports` to read.
+declare module '*.wasm' {
+  const load: (imports: WebAssembly.Imports) => Promise<WebAssembly.WebAssemblyInstantiatedSource>;
+  export default load;
+}

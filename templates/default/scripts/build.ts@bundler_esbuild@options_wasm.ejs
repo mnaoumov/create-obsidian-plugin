@@ -1,0 +1,5 @@
+  // esbuild's own loader, rather than `esbuild-plugin-wasm`: that plugin follows the WebAssembly
+  // ESM-integration proposal and emits a top-level `await`, which esbuild supports only for the `esm`
+  // Output format -- and this bundle is `cjs`, because that is what Obsidian loads. `binary` inlines the
+  // File as base64 and hands the importing module a `Uint8Array`, with no await anywhere.
+  loader: { '.wasm': 'binary' },

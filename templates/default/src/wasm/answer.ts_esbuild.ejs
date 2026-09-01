@@ -1,0 +1,23 @@
+import bytes from './module.wasm';
+
+/**
+ * Instantiates the sample WebAssembly module and calls its one export.
+ *
+ * The signature is the same on every bundler; the two lines above and below are not. A `.wasm` import
+ * yields something different under each of them -- bytes here, a loader function under rollup, a `data:`
+ * URL under vite, webpack and parcel -- so this file is written per bundler and everything else in the
+ * plugin talks to `getWasmAnswer()`.
+ *
+ * Here the import is the module's bytes: esbuild's `binary` loader inlines the file as base64 and gives
+ * this module a `Uint8Array`.
+ */
+export async function getWasmAnswer(): Promise<number> {
+  // `compile` then `instantiate`, rather than `instantiate(bytes)` in one call: `WebAssembly.Module` is
+  // Declared as an EMPTY interface, so a `Uint8Array` satisfies it too and the one-call form resolves to
+  // The overload taking an already-compiled module -- whose result is a bare `Instance` with no
+  // `instance` property on it, which is TS2339 rather than anything about WebAssembly.
+  const compiled = await WebAssembly.compile(bytes);
+  const instance = await WebAssembly.instantiate(compiled);
+  const answer = instance.exports['answer'] as () => number;
+  return answer();
+}

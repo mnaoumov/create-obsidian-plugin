@@ -29,6 +29,14 @@ const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
  */
 const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('./framework-component-stub.ts', import.meta.url));
 
+/**
+ * Where every `.wasm` import in a unit test's module graph is sent, for the same reason as the component
+ * stub above. Vitest resolves a `.wasm` through vite's own WebAssembly helper, which fetches it from a
+ * URL that exists only under a dev server — so a unit test that imports the plugin's own code fails on
+ * `Failed to parse URL` before it runs a single assertion.
+ */
+const WASM_MODULE_STUB_PATH = fileURLToPath(new URL('./wasm-module-stub.ts', import.meta.url));
+
 export const config = defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {
     return [
@@ -47,7 +55,13 @@ export const config = defineObsidianPluginVitestConfig({
   // Pattern MATCHED, so `/\.svelte$/` rewrites the extension and leaves the rest of the specifier glued
   // To the front of the stub path. The pattern has to cover the whole id.
   editContext(context: ObsidianPluginVitestConfigContext): void {
-    context.unitTests.alias = [{ find: /^.+\.(?:svelte|vue)$/u, replacement: FRAMEWORK_COMPONENT_STUB_PATH }];
+    context.unitTests.alias = [
+      { find: /^.+\.(?:svelte|vue)$/u, replacement: FRAMEWORK_COMPONENT_STUB_PATH },
+      // Two patterns because two bundlers do not write the import plainly: vite asks for the asset's URL
+      // (`./module.wasm?url`) and parcel uses a scheme (`data-url:./module.wasm`).
+      { find: /^.+\.wasm(?:\?.*)?$/u, replacement: WASM_MODULE_STUB_PATH },
+      { find: /^data-url:.+$/u, replacement: WASM_MODULE_STUB_PATH }
+    ];
   }
 });
 <%- render('post-config') -%>

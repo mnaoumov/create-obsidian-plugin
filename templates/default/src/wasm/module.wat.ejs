@@ -1,0 +1,12 @@
+;; The sample WebAssembly module this plugin ships, in text form.
+;;
+;; `module.wasm` beside this file is the 39 bytes it compiles to, and that binary is what `answer.ts`
+;; imports. NOTHING IN THE BUILD READS THIS FILE -- it is here so the binary is not opaque. This is
+;; what is inside it: one exported function taking nothing and returning the constant 42.
+;;
+;; Recompile after an edit, with wabt's `wat2wasm`:
+;;
+;;     wat2wasm src/wasm/module.wat -o src/wasm/module.wasm
+(module
+  (func (export "answer") (result i32)
+    i32.const 42))

@@ -1,0 +1,31 @@
+import type { Plugin } from 'obsidian';
+
+import { Notice } from 'obsidian';
+
+import { getWasmAnswer } from './answer.ts';
+
+/**
+ * Registers the command that calls into the sample WebAssembly module.
+ *
+ * This is not decoration, and deleting it does more than remove a command. A bundler tree-shakes an
+ * export nothing calls, so with no real call site the module drops out of `main.js` entirely -- and the
+ * build stays green while the whole WebAssembly integration is silently absent. Whatever replaces this
+ * sample, keep something in `src/` calling into the module.
+ *
+ * Bundler-independent on purpose: `answer.ts` beside it is written per bundler, and this file is what
+ * every preset's `src/plugin.ts` calls, so the per-bundler half stays one file.
+ */
+export function registerSampleWasmCommand(plugin: Plugin): void {
+  plugin.addCommand({
+    callback: () => {
+      void showWasmAnswer();
+    },
+    id: 'sample-wasm-answer',
+    name: 'Sample WASM answer'
+  });
+}
+
+async function showWasmAnswer(): Promise<void> {
+  const answer = await getWasmAnswer();
+  new Notice(`WebAssembly says: ${String(answer)}`);
+}

@@ -1,6 +1,7 @@
 {
   "version": "0.2",
   "ignorePaths": [
+    "**/*.wasm",
     "coverage",
     "dist",
     "node_modules",
@@ -23,6 +24,7 @@
     "geckodriver",
     "GHSA",
     "hotreload",
+    "inlines",
     "Invocables",
     "johndoe",
     "judgements",
@@ -45,6 +47,7 @@
     "unrunnable",
     "unstub",
     "unvalidated",
+    "wabt",
     "wdio",
     "wikilink",
     "wikilinks"

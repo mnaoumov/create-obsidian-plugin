@@ -1,0 +1,7 @@
+// Parcel resolves a plain `.wasm` import to its own output bundle -- a second file beside `main.js`,
+// Which an Obsidian release does not ship. Parcel's `data-url:` scheme inlines the file instead, so the
+// Module travels inside the bundle as a `data:` URL.
+declare module 'data-url:*' {
+  const dataUrl: string;
+  export default dataUrl;
+}

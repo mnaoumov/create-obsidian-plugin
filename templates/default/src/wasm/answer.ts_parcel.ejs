@@ -1,0 +1,29 @@
+import dataUrl from 'data-url:./module.wasm';
+
+/**
+ * Instantiates the sample WebAssembly module and calls its one export.
+ *
+ * The signature is the same on every bundler; the two lines above and below are not. A `.wasm` import
+ * yields something different under each of them -- a `data:` URL here, bytes under esbuild, a loader
+ * function under rollup -- so this file is written per bundler and everything else in the plugin talks
+ * to `getWasmAnswer()`.
+ *
+ * Parcel's `data-url:` scheme carries the module inside `main.js`, which is decoded here rather than
+ * fetched: `atob` is synchronous and needs no network stack, and it works the same in Obsidian's desktop
+ * and mobile runtimes.
+ */
+export async function getWasmAnswer(): Promise<number> {
+  // Percent-DECODED before it is base64-decoded, because parcel writes its data URL with the payload
+  // Percent-encoded -- `/` reaches the bundle as `%2F`, and `atob` on that throws. Base64 never contains
+  // A `%`, so this is a no-op on the plain payloads the other bundlers write.
+  const base64 = decodeURIComponent(dataUrl.slice(dataUrl.indexOf(',') + 1));
+  const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+  // `compile` then `instantiate`, rather than `instantiate(bytes)` in one call: `WebAssembly.Module` is
+  // Declared as an EMPTY interface, so a `Uint8Array` satisfies it too and the one-call form resolves to
+  // The overload taking an already-compiled module -- whose result is a bare `Instance` with no
+  // `instance` property on it, which is TS2339 rather than anything about WebAssembly.
+  const compiled = await WebAssembly.compile(bytes);
+  const instance = await WebAssembly.instantiate(compiled);
+  const answer = instance.exports['answer'] as () => number;
+  return answer();
+}

@@ -31,6 +31,11 @@ export const config = defineConfig({
 <%- render('plugin') -%>
   ],
   build: {
+    // An Obsidian release ships `main.js` and `styles.css` and nothing else, so ANY asset vite emits
+    // Beside the bundle is a file the plugin will look for and not find once it is installed. Inlining
+    // Every one of them is the only shape that survives that: unconditional rather than tied to any
+    // Answer, because which assets a `src/` comes to import is not a property of the answers.
+    assetsInlineLimit: Number.MAX_SAFE_INTEGER,
     lib: {
       entry: 'src/main.ts',
       formats: ['cjs'],

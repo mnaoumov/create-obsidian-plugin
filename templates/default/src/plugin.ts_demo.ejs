@@ -43,6 +43,7 @@ import {
   SAMPLE_VIEW_TYPE,
   SampleView
 } from './views/sample-view.ts';
+<%- render('import') -%>
 
 export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
@@ -118,6 +119,7 @@ export class Plugin extends PluginBase {
     this.registerView(SAMPLE_REACT_VIEW_TYPE, (leaf) => new SampleReactView(leaf));
 
     this.registerModalCommands();
+<%- render('onload') -%>
 
     this.register(() => {
       new Notice('Sample plugin is being unloaded');

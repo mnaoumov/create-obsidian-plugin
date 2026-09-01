@@ -5,13 +5,17 @@ import {
   readFileSync,
   statSync
 } from 'node:fs';
-import { join } from 'node:path';
+import {
+  extname,
+  join
+} from 'node:path';
 
 import type { Answers } from './answers.ts';
 import type { TemplateBuilder } from './template-builder.ts';
 
 import { describeCase } from './answer-space.ts';
 import {
+  ASSET_EXTENSIONS,
   buildTemplate,
   getDestinationPath,
   getScriptDir
@@ -55,6 +59,7 @@ export type PlanViolationKind =
   | 'duplicate-destination'
   | 'empty-emitted-file'
   | 'missing-script-file'
+  | 'orphan-asset'
   | 'orphan-partial'
   | 'plan-threw'
   | 'unreachable-render-section';
@@ -67,6 +72,15 @@ export interface RenderSite {
 
 /** Everything the checks need to know about `templates/default`, read from disk once. */
 export interface TemplateInventory {
+  /**
+   * Registered paths carried verbatim by an asset template -- a file with no `.ejs` whose bytes are the
+   * emitted file (see `ASSET_EXTENSIONS`).
+   *
+   * The walk below skips everything without `.ejs`, so without this set a registered `.wasm` looks like a
+   * file with neither its own template nor any partial, and every case that registers it reports
+   * `empty-emitted-file`.
+   */
+  assetTemplates: Set<string>;
   /** Registered paths that have their own `.ejs` and so are not composed from partials. */
   directTemplates: Set<string>;
   /** Direct templates whose `.ejs` is byte-empty, which no case can render into anything. */
@@ -208,6 +222,19 @@ export function checkUsage(usage: TemplateUsage, inventory: TemplateInventory): 
     }
   }
 
+  // The asset half of the same question. An asset has no partial name to be orphaned by, so the only way
+  // It can be dead is for no case to register its path -- and a `.wasm` nothing registers is a binary
+  // Sitting in the tree that no generated project ever receives.
+  for (const assetPath of inventory.assetTemplates) {
+    if (!usage.registeredPaths.has(assetPath)) {
+      violations.push({
+        detail: 'No answer registers this asset, so it is copied into no generated project.',
+        kind: 'orphan-asset',
+        subject: assetPath
+      });
+    }
+  }
+
   violations.push(...checkRenderSites(usage, inventory));
   return violations;
 }
@@ -253,12 +280,18 @@ export function dependencySignature(builder: TemplateBuilder): string {
 
 /** Reads `templates/default` into the shape the checks query, walking it once. */
 export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir()): TemplateInventory {
+  const assetTemplates = new Set<string>();
   const directTemplates = new Set<string>();
   const emptyTemplates = new Set<string>();
   const partials: PartialFile[] = [];
   const renderSites: RenderSite[] = [];
 
   for (const relativePath of walkTemplates(templatesDir, '')) {
+    if (ASSET_EXTENSIONS.has(extname(relativePath))) {
+      assetTemplates.add(relativePath);
+      continue;
+    }
+
     if (!relativePath.endsWith(EJS_SUFFIX)) {
       continue;
     }
@@ -291,6 +324,7 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
   }
 
   return {
+    assetTemplates,
     directTemplates,
     emptyTemplates,
     partials,
@@ -439,6 +473,12 @@ function defaultTemplatesDir(): string {
 
 /** Says why a registered file would be written empty, or `null` when something will fill it. */
 function findEmptyReason(registeredPath: string, partials: ReadonlySet<string>, inventory: TemplateInventory): null | string {
+  // An asset is its own bytes -- there is no partial for it to be composed from, and nothing that could
+  // Render it empty. The render tier is what checks those bytes are a module.
+  if (inventory.assetTemplates.has(registeredPath)) {
+    return null;
+  }
+
   if (inventory.directTemplates.has(registeredPath)) {
     return inventory.emptyTemplates.has(registeredPath) ? 'Its own .ejs is empty.' : null;
   }
