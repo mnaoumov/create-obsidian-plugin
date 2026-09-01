@@ -23,6 +23,7 @@
     "commit": "jiti scripts/commit.ts",
     "format": "jiti scripts/format.ts",
     "format:check": "jiti scripts/format-check.ts",
+    "gate:case": "jiti scripts/gate-one-case.ts",
     "lint": "jiti scripts/lint.ts",
     "lint:fix": "jiti scripts/lint-fix.ts",
     "prepare": "jiti scripts/prepare.ts",
