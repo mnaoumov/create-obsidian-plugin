@@ -251,6 +251,20 @@ stay forced beside anything. Note this changes nothing a user can reach: `src/pr
 `uiFramework` question for `preset: demo` and pins it to `none`, so the demo vault still gets react,
 svelte and vue. It is `buildTemplate` that had to stop emitting a project that cannot compile.
 
+### An answer can arrive from four places, and the most specific wins
+
+`src/cli-args.ts` parses `--<answerKey>=<value>` and `--answersFile=<json>`; `src/answers-export.ts` writes both forms back out. The order is built-in defaults, then the answers saved in an existing project, then the answers file, then individual flags.
+
+Three things about it are load-bearing.
+
+**The accepted values come from `ANSWER_SPACE`, not from a list in the CLI.** That is derived from the `*_OPTIONS` arrays, so an option added to a feature is settable the day it lands. The answerable KEYS are read off a real `Answers` object (`Object.keys(getDefaultAnswers())`) for the same reason — TypeScript forces that object to carry every key, so the derivation is total. `src/cli-args.test.ts` asserts every key is either answerable or explicitly computed, which is the `platformSupport` defect class again: a question the user is asked whose answer is then discarded.
+
+**Only the `skip` predicate needed composing.** `runPromptSteps` already writes `defaultValue(answers)` for a skipped step, and every step's `defaultValue` already reads the supplied answer before its own fallback — so a supplied answer lands by the path that was already there. This is why the 19 `skipUnlessCustomize` steps honour a flag even under `preset: demo`, where they are all skipped.
+
+**`preset=demo` with `--bundler` or `--uiFramework` is refused, not pinned.** Those two are the only steps whose `defaultValue` discards the supplied answer (`answers.get('preset') === 'demo' ? '<literal>' : (supplied ?? '<literal>')`). Accepting the flag and dropping it would be bad; honouring it would be worse — the section above records that demo emits a project that cannot build when a second JSX runtime is forced in, closed on the grounds that the combination is unreachable from every CLI path. A flag reaching it would re-open that. For the same reason the exporter omits both keys under demo, so what it writes is always something the parser accepts.
+
+The exported script is runnable rather than copyable text, which makes quoting per-shell: `sh` gets single quotes with `'\''` for an embedded one, `cmd` gets double quotes with `""` — **and a literal `%` doubled to `%%`, because a batch file expands `%…%` as a variable**. Funding and badge URLs are percent-encoded, so that is a real value, not a hypothetical. `cmd`'s `^` line continuation is silently broken by one trailing space, so the batch form stays on a single line and only the shell form wraps. The tests generate BOTH forms whatever the host runs and parse them back through the real parser; the quoting was additionally executed through actual `cmd.exe` and actual `sh`.
+
 ### Three lists have to agree about which files are in the program
 
 Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the emitted

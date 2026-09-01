@@ -78,10 +78,46 @@ export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answer
   showHotkeyHints();
 
   const defaultTooling = getDefaultTooling('enhanced');
-  const steps = buildPromptSteps(defaults ?? {}, defaultTooling);
+  const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, defaultTooling), defaults ?? {});
   const answers = await runPromptSteps(steps);
 
   return buildAnswers(answers, defaultTooling);
+}
+
+export function validateNotEmpty(value: string | undefined): string | undefined {
+  if (!value) {
+    return 'Should not be empty';
+  }
+  return undefined;
+}
+
+export function validatePluginDescription(input: string | undefined): string | undefined {
+  if (!input) {
+    return 'Should not be empty';
+  }
+  if (!input.endsWith('.')) {
+    return 'Should end with a dot';
+  }
+  return undefined;
+}
+
+export function validatePluginId(input: string | undefined): string | undefined {
+  if (!input) {
+    return 'Should not be empty';
+  }
+  if (!/^[a-z0-9-]+$/.test(input)) {
+    return 'Should contain only lowercase English letters, digits and hyphens';
+  }
+  if (!/^[a-z]/.test(input)) {
+    return 'Should start with a letter';
+  }
+  if (!/[a-z0-9]$/.test(input)) {
+    return 'Should end with a letter or digit';
+  }
+  if (input.startsWith('obsidian-')) {
+    return 'Should not start with "obsidian-"';
+  }
+  return undefined;
 }
 
 function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Answers {
@@ -483,38 +519,19 @@ function showHotkeyHints(): void {
   ].join('\n'));
 }
 
-function validateNotEmpty(value: string | undefined): string | undefined {
-  if (!value) {
-    return 'Should not be empty';
-  }
-  return undefined;
-}
-
-function validatePluginDescription(input: string | undefined): string | undefined {
-  if (!input) {
-    return 'Should not be empty';
-  }
-  if (!input.endsWith('.')) {
-    return 'Should end with a dot';
-  }
-  return undefined;
-}
-
-function validatePluginId(input: string | undefined): string | undefined {
-  if (!input) {
-    return 'Should not be empty';
-  }
-  if (!/^[a-z0-9-]+$/.test(input)) {
-    return 'Should contain only lowercase English letters, digits and hyphens';
-  }
-  if (!/^[a-z]/.test(input)) {
-    return 'Should start with a letter';
-  }
-  if (!/[a-z0-9]$/.test(input)) {
-    return 'Should end with a letter or digit';
-  }
-  if (input.startsWith('obsidian-')) {
-    return 'Should not start with "obsidian-"';
-  }
-  return undefined;
+/**
+ * Marks every question that already has an answer as skipped, so it is not asked again.
+ *
+ * Only the `skip` predicate needs composing. `runPromptSteps` writes `defaultValue(answers)` for a skipped
+ * step, and every step's `defaultValue` reads the supplied answer before its own fallback -- so the
+ * supplied value lands in the map by the path that was already there.
+ *
+ * `!== undefined` rather than a truthiness test: `fundingUrl` and `obsidianConfigFolder` are legitimately
+ * empty, and someone who passes `--fundingUrl=` has answered the question.
+ */
+function skipSuppliedAnswers(steps: PromptStep[], supplied: Partial<Answers>): PromptStep[] {
+  return steps.map((step) => ({
+    ...step,
+    skip: (answers: StepAnswers): boolean => supplied[step.key as keyof Answers] !== undefined || (step.skip?.(answers) ?? false)
+  }));
 }

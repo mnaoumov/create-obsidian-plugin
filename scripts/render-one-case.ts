@@ -18,10 +18,13 @@ import type {
 } from '../src/answers.ts';
 
 import {
-  ANSWER_SPACE,
   describeCase,
   makeAnswers
 } from '../src/answer-space.ts';
+import {
+  assertValidAnswer,
+  toAnswerKey
+} from '../src/cli-args.ts';
 import { listGeneratedFiles } from '../src/fleet-drift-checks.ts';
 import { copyTemplates } from '../src/templates.ts';
 
@@ -108,29 +111,20 @@ function parseOptions(argv: readonly string[]): Options {
  *
  * A silently ignored typo is the failure mode worth spending code on: a misspelt question name would
  * render the DEFAULT answer to it and print output that looks like an answer to a question nobody
- * asked. Both halves are checked against {@link ANSWER_SPACE}, so the tool cannot show one case while
- * naming another.
+ * asked. Both halves are checked, so the tool cannot show one case while naming another.
+ *
+ * The checks are the CLI's own (`src/cli-args.ts`) rather than a second copy. This tool and `gate:case`
+ * each carried one, and they had already diverged -- `gate-one-case.ts` validated the key and let any
+ * value through. Sharing them also widens what both accept to the free-text answers, so a case can now
+ * pin `pluginId` as well as the tooling questions.
  */
 function parseOverride(argument: string, overrides: Partial<Record<StringAnswerKey, string>>): void {
   const separatorIndex = argument.indexOf('=');
-  const key = argument.slice(0, separatorIndex);
+  const key = toAnswerKey(argument.slice(0, separatorIndex));
   const value = argument.slice(separatorIndex + 1);
 
-  const dimension = ANSWER_SPACE.find((candidate) => candidate.answerKey === key);
-  if (!dimension) {
-    const keys = ANSWER_SPACE.map((candidate) => candidate.answerKey).join(', ');
-    throw new Error(`Unknown question "${key}". The questions are: ${keys}.`);
-  }
-
-  // The two presence branches -- `fundingUrl` and `obsidianConfigFolder` -- are free text that the
-  // Answer space models with one empty and one sample value, purely because all `buildTemplate`
-  // Branches on is whether they are empty. Holding a caller to those two literals would enforce an
-  // Artefact of how the space is modelled rather than anything the generator requires.
-  if (!dimension.values.includes(value) && !dimension.values.includes('')) {
-    throw new Error(`"${value}" is not an answer to ${key}. It accepts: ${dimension.values.join(', ')}.`);
-  }
-
-  overrides[dimension.answerKey] = value;
+  assertValidAnswer(key, value);
+  overrides[key] = value;
 }
 
 /** Lists what the case emitted, for when the question is which files exist at all. */

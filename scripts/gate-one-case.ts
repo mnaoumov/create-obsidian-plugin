@@ -13,10 +13,13 @@ import type {
 } from '../src/answers.ts';
 
 import {
-  ANSWER_SPACE,
   describeCase,
   makeAnswers
 } from '../src/answer-space.ts';
+import {
+  assertValidAnswer,
+  toAnswerKey
+} from '../src/cli-args.ts';
 import { runGate } from '../src/generated-project-checks.ts';
 import {
   buildTemplate,
@@ -97,16 +100,17 @@ function parseOptions(argv: readonly string[]): Options {
       continue;
     }
 
-    const [key, ...rest] = argument.split('=');
-    if (key === undefined || rest.length === 0) {
+    const [rawKey, ...rest] = argument.split('=');
+    if (rawKey === undefined || rest.length === 0) {
       throw new Error(`Expected <question>=<answer>, got "${argument}".`);
     }
 
-    if (!ANSWER_SPACE.some((dimension) => dimension.answerKey === key)) {
-      throw new Error(`Unknown question "${key}".`);
-    }
-
-    overrides[key as StringAnswerKey] = rest.join('=');
+    // The CLI's own checks (`src/cli-args.ts`), not a second copy. This parser used to validate the key
+    // And let ANY value through, so a misspelt ANSWER gated a case it had silently renamed.
+    const key = toAnswerKey(rawKey);
+    const value = rest.join('=');
+    assertValidAnswer(key, value);
+    overrides[key] = value;
   }
 
   return { keep, outRoot, overrides };
