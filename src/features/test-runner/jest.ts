@@ -25,6 +25,7 @@ export class Jest extends FeatureOption {
       .addFiles([
         'jest.config.ts',
         'scripts/framework-component-stub.ts',
+        'scripts/wasm-module-stub.ts',
         'src/plugin.test.ts',
         'scripts/test.ts',
         'scripts/test-watch.ts'

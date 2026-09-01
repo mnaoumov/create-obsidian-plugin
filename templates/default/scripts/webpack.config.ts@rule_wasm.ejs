@@ -1,0 +1,8 @@
+      {
+        // NOT `experiments.asyncWebAssembly`, which is what this used to be. That emits the module as a
+        // Separate `.wasm` chunk the bundle fetches at runtime -- and an Obsidian release ships `main.js`
+        // And `styles.css` and nothing else, so the chunk is simply absent wherever the plugin is
+        // Installed. `asset/inline` carries the module inside `main.js` as a `data:` URL instead.
+        test: /\.wasm$/,
+        type: 'asset/inline',
+      },

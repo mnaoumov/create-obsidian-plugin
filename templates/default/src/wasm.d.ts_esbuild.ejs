@@ -1,0 +1,12 @@
+// esbuild has no loader for `.wasm` of its own, and the ESM-integration plugin (`esbuild-plugin-wasm`)
+// Cannot be used here: it emits a TOP-LEVEL `await`, which esbuild supports only for the `esm` output
+// Format, and an Obsidian plugin is `cjs`. So the build turns on esbuild's built-in `binary` loader,
+// Which inlines the file as base64 and hands the importing module its bytes.
+declare module '*.wasm' {
+  // `Uint8Array<ArrayBuffer>` rather than a bare `Uint8Array`: that defaults to `ArrayBufferLike`, which
+  // Admits a `SharedArrayBuffer` and so is NOT assignable to `BufferSource` -- TS2345 at every
+  // `WebAssembly` call. esbuild's `binary` loader emits a plain `new Uint8Array(...)` over an ordinary
+  // Buffer, so the narrower type is also the true one.
+  const bytes: Uint8Array<ArrayBuffer>;
+  export default bytes;
+}

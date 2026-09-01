@@ -8,7 +8,7 @@
 
 - `src/` — Core generator logic (TemplateBuilder, features, prompts, templates), with the vitest unit tests co-located as `foo.test.ts` beside what they test
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
-- `templates/default/` — EJS template files (all must have `.ejs` extension)
+- `templates/default/` — EJS template files (all must have `.ejs` extension), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
 - `scripts/` — All build/lint/test logic lives here
 - `dist/` — Built output (published to npm, not tracked in git)
 - `fleet-drift-baseline.json` — the differences between the emitted odu presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
@@ -331,6 +331,52 @@ and leaves the misnamed original beside it. The trigger is read out of the gener
 rather than from `answers.styling`, for the reason `runScriptStep` gives about scripts: `DEMO_OVERRIDES`
 forces `styling: 'scss'` on the demo preset whatever was answered.
 
+### Every bundler has to be told to INLINE the WebAssembly module into `main.js`
+
+The stylesheet rule's twin, and it cost two of the five bundler plugins their place. `wasmSupport: wasm`
+used to emit a `.d.ts`, a README telling the user to go build a module, and a bundler integration — and
+**nothing that imported a `.wasm`**, so none of the five integrations had ever run. The answer now ships
+one: `src/wasm/module.wasm`, 39 bytes, one export `answer()` returning 42, taken from CodeScript
+Toolkit's demo vault, with its WAT source beside it as documentation and `src/wasm/answer.ts` loading it.
+
+**Obsidian ships `main.js`, `styles.css` and `manifest.json` and nothing else.** A bundler that emits the
+module as a separate `.wasm` produces a plugin that works in the repo and is broken everywhere it is
+installed, with `npm run build` exiting 0 throughout. Three of the five did exactly that by default.
+
+**And an Obsidian bundle is `cjs`, which rules out the WebAssembly/ESM-integration proposal entirely.**
+Every plugin implementing it — `esbuild-plugin-wasm` and `vite-plugin-wasm`, both of which were installed
+here — reaches the module through a **top-level `await`**, which esbuild supports only for `esm` output
+and which vite needs `vite-plugin-top-level-await` for. Neither could ever have worked in a plugin, and
+nothing said so because nothing imported a `.wasm`.
+
+| bundler | emitted before | what inlines it now |
+| --- | --- | --- |
+| esbuild | `wasmLoader()`, deferred: a sibling `.wasm` fetched at runtime | esbuild's own `loader: { '.wasm': 'binary' }` — no plugin, no await |
+| rollup | inlined under `maxFileSize`, by luck of the size | `wasm({ targetEnv: 'auto-inline' })` — always inlined, and no `fs` branch |
+| vite | `vite-plugin-wasm` | `./module.wasm?url` plus `build.assetsInlineLimit` |
+| webpack | `experiments.asyncWebAssembly`: a `.wasm` chunk | a `module.rules` entry with `type: 'asset/inline'` |
+| parcel | native `.wasm` resolution: a sibling bundle | the `data-url:` scheme |
+
+So the import yields something different under each — bytes, a loader function, or a `data:` URL — and
+`src/wasm.d.ts` and `src/wasm/answer.ts` are therefore **per-bundler whole-file partials** behind one
+signature, `getWasmAnswer(): Promise<number>`. Two details in there were each a compile error first:
+`WebAssembly.Module` is declared as an EMPTY interface, so `WebAssembly.instantiate(bytes)` in one call
+resolves to the already-compiled-module overload and returns a bare `Instance` (TS2339) — hence `compile`
+then `instantiate`; and parcel percent-encodes its data URL payload, so `/` arrives as `%2F` and `atob`
+throws without a `decodeURIComponent` first.
+
+**Something has to CALL it.** A bundler tree-shakes an export nothing uses, so an unimported or unused
+module drops out of the bundle with the build still green — which is the original defect wearing a
+different hat. `src/wasm/sample-command.ts` registers a `Sample WASM answer` command, and all three
+preset `plugin.ts` partials gained `import` / `onload` seams to reach it. The gate's `wasm` step asserts
+the artifact rather than the exit code: no `.wasm` beside `main.js`, and the module's bytes present
+inside it in one of the four encodings the five bundlers produce.
+
+Both unit runners alias every `.wasm` import to `scripts/wasm-module-stub.ts`, exactly as they alias
+`.svelte` / `.vue` to the component stub: the emitted `src/plugin.test.ts` imports `plugin.ts`, which now
+reaches the module, and neither runner can load one — vitest fetches it from a dev-server URL that does
+not exist, jest has no transform for the extension.
+
 ### The odu presets pass their extra esbuild plugins through `customEsbuildPlugins`
 
 obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
@@ -349,6 +395,32 @@ and a silent hole in the bad one.
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.
+
+### One template is not EJS: an ASSET is copied byte for byte
+
+`templates/default` is text with exactly one exception, and the exception is declared rather than
+sniffed. `ASSET_EXTENSIONS` (`src/templates.ts`) lists the extensions whose template has **no `.ejs`
+suffix** and is the emitted file verbatim; `.wasm` is the only member, for the sample WebAssembly module
+the `wasm` answer ships. `copyTemplates` reads, hashes and writes those as a `Buffer` and skips EJS
+entirely — the previous `readFileSync(path, 'utf-8')` would decode a binary and write it back destroyed.
+
+Three other places had to learn about it, and each would otherwise have failed silently:
+
+- **The plan tier.** `loadTemplateInventory` skips everything without `.ejs`, so a registered `.wasm`
+  looked like a file with neither its own template nor any partial — `empty-emitted-file` on every case
+  that registers it. It now collects `assetTemplates`, and carries the mirror check, `orphan-asset`: an
+  asset no case registers is a binary in the tree that no generated project ever receives.
+- **The render tier.** `checkFile` reads every emitted file as UTF-8, and a `.wasm` would pass its three
+  text checks *by accident* — not empty, no `<%`, no `[object Object]`. Assets go to `checkAsset`
+  instead, which runs `WebAssembly.validate` over the bytes (Node has one built in, so this costs no
+  dependency) and reports `invalid-wasm`. That is the positive check the copy path exists to earn.
+- **`.gitattributes`, in both repos.** `* text=auto eol=lf` leaves a binary to git's NUL-byte heuristic.
+  It would very probably spare 39 bytes full of NULs — but "probably" is the wrong guarantee for a file
+  a line-ending conversion silently destroys, so `*.wasm binary` is explicit in this repo and in what the
+  generator emits.
+
+A second asset kind is a matter of adding the extension to that set. A second *shape* of template is not:
+anything that needs rendering is EJS.
 
 ### Partial template composition
 
@@ -392,10 +464,16 @@ combination emit?* — because all three sweep. `npm run render:case -- <questio
 distinguishing "never emitted" from "emitted empty". Use it instead of writing another scratch
 renderer; that habit is how a wrong transcript ended up quoted in T764's own report.
 
+`npm run gate:case -- <question>=<answer> … [--out=<dir>]` (`scripts/gate-one-case.ts`) is its
+counterpart one tier down: it resolves versions, generates ONE case and runs the identical `runGate`
+over it, in the minute or two one case costs rather than the hour `verify:projects` takes. That is the
+tool for *does this combination actually build, and what did the bundler emit?* — the question asked
+while changing a bundler's configuration, and the one the whole WebAssembly pass was driven from.
+
 `--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
 single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
 
-**Three failure modes make a silent pass the default here, and every tier is shaped around them.**
+**Four failure modes make a silent pass the default here, and every tier is shaped around them.**
 
 1. **An unresolved partial renders as `''`, not an error.** A registered file whose partials were all
    left unresolved is written EMPTY — and an empty `.ts` compiles, an empty config reads as "no
@@ -407,6 +485,11 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    three of the six bundler paths named it something else — so the gate tier's `styles` step checks the
    emitted artifact rather than the build's exit code. See "Every bundler has to be told to name the
    stylesheet `styles.css`" above.
+4. **A bundler that leaves the WebAssembly module outside the bundle exits 0.** Obsidian ships `main.js`
+   and nothing beside it, and three of the five bundlers emitted a sibling `.wasm` by default — so the
+   gate tier's `wasm` step asserts no stray `.wasm` in `dist/build` AND the module's bytes inside
+   `main.js`. Both clauses: without the second, a bundler that tree-shook the import away would pass on
+   the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
 
 **No tier runs `npm run dev`, and none can: a watch task does not terminate.** The gate tier runs each
 emitted script to completion, so `dev` is the one script whose *presence and text* are verified and

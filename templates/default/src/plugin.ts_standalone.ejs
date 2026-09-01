@@ -9,6 +9,7 @@ import {
   DEFAULT_SETTINGS,
   <%= pluginShortName %>SettingTab
 } from './settings.ts';
+<%- render('import') -%>
 
 import type { PluginSettings } from './settings.ts';
 
@@ -37,6 +38,7 @@ export class Plugin extends ObsidianPlugin {
     });
 
     this.addSettingTab(new <%= pluginShortName %>SettingTab(this.app, this));
+<%- render('onload') -%>
   }
 
   public override onunload(): void {

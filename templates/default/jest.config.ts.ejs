@@ -9,6 +9,11 @@ const config: Config = {
     // That does it is only a dependency when the matching bundler was chosen. A unit test that reaches
     // One through the plugin's module graph gets this stub instead, so the graph loads.
     '\\.(svelte|vue)$': '<rootDir>/scripts/framework-component-stub.ts',
+    // Same decision for WebAssembly, and the same reason: loading a `.wasm` is the bundler's job. Two
+    // Patterns because two bundlers do not write the import plainly -- vite asks for the asset's URL
+    // (`./module.wasm?url`) and parcel uses a scheme (`data-url:./module.wasm`).
+    '\\.wasm(\\?.*)?$': '<rootDir>/scripts/wasm-module-stub.ts',
+    '^data-url:': '<rootDir>/scripts/wasm-module-stub.ts',
     // The `obsidian` npm package is types-only: `"main": ""`, and a published tarball carrying nothing
     // But `.d.ts` files. There is no module for jest to resolve at runtime, so without this every test
     // That touches the plugin's own code dies in the resolver with "Cannot find module 'obsidian'".

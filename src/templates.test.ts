@@ -18,7 +18,8 @@ import type { Answers } from './answers.ts';
 
 import {
   buildTemplate,
-  copyTemplates
+  copyTemplates,
+  getScriptDir
 } from './templates.ts';
 
 describe('buildTemplate', () => {
@@ -435,11 +436,40 @@ describe('buildTemplate', () => {
       for (const bundler of BUNDLERS) {
         const files = [...buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).templateFiles];
         expect(files, bundler).toContain('src/wasm.d.ts');
+        expect(files, bundler).toContain('src/wasm/answer.ts');
+        expect(files, bundler).toContain('src/wasm/sample-command.ts');
+        expect(files, bundler).toContain('src/wasm/module.wasm');
       }
     });
 
-    // Parcel 2 resolves `.wasm` natively and webpack 5 does it via `experiments.asyncWebAssembly`, so
-    // Adding a plugin package for either would be a dependency the project never loads.
+    // The whole reason the answer now ships a module: five bundler integrations were declared, installed
+    // And never exercised, because nothing in the emitted project imported a `.wasm`. Both files below
+    // Have to exist per bundler -- the declaration because each bundler's import yields a different
+    // Thing, the loader because each reaches the bytes differently -- and a sixth bundler added without
+    // Either is a project whose `src/wasm/answer.ts` renders EMPTY and still compiles.
+    it('has a declaration and a loader on disk for every bundler', () => {
+      const templatesDir = join(getScriptDir(), '..', 'templates', 'default', 'src');
+      for (const bundler of BUNDLERS) {
+        expect(existsSync(join(templatesDir, `wasm.d.ts_${bundler}.ejs`)), `wasm.d.ts_${bundler}.ejs`).toBe(true);
+        expect(existsSync(join(templatesDir, 'wasm', `answer.ts_${bundler}.ejs`)), `answer.ts_${bundler}.ejs`).toBe(true);
+      }
+    });
+
+    // The shipped bytes, run. Node has a WebAssembly implementation built in, so this needs no bundler,
+    // No install and no new dependency -- and it is the only check that says the binary in the template
+    // Tree is a module rather than 39 bytes that look like one.
+    it('ships a module that really answers 42', () => {
+      const WASM_ANSWER = 42;
+      const modulePath = join(getScriptDir(), '..', 'templates', 'default', 'src', 'wasm', 'module.wasm');
+      const instance = new WebAssembly.Instance(new WebAssembly.Module(readFileSync(modulePath)));
+      expect((instance.exports['answer'] as () => number)()).toBe(WASM_ANSWER);
+    });
+
+    // Four of the five need no package, and each is a decision: esbuild's own `binary` loader,
+    // Webpack's `asset/inline` rule, parcel's `data-url:` scheme, and vite's asset import. The two
+    // Plugins that WERE installed here -- `esbuild-plugin-wasm` and `vite-plugin-wasm` -- both follow
+    // The ESM-integration proposal and so emit a top-level `await`, which neither bundler supports for
+    // The `cjs` output Obsidian loads.
     it('adds a bundler plugin only where the bundler needs one', () => {
       function wasmPackages(bundler: string): string[] {
         return buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).dependencies
@@ -447,9 +477,9 @@ describe('buildTemplate', () => {
           .filter((name) => name.includes('wasm'));
       }
 
-      expect(wasmPackages('esbuild')).toEqual(['esbuild-plugin-wasm']);
+      expect(wasmPackages('esbuild')).toEqual([]);
       expect(wasmPackages('rollup')).toEqual(['@rollup/plugin-wasm']);
-      expect(wasmPackages('vite')).toEqual(['vite-plugin-wasm']);
+      expect(wasmPackages('vite')).toEqual([]);
       expect(wasmPackages('parcel')).toEqual([]);
       expect(wasmPackages('webpack')).toEqual([]);
     });
@@ -1376,7 +1406,9 @@ describe('copyTemplates', () => {
   it('points the standalone vitest config at the obsidian mocks', () => {
     copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const vitestConfig = readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8');
-    expect(vitestConfig).toContain('obsidian: \'obsidian-test-mocks/obsidian\'');
+    // The array form, anchored: the config also carries RegExp aliases for `.wasm`, and vite takes one
+    // Alias form or the other for the whole list.
+    expect(vitestConfig).toContain('{ find: /^obsidian$/u, replacement: \'obsidian-test-mocks/obsidian\' }');
     expect(vitestConfig).toContain('obsidian-test-mocks/vitest-setup');
     expect(vitestConfig).toContain('environment: \'jsdom\'');
   });

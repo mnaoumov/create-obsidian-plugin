@@ -30,7 +30,8 @@ export type GateStep =
   | 'install'
   | 'lint'
   | 'styles'
-  | 'test';
+  | 'test'
+  | 'wasm';
 
 /** One gate step's verdict on one generated project. */
 export interface GateViolation {
@@ -43,13 +44,16 @@ export interface GateViolation {
 /**
  * How a gate step failed.
  *
- * `no-tests-collected` and `unreadable-stylesheet` are separate from `step-failed` because they are the
- * failures a green exit code hides: the runner ran, reported success, and collected nothing; the bundler
- * ran, reported success, and wrote the stylesheet under a name Obsidian does not read.
+ * `no-tests-collected`, `unreadable-stylesheet` and `unbundled-wasm-module` are separate from
+ * `step-failed` because they are the failures a green exit code hides: the runner ran, reported success,
+ * and collected nothing; the bundler ran, reported success, and wrote the stylesheet under a name
+ * Obsidian does not read; the bundler ran, reported success, and left the WebAssembly module in a
+ * separate file that an Obsidian release does not ship.
  */
 export type GateViolationKind =
   | 'no-tests-collected'
   | 'step-failed'
+  | 'unbundled-wasm-module'
   | 'unreadable-stylesheet';
 
 interface CommandResult {
@@ -87,6 +91,14 @@ const BUILD_DIST_FOLDER = 'dist/build';
 
 /** The one stylesheet name Obsidian loads. Anything else ships with the plugin and is never read. */
 const STYLES_CSS = 'styles.css';
+
+/**
+ * The sample WebAssembly module, and so the trigger for the WASM step.
+ *
+ * Read off the emitted tree rather than from `answers.wasmSupport`, for the reason {@link checkStyles}
+ * gives about the stylesheet: what the project actually contains is the thing being checked.
+ */
+const WASM_MODULE_PATH = 'src/wasm/module.wasm';
 
 /**
  * Matches the side-effect stylesheet import in the emitted `src/main.ts`.
@@ -143,6 +155,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   const scripts = readScripts(targetDir);
   violations.push(...runScriptStep('build', 'build', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkStyles(targetDir, passed, skipped));
+  violations.push(...checkWasm(targetDir, passed, skipped));
   violations.push(...runScriptStep('lint', 'lint', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkFormat(targetDir, answers, scripts, passed, skipped));
   violations.push(...checkTests(targetDir, answers, scripts, passed, skipped));
@@ -154,6 +167,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
     violations
   };
 }
+
 /**
  * Runs `npm audit` against a stated severity threshold.
  *
@@ -302,6 +316,91 @@ function checkTests(targetDir: string, answers: Answers, scripts: Readonly<Recor
 
   passed.push('test');
   return [];
+}
+
+/**
+ * Insists that the WebAssembly module ended up INSIDE `main.js`.
+ *
+ * The same class of failure as {@link checkStyles}, and worse hidden. Obsidian installs a plugin from
+ * `main.js`, `styles.css` and `manifest.json` -- nothing else in the release archive is read -- so a
+ * bundler that emits the module as a separate `.wasm` beside the bundle produces a plugin that works in
+ * the repo and is broken everywhere it is installed. Three of the five bundlers did exactly that by
+ * default: esbuild's ESM-integration plugin in its `deferred` mode, webpack's
+ * `experiments.asyncWebAssembly`, and parcel's native `.wasm` resolution. `npm run build` exits 0 for
+ * every one of them.
+ *
+ * Both halves are needed. A stray `.wasm` in the output folder is the positive signature of the failure;
+ * finding the module's bytes in `main.js` is the positive signature of the fix, and without it a bundler
+ * that silently dropped the import altogether -- tree-shaking an unused export -- would pass on the
+ * first clause alone.
+ *
+ * The encodings are derived from the emitted module rather than hardcoded, so replacing the sample does
+ * not silently disable the check. Four are known, because that is what the five bundlers produce:
+ * base64 (esbuild's `binary` loader, `@rollup/plugin-wasm`, and vite's and webpack's `data:` URLs),
+ * percent-encoded base64 (parcel's `data:` URL), a decimal byte list, and the raw bytes. A fifth
+ * encoding fails here, which is the right outcome -- it means a bundler changed what it emits and
+ * somebody should look at it.
+ */
+function checkWasm(targetDir: string, passed: GateStep[], skipped: GateStep[]): GateViolation[] {
+  const modulePath = join(targetDir, WASM_MODULE_PATH);
+  if (!passed.includes('build') || !existsSync(modulePath)) {
+    skipped.push('wasm');
+    return [];
+  }
+
+  const moduleBytes = readFileSync(modulePath);
+  const distFolder = join(targetDir, BUILD_DIST_FOLDER);
+
+  let emitted: string[];
+  try {
+    emitted = readdirSync(distFolder, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+  } catch {
+    emitted = [];
+  }
+
+  let bundle = Buffer.alloc(0);
+  try {
+    bundle = readFileSync(join(distFolder, 'main.js'));
+  } catch {
+    // Left empty: the "not in the bundle" problem below says it better than a read error would.
+  }
+
+  const problems: string[] = [];
+
+  const stray = emitted.filter((name) => name.endsWith('.wasm'));
+  if (stray.length > 0) {
+    problems.push(`${stray.map((name) => `\`${name}\``).join(', ')} ships beside \`main.js\`, and an Obsidian release does not carry it.`);
+  }
+
+  // `latin1` so the search never fails on a byte sequence that is not valid UTF-8; the two textual
+  // Encodings are ASCII, so they match under it unchanged.
+  const bundleText = bundle.toString('latin1');
+  const base64 = moduleBytes.toString('base64');
+  const inBundle = bundleText.includes(base64)
+    // Parcel percent-encodes the payload of its `data-url:` output, so the same base64 reaches the
+    // Bundle with every `/` written `%2F`. Known here as its own encoding rather than by decoding
+    // The whole bundle, which would be a much larger claim about a much larger string.
+    || bundleText.includes(encodeURIComponent(base64))
+    || bundleText.includes([...moduleBytes].join(','))
+    || bundle.includes(moduleBytes);
+
+  if (!inBundle) {
+    problems.push(`\`${BUILD_DIST_FOLDER}/main.js\` does not contain the module in any encoding this check knows.`);
+  }
+
+  if (problems.length === 0) {
+    passed.push('wasm');
+    return [];
+  }
+
+  return [{
+    detail: `\`${WASM_MODULE_PATH}\` is imported by \`src/wasm/answer.ts\`, so the build must inline it, but ${problems.join(' ')}\n`
+      + `Files in \`${BUILD_DIST_FOLDER}\`: ${emitted.length > 0 ? emitted.join(', ') : '(none)'}`,
+    kind: 'unbundled-wasm-module',
+    step: 'wasm'
+  }];
 }
 
 /**

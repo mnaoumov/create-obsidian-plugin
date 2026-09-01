@@ -1,0 +1,8 @@
+// Vite's WebAssembly plugin (`vite-plugin-wasm`) implements the ESM-integration proposal and therefore
+// Needs top-level await -- which this project cannot have, because Obsidian loads a `cjs` bundle. So the
+// Module is imported as an ASSET instead: `?url` gives its URL, and `build.assetsInlineLimit` makes that
+// URL a `data:` URL carried inside `main.js` rather than a path to a file no release would ship.
+declare module '*.wasm?url' {
+  const dataUrl: string;
+  export default dataUrl;
+}
