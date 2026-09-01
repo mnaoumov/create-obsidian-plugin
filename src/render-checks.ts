@@ -11,7 +11,10 @@ import {
   statSync
 } from 'node:fs';
 import { builtinModules } from 'node:module';
-import { join } from 'node:path';
+import {
+  extname,
+  join
+} from 'node:path';
 import {
   canHaveModifiers,
   createSourceFile,
@@ -42,6 +45,7 @@ import type { Answers } from './answers.ts';
 
 import { describeCase } from './answer-space.ts';
 import {
+  ASSET_EXTENSIONS,
   buildTemplate,
   copyTemplates
 } from './templates.ts';
@@ -69,6 +73,7 @@ export type RenderViolationKind =
   | 'empty-file'
   | 'invalid-json'
   | 'invalid-typescript'
+  | 'invalid-wasm'
   | 'invalid-yaml'
   | 'placeholder-leaked'
   | 'render-threw'
@@ -117,6 +122,14 @@ const EXCERPT_RADIUS = 100;
 /** `@scope/name` — the two path segments a scoped package's name occupies in an import specifier. */
 const SCOPED_PACKAGE_SEGMENTS = 2;
 
+/**
+ * A URL-scheme prefix on an import specifier: `node:fs`, parcel's `data-url:./module.wasm`.
+ *
+ * Never a package name -- the scheme tells the runtime or the bundler what to do with the rest, which is
+ * why anything matching this is skipped rather than looked up in `package.json`.
+ */
+const SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/;
+
 /** Checks an already-rendered project directory against the answers that produced it. */
 export function checkRenderedProject(targetDir: string, answers: Answers): RenderViolation[] {
   const violations: RenderViolation[] = [];
@@ -148,6 +161,40 @@ export function renderAndCheck(answers: Answers, targetDir: string): RenderViola
   }
 
   return checkRenderedProject(targetDir, answers);
+}
+
+/**
+ * Checks a verbatim-copied asset by what it is supposed to BE, rather than by parsing it as text.
+ *
+ * The text checks above are all wrong for a binary and none of them would say so: a `.wasm` is not empty,
+ * holds no `<%`, and interpolates no object, so it would pass all three by accident rather than by
+ * decision. `WebAssembly.validate` is the check that means something -- it is the same acceptance the
+ * bundler and Obsidian will apply -- and it costs nothing, because Node has a WebAssembly implementation
+ * built in.
+ *
+ * This is what catches the failure the copy path exists to prevent: a `.wasm` that reached the emitted
+ * project through a UTF-8 round trip is byte-for-byte destroyed and still looks like a file.
+ */
+function checkAsset(targetDir: string, relativePath: string): RenderViolation[] {
+  const bytes = readFileSync(join(targetDir, relativePath));
+
+  if (bytes.length === 0) {
+    return [{
+      detail: 'Emitted empty. An asset is copied byte for byte, so an empty one means the copy did not happen.',
+      kind: 'empty-file',
+      subject: relativePath
+    }];
+  }
+
+  if (!WebAssembly.validate(bytes)) {
+    return [{
+      detail: `Not a valid WebAssembly module (${String(bytes.length)} bytes). A UTF-8 round trip mangles a binary without emptying it.`,
+      kind: 'invalid-wasm',
+      subject: relativePath
+    }];
+  }
+
+  return [];
 }
 
 /**
@@ -230,6 +277,11 @@ function checkDuplicateJsonKeys(relativePath: string, fileName: string, content:
 
 function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
   const violations: RenderViolation[] = [];
+
+  if (ASSET_EXTENSIONS.has(extname(relativePath))) {
+    return checkAsset(targetDir, relativePath);
+  }
+
   const content = readFileSync(join(targetDir, relativePath), 'utf-8');
   const fileName = relativePath.split('/').pop() ?? '';
 
@@ -468,9 +520,12 @@ function importedNames(statement: ImportDeclaration): string[] {
  * The bare package names a source file imports, ignoring everything that is not a package.
  *
  * Relative and absolute specifiers are the file's own tree. Node builtins are the runtime's, with or
- * without the `node:` prefix. Everything else is a package, and its name is the first path segment --
- * two for a scoped one, so `obsidian-dev-utils/script-utils/version` and `@codemirror/state/dist` both
- * reduce to what `package.json` would have to declare.
+ * without the `node:` prefix. A SCHEME-prefixed specifier is an instruction to the bundler rather than a
+ * name to resolve -- parcel's `data-url:./module.wasm` asks it to inline the file, and reading `data-url:.`
+ * as a package name reported a dependency that could not be declared because it does not exist.
+ * Everything else is a package, and its name is the first path segment -- two for a scoped one, so
+ * `obsidian-dev-utils/script-utils/version` and `@codemirror/state/dist` both reduce to what
+ * `package.json` would have to declare.
  */
 function importedPackages(source: SourceFile): string[] {
   const names: string[] = [];
@@ -483,7 +538,7 @@ function importedPackages(source: SourceFile): string[] {
       specifier = statement.moduleSpecifier.text;
     }
 
-    if (specifier === undefined || specifier.startsWith('.') || specifier.startsWith('/') || specifier.startsWith('node:') || builtinModules.includes(specifier)) {
+    if (specifier === undefined || specifier.startsWith('.') || specifier.startsWith('/') || SCHEME_PATTERN.test(specifier) || builtinModules.includes(specifier)) {
       continue;
     }
 

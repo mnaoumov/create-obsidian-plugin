@@ -1,1 +1,7 @@
 * text=auto eol=lf
+
+# The one binary in the tree: `templates/default/src/wasm/module.wasm`, the sample WebAssembly module the
+# `wasm` answer ships. `text=auto` above would leave it to git's NUL-byte heuristic, which would very
+# probably spare 39 bytes full of NULs -- but "probably" is the wrong guarantee for the only file here
+# that a line-ending conversion would silently corrupt.
+*.wasm binary

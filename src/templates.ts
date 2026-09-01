@@ -9,6 +9,7 @@ import {
 } from 'node:fs';
 import {
   dirname,
+  extname,
   join
 } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,6 +51,21 @@ import {
   FALLBACK_MIN_APP_VERSION,
   PINNED_VERSIONS
 } from './versions.ts';
+
+/**
+ * Extensions whose template is copied verbatim rather than rendered -- the second kind of template.
+ *
+ * `templates/default` is otherwise all EJS text, and `copyTemplates` read every file as UTF-8 and put it
+ * through EJS. That is exactly right for text and destroys a binary: the `wasm` answer needs a real
+ * WebAssembly module, and a `.wasm` decoded as UTF-8 and written back is no longer a module. So an asset
+ * is read as bytes, hashed as bytes and written as bytes, with no EJS anywhere near it.
+ *
+ * A SET rather than an `instanceof Buffer` sniff, because the two kinds have to be distinguishable by
+ * looking at the tree: a declared list is what lets the plan tier know a registered path with no `.ejs`
+ * is satisfied by an asset rather than unresolvable, and what lets the render tier check the emitted
+ * bytes are a valid module instead of parsing them as text.
+ */
+export const ASSET_EXTENSIONS: ReadonlySet<string> = new Set(['.wasm']);
 
 const JSON_INDENT_SPACES = 2;
 
@@ -273,10 +289,15 @@ export function copyTemplates(
 
     const destinationPath = getDestinationPath(registeredPath, answers);
     const fullDestinationPath = join(targetDir, destinationPath);
+    const isAsset = ASSET_EXTENSIONS.has(extname(registeredPath));
     const ejsPath = join(templatesDir, `${registeredPath}.ejs`);
 
-    let rendered: string;
-    if (existsSync(ejsPath)) {
+    let rendered: Buffer | string;
+    if (isAsset) {
+      // No `.ejs` suffix: an asset template is the emitted file, byte for byte.
+      currentTemplatePath = registeredPath;
+      rendered = readFileSync(join(templatesDir, registeredPath));
+    } else if (existsSync(ejsPath)) {
       currentTemplatePath = `${registeredPath}.ejs`;
       try {
         // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard EJS API.
@@ -293,7 +314,7 @@ export function copyTemplates(
     newConfig.fileHashes[destinationPath] = newHash;
 
     if (existingConfig && existsSync(fullDestinationPath)) {
-      const currentContent = readFileSync(fullDestinationPath, 'utf-8');
+      const currentContent = isAsset ? readFileSync(fullDestinationPath) : readFileSync(fullDestinationPath, 'utf-8');
       const currentHash = sha256(currentContent);
       const originalHash = existingConfig.fileHashes[destinationPath];
 
@@ -433,6 +454,6 @@ function migrateAnswers(raw: Record<string, unknown>): void {
   answers['defaultBranch'] ??= 'master';
 }
 
-function sha256(content: string): string {
+function sha256(content: Buffer | string): string {
   return createHash('sha256').update(content).digest('hex');
 }
