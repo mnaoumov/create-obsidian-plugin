@@ -37,6 +37,43 @@ The updater will:
 - Skip files you've customized (with a warning)
 - Create any new files added to the template
 
+## Non-interactive use
+
+Every question the wizard asks can be answered up front instead, which is what lets generation be scripted and repeated.
+
+| Option | What it does |
+|--------|--------------|
+| `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts |
+| `-h`, `--help` | List every option, including the accepted values for each answer |
+| `--answersFile=<path>` | Read answers from a JSON file |
+| `--<answer>=<value>` | Set one answer, e.g. `--packageManager=yarn` |
+
+Because `npm create` needs to be told which flags are yours rather than its own, npm takes a `--` first; pnpm, yarn and bun do not:
+
+```bash
+npm create @mnaoumov/obsidian-plugin -- --yes --pluginId=my-plugin --packageManager=yarn
+pnpm create @mnaoumov/obsidian-plugin --yes --pluginId=my-plugin --packageManager=pnpm
+```
+
+Answers are applied in order, so the most specific wins: built-in defaults, then the answers saved in an existing project, then `--answersFile`, then individual flags. An answer given this way is not asked about again.
+
+The answers file is a JSON object using the same names. It also accepts a whole `.create-obsidian-plugin.json`, so you can point it at an existing project to scaffold another one like it:
+
+```json
+{
+  "preset": "enhanced",
+  "bundler": "esbuild",
+  "packageManager": "npm",
+  "pluginId": "my-plugin"
+}
+```
+
+Invalid input is refused rather than quietly ignored: an unknown answer, a value outside what a question accepts, a plugin id the wizard itself would reject, or `--currentYear` and `--pluginShortName`, which the generator computes rather than asks for.
+
+### Saving the answers from an interactive run
+
+At the end of the wizard, before scaffolding, you can save what you just answered as either form — a runnable script (`.cmd` on Windows, `.sh` elsewhere) or an answers file. You can save both and then generate; saving does not end the run. Every answer is written, not only the ones that differ from a default, so the recipe keeps producing the same project after a release changes a default.
+
 ## Feature options
 
 The wizard lets you pick and choose from the following categories:
