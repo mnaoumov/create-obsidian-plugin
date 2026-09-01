@@ -1,26 +1,15 @@
 
 ## Demo vault
 
-`demo-vault/` is this plugin's documentation: a real Obsidian vault whose notes explain each feature and
-demonstrate it with `code-button`s that run TypeScript through
-[CodeScript Toolkit](https://github.com/mnaoumov/obsidian-codescript-toolkit). `npm run version` archives it
-into the GitHub release, injecting the freshly built plugin and the `demo-vault-helper` bootstrap plugin
-into the archived copy — so nothing plugin-related is committed under `demo-vault/.obsidian/plugins/`.
+`demo-vault/` is this plugin's documentation: a real Obsidian vault whose notes explain each feature and demonstrate it with `code-button`s that run TypeScript through [CodeScript Toolkit](https://github.com/mnaoumov/obsidian-codescript-toolkit). `npm run version` archives it into the GitHub release, injecting the freshly built plugin and the `demo-vault-helper` bootstrap plugin into the archived copy — so nothing plugin-related is committed under `demo-vault/.obsidian/plugins/`.
 
 When you add a user-facing feature, add or update its note in the same change.
 
 ### One-time setup before the button suite can run
 
-`npm run test:integration:demo-vault` opens a copy of `demo-vault/` in a real Obsidian and clicks every
-button in it. It needs the CodeScript Toolkit binary, which it copies out of your own `demo-vault/` to keep
-the run hermetic. Open `demo-vault/` in Obsidian once and let `demo-vault-helper` install CodeScript
-Toolkit; the installed copy is gitignored, so each machine does this for itself. Until then the suite fails
-with a message telling you exactly this.
+`npm run test:integration:demo-vault` opens a copy of `demo-vault/` in a real Obsidian and clicks every button in it. It needs the CodeScript Toolkit binary, which it copies out of your own `demo-vault/` to keep the run hermetic. Open `demo-vault/` in Obsidian once and let `demo-vault-helper` install CodeScript Toolkit; the installed copy is gitignored, so each machine does this for itself. Until then the suite fails with a message telling you exactly this.
 
 ### Checking the vault
 
-- `npm run test:integration:no-app` — the coverage suite. Reads the notes without launching Obsidian and
-  enforces the authoring rules: an `# H1` and a prose opener per note, Markdown links rather than
-  wikilinks, no `[Docs]` line, every note reachable from `00 Start.md`.
-- `npm run test:integration:demo-vault` — the button suite. A button fails at click time, so this is the
-  only gate that can catch a broken one.
+- `npm run test:integration:no-app` — the coverage suite. Reads the notes without launching Obsidian and enforces the authoring rules: an `# H1` and a prose opener per note, Markdown links rather than wikilinks, no `[Docs]` line, every note reachable from `00 Start.md`.
+- `npm run test:integration:demo-vault` — the button suite. A button fails at click time, so this is the only gate that can catch a broken one.

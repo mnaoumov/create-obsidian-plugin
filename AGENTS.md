@@ -473,7 +473,7 @@ while changing a bundler's configuration, and the one the whole WebAssembly pass
 `--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
 single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
 
-**Four failure modes make a silent pass the default here, and every tier is shaped around them.**
+**Five failure modes make a silent pass the default here, and every tier is shaped around them.**
 
 1. **An unresolved partial renders as `''`, not an error.** A registered file whose partials were all
    left unresolved is written EMPTY — and an empty `.ts` compiles, an empty config reads as "no
@@ -490,6 +490,14 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    gate tier's `wasm` step asserts no stray `.wasm` in `dist/build` AND the module's bytes inside
    `main.js`. Both clauses: without the second, a bundler that tree-shook the import away would pass on
    the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
+5. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
+   every newline in a README or a demo-vault note becomes a `<br>` — G102 and G95 require one source line
+   per paragraph, per list item, per blockquote line. Nothing in a generated project says so: `MD013` is
+   off in the emitted markdownlint config, dprint excludes markdown, and obsidian-dev-utils' demo-vault
+   coverage suite checks the `# H1`, the link style and reachability rather than the prose form. So the
+   render tier's `hard-wrapped-markdown` step reads the emitted `.md` bytes. Seven templates wrapped their
+   prose before it existed, and every tier was green. Fenced code, tables, raw HTML and thematic breaks
+   keep their own line structure; consecutive list items and blockquote lines are already one line each.
 
 **No tier runs `npm run dev`, and none can: a watch task does not terminate.** The gate tier runs each
 emitted script to completion, so `dev` is the one script whose *presence and text* are verified and

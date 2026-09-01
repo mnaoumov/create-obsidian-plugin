@@ -71,6 +71,7 @@ export type RenderViolationKind =
   | 'duplicate-json-key'
   | 'empty-block'
   | 'empty-file'
+  | 'hard-wrapped-markdown'
   | 'invalid-json'
   | 'invalid-typescript'
   | 'invalid-wasm'
@@ -104,6 +105,27 @@ const TYPESCRIPT_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts'];
 const JSON_EXTENSIONS = ['.json'];
 
 const YAML_EXTENSIONS = ['.yml', '.yaml'];
+
+const MARKDOWN_EXTENSIONS = ['.md'];
+
+/** The opening or closing run of a fenced block, captured so only a matching run can close it. */
+const FENCE_PATTERN = /^(?:`{3,}|~{3,})/;
+
+/**
+ * A line that is not prose: an ATX heading, a table row, raw HTML, or a thematic break.
+ *
+ * Each is its own block -- neither a continuation of the line above nor something the line below
+ * continues -- and each keeps its own line structure, which is exactly what G102 exempts by name.
+ */
+const NON_PROSE_LINE_PATTERN = /^(?:#{1,6}\s|\||<|(?:-{3,}|\*{3,}|_{3,})\s*$)/;
+
+/**
+ * A line that opens a block of its own: a list item or a blockquote line.
+ *
+ * The clause that keeps consecutive list items and consecutive blockquote lines legal. Each of those IS
+ * one source line per item, which is what the rule asks for; only a line continuing one is a wrap.
+ */
+const BLOCK_OPENER_PATTERN = /^\s*(?:[*+-] |\d+\. |> )/;
 
 /**
  * Files exempt from the non-empty check.
@@ -314,7 +336,75 @@ function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
     });
   }
 
+  violations.push(...checkMarkdownWrapping(relativePath, fileName, content));
   violations.push(...checkSyntax(relativePath, fileName, content));
+  return violations;
+}
+
+/**
+ * Prose in an emitted markdown file that is hard-wrapped across source lines.
+ *
+ * Obsidian's markdown parser runs with `breaks: true`, so every newline in the source becomes a `<br>`.
+ * A README wrapped at ~100 columns therefore renders as flowing paragraphs on GitHub and as ragged line
+ * breaks in the community-plugin page, and a demo-vault note does the same inside the vault it
+ * documents. G102 and G95 require the opposite: one source line per paragraph, per list item, per
+ * blockquote line.
+ *
+ * The check earns its place because nothing else catches this. `MD013` is off in the emitted
+ * markdownlint config, dprint excludes markdown, and the demo-vault coverage suite asserts the `# H1`,
+ * the link style and reachability -- so a wrapped paragraph passes every gate the generated project has
+ * and ships looking generated. That is how the generator came to emit seven such files at once.
+ *
+ * Fenced code, tables, raw HTML and thematic breaks keep their own line structure and are skipped.
+ * Consecutive list items and consecutive blockquote lines are legal -- each is already one source line.
+ * What is left, a prose line following a prose line without opening a block of its own, is a wrap.
+ */
+function checkMarkdownWrapping(relativePath: string, fileName: string, content: string): RenderViolation[] {
+  if (!MARKDOWN_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
+    return [];
+  }
+
+  const violations: RenderViolation[] = [];
+  let openFence: null | string = null;
+  let previousWasProse = false;
+  let lineNumber = 0;
+
+  for (const line of content.split('\n')) {
+    lineNumber++;
+    const trimmed = line.trim();
+    const fence = FENCE_PATTERN.exec(trimmed)?.[0] ?? null;
+
+    if (openFence !== null) {
+      // Only a run of the same character at least as long as the opener closes it, so neither a nested
+      // Fence nor the `---` frontmatter inside a `code-button` block ends it early.
+      if (fence?.startsWith(openFence)) {
+        openFence = null;
+      }
+      continue;
+    }
+
+    if (fence !== null) {
+      openFence = fence;
+      previousWasProse = false;
+      continue;
+    }
+
+    if (trimmed === '' || NON_PROSE_LINE_PATTERN.test(trimmed)) {
+      previousWasProse = false;
+      continue;
+    }
+
+    if (previousWasProse && !BLOCK_OPENER_PATTERN.test(line)) {
+      violations.push({
+        detail: `Line ${String(lineNumber)} continues the line above it: ${JSON.stringify(trimmed.slice(0, DETAIL_LENGTH))}`,
+        kind: 'hard-wrapped-markdown',
+        subject: relativePath
+      });
+    }
+
+    previousWasProse = true;
+  }
+
   return violations;
 }
 

@@ -121,6 +121,39 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('.github/workflows/ci.yml')).toEqual([]);
   });
 
+  // Obsidian's parser runs with `breaks: true`, so a wrapped paragraph renders as flowing prose on
+  // GitHub and as ragged line breaks in the community-plugin page and inside the demo vault. Nothing
+  // Else in a generated project catches it: MD013 is off, dprint excludes markdown, and the demo-vault
+  // Coverage suite checks the H1, the link style and reachability rather than the prose form.
+  it('flags a hard-wrapped paragraph', () => {
+    put('README.md', '# Plugin\n\nThe documentation is a demo vault. Every feature has a note that explains what it does\nand why you would want it.\n');
+    expect(kindsFor('README.md')).toContain('hard-wrapped-markdown');
+  });
+
+  it('flags a hard-wrapped list item', () => {
+    put('README.md', '# Plugin\n\n- `textSetting`\n  - free text, shown in the settings tab. The scaffolded sample setting; nothing\n    reads it yet.\n');
+    expect(kindsFor('README.md')).toContain('hard-wrapped-markdown');
+  });
+
+  // The two shapes a naive check breaks on: each item and each quoted line already IS one source line,
+  // Which is exactly what the rule asks for.
+  it('accepts consecutive list items and consecutive blockquote lines', () => {
+    put('README.md', '# Plugin\n\n1. Running the command.\n2. Downloading the zip.\n3. Browsing the source.\n\n- one\n- two\n\n> first\n> second\n');
+    expect(kindsFor('README.md')).toEqual([]);
+  });
+
+  // G95 names this as the defect a careless unwrapping sweep introduces: the `---` frontmatter inside a
+  // `code-button` block is fenced content, not two thematic breaks around a wrapped paragraph.
+  it('accepts a fenced code-button block, frontmatter and all', () => {
+    put('demo-vault/00 Start.md', '# Start here\n\nOne line.\n\n```code-button\n---\ncaption: Run the Sample command\n---\nrequire(\'/demoSetup.ts\').runSampleCommand(app);\n```\n\nAnother line.\n');
+    expect(kindsFor('demo-vault/00 Start.md')).toEqual([]);
+  });
+
+  it('accepts a table, which keeps its own line structure', () => {
+    put('README.md', '# Plugin\n\n| Note | What it covers |\n| --- | --- |\n| 01 | The commands. |\n');
+    expect(kindsFor('README.md')).toEqual([]);
+  });
+
   it('flags TypeScript that does not parse', () => {
     put('src/plugin.ts', 'export class Broken {\n  onload(): void {\n');
     expect(kindsFor('src/plugin.ts')).toContain('invalid-typescript');
