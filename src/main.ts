@@ -5,10 +5,12 @@ import {
   log,
   note,
   outro,
+  select,
   spinner
 } from '@clack/prompts';
 import { spawn } from 'node:child_process';
 import {
+  chmodSync,
   existsSync,
   readFileSync,
   writeFileSync
@@ -22,10 +24,21 @@ import type {
 } from './answers.ts';
 
 import {
+  formatAnswersJson,
+  formatCreateCommand,
+  formatCreateScript,
+  getScriptExtension,
+  getShellForPlatform
+} from './answers-export.ts';
+import {
   CONFIG_FILE_NAME,
   Mode
 } from './answers.ts';
 import { assertNotCancelled } from './clack-utils.ts';
+import {
+  getHelpText,
+  parseCliArgs
+} from './cli-args.ts';
 import {
   getInstallCommand,
   getRunCommand
@@ -64,7 +77,13 @@ interface SavedConfig {
   answers?: Answers;
 }
 
+/** Where this process's own arguments start: `node` and the script path come first. */
+const ARGV_OFFSET = 2;
+
 const JSON_INDENT_SPACES = 2;
+
+/** Owner-writable, everyone-executable: a script the user must `chmod` before running is a poor hand-off. */
+const SCRIPT_MODE = 0o755;
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
   const latestVer = await fetchLatestVersion('@mnaoumov/create-obsidian-plugin');
@@ -133,19 +152,81 @@ async function main(): Promise<void> {
        ${m}◆${r}      ${m}@mnaoumov${r}
 
 `;
+  let cliArgs;
+  try {
+    cliArgs = parseCliArgs(process.argv.slice(ARGV_OFFSET));
+  } catch (error: unknown) {
+    // Straight to stderr, before the banner: a rejected flag is a usage error, and burying it under the
+    // Intro would make it look like the run had started.
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exit(1);
+  }
+
+  if (cliArgs.showHelp) {
+    process.stdout.write(`${getHelpText()}\n`);
+    return;
+  }
+
   process.stdout.write(banner);
   intro('Let\'s build an Obsidian plugin!');
-
-  const useDefaults = process.argv.includes('--yes') || process.argv.includes('-y');
 
   await checkForUpdates(currentVersion);
 
   const mode = await detectMode();
 
   if (mode === Mode.Create) {
-    await runCreate(currentVersion, useDefaults);
+    await runCreate(currentVersion, cliArgs.useDefaults, cliArgs.answers);
   } else {
-    await runUpdate(currentVersion);
+    await runUpdate(currentVersion, cliArgs.answers);
+  }
+}
+
+/**
+ * Offers to save the answers just given as a runnable script or as an answers file, before scaffolding.
+ *
+ * The menu loops rather than being a one-shot choice, so both forms can be captured in one session -- a
+ * save is never at the expense of the generation the user came for.
+ *
+ * The executable-bit on the `sh` form matters: a script the user has to `chmod` before running is a
+ * worse hand-off than the command they could already have copied off the screen.
+ */
+async function offerAnswersExport(answers: Answers): Promise<void> {
+  const shell = getShellForPlatform(process.platform);
+  const scriptName = `obsidian-${answers.pluginId}-create${getScriptExtension(shell)}`;
+  const answersFileName = `obsidian-${answers.pluginId}-answers.json`;
+
+  async function ask(): Promise<string> {
+    const choice = await select({
+      initialValue: 'generate',
+      message: 'Your answers are collected.',
+      options: [
+        { hint: 'Scaffold the plugin now', label: 'Start generation', value: 'generate' },
+        { hint: scriptName, label: 'Save a script for non-interactive generation', value: 'script' },
+        { hint: answersFileName, label: 'Save an answers file for non-interactive generation', value: 'answers' }
+      ]
+    });
+    assertNotCancelled(choice);
+    return choice;
+  }
+
+  let choice = await ask();
+
+  while (choice !== 'generate') {
+    if (choice === 'script') {
+      const scriptPath = join(process.cwd(), scriptName);
+      writeFileSync(scriptPath, formatCreateScript(answers, shell));
+      if (shell === 'sh') {
+        chmodSync(scriptPath, SCRIPT_MODE);
+      }
+      log.success(`Wrote ${scriptName}`);
+      note(formatCreateCommand(answers, shell), 'Non-interactive command');
+    } else {
+      writeFileSync(join(process.cwd(), answersFileName), formatAnswersJson(answers));
+      log.success(`Wrote ${answersFileName}`);
+      note(`npm create @mnaoumov/obsidian-plugin -- --yes --answersFile=${answersFileName}`, 'Non-interactive command');
+    }
+
+    choice = await ask();
   }
 }
 
@@ -163,8 +244,15 @@ async function resolveExternalVersions(answers: Answers): Promise<ResolvedExtern
   return { minAppVersion, resolvedVersions };
 }
 
-async function runCreate(currentVersion: string, useDefaults: boolean): Promise<void> {
-  const answers = useDefaults ? getDefaultAnswers() : await promptAnswers();
+async function runCreate(currentVersion: string, useDefaults: boolean, suppliedAnswers: Partial<Answers>): Promise<void> {
+  const answers = useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers);
+
+  // Not under `--yes`: that path is what an exported script itself runs, so offering to export from
+  // Inside it would be asking a question of a run that exists to ask none.
+  if (!useDefaults) {
+    await offerAnswersExport(answers);
+  }
+
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
 
   if (existsSync(targetDir)) {
@@ -294,7 +382,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
   }
 }
 
-async function runUpdate(currentVersion: string): Promise<void> {
+async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answers>): Promise<void> {
   const targetDir = process.cwd();
   const existingConfig = loadConfig(targetDir);
 
@@ -311,6 +399,9 @@ async function runUpdate(currentVersion: string): Promise<void> {
   let answers: Answers;
 
   if (savedConfig.answers) {
+    // A flag beats the saved answer, which is what makes `--<key>=<value>` a way to CHANGE one setting on
+    // An existing project without walking the whole wizard again.
+    const saved: Answers = { ...savedConfig.answers, ...suppliedAnswers };
     log.info('Using saved answers from previous generation.');
     const shouldRePrompt = await confirm({
       initialValue: false,
@@ -319,13 +410,13 @@ async function runUpdate(currentVersion: string): Promise<void> {
     assertNotCancelled(shouldRePrompt);
 
     if (shouldRePrompt) {
-      answers = await promptAnswers(savedConfig.answers);
+      answers = await promptAnswers(saved);
     } else {
-      answers = savedConfig.answers;
+      answers = saved;
     }
   } else {
     log.warn('No saved answers found. Please provide the settings again.');
-    answers = await promptAnswers();
+    answers = await promptAnswers(suppliedAnswers);
   }
 
   // A project that has already released carries a `manifest.json` its own `npm run version` rewrote, so its
