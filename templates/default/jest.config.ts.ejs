@@ -29,8 +29,7 @@ const config: Config = {
   },
   roots: ['<rootDir>/src'],
   setupFiles: [
-    'obsidian-test-mocks/jest-setup',
-    'obsidian-test-mocks/obsidian-typings/jest-setup'
+    'obsidian-test-mocks/jest-setup'
   ],
   // `obsidian-test-mocks`' `setup()` writes to `Document.prototype`, `Element.prototype` and `window`,
   // None of which exist in jest's default `node` environment.
