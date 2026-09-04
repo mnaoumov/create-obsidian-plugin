@@ -41,8 +41,7 @@ export default defineConfig({
     // Jest answer escapes it through `roots: ['<rootDir>/src']`; this config had neither.
     include: ['src/**/*.test.ts'],
     setupFiles: [
-      'obsidian-test-mocks/vitest-setup',
-      'obsidian-test-mocks/obsidian-typings/vitest-setup'
+      'obsidian-test-mocks/vitest-setup'
     ]
   }
 });
