@@ -6,6 +6,10 @@ import { test } from 'obsidian-dev-utils/script-utils/test-runners/vitest';
 // Obsidian install and the second needs a provisioned Android emulator, so a freshly generated project
 // Would fail its own `test:integration` on any machine that has neither. Add them once you have set those
 // Up. Run them one at a time — the integration projects share a single Obsidian and a single device.
+//
+// `integration-tests:desktop-performance` is declared for every plugin as well, but it is left out for a different reason, and it stays out even once you have a desktop Obsidian set up.
+// Perf suites are expensive by design — 600 s timeouts, large generated vaults, sized through env vars — so they are run deliberately rather than as part of a routine check.
+// Reach them through the dedicated `test:integration:desktop:performance` script; adding them to this aggregate is drift, not a gap to close.
 await wrapCliTask(async () => {
   await test({
     projects: ['integration-tests:no-app']
