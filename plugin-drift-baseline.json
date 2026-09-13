@@ -5,7 +5,7 @@
     "`npm run verify:plugin-drift` fails on any difference that is NOT listed here, on any entry here whose",
     "difference has since gone, and on any entry whose `pluginCount` has moved -- the count is the evidence",
     "behind most of these judgements, so a trait that goes from divided to unanimous needs the call made",
-    "again. That two-way check is the same discipline G100 requires of pinned-versions.json.",
+    "again. That two-way check is the same discipline pinned-versions.json is held to.",
     "",
     "Keys are `<preset>/<dimension>/<kind>/<trait>`. The preset is part of the key because the two presets",
     "do not emit the same project: without it, accepting one of demo's forced framework components would",

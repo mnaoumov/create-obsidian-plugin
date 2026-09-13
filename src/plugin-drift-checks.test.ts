@@ -186,7 +186,7 @@ describe('reconcileBaseline', () => {
   });
 
   // The direction that is easy to forget: fixing a drift without deleting its justification leaves the
-  // File describing a difference that no longer exists, which is the drift G100 forbids of a pin table.
+  // File describing a difference that no longer exists, which is the drift a pin table forbids.
   it('fails an entry whose drift has gone', () => {
     const violations = reconcileBaseline(scoped([]), { 'enhanced/scripts/missing/prepare': entry(PLUGIN_COUNT) });
 
