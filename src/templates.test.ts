@@ -1002,7 +1002,7 @@ describe('copyTemplates', () => {
 
   // The types entry named `obsidian-typings` while the dependency added is
   // `@obsidian-typings/obsidian-public-latest`, so `with-unofficial` failed `tsc` with TS2688 on every
-  // Preset. The fleet -- including the sample plugin the README advertises as this generator's output --
+  // Preset. Every compared plugin -- including the sample plugin the README advertises as this generator's output --
   // Names the scoped package in both places and carries no import of the old name at all.
   it('names the typings package it actually installs, on both presets', () => {
     for (const preset of ['standalone', 'enhanced']) {

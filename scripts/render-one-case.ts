@@ -25,7 +25,7 @@ import {
   assertValidAnswer,
   toAnswerKey
 } from '../src/cli-args.ts';
-import { listGeneratedFiles } from '../src/fleet-drift-checks.ts';
+import { listGeneratedFiles } from '../src/plugin-drift-checks.ts';
 import { copyTemplates } from '../src/templates.ts';
 
 /**
@@ -64,7 +64,7 @@ function main(): void {
   }
 
   try {
-    // No resolved versions and no fetched `minAppVersion`, exactly as the fleet-drift tier renders:
+    // No resolved versions and no fetched `minAppVersion`, exactly as the plugin-drift tier renders:
     // `copyTemplates` stays synchronous and offline, and a dependency spec is not what anyone runs this
     // To look at. Versions come out as the unresolved placeholder, which is honest about it.
     copyTemplates(answers, target, RENDER_VERSION, null);

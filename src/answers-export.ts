@@ -108,7 +108,7 @@ export function getShellForPlatform(platform: string): Shell {
  * `sh` gets single quotes, inside which everything is literal; an embedded `'` ends the string, so it is
  * spliced back in as `'\''`. `cmd` gets double quotes, an embedded `"` is doubled -- and a literal `%`
  * MUST become `%%`, because a batch file expands `%…%` as a variable. `fundingUrl` hits that directly:
- * the fleet's funding and badge URLs are percent-encoded.
+ * the compared plugins' funding and badge URLs are percent-encoded.
  */
 function quote(value: string, shell: Shell): string {
   if (shell === 'cmd') {

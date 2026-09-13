@@ -293,8 +293,9 @@ async function runCreate(currentVersion: string, useDefaults: boolean, suppliedA
   outro('Happy coding!');
 }
 
-// The templates are authored in one style, the fleet's. dprint is configured to match it, but prettier
-// And biome cannot be configured to reproduce it byte for byte -- biome collapses an empty object to
+// The templates are authored in one style, the one the compared plugins use. dprint is configured to
+// Match it, but prettier and biome cannot be configured to reproduce it byte for byte -- biome
+// Collapses an empty object to
 // `{}` whatever the settings say -- so a project that picked either of those would be committed
 // Already failing its own `format:check`. Formatting once here settles that, in the tool's own style,
 // Before the initial commit is taken.

@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isOduPreset } from '../preset/is-odu-preset.ts';
+import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 
 export class Vitest extends FeatureOption {
   public constructor() {
@@ -33,7 +33,7 @@ export class Vitest extends FeatureOption {
         'scripts/wasm-module-stub.ts'
       ]);
 
-    if (!isOduPreset(answers.preset)) {
+    if (!isDevUtilsPreset(answers.preset)) {
       return;
     }
 
@@ -50,7 +50,7 @@ export class Vitest extends FeatureOption {
       // By `test:integration`, which says why: one drives a real Obsidian install and one needs a
       // Provisioned Android emulator, so a freshly generated project would fail its own aggregate task
       // On any machine that has neither. They still get their own script, because that is how the
-      // Fleet reaches them once those are set up.
+      // Real plugins reach them once those are set up.
       .addScript('test:integration:android')
       .addScript('test:integration:demo-vault')
       .addScript('test:integration:desktop')

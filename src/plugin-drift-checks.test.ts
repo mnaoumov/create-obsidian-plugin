@@ -9,27 +9,27 @@ import type {
   DriftDimension,
   DriftFinding,
   ProjectProfile
-} from './fleet-drift-checks.ts';
+} from './plugin-drift-checks.ts';
 
 import {
   buildConsensus,
-  compareToFleet,
+  compareToPlugins,
   findingKey,
-  FLEET_SHAPED_ANSWERS,
-  fleetShapedAnswers,
+  PLUGIN_SHAPED_ANSWERS,
+  pluginShapedAnswers,
   reconcileBaseline
-} from './fleet-drift-checks.ts';
+} from './plugin-drift-checks.ts';
 
 /** How many plugins a consensus fixture pretends to have profiled, chosen so halves are exact. */
-const FLEET_SIZE = 10;
+const PLUGIN_COUNT = 10;
 
 /** A pair and a triple, for the small fixtures whose expected counts are written out by hand. */
 const PAIR = 2;
 
 const TRIPLE = 3;
 
-/** Exactly the partial-reporting floor of the fixture fleet, so the boundary can be tested on both sides. */
-const HALF_FLEET = FLEET_SIZE / PAIR;
+/** Exactly the partial-reporting floor of the fixture plugin set, so the boundary can be tested on both sides. */
+const HALF_THE_PLUGINS = PLUGIN_COUNT / PAIR;
 
 describe('buildConsensus', () => {
   it('counts a trait across every profile that carries it', () => {
@@ -55,7 +55,7 @@ describe('buildConsensus', () => {
   });
 
   // Two values on the same count must not depend on the order the directories happened to be read in,
-  // Or the same fleet produces a different baseline on a different machine.
+  // Or the same plugin set produces a different baseline on a different machine.
   it('breaks a tie on the value, not on profile order', () => {
     const forwards = buildConsensus([profile({ scripts: { build: 'a' } }), profile({ scripts: { build: 'b' } })]);
     const backwards = buildConsensus([profile({ scripts: { build: 'b' } }), profile({ scripts: { build: 'a' } })]);
@@ -65,25 +65,25 @@ describe('buildConsensus', () => {
   });
 });
 
-describe('compareToFleet', () => {
+describe('compareToPlugins', () => {
   it('reports a unanimous trait the generator lacks as missing', () => {
-    const findings = compareToFleet(unanimous({ 'build:clean': 'jiti scripts/build-clean.ts' }), profile({}));
+    const findings = compareToPlugins(unanimous({ 'build:clean': 'jiti scripts/build-clean.ts' }), profile({}));
 
     expect(findings).toHaveLength(1);
     expect(findings[0]?.kind).toBe('missing');
-    expect(findings[0]?.fleetCount).toBe(FLEET_SIZE);
+    expect(findings[0]?.pluginCount).toBe(PLUGIN_COUNT);
   });
 
   it('reports a unanimous trait whose value differs as differs, not as missing plus extra', () => {
-    const findings = compareToFleet(unanimous({ build: 'jiti scripts/build.ts' }), profile({ scripts: { build: 'tsc' } }));
+    const findings = compareToPlugins(unanimous({ build: 'jiti scripts/build.ts' }), profile({ scripts: { build: 'tsc' } }));
 
     expect(findings).toHaveLength(1);
     expect(findings[0]?.kind).toBe('differs');
     expect(findings[0]?.generatedValue).toBe('tsc');
   });
 
-  it('reports a trait no fleet plugin has as extra', () => {
-    const findings = compareToFleet(unanimous({ build: 'jiti scripts/build.ts' }), profile({ scripts: { 'build': 'jiti scripts/build.ts', 'test:e2e': 'jiti scripts/test-e2e.ts' } }));
+  it('reports a trait no real plugin has as extra', () => {
+    const findings = compareToPlugins(unanimous({ build: 'jiti scripts/build.ts' }), profile({ scripts: { 'build': 'jiti scripts/build.ts', 'test:e2e': 'jiti scripts/test-e2e.ts' } }));
 
     expect(findings).toHaveLength(1);
     expect(findings[0]?.kind).toBe('extra');
@@ -91,14 +91,14 @@ describe('compareToFleet', () => {
   });
 
   it('says nothing about a divided trait the generator already has', () => {
-    expect(compareToFleet(divided(FLEET_SIZE - 1, 'capture-screenshots.ts'), profile({ layout: { 'capture-screenshots.ts': '' } }))).toEqual([]);
+    expect(compareToPlugins(divided(PLUGIN_COUNT - 1, 'capture-screenshots.ts'), profile({ layout: { 'capture-screenshots.ts': '' } }))).toEqual([]);
   });
 
-  // A dimension the fleet has no trait in at all would otherwise never be scanned, so everything the
+  // A dimension the real plugins have no trait in at all would otherwise never be scanned, so everything the
   // Generator emits under it would go unreported -- silently, which is the failure mode this whole
   // Verification design is shaped around.
-  it('reports an extra in a dimension the fleet has nothing in', () => {
-    const findings = compareToFleet(buildConsensus([profile({})]), profile({ workflows: { '.github/workflows/ci.yml': '' } }));
+  it('reports an extra in a dimension the real plugins have nothing in', () => {
+    const findings = compareToPlugins(buildConsensus([profile({})]), profile({ workflows: { '.github/workflows/ci.yml': '' } }));
 
     expect(findings).toHaveLength(1);
     expect(findings[0]?.kind).toBe('extra');
@@ -106,47 +106,47 @@ describe('compareToFleet', () => {
   });
 
   it('reports a divided trait the generator lacks as partial, carrying the count as the evidence', () => {
-    const findings = compareToFleet(divided(FLEET_SIZE - 1, 'capture:screenshots'), profile({}));
+    const findings = compareToPlugins(divided(PLUGIN_COUNT - 1, 'capture:screenshots'), profile({}));
 
     expect(findings).toHaveLength(1);
     expect(findings[0]?.kind).toBe('partial');
-    expect(findings[0]?.fleetCount).toBe(FLEET_SIZE - 1);
-    expect(findings[0]?.fleetTotal).toBe(FLEET_SIZE);
+    expect(findings[0]?.pluginCount).toBe(PLUGIN_COUNT - 1);
+    expect(findings[0]?.pluginTotal).toBe(PLUGIN_COUNT);
   });
 
   // Without the floor this dimension is unusable rather than merely noisy: the first real run produced
   // 1793 findings, and all but a few dozen were one plugin's own demo-vault content at 1 of 29.
-  it('stays silent about a trait a minority of the fleet carries', () => {
-    expect(compareToFleet(divided(1, 'one-plugins-own-note.md'), profile({}))).toEqual([]);
-    expect(compareToFleet(divided(HALF_FLEET - 1, 'nearly-half.md'), profile({}))).toEqual([]);
+  it('stays silent about a trait a minority of the real plugins carries', () => {
+    expect(compareToPlugins(divided(1, 'one-plugins-own-note.md'), profile({}))).toEqual([]);
+    expect(compareToPlugins(divided(HALF_THE_PLUGINS - 1, 'nearly-half.md'), profile({}))).toEqual([]);
   });
 
   it('reports a trait exactly at the floor', () => {
-    expect(compareToFleet(divided(HALF_FLEET, 'half.md'), profile({}))).toHaveLength(1);
+    expect(compareToPlugins(divided(HALF_THE_PLUGINS, 'half.md'), profile({}))).toHaveLength(1);
   });
 });
 
-describe('fleetShapedAnswers', () => {
-  it('carries every measured fleet answer through, and takes the preset from its argument', () => {
-    const answers = fleetShapedAnswers('demo');
+describe('pluginShapedAnswers', () => {
+  it('carries every measured real-plugin answer through, and takes the preset from its argument', () => {
+    const answers = pluginShapedAnswers('demo');
 
     expect(answers.preset).toBe('demo');
     expect(answers.bundler).toBe('esbuild');
     expect(answers.testRunner).toBe('vitest');
   });
 
-  // The one answer that reads oddly, so it is asserted rather than left to a comment. No fleet plugin
+  // The one answer that reads oddly, so it is asserted rather than left to a comment. No real plugin
   // Has a `ci.yml` or a `release.yml`; asking for them would report the generator's own CI workflows as
-  // Drift the fleet chose not to have, and bury the finding that the one workflow all 29 DO ship is
+  // Drift the real plugins chose not to have, and bury the finding that the one workflow all 29 DO ship is
   // Emitted by no answer at all.
-  it('asks for no CI workflows, because no fleet plugin has one', () => {
-    expect(FLEET_SHAPED_ANSWERS.gitHubActions).toBe('none');
+  it('asks for no CI workflows, because no real plugin has one', () => {
+    expect(PLUGIN_SHAPED_ANSWERS.gitHubActions).toBe('none');
   });
 });
 
 describe('reconcileBaseline', () => {
   it('fails a drift with no entry', () => {
-    const violations = reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', FLEET_SIZE)]), {});
+    const violations = reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', PLUGIN_COUNT)]), {});
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('unbaselined-drift');
@@ -154,8 +154,8 @@ describe('reconcileBaseline', () => {
   });
 
   it('accepts a drift the baseline records at the same count', () => {
-    expect(reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', FLEET_SIZE)]), {
-      'enhanced/scripts/missing/prepare': entry(FLEET_SIZE)
+    expect(reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', PLUGIN_COUNT)]), {
+      'enhanced/scripts/missing/prepare': entry(PLUGIN_COUNT)
     })).toEqual([]);
   });
 
@@ -176,9 +176,9 @@ describe('reconcileBaseline', () => {
 
   // The count IS the evidence behind most of these judgements, so a trait that went from a divided
   // Majority to unanimous needs the call made again rather than silently kept.
-  it('re-reports an entry whose fleet count has moved', () => {
-    const violations = reconcileBaseline(scoped([finding('scripts', 'partial', 'capture:screenshots', FLEET_SIZE)]), {
-      'enhanced/scripts/partial/capture:screenshots': entry(FLEET_SIZE - PAIR)
+  it('re-reports an entry whose real-plugin count has moved', () => {
+    const violations = reconcileBaseline(scoped([finding('scripts', 'partial', 'capture:screenshots', PLUGIN_COUNT)]), {
+      'enhanced/scripts/partial/capture:screenshots': entry(PLUGIN_COUNT - PAIR)
     });
 
     expect(violations).toHaveLength(1);
@@ -188,7 +188,7 @@ describe('reconcileBaseline', () => {
   // The direction that is easy to forget: fixing a drift without deleting its justification leaves the
   // File describing a difference that no longer exists, which is the drift G100 forbids of a pin table.
   it('fails an entry whose drift has gone', () => {
-    const violations = reconcileBaseline(scoped([]), { 'enhanced/scripts/missing/prepare': entry(FLEET_SIZE) });
+    const violations = reconcileBaseline(scoped([]), { 'enhanced/scripts/missing/prepare': entry(PLUGIN_COUNT) });
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('stale-baseline-entry');
@@ -197,29 +197,29 @@ describe('reconcileBaseline', () => {
 
 describe('findingKey', () => {
   it('files a finding under preset, dimension, kind and key, so an entry names all four', () => {
-    expect(findingKey(finding('scripts', 'missing', 'build:clean', FLEET_SIZE), 'enhanced')).toBe('enhanced/scripts/missing/build:clean');
+    expect(findingKey(finding('scripts', 'missing', 'build:clean', PLUGIN_COUNT), 'enhanced')).toBe('enhanced/scripts/missing/build:clean');
   });
 });
 
-/** A consensus in which `count` of {@link FLEET_SIZE} plugins carry `key` under `layout`. */
+/** A consensus in which `count` of {@link PLUGIN_COUNT} plugins carry `key` under `layout`. */
 function divided(count: number, key: string): ReturnType<typeof buildConsensus> {
-  const profiles = Array.from({ length: FLEET_SIZE }, (_unused, index) => index < count ? profile({ layout: { [key]: '' } }) : profile({}));
+  const profiles = Array.from({ length: PLUGIN_COUNT }, (_unused, index) => index < count ? profile({ layout: { [key]: '' } }) : profile({}));
   return buildConsensus(profiles);
 }
 
-function entry(fleetCount: number): BaselineEntry {
-  return { fleetCount, why: 'Recorded for the test.' };
+function entry(pluginCount: number): BaselineEntry {
+  return { pluginCount, why: 'Recorded for the test.' };
 }
 
-function finding(dimension: DriftDimension, kind: DriftFinding['kind'], key: string, fleetCount: number): DriftFinding {
+function finding(dimension: DriftDimension, kind: DriftFinding['kind'], key: string, pluginCount: number): DriftFinding {
   return {
     dimension,
-    fleetCount,
-    fleetTotal: FLEET_SIZE,
-    fleetValue: '',
     generatedValue: null,
     key,
-    kind
+    kind,
+    pluginCount,
+    pluginTotal: PLUGIN_COUNT,
+    pluginValue: ''
   };
 }
 
@@ -233,7 +233,7 @@ function scoped(findings: readonly DriftFinding[]): ReadonlyMap<string, readonly
   return new Map([['enhanced', findings]]);
 }
 
-/** A consensus in which all {@link FLEET_SIZE} plugins carry every given script. */
+/** A consensus in which all {@link PLUGIN_COUNT} plugins carry every given script. */
 function unanimous(scripts: Record<string, string>): ReturnType<typeof buildConsensus> {
-  return buildConsensus(Array.from({ length: FLEET_SIZE }, () => profile({ scripts })));
+  return buildConsensus(Array.from({ length: PLUGIN_COUNT }, () => profile({ scripts })));
 }
