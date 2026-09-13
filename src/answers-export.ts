@@ -81,7 +81,7 @@ export function formatCreateScript(answers: Answers, shell: Shell): string {
  *
  * Under `preset: demo` the generator fixes `bundler` and `uiFramework` itself, so emitting them would
  * both misreport them as the user's choice and produce a command the CLI refuses -- it rejects that
- * pairing precisely so a flag cannot reach the combination T735-P42 closed. Omitting them keeps the
+ * pairing precisely so a flag cannot reach the combination that cannot build. Omitting them keeps the
  * recipe reproducible, since re-running it lets demo pin them again.
  */
 export function getExportableKeys(answers: Answers): string[] {

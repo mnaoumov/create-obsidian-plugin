@@ -67,7 +67,7 @@ export type BaselineViolationKind =
 /**
  * What is being compared.
  *
- * Dependencies and tsconfig `types` are deliberately absent. T699-P42 already settled both by following
+ * Dependencies and tsconfig `types` are deliberately absent. Both were already settled by following
  * the fleet -- the generator now installs `@obsidian-typings/obsidian-public-latest` and names it in
  * `types` -- so re-reporting them here would re-litigate a closed decision rather than find anything.
  */

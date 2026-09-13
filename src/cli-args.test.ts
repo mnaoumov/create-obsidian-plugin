@@ -132,7 +132,7 @@ describe('parsing flags', () => {
 });
 
 describe('the demo pin', () => {
-  // T735-P42: demo emits a project that cannot build when a second JSX runtime is forced in beside
+  // Demo emits a project that cannot build when a second JSX runtime is forced in beside
   // React, and was closed on the grounds that the combination is unreachable from every CLI path.
   it('refuses preset=demo alongside an answer demo discards', () => {
     expect(() => parseCliArgs(['--preset=demo', '--uiFramework=solid'])).toThrow(/preset=demo pins uiFramework/);

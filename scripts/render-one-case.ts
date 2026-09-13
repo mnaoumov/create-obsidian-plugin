@@ -51,7 +51,7 @@ main();
  * them the wrong tool for "what does THIS combination actually emit?". That is the question asked while
  * changing a template, and answering it meant a scratch file written, used and thrown away each time --
  * so the next person wrote it again, differently, and quoted its output into an issue with no way to
- * reproduce it. T764's own report quoted such a transcript, and one of its two lines was wrong. This is
+ * reproduce it. A report once quoted such a transcript, and one of its two lines was wrong. This is
  * that scratch file, kept.
  */
 function main(): void {
