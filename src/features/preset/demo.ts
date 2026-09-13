@@ -25,14 +25,14 @@ export class Demo extends FeatureOption {
       .addScript('build')
       .addScript('build:clean')
       .addScript('build:compile')
-      // The over-exposure linter from obsidian-dev-utils, which every plugin in the fleet runs. It reports
+      // The over-exposure linter from obsidian-dev-utils, which every plugin compared here runs. It reports
       // Members exported more widely than anything imports them, so it needs no configuration here.
       .addScript('find-overexposed')
       .addScript('find-overexposed:fix')
       .addScript('version')
       .addFiles([
         // Not gated on the gitHubActions answer, and deliberately so: this attests the assets of a
-        // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin in the fleet
+        // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin compared here
         // Ships this workflow and no other -- they have no ci.yml at all.
         '.github/workflows/attest-release-assets.yml',
         'scripts/build.ts',

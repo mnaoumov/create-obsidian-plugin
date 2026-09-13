@@ -1,4 +1,4 @@
-const ODU_PRESETS = new Set(['demo', 'enhanced']);
+const DEV_UTILS_PRESETS = new Set(['demo', 'enhanced']);
 
 /**
  * Whether a preset builds on `obsidian-dev-utils`.
@@ -9,6 +9,6 @@ const ODU_PRESETS = new Set(['demo', 'enhanced']);
  * @param preset - The preset setting value.
  * @returns Whether the preset depends on `obsidian-dev-utils`.
  */
-export function isOduPreset(preset: string): boolean {
-  return ODU_PRESETS.has(preset);
+export function isDevUtilsPreset(preset: string): boolean {
+  return DEV_UTILS_PRESETS.has(preset);
 }

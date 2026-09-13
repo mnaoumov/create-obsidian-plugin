@@ -16,34 +16,34 @@ import type {
   BaselineEntry,
   BaselineViolation,
   DriftFinding
-} from '../src/fleet-drift-checks.ts';
+} from '../src/plugin-drift-checks.ts';
 
 import {
   buildConsensus,
-  compareToFleet,
+  compareToPlugins,
   describeFinding,
-  discoverFleet,
+  discoverPlugins,
   extractProfile,
   findingKey,
-  fleetShapedAnswers,
   listGeneratedFiles,
   listTrackedFiles,
+  pluginShapedAnswers,
   reconcileBaseline
-} from '../src/fleet-drift-checks.ts';
+} from '../src/plugin-drift-checks.ts';
 import {
   copyTemplates,
   getScriptDir
 } from '../src/templates.ts';
 
 /** Where the accepted differences are recorded, relative to the repo root. */
-const BASELINE_FILE_NAME = 'fleet-drift-baseline.json';
+const BASELINE_FILE_NAME = 'plugin-drift-baseline.json';
 
 const JSON_INDENT_SPACES = 2;
 
 /**
  * The presets compared, and the scope each one's findings are filed under.
  *
- * Both, and not just the default: `isOduPreset` covers `enhanced` and `demo` alike, and `demo` forces a
+ * Both, and not just the default: `isDevUtilsPreset` covers `enhanced` and `demo` alike, and `demo` forces a
  * second answer into several questions, so it emits files `enhanced` never does. A tier that checked
  * only the default would call those files verified when nothing had looked at them.
  */
@@ -55,7 +55,7 @@ interface Baseline {
 }
 
 interface Options {
-  fleetRoot: string;
+  pluginsRoot: string;
   json: boolean;
   printBaseline: boolean;
 }
@@ -75,18 +75,18 @@ async function main(): Promise<void> {
   const repoRoot = join(getScriptDir(), '..');
   const options = parseOptions(process.argv.slice(2), repoRoot);
 
-  const fleetDirs = discoverFleet(options.fleetRoot);
-  if (fleetDirs.length === 0) {
-    // Not a pass. An empty fleet means the comparison never happened, and the whole design of this
+  const pluginDirs = discoverPlugins(options.pluginsRoot);
+  if (pluginDirs.length === 0) {
+    // Not a pass. An empty plugin set means the comparison never happened, and the whole design of this
     // Repo's verification is shaped around never letting "nothing ran" look like "nothing was wrong".
-    process.stderr.write(`No plugins found under ${options.fleetRoot}.\n`);
-    process.stderr.write('A fleet plugin is a directory with both a manifest.json and a src/main.ts.\n');
-    process.stderr.write('Point --fleet at the workspace that holds them.\n');
+    process.stderr.write(`No plugins found under ${options.pluginsRoot}.\n`);
+    process.stderr.write('A comparison plugin is a directory with both a manifest.json and a src/main.ts.\n');
+    process.stderr.write('Point --plugins-dir at the workspace that holds them.\n');
     process.exit(1);
   }
 
   const notRepositories: string[] = [];
-  const profiles = fleetDirs.map((dir) => {
+  const profiles = pluginDirs.map((dir) => {
     const files = listTrackedFiles(dir);
     if (files.length === 0) {
       notRepositories.push(dir);
@@ -105,7 +105,7 @@ async function main(): Promise<void> {
   }
 
   const consensus = buildConsensus(profiles);
-  process.stdout.write(`Fleet: ${String(consensus.total)} plugins under ${options.fleetRoot}\n`);
+  process.stdout.write(`Compared against ${String(consensus.total)} plugins under ${options.pluginsRoot}\n`);
 
   const findingsByScope = new Map<string, readonly DriftFinding[]>();
   for (const preset of PRESETS) {
@@ -128,14 +128,14 @@ async function main(): Promise<void> {
   process.exit(violations.length === 0 ? 0 : 1);
 }
 
-/** Generates one preset the way the fleet is shaped, and compares what comes out. */
+/** Generates one preset the way the compared plugins are shaped, and compares what comes out. */
 function findingsFor(preset: string, consensus: ReturnType<typeof buildConsensus>): DriftFinding[] {
-  const target = mkdtempSync(join(tmpdir(), `cop-fleet-${preset}-`));
+  const target = mkdtempSync(join(tmpdir(), `cop-plugin-drift-${preset}-`));
   try {
     // No resolved versions and no fetched `minAppVersion`: `copyTemplates` stays synchronous and offline,
     // And neither a dependency spec nor an app version is a trait this tier compares.
-    copyTemplates(fleetShapedAnswers(preset), target, '0.0.0', null);
-    return compareToFleet(consensus, extractProfile(target, listGeneratedFiles(target)));
+    copyTemplates(pluginShapedAnswers(preset), target, '0.0.0', null);
+    return compareToPlugins(consensus, extractProfile(target, listGeneratedFiles(target)));
   } finally {
     rmSync(target, { force: true, recursive: true });
   }
@@ -143,30 +143,30 @@ function findingsFor(preset: string, consensus: ReturnType<typeof buildConsensus
 
 function parseOptions(argv: readonly string[], repoRoot: string): Options {
   // The workspace that holds the plugins is this repo's own parent, because that is where they live --
-  // Each plugin is a sibling checkout. `--fleet` is for anyone whose layout differs.
-  let fleetRoot = resolve(dirname(repoRoot));
+  // Each plugin is a sibling checkout. `--plugins-dir` is for anyone whose layout differs.
+  let pluginsRoot = resolve(dirname(repoRoot));
   let json = false;
   let printBaseline = false;
 
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index];
-    if (argument === '--fleet') {
+    if (argument === '--plugins-dir') {
       index++;
       const value = argv[index];
       if (value === undefined) {
-        throw new Error('--fleet needs a directory.');
+        throw new Error('--plugins-dir needs a directory.');
       }
-      fleetRoot = resolve(value);
+      pluginsRoot = resolve(value);
     } else if (argument === '--json') {
       json = true;
     } else if (argument === '--print-baseline') {
       printBaseline = true;
     } else {
-      throw new Error(`Unknown argument ${String(argument)}. Accepts --fleet <dir>, --json, --print-baseline.`);
+      throw new Error(`Unknown argument ${String(argument)}. Accepts --plugins-dir <dir>, --json, --print-baseline.`);
     }
   }
 
-  return { fleetRoot, json, printBaseline };
+  return { pluginsRoot, json, printBaseline };
 }
 
 /**
@@ -180,7 +180,7 @@ function printBaselineSkeleton(findingsByScope: ReadonlyMap<string, readonly Dri
   const accepted: Record<string, BaselineEntry> = {};
   for (const [scope, findings] of findingsByScope) {
     for (const finding of findings) {
-      accepted[findingKey(finding, scope)] = { fleetCount: finding.fleetCount, why: `TODO -- ${describeFinding(finding)}` };
+      accepted[findingKey(finding, scope)] = { pluginCount: finding.pluginCount, why: `TODO -- ${describeFinding(finding)}` };
     }
   }
 
@@ -189,7 +189,7 @@ function printBaselineSkeleton(findingsByScope: ReadonlyMap<string, readonly Dri
 
 function report(findingsByScope: ReadonlyMap<string, readonly DriftFinding[]>, violations: readonly BaselineViolation[]): void {
   for (const [scope, findings] of findingsByScope) {
-    process.stdout.write(`\n${scope}: ${String(findings.length)} differences from the fleet\n`);
+    process.stdout.write(`\n${scope}: ${String(findings.length)} differences from the compared plugins\n`);
     for (const finding of findings) {
       process.stdout.write(`  ${findingKey(finding, scope)}\n      ${describeFinding(finding)}\n`);
     }
@@ -205,5 +205,5 @@ function report(findingsByScope: ReadonlyMap<string, readonly DriftFinding[]>, v
     process.stdout.write(`  [${violation.kind}] ${violation.key}\n      ${violation.detail}\n`);
   }
   process.stdout.write(`\nEither fix the generator, or record the difference in ${BASELINE_FILE_NAME} with the reason it is deliberate.\n`);
-  process.stdout.write(`\`npm run verify:fleet-drift -- --print-baseline\` prints a skeleton to fill in.\n`);
+  process.stdout.write(`\`npm run verify:plugin-drift -- --print-baseline\` prints a skeleton to fill in.\n`);
 }

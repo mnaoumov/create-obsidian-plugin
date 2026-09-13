@@ -67,7 +67,7 @@ A fourth script asks a different question — not whether the output is valid, b
 real plugin. It is the only one that reads anything outside this repo:
 
 ```bash
-npm run verify:fleet-drift    # ~2s: the two obsidian-dev-utils presets against the real plugins
+npm run verify:plugin-drift    # ~2s: the two obsidian-dev-utils presets against the real plugins
 ```
 
 Worth knowing:
@@ -81,12 +81,12 @@ Worth knowing:
   path lengths bite.
 - `verify:answer-space --exhaustive` checks all 15,049,359,360 combinations. It prints its projected cost
   first — on a 12-core machine that is roughly 13 hours.
-- `verify:fleet-drift` scans the checkout's parent directory for plugins — anything with both a
+- `verify:plugin-drift` scans the checkout's parent directory for plugins — anything with both a
   `manifest.json` and a `src/main.ts` — so it only does anything on a machine that has them checked out
-  beside this repo. `--fleet <dir>` points it elsewhere. It exits 1 rather than reporting a clean pass
+  beside this repo. `--plugins-dir <dir>` points it elsewhere. It exits 1 rather than reporting a clean pass
   when it finds none. Every difference it reports has to be either fixed or recorded in
-  `fleet-drift-baseline.json` with the reason it is deliberate;
-  `npm run verify:fleet-drift -- --print-baseline` prints a skeleton to fill in.
+  `plugin-drift-baseline.json` with the reason it is deliberate;
+  `npm run verify:plugin-drift -- --print-baseline` prints a skeleton to fill in.
 
 ### Look at one combination
 

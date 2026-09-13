@@ -35,10 +35,10 @@ import type { Answers } from './answers.ts';
 
 import { makeAnswers } from './answer-space.ts';
 
-/** One accepted difference, as recorded in `fleet-drift-baseline.json`. */
+/** One accepted difference, as recorded in `plugin-drift-baseline.json`. */
 export interface BaselineEntry {
   /** How many plugins carried the trait when the entry was written, so a moved count is re-reported. */
-  fleetCount: number;
+  pluginCount: number;
   /** The condition that makes the difference deliberate, in enough detail to re-judge it later. */
   why: string;
 }
@@ -68,7 +68,7 @@ export type BaselineViolationKind =
  * What is being compared.
  *
  * Dependencies and tsconfig `types` are deliberately absent. Both were already settled by following
- * the fleet -- the generator now installs `@obsidian-typings/obsidian-public-latest` and names it in
+ * the real plugins -- the generator now installs `@obsidian-typings/obsidian-public-latest` and names it in
  * `types` -- so re-reporting them here would re-litigate a closed decision rather than find anything.
  */
 export type DriftDimension =
@@ -78,23 +78,23 @@ export type DriftDimension =
   | 'scripts'
   | 'workflows';
 
-/** One way the generated project and the fleet disagree. */
+/** One way the generated project and the real plugins disagree. */
 export interface DriftFinding {
   dimension: DriftDimension;
-  /** How many of the fleet's plugins carry this trait. */
-  fleetCount: number;
-  /** How many plugins were compared, so `fleetCount` can be read as a proportion. */
-  fleetTotal: number;
-  /** The fleet's consensus value, or `''` when the trait is presence-only. */
-  fleetValue: string;
   /** The generated project's value, or `null` when it does not carry the trait at all. */
   generatedValue: null | string;
   key: string;
   kind: DriftKind;
+  /** How many of the real plugins carry this trait. */
+  pluginCount: number;
+  /** How many plugins were compared, so `pluginCount` can be read as a proportion. */
+  pluginTotal: number;
+  /** The real plugins' consensus value, or `''` when the trait is presence-only. */
+  pluginValue: string;
 }
 
 /**
- * How the generated project differs from the fleet on one trait.
+ * How the generated project differs from the real plugins on one trait.
  *
  * `partial` is separate from `missing` because the two need different judgements. A trait every plugin
  * has and the generator lacks is a gap; a trait 25 of 29 have is a call about whether the scaffold
@@ -106,15 +106,15 @@ export type DriftKind =
   | 'missing'
   | 'partial';
 
-/** What the fleet agrees on, and how strongly. */
-export interface FleetConsensus {
+/** What the real plugins agree on, and how strongly. */
+export interface PluginConsensus {
   /** How many plugins were profiled. */
   total: number;
-  traits: ReadonlyMap<DriftDimension, ReadonlyMap<string, FleetTrait>>;
+  traits: ReadonlyMap<DriftDimension, ReadonlyMap<string, PluginTrait>>;
 }
 
-/** One trait as the fleet holds it. */
-export interface FleetTrait {
+/** One trait as the real plugins hold it. */
+export interface PluginTrait {
   /** How many plugins carry the trait at all. */
   count: number;
   /** The most common value among the plugins that carry it. */
@@ -130,21 +130,21 @@ interface PackageJsonScripts {
 }
 
 /**
- * The answers that reproduce what the fleet actually is.
+ * The answers that reproduce what the real plugins actually are.
  *
  * The load-bearing decision of this tier. Comparing a `webpack + biome + jest` generation against the
- * fleet would report drift that is really just "the user answered differently" -- noise that would
- * swamp the signal and make the baseline meaningless. Every value below was measured across the fleet
+ * real plugins would report drift that is really just "the user answered differently" -- noise that would
+ * swamp the signal and make the baseline meaningless. Every value below was measured across the real plugins
  * rather than chosen: vitest and esbuild are unanimous, `@obsidian-typings/obsidian-public-latest` is
  * in all 29 `devDependencies` (so `with-unofficial`), 27 of 29 manifests say `isDesktopOnly: false`,
  * all 29 carry `.github/FUNDING.yml` and an `ISSUE_TEMPLATE/` directory, and 24 of 29 lint commits.
  *
- * `gitHubActions: 'none'` is the one that reads oddly and is the most important. No fleet plugin has a
+ * `gitHubActions: 'none'` is the one that reads oddly and is the most important. No real plugin has a
  * `ci.yml` or a `release.yml`; asking for them would report the generator's own CI workflows as drift
- * the fleet chose not to have, and would bury the finding that actually matters -- that the one
+ * the real plugins chose not to have, and would bury the finding that actually matters -- that the one
  * workflow all 29 DO ship is emitted by no answer at all.
  */
-export const FLEET_SHAPED_ANSWERS: Readonly<Partial<Answers>> = {
+export const PLUGIN_SHAPED_ANSWERS: Readonly<Partial<Answers>> = {
   apiSubset: 'with-unofficial',
   bundler: 'esbuild',
   commitLinting: 'conventional-commits',
@@ -168,14 +168,14 @@ export const FLEET_SHAPED_ANSWERS: Readonly<Partial<Answers>> = {
   wasmSupport: 'none'
 };
 
-/** The two files that make a directory one of the fleet's plugins -- the same test PROJECTS.md applies. */
-const FLEET_MARKER_FILES = ['manifest.json', 'src/main.ts'];
+/** The two files that make a directory one of the real plugins -- the same test PROJECTS.md applies. */
+const PLUGIN_MARKER_FILES = ['manifest.json', 'src/main.ts'];
 
 /**
  * Directories never walked on the generated side.
  *
- * The fleet side does not need them: `git ls-files` reports only tracked paths, and every one of these
- * is ignored in every fleet repo.
+ * The real-plugin side does not need them: `git ls-files` reports only tracked paths, and every one of these
+ * is ignored in every real plugin repo.
  */
 const IGNORED_DIRECTORIES = new Set([
   '.git',
@@ -189,7 +189,7 @@ const IGNORED_DIRECTORIES = new Set([
  *
  * Each is an artefact of running or installing the project rather than of scaffolding it, so its
  * presence says nothing about whether the two shapes agree. The lockfiles are the reason this list
- * exists at all: every fleet repo tracks one and no freshly generated project has one, because the
+ * exists at all: every real plugin repo tracks one and no freshly generated project has one, because the
  * install that writes it has not happened yet.
  */
 const IGNORED_FILES = new Set([
@@ -202,19 +202,19 @@ const IGNORED_FILES = new Set([
   'yarn.lock'
 ]);
 
-/** 32 MiB -- far beyond what `git ls-files` needs on the largest fleet repo, which lists a few hundred paths. */
+/** 32 MiB -- far beyond what `git ls-files` needs on the largest real plugin repo, which lists a few hundred paths. */
 const MAX_GIT_OUTPUT = 33_554_432;
 
 /**
- * The share of the fleet that must carry a trait before its absence is worth reporting as `partial`.
+ * The share of the real plugins that must carry a trait before its absence is worth reporting as `partial`.
  *
  * Without a floor this dimension is unusable rather than merely noisy: the first run produced 1793
  * findings, and all but a few dozen were a single plugin's own content -- every note, screenshot and
  * vendored `node_modules` file under one demo vault, each carried by exactly 1 of 29 and each reported
- * as something the generator "emits nothing" for. Below a majority the fleet does not have a shape to
+ * as something the generator "emits nothing" for. Below a majority the real plugins do not have a shape to
  * match; it has one plugin's contents. A majority is also the honest reading of the question the
- * `partial` kind exists to ask -- whether the scaffold should take the fleet's side on something the
- * fleet itself is divided about.
+ * `partial` kind exists to ask -- whether the scaffold should take the real plugins' side on something the
+ * real plugins themselves are divided about.
  */
 const PARTIAL_REPORTING_FLOOR = 0.5;
 
@@ -230,13 +230,13 @@ const PLUGIN_SHAPE_FILES = [
 const WORKFLOWS_PREFIX = '.github/workflows/';
 
 /**
- * Reduces the profiled fleet to what it agrees on.
+ * Reduces the profiled plugins to what it agrees on.
  *
  * A trait's value can differ between plugins that both carry it, so the consensus value is the most
  * common one, and ties break on the value itself -- which keeps the result stable across runs rather
  * than dependent on the order the directories happened to be read in.
  */
-export function buildConsensus(profiles: readonly ProjectProfile[]): FleetConsensus {
+export function buildConsensus(profiles: readonly ProjectProfile[]): PluginConsensus {
   const valueCounts = new Map<DriftDimension, Map<string, Map<string, number>>>();
 
   for (const profile of profiles) {
@@ -252,9 +252,9 @@ export function buildConsensus(profiles: readonly ProjectProfile[]): FleetConsen
     }
   }
 
-  const traits = new Map<DriftDimension, ReadonlyMap<string, FleetTrait>>();
+  const traits = new Map<DriftDimension, ReadonlyMap<string, PluginTrait>>();
   for (const [dimension, dimensionCounts] of valueCounts) {
-    const dimensionTraits = new Map<string, FleetTrait>();
+    const dimensionTraits = new Map<string, PluginTrait>();
     traits.set(dimension, dimensionTraits);
 
     for (const [key, counts] of dimensionCounts) {
@@ -276,34 +276,34 @@ export function buildConsensus(profiles: readonly ProjectProfile[]): FleetConsen
 }
 
 /**
- * Every way the generated project disagrees with the fleet.
+ * Every way the generated project disagrees with the real plugins.
  *
  * Only unanimous traits produce a `missing` or a `differs`: a scaffold cannot be called wrong for
- * lacking something two thirds of the fleet also lack. A trait no fleet plugin has is `extra`, and one
+ * lacking something two thirds of the real plugins also lack. A trait no real plugin has is `extra`, and one
  * that most but not all carry is `partial` -- reported only when the generator lacks it (a generator
  * that already has it is on the majority's side, so there is nothing left to decide) and only above
  * {@link PARTIAL_REPORTING_FLOOR}, without which this drowns in one plugin's own content.
  */
-export function compareToFleet(consensus: FleetConsensus, generated: ProjectProfile): DriftFinding[] {
+export function compareToPlugins(consensus: PluginConsensus, generated: ProjectProfile): DriftFinding[] {
   const findings: DriftFinding[] = [];
 
-  // The union, not the fleet's dimensions alone: a dimension the fleet has no trait in at all would
+  // The union, not the real plugins' dimensions alone: a dimension the real plugins have no trait in at all would
   // Otherwise never be scanned, and everything the generator emits under it would go unreported.
   const dimensions = new Set<DriftDimension>([...consensus.traits.keys(), ...generated.keys()]);
 
   for (const dimension of dimensions) {
-    const fleetTraits = consensus.traits.get(dimension) ?? new Map<string, FleetTrait>();
+    const pluginTraits = consensus.traits.get(dimension) ?? new Map<string, PluginTrait>();
     const generatedTraits = generated.get(dimension) ?? new Map<string, string>();
 
-    for (const [key, trait] of fleetTraits) {
+    for (const [key, trait] of pluginTraits) {
       const generatedValue = generatedTraits.get(key) ?? null;
       const base = {
         dimension,
-        fleetCount: trait.count,
-        fleetTotal: consensus.total,
-        fleetValue: trait.value,
         generatedValue,
-        key
+        key,
+        pluginCount: trait.count,
+        pluginTotal: consensus.total,
+        pluginValue: trait.value
       };
 
       if (trait.count < consensus.total) {
@@ -321,15 +321,15 @@ export function compareToFleet(consensus: FleetConsensus, generated: ProjectProf
     }
 
     for (const [key, value] of generatedTraits) {
-      if (!fleetTraits.has(key)) {
+      if (!pluginTraits.has(key)) {
         findings.push({
           dimension,
-          fleetCount: 0,
-          fleetTotal: consensus.total,
-          fleetValue: '',
           generatedValue: value,
           key,
-          kind: 'extra'
+          kind: 'extra',
+          pluginCount: 0,
+          pluginTotal: consensus.total,
+          pluginValue: ''
         });
       }
     }
@@ -340,26 +340,26 @@ export function compareToFleet(consensus: FleetConsensus, generated: ProjectProf
 
 /** One finding, as a line a reader can act on. */
 export function describeFinding(finding: DriftFinding): string {
-  const proportion = `${String(finding.fleetCount)}/${String(finding.fleetTotal)}`;
+  const proportion = `${String(finding.pluginCount)}/${String(finding.pluginTotal)}`;
   const descriptions: Record<DriftKind, string> = {
-    differs: `The fleet (${proportion}) has ${JSON.stringify(finding.fleetValue)}; the generator emits ${JSON.stringify(finding.generatedValue)}.`,
-    extra: `The generator emits ${JSON.stringify(finding.generatedValue)}; no fleet plugin has this.`,
-    missing: `Every fleet plugin (${proportion}) has this; the generator emits nothing.`,
-    partial: `${proportion} of the fleet have this; the generator emits nothing.`
+    differs: `The real plugins (${proportion}) have ${JSON.stringify(finding.pluginValue)}; the generator emits ${JSON.stringify(finding.generatedValue)}.`,
+    extra: `The generator emits ${JSON.stringify(finding.generatedValue)}; no real plugin has this.`,
+    missing: `Every real plugin (${proportion}) has this; the generator emits nothing.`,
+    partial: `${proportion} of the real plugins have this; the generator emits nothing.`
   };
 
   return descriptions[finding.kind];
 }
 
 /**
- * The fleet's plugin directories under `rootDir`.
+ * The real plugins' directories under `rootDir`.
  *
  * The membership test is PROJECTS.md's, applied to the filesystem rather than copied from it: a
  * `manifest.json` and a `src/main.ts` in the repo root. Reading the roster instead would tie this repo
  * to a file outside it and inherit whatever that file has drifted into -- it currently says 28 and
  * omits a plugin that is plainly on disk.
  */
-export function discoverFleet(rootDir: string): string[] {
+export function discoverPlugins(rootDir: string): string[] {
   if (!existsSync(rootDir)) {
     return [];
   }
@@ -370,7 +370,7 @@ export function discoverFleet(rootDir: string): string[] {
     if (!statSync(candidate).isDirectory()) {
       continue;
     }
-    if (FLEET_MARKER_FILES.every((marker) => existsSync(join(candidate, marker)))) {
+    if (PLUGIN_MARKER_FILES.every((marker) => existsSync(join(candidate, marker)))) {
       found.push(candidate);
     }
   }
@@ -409,11 +409,6 @@ export function findingKey(finding: DriftFinding, scope: string): string {
   return `${scope}/${traitKey(finding)}`;
 }
 
-/** The complete answers for one preset, shaped like the fleet. */
-export function fleetShapedAnswers(preset: string): Answers {
-  return makeAnswers({ ...FLEET_SHAPED_ANSWERS, preset });
-}
-
 /**
  * Every file in a freshly generated project.
  *
@@ -425,7 +420,7 @@ export function listGeneratedFiles(projectDir: string): string[] {
 }
 
 /**
- * Every file a fleet plugin tracks.
+ * Every file a real plugin tracks.
  *
  * `git ls-files` and not a walk: a checkout carries `node_modules`, build output and a real Obsidian
  * vault's worth of untracked state, and what the repo actually consists of is exactly the tracked set.
@@ -445,13 +440,18 @@ export function listTrackedFiles(projectDir: string): string[] {
     .sort((a, b) => a.localeCompare(b));
 }
 
+/** The complete answers for one preset, shaped like the real plugins. */
+export function pluginShapedAnswers(preset: string): Answers {
+  return makeAnswers({ ...PLUGIN_SHAPED_ANSWERS, preset });
+}
+
 /**
  * Checks the findings against the recorded baseline, in both directions.
  *
  * Both directions, because only one of them is the obvious one. New drift with no entry fails, which is
  * what makes this a gate rather than a report; but an entry whose drift has gone also fails, so that
  * fixing something and forgetting to delete its justification cannot leave the file describing a
- * difference that no longer exists. A moved `fleetCount` fails too -- the count IS the evidence behind
+ * difference that no longer exists. A moved `pluginCount` fails too -- the count IS the evidence behind
  * most of these judgements, and a trait that went from 25 of 29 to 29 of 29 needs the call made again.
  */
 export function reconcileBaseline(findingsByScope: ReadonlyMap<string, readonly DriftFinding[]>, baseline: Readonly<Record<string, BaselineEntry>>): BaselineViolation[] {
@@ -473,9 +473,9 @@ export function reconcileBaseline(findingsByScope: ReadonlyMap<string, readonly 
         continue;
       }
 
-      if (entry.fleetCount !== finding.fleetCount) {
+      if (entry.pluginCount !== finding.pluginCount) {
         violations.push({
-          detail: `Recorded at ${String(entry.fleetCount)} of the fleet, now ${String(finding.fleetCount)} of ${String(finding.fleetTotal)}. Re-judge: ${entry.why}`,
+          detail: `Recorded at ${String(entry.pluginCount)} of the real plugins, now ${String(finding.pluginCount)} of ${String(finding.pluginTotal)}. Re-judge: ${entry.why}`,
           key,
           kind: 'baseline-count-moved'
         });

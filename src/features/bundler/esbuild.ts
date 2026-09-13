@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isOduPreset } from '../preset/is-odu-preset.ts';
+import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 
 export class Esbuild extends FeatureOption {
   public constructor() {
@@ -14,7 +14,7 @@ export class Esbuild extends FeatureOption {
     // The standalone preset writes its own esbuild invocation and registers framework plugins inline.
     // The odu presets call obsidian-dev-utils' `build()` / `dev()`, which take the extra plugins as an
     // Argument -- so those two need somewhere to state them, and this is it.
-    if (isOduPreset(answers.preset)) {
+    if (isDevUtilsPreset(answers.preset)) {
       builder.addFiles(['scripts/esbuild-plugins.ts']);
     }
   }
