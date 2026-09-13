@@ -96,7 +96,7 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('manifest.json')).toEqual([]);
   });
 
-  // The shape T735 shipped: two frameworks' `compiler-options` partials each writing `"jsx"`. Valid
+  // The shape that shipped: two frameworks' `compiler-options` partials each writing `"jsx"`. Valid
   // JSON, `JSON.parse` keeps the last one without a word, and the project does not compile.
   it('flags a JSON key set twice in the same object', () => {
     put('tsconfig.json', '{ "compilerOptions": { "jsx": "preserve", "jsxImportSource": "solid-js", "jsx": "react-jsx" } }');

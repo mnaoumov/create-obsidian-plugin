@@ -11,7 +11,7 @@
     "do not emit the same project: without it, accepting one of demo's forced framework components would",
     "silence the same key under enhanced, where it would be a genuine surprise.",
     "",
-    "Dependencies and tsconfig `types` are not compared at all. T699-P42 settled both by following the",
+    "Dependencies and tsconfig `types` are not compared at all. Both were settled by following the",
     "fleet, and re-reporting them here would re-litigate a closed decision."
   ],
   "accepted": {

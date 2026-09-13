@@ -185,7 +185,7 @@ export function toAnswerKey(key: string): StringAnswerKey {
 /**
  * Refuses `preset=demo` alongside an answer demo pins, instead of accepting a flag it would then drop.
  *
- * Letting the flag through would be worse than dropping it: T735-P42 established that demo emits a
+ * Letting the flag through would be worse than dropping it: it is established that demo emits a
  * project that CANNOT BUILD when a second JSX runtime is forced in beside react, and closed that on the
  * grounds that the combination is unreachable from every CLI path. A `--uiFramework` flag reaching it
  * would re-open exactly that defect.

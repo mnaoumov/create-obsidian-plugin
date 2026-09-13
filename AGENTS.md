@@ -43,7 +43,7 @@ just a watcher: it also watches `node_modules` recursively and, on a change, dis
 context and re-runs the whole pipeline including `build:compile`. That exists to compensate for
 dev-utils' own `build:compile` step, which standalone has not got — and standalone's premise is a
 self-contained script with no dev-utils. Porting it would buy ~25 lines of debounced fs watching and
-process restart for no equivalent benefit. T764-P42 asked and answered it; do not re-open it.
+process restart for no equivalent benefit. That was asked and answered; do not re-open it.
 
 The two format scripts split on the **formatter** for the same class of reason.
 What `npm run format` runs is decided by the formatter answer, and only dprint has a preset-specific
@@ -476,7 +476,7 @@ None of them answers the question asked while actually editing a template — *w
 combination emit?* — because all three sweep. `npm run render:case -- <question>=<answer> …
 --show=<paths>` (`scripts/render-one-case.ts`) renders exactly one case and prints the files named,
 distinguishing "never emitted" from "emitted empty". Use it instead of writing another scratch
-renderer; that habit is how a wrong transcript ended up quoted in T764's own report.
+renderer; that habit is how a wrong transcript ended up quoted in a report.
 
 `npm run gate:case -- <question>=<answer> … [--out=<dir>]` (`scripts/gate-one-case.ts`) is its
 counterpart one tier down: it resolves versions, generates ONE case and runs the identical `runGate`
@@ -576,7 +576,7 @@ naming only the trait would let one of demo's forced framework components silenc
 `pinned-versions.json`: an unrecorded difference fails, an entry whose difference has since gone fails,
 and a moved `fleetCount` fails — the count is the evidence behind most of the judgements recorded there.
 
-Dependencies and tsconfig `types` are deliberately not compared. T699-P42 settled both by following the
+Dependencies and tsconfig `types` are deliberately not compared. Both were settled by following the
 fleet, and re-reporting them would re-litigate a closed decision.
 
 The fleet is discovered by scanning the parent directory for anything with both a `manifest.json` and a
