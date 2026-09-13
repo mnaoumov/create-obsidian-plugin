@@ -142,7 +142,7 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('README.md')).toEqual([]);
   });
 
-  // G95 names this as the defect a careless unwrapping sweep introduces: the `---` frontmatter inside a
+  // This is the defect a careless unwrapping sweep introduces: the `---` frontmatter inside a
   // `code-button` block is fenced content, not two thematic breaks around a wrapped paragraph.
   it('accepts a fenced code-button block, frontmatter and all', () => {
     put('demo-vault/00 Start.md', '# Start here\n\nOne line.\n\n```code-button\n---\ncaption: Run the Sample command\n---\nrequire(\'/demoSetup.ts\').runSampleCommand(app);\n```\n\nAnother line.\n');

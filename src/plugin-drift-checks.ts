@@ -54,7 +54,7 @@ export interface BaselineViolation {
 /**
  * How a baseline and the findings can fail to correspond.
  *
- * All three matter equally, for the reason G100 gives about `pinned-versions.json`: a record that
+ * All three matter equally, for the same reason `pinned-versions.json` is reconciled both ways: a record that
  * silently drifts from what it describes is worse than no record. `stale-baseline-entry` is the one
  * that is easy to forget -- fixing a drift without deleting its entry leaves the file claiming a
  * difference that no longer exists.

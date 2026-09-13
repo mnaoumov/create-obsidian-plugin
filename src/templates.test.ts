@@ -846,15 +846,15 @@ describe('copyTemplates', () => {
   it('leads the README with the plugin description', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    // G102 puts a lead paragraph between the title block and the first section.
+    // The README skeleton puts a lead paragraph between the title block and the first section.
     expect(readme.split('## Installation')[0]).toContain('A test plugin.');
   });
 
-  it('orders the README sections per the G102 skeleton', () => {
+  it('orders the README sections per the house skeleton', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'enhanced' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     const sections = [...readme.matchAll(/^## (?<Title>.+)$/gm)].map((match) => match.groups?.['Title']);
-    // G102 puts `Demo vault` first, before any feature section.
+    // The skeleton puts `Demo vault` first, before any feature section.
     expect(sections).toStrictEqual([
       'Demo vault',
       'Installation',
@@ -871,7 +871,7 @@ describe('copyTemplates', () => {
       copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
       const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
       expect(readme, preset).toContain('## Demo vault');
-      // All three G102 access routes, plus the plain-markdown entry point.
+      // All three access routes the skeleton names, plus the plain-markdown entry point.
       expect(readme, preset).toContain('[Start reading here](<./demo-vault/00 Start.md>)');
       expect(readme, preset).toContain('**My Plugin: Open demo vault** command');
       expect(readme, preset).toContain('`my-plugin-demo-vault-<version>.zip`');
@@ -883,7 +883,7 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ preset: 'standalone' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     // `standalone` has no obsidian-dev-utils release flow, so nothing would archive the vault into a
-    // Release -- and G102 omits a section rather than linking a file that does not exist.
+    // Release -- and the skeleton omits a section rather than linking a file that does not exist.
     expect(readme).not.toContain('## Demo vault');
     expect(existsSync(join(targetDir, 'demo-vault'))).toBe(false);
   });

@@ -115,7 +115,7 @@ const FENCE_PATTERN = /^(?:`{3,}|~{3,})/;
  * A line that is not prose: an ATX heading, a table row, raw HTML, or a thematic break.
  *
  * Each is its own block -- neither a continuation of the line above nor something the line below
- * continues -- and each keeps its own line structure, which is exactly what G102 exempts by name.
+ * continues -- and each keeps its own line structure, which is exactly what the one-line-per-paragraph rule exempts.
  */
 const NON_PROSE_LINE_PATTERN = /^(?:#{1,6}\s|\||<|(?:-{3,}|\*{3,}|_{3,})\s*$)/;
 
@@ -347,7 +347,7 @@ function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
  * Obsidian's markdown parser runs with `breaks: true`, so every newline in the source becomes a `<br>`.
  * A README wrapped at ~100 columns therefore renders as flowing paragraphs on GitHub and as ragged line
  * breaks in the community-plugin page, and a demo-vault note does the same inside the vault it
- * documents. G102 and G95 require the opposite: one source line per paragraph, per list item, per
+ * documents. Both need the opposite: one source line per paragraph, per list item, per
  * blockquote line.
  *
  * The check earns its place because nothing else catches this. `MD013` is off in the emitted

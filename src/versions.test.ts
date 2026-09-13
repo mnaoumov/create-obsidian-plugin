@@ -142,15 +142,15 @@ describe('buildPinnedVersionsJson', () => {
   });
 
   it('falls back to the manual check when that package is absent', () => {
-    // A biome project has no typescript-eslint, so the check command would just error -- G100 wants such a
-    // Pin reported for manual review on every run, not silently carrying an unrunnable command.
+    // A biome project has no typescript-eslint, so the check command would just error -- such a pin is
+    // Reported for manual review on every run, rather than silently carrying an unrunnable command.
     const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('typescript')])) as ParsedPinnedVersions;
     expect(parsed.pins['typescript']?.check).toBeNull();
     expect(parsed.pins['typescript']?.manualCheck).toBeTruthy();
   });
 
   it('documents every advisory override it emits', () => {
-    // G100 wants the override and its justification to correspond one to one, so an override that outlives
+    // An override and its justification correspond one to one, so an override that outlives
     // The advisory is visible rather than permanent.
     const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('obsidian-dev-utils')])) as ParsedPinnedVersions;
     for (const packageName of ['@puppeteer/browsers', 'deepmerge-ts']) {

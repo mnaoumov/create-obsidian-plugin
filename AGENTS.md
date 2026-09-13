@@ -100,7 +100,7 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 ### The obsidian-dev-utils presets ship a demo vault
 
-`demo-vault/` is the generated plugin's documentation (house rules G95/G98/G102/G104): notes that explain each feature and demonstrate it with `code-button`s run by CodeScript Toolkit. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
+`demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by CodeScript Toolkit. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
 
 Only the `odu` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
@@ -165,7 +165,7 @@ an explicit `addPackage(name, version)` wins, then the pin table, then `^<curren
 
 The pin table is the single source for three things — the exact spec written into `devDependencies`, the
 generated project's `overrides` block (npm's `$<name>` shorthand, only for pins that must also reach
-nested copies), and its `pinned-versions.json` (G100). A pin's `check` is emitted only when the package it
+nested copies), and its `pinned-versions.json`. A pin's `check` is emitted only when the package it
 reads from is in the project; otherwise its `manualCheck` is, so the file never carries a command that
 cannot run. Two of the pins are load-bearing: `typescript@latest` is outside typescript-eslint's peer
 range, and `@codemirror/*` must match Obsidian's exact peers.
@@ -505,7 +505,7 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    `main.js`. Both clauses: without the second, a bundler that tree-shook the import away would pass on
    the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
 5. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
-   every newline in a README or a demo-vault note becomes a `<br>` — G102 and G95 require one source line
+   every newline in a README or a demo-vault note becomes a `<br>` — both a README and a demo-vault note need one source line
    per paragraph, per list item, per blockquote line. Nothing in a generated project says so: `MD013` is
    off in the emitted markdownlint config, dprint excludes markdown, and obsidian-dev-utils' demo-vault
    coverage suite checks the `# H1`, the link style and reachability rather than the prose form. So the
@@ -572,8 +572,8 @@ contents.
 naming only the trait would let one of demo's forced framework components silence the same key under
 `enhanced`, where it would be a genuine surprise.
 
-**`plugin-drift-baseline.json` is reconciled in both directions**, exactly as G100 requires of
-`pinned-versions.json`: an unrecorded difference fails, an entry whose difference has since gone fails,
+**`plugin-drift-baseline.json` is reconciled in both directions**, exactly as
+`pinned-versions.json` is: an unrecorded difference fails, an entry whose difference has since gone fails,
 and a moved `pluginCount` fails — the count is the evidence behind most of the judgements recorded there.
 
 Dependencies and tsconfig `types` are deliberately not compared. Both were settled by following the
