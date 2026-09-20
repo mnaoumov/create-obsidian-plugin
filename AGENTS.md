@@ -265,6 +265,34 @@ Three things about it are load-bearing.
 
 The exported script is runnable rather than copyable text, which makes quoting per-shell: `sh` gets single quotes with `'\''` for an embedded one, `cmd` gets double quotes with `""` — **and a literal `%` doubled to `%%`, because a batch file expands `%…%` as a variable**. Funding and badge URLs are percent-encoded, so that is a real value, not a hypothetical. `cmd`'s `^` line continuation is silently broken by one trailing space, so the batch form stays on a single line and only the shell form wraps. The tests generate BOTH forms whatever the host runs and parse them back through the real parser; the quoting was additionally executed through actual `cmd.exe` and actual `sh`.
 
+### The three manifest answers are checked against the Community directory, at the prompt
+
+`src/directory-constraints.ts` holds what the directory's automated review enforces on `id`, `name` and
+`description`. It is reached from two places and needs no third: the prompts pass each validator to clack,
+and `cli-args.ts`'s `FREE_TEXT_VALIDATORS` is the same table, so a flag, an answers file, `render:case` and
+`gate:case` are all held to it.
+
+**Checking here is the only place the cost is zero.** The directory re-reads `manifest.json` at
+default-branch HEAD, so a one-word correction found afterwards costs a version bump and a fresh release —
+and an `id` costs more than that, because it can never be changed once the plugin is published.
+
+**The constraint set is stated twice on purpose.** `obsidian-dev-utils` carries the same rules as four
+ESLint checks over a repo's `manifest.json`, which is what catches an already-generated project. Sharing
+one copy would mean a runtime dependency on an obsidian ecosystem package, which the section above
+forbids, so the two are kept in step by hand. Change one and change the other.
+
+**Two checks the obvious reading of the rules gets wrong**, both measured across the live listings:
+a description may say `plugin` and may not refer to *itself* (`Enhances Note composer core plugin.` is
+published and passed the review), and a description has no character whitelist — backticks, em dashes,
+parentheses, colons and slashes are all live and unflagged, so only emoji are rejected. A third has the
+opposite provenance: `Obsidian` is banned from a description by the review and by no Obsidian document.
+
+**The generator's own answers have to pass too, and did not.** The default id was `my-awesome-plugin` and
+the verification fixture `my-plugin`, both of which the directory rejects for ending with `plugin`; their
+names carried `Plugin` for the same reason. So the `--yes` path shipped an unlistable plugin and every
+verified case generated one. `src/directory-constraints.test.ts` asserts both sets pass, which is what
+stops either drifting back.
+
 ### Three lists have to agree about which files are in the program
 
 Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the emitted
