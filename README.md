@@ -21,6 +21,8 @@ This walks you through an interactive wizard to scaffold a new Obsidian plugin p
 
 The wizard first asks for the project's own details — plugin id, name and description, your name and GitHub username, the default branch (`main` unless you say otherwise; `git init` creates it and the CI workflow triggers on it), a funding URL, and the path to a test vault's config folder — then the feature options below.
 
+The id, name and description are checked against what the Obsidian Community directory's automated review enforces, and a rejection says which rule you hit. That matters most for the id: the directory re-reads your `manifest.json` when you submit, and an id can never be changed once your plugin is published.
+
 ## Update an existing plugin
 
 Run the same command inside a project previously created with this tool:
@@ -51,8 +53,8 @@ Every question the wizard asks can be answered up front instead, which is what l
 Because `npm create` needs to be told which flags are yours rather than its own, npm takes a `--` first; pnpm, yarn and bun do not:
 
 ```bash
-npm create @mnaoumov/obsidian-plugin -- --yes --pluginId=my-plugin --packageManager=yarn
-pnpm create @mnaoumov/obsidian-plugin --yes --pluginId=my-plugin --packageManager=pnpm
+npm create @mnaoumov/obsidian-plugin -- --yes --pluginId=my-tool --packageManager=yarn
+pnpm create @mnaoumov/obsidian-plugin --yes --pluginId=my-tool --packageManager=pnpm
 ```
 
 Answers are applied in order, so the most specific wins: built-in defaults, then the answers saved in an existing project, then `--answersFile`, then individual flags. An answer given this way is not asked about again.
@@ -64,7 +66,7 @@ The answers file is a JSON object using the same names. It also accepts a whole 
   "preset": "enhanced",
   "bundler": "esbuild",
   "packageManager": "npm",
-  "pluginId": "my-plugin"
+  "pluginId": "my-tool"
 }
 ```
 

@@ -9,6 +9,11 @@ import type { Answers } from './answers.ts';
 import { select } from './clack-select.ts';
 import { text } from './clack-text.ts';
 import { GoBackError } from './clack-utils.ts';
+import {
+  validatePluginDescription,
+  validatePluginId,
+  validatePluginName
+} from './directory-constraints.ts';
 import { promptApiSubset } from './features/api-subset/index.ts';
 import { promptBundler } from './features/bundler/index.ts';
 import { promptCommitLinting } from './features/commit-linting/index.ts';
@@ -59,8 +64,17 @@ interface PromptStep {
 
 type StepAnswers = Map<string, string>;
 
+/**
+ * The id every other default is derived from, and the one the `--yes` path ships.
+ *
+ * It has to pass {@link validatePluginId} itself: it used to be `my-awesome-plugin`, which the Community
+ * directory rejects for ending with `plugin` -- so the non-interactive path generated a plugin that could
+ * never be listed, under an id that can never be changed once published.
+ */
+const DEFAULT_PLUGIN_ID = 'my-awesome-helper';
+
 export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
-  const pluginId = defaults?.pluginId ?? 'my-awesome-plugin';
+  const pluginId = defaults?.pluginId ?? DEFAULT_PLUGIN_ID;
   const base = getDefaultAnswersBase(pluginId);
   if (!defaults) {
     return base;
@@ -91,41 +105,12 @@ export function validateNotEmpty(value: string | undefined): string | undefined 
   return undefined;
 }
 
-export function validatePluginDescription(input: string | undefined): string | undefined {
-  if (!input) {
-    return 'Should not be empty';
-  }
-  if (!input.endsWith('.')) {
-    return 'Should end with a dot';
-  }
-  return undefined;
-}
-
-export function validatePluginId(input: string | undefined): string | undefined {
-  if (!input) {
-    return 'Should not be empty';
-  }
-  if (!/^[a-z0-9-]+$/.test(input)) {
-    return 'Should contain only lowercase English letters, digits and hyphens';
-  }
-  if (!/^[a-z]/.test(input)) {
-    return 'Should start with a letter';
-  }
-  if (!/[a-z0-9]$/.test(input)) {
-    return 'Should end with a letter or digit';
-  }
-  if (input.startsWith('obsidian-')) {
-    return 'Should not start with "obsidian-"';
-  }
-  return undefined;
-}
-
 function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Answers {
   function get(key: string, fallback: string): string {
     return answers.get(key) ?? fallback;
   }
 
-  const pluginId = get('pluginId', 'my-awesome-plugin');
+  const pluginId = get('pluginId', DEFAULT_PLUGIN_ID);
 
   return {
     apiSubset: get('apiSubset', defaultTooling.apiSubset),
@@ -310,12 +295,12 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
         text({
           defaultValue: saved || undefined,
           message: 'Plugin id (lowercase, hyphens allowed)',
-          placeholder: saved || 'my-awesome-plugin',
+          placeholder: saved || DEFAULT_PLUGIN_ID,
           validate: validatePluginId
         })
     },
     {
-      defaultValue: (answers) => d.pluginName ?? makePluginName(answers.get('pluginId') ?? 'my-awesome-plugin'),
+      defaultValue: (answers) => d.pluginName ?? makePluginName(answers.get('pluginId') ?? DEFAULT_PLUGIN_ID),
       key: 'pluginName',
       prompt: (saved): Promise<string> => promptPluginName(saved)
     },
@@ -445,8 +430,8 @@ function promptPluginName(saved: string): Promise<string> {
   return text({
     defaultValue: value,
     message: 'Plugin display name',
-    placeholder: value ?? 'My Awesome Plugin',
-    validate: validateNotEmpty
+    placeholder: value ?? makePluginName(DEFAULT_PLUGIN_ID),
+    validate: validatePluginName
   });
 }
 

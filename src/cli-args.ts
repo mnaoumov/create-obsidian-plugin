@@ -10,10 +10,13 @@ import type {
 
 import { ANSWER_SPACE } from './answer-space.ts';
 import {
-  getDefaultAnswers,
-  validateNotEmpty,
   validatePluginDescription,
-  validatePluginId
+  validatePluginId,
+  validatePluginName
+} from './directory-constraints.ts';
+import {
+  getDefaultAnswers,
+  validateNotEmpty
 } from './prompts.ts';
 
 export interface CliArgs {
@@ -44,7 +47,9 @@ const FLAG_PREFIX_LENGTH = 2;
  *
  * These run only inside the clack `text()` prompt today, so an answer that arrives any other way is
  * unchecked. Sharing them here is what stops the non-interactive path accepting a plugin id the
- * interactive path would have refused.
+ * interactive path would have refused -- and, since the three manifest answers are validated against the
+ * Community directory's constraints, what stops a flag or an answers file generating a plugin that
+ * cannot be listed.
  *
  * `fundingUrl` and `obsidianConfigFolder` are deliberately absent: both are legitimately empty, and
  * their prompts declare no validator either.
@@ -55,7 +60,7 @@ const FREE_TEXT_VALIDATORS: Partial<Record<StringAnswerKey, (value: string) => s
   defaultBranch: validateNotEmpty,
   pluginDescription: validatePluginDescription,
   pluginId: validatePluginId,
-  pluginName: validateNotEmpty
+  pluginName: validatePluginName
 };
 
 /**

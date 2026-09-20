@@ -151,24 +151,24 @@ describe('round-tripping the exported answers', () => {
 
   for (const shell of shells) {
     it(`reads back what it wrote, for ${shell}`, () => {
-      const answers = getDefaultAnswers({ pluginId: 'my-plugin', pluginName: 'My Plugin' });
+      const answers = getDefaultAnswers({ pluginId: 'my-tool', pluginName: 'My Tool' });
       expect(roundTrip(answers, shell)).toStrictEqual(expectedAnswers(answers));
     });
 
     it(`survives quoting hazards, for ${shell}`, () => {
-      const answers = getDefaultAnswers({ authorName: NASTY, pluginId: 'my-plugin' });
+      const answers = getDefaultAnswers({ authorName: NASTY, pluginId: 'my-tool' });
       expect(roundTrip(answers, shell)['authorName']).toBe(NASTY);
     });
 
     it(`survives an empty presence-branch answer, for ${shell}`, () => {
-      const answers = getDefaultAnswers({ fundingUrl: '', obsidianConfigFolder: '', pluginId: 'my-plugin' });
+      const answers = getDefaultAnswers({ fundingUrl: '', obsidianConfigFolder: '', pluginId: 'my-tool' });
       const parsed = roundTrip(answers, shell);
       expect(parsed['fundingUrl']).toBe('');
       expect(parsed['obsidianConfigFolder']).toBe('');
     });
 
     it(`emits a command the CLI accepts under preset=demo, for ${shell}`, () => {
-      const answers = getDefaultAnswers({ pluginId: 'my-plugin', preset: 'demo' });
+      const answers = getDefaultAnswers({ pluginId: 'my-tool', preset: 'demo' });
       const parsed = roundTrip(answers, shell);
       expect(parsed['preset']).toBe('demo');
       expect(parsed['bundler']).toBeUndefined();
@@ -177,7 +177,7 @@ describe('round-tripping the exported answers', () => {
   }
 
   it('reads back the answers file it wrote', () => {
-    const answers = getDefaultAnswers({ authorName: NASTY, pluginId: 'my-plugin' });
+    const answers = getDefaultAnswers({ authorName: NASTY, pluginId: 'my-tool' });
     const path = join(tempDir, 'answers.json');
     writeFileSync(path, formatAnswersJson(answers));
     expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual(expectedAnswers(answers));
@@ -186,7 +186,7 @@ describe('round-tripping the exported answers', () => {
 
 describe('the emitted command', () => {
   it('passes --yes, so the run is actually non-interactive', () => {
-    const answers = getDefaultAnswers({ pluginId: 'my-plugin' });
+    const answers = getDefaultAnswers({ pluginId: 'my-tool' });
     expect(formatCreateCommand(answers, 'sh')).toContain('--yes');
   });
 
@@ -205,13 +205,13 @@ describe('the emitted command', () => {
   // `cmd`'s `^` continuation is silently broken by one trailing space, so the batch form stays on one
   // Line and only the shell form is wrapped.
   it('wraps the sh form and keeps the cmd form on one line', () => {
-    const answers = getDefaultAnswers({ pluginId: 'my-plugin' });
+    const answers = getDefaultAnswers({ pluginId: 'my-tool' });
     expect(formatCreateCommand(answers, 'sh')).toContain(' \\\n  ');
     expect(formatCreateCommand(answers, 'cmd')).not.toContain('\n');
   });
 
   it('doubles a percent sign for cmd and leaves it alone for sh', () => {
-    const answers = getDefaultAnswers({ fundingUrl: 'https://example.com/a%20b', pluginId: 'my-plugin' });
+    const answers = getDefaultAnswers({ fundingUrl: 'https://example.com/a%20b', pluginId: 'my-tool' });
     expect(formatCreateCommand(answers, 'cmd')).toContain('a%%20b');
     expect(formatCreateCommand(answers, 'sh')).toContain('a%20b');
   });
@@ -219,13 +219,13 @@ describe('the emitted command', () => {
 
 describe('the emitted script', () => {
   it('gives the sh form a shebang and LF endings', () => {
-    const script = formatCreateScript(getDefaultAnswers({ pluginId: 'my-plugin' }), 'sh');
+    const script = formatCreateScript(getDefaultAnswers({ pluginId: 'my-tool' }), 'sh');
     expect(script.startsWith('#!/usr/bin/env sh\nset -e\n')).toBe(true);
     expect(script).not.toContain('\r');
   });
 
   it('gives the cmd form @echo off and CRLF endings', () => {
-    const script = formatCreateScript(getDefaultAnswers({ pluginId: 'my-plugin' }), 'cmd');
+    const script = formatCreateScript(getDefaultAnswers({ pluginId: 'my-tool' }), 'cmd');
     expect(script.startsWith('@echo off\r\n')).toBe(true);
     expect(script.split('\n').every((line) => line === '' || line.endsWith('\r'))).toBe(true);
   });

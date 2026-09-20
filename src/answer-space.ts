@@ -94,6 +94,11 @@ const VERIFICATION_CURRENT_YEAR = 2026;
  *
  * They are free text rather than a choice, so varying them cannot change which templates or partials a
  * case pulls in -- only what gets substituted into them.
+ *
+ * The three manifest answers still have to satisfy `directory-constraints.ts`, which is why the id is
+ * not the obvious `my-plugin`: the Community directory rejects an id ending with `plugin` and a name
+ * containing it, so a fixture using either would have every verified case emit a project that could
+ * never be listed -- and would be refused outright if typed at `render:case` or `gate:case`.
  */
 const FIXED_ANSWERS = {
   authorGitHubName: 'testuser',
@@ -101,9 +106,9 @@ const FIXED_ANSWERS = {
   currentYear: VERIFICATION_CURRENT_YEAR,
   defaultBranch: 'main',
   pluginDescription: 'A generated plugin.',
-  pluginId: 'my-plugin',
-  pluginName: 'My Plugin',
-  pluginShortName: 'MyPlugin'
+  pluginId: 'my-tool',
+  pluginName: 'My Tool',
+  pluginShortName: 'MyTool'
 } as const;
 
 /**
