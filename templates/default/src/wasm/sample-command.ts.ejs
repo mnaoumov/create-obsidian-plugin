@@ -18,6 +18,7 @@ import { getWasmAnswer } from './answer.ts';
 export function registerSampleWasmCommand(plugin: Plugin): void {
   plugin.addCommand({
     callback: () => {
+      // eslint-disable-next-line no-void -- The command callback is synchronous; `void` is the marker `no-floating-promises` accepts.
       void showWasmAnswer();
     },
     id: 'sample-wasm-answer',

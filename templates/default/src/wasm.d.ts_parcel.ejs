@@ -3,5 +3,6 @@
 // Module travels inside the bundle as a `data:` URL.
 declare module 'data-url:*' {
   const dataUrl: string;
+  // eslint-disable-next-line import-x/no-default-export -- A `.wasm` import is a default import; the declaration has to match.
   export default dataUrl;
 }

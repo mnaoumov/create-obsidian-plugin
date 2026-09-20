@@ -1,5 +1,6 @@
 import { ItemView } from 'obsidian';
 
+// eslint-disable-next-line import-x/no-unassigned-import -- Importing the module is what REGISTERS the custom element; there is nothing to bind.
 import '../lit-elements/sample-lit-element.ts';
 
 export const SAMPLE_LIT_VIEW_TYPE = '<%= pluginId %>-SampleLitView';
@@ -13,18 +14,18 @@ export class SampleLitView extends ItemView {
     return SAMPLE_LIT_VIEW_TYPE;
   }
 
-  public override async onClose(): Promise<void> {
+  public override onClose(): Promise<void> {
     this.contentEl.empty();
-    await Promise.resolve();
+    return super.onClose();
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
-    const el = document.createElement('sample-lit-element');
+    const el = createEl('sample-lit-element');
     el.setAttribute('count', String(START_COUNT));
     el.setAttribute('vaultName', this.app.vault.getName());
-    this.contentEl.appendChild(el);
+    this.contentEl.append(el);
 
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

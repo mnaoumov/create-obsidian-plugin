@@ -8,5 +8,6 @@ declare module '*.wasm' {
   // `WebAssembly` call. esbuild's `binary` loader emits a plain `new Uint8Array(...)` over an ordinary
   // Buffer, so the narrower type is also the true one.
   const bytes: Uint8Array<ArrayBuffer>;
+  // eslint-disable-next-line import-x/no-default-export -- A `.wasm` import is a default import; the declaration has to match.
   export default bytes;
 }

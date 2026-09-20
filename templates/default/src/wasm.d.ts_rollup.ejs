@@ -4,5 +4,6 @@
 // `WebAssembly.Module` instead, which has no `exports` to read.
 declare module '*.wasm' {
   const load: (imports: WebAssembly.Imports) => Promise<WebAssembly.WebAssemblyInstantiatedSource>;
+  // eslint-disable-next-line import-x/no-default-export -- A `.wasm` import is a default import; the declaration has to match.
   export default load;
 }

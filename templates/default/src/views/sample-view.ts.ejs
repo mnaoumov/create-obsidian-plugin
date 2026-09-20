@@ -11,7 +11,7 @@ export class SampleView extends ItemView {
     return SAMPLE_VIEW_TYPE;
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const container = this.contentEl;
     container.empty();
     container.createEl('h4', { text: '<%= pluginName %>' });
@@ -32,6 +32,6 @@ export class SampleView extends ItemView {
       list.createEl('li', { text: `... and ${String(files.length - MAX_FILES)} more` });
     }
 
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

@@ -27,7 +27,7 @@ const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
  * cannot transform. Absolute, because a vite alias replacement is resolved from the project root rather
  * than from this file.
  */
-const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('./framework-component-stub.ts', import.meta.url));
+const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('framework-component-stub.ts', import.meta.url));
 
 /**
  * Where every `.wasm` import in a unit test's module graph is sent, for the same reason as the component
@@ -35,7 +35,7 @@ const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('./framework-compone
  * URL that exists only under a dev server — so a unit test that imports the plugin's own code fails on
  * `Failed to parse URL` before it runs a single assertion.
  */
-const WASM_MODULE_STUB_PATH = fileURLToPath(new URL('./wasm-module-stub.ts', import.meta.url));
+const WASM_MODULE_STUB_PATH = fileURLToPath(new URL('wasm-module-stub.ts', import.meta.url));
 
 export const config = defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {

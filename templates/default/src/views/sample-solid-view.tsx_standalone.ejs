@@ -21,12 +21,12 @@ export class SampleSolidView extends ItemView {
     return SAMPLE_SOLID_VIEW_TYPE;
   }
 
-  public override async onClose(): Promise<void> {
+  public override onClose(): Promise<void> {
     this.dispose?.();
-    await Promise.resolve();
+    return super.onClose();
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
     const props: SampleSolidComponentProps = {
       startCount: START_COUNT
@@ -41,6 +41,6 @@ export class SampleSolidView extends ItemView {
       this.contentEl
     );
 
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

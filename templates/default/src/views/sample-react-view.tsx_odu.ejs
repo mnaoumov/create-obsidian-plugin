@@ -22,12 +22,12 @@ export class SampleReactView extends ItemView {
     return SAMPLE_REACT_VIEW_TYPE;
   }
 
-  public override async onClose(): Promise<void> {
+  public override onClose(): Promise<void> {
     this.root?.unmount();
-    await Promise.resolve();
+    return super.onClose();
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
     const props: SampleReactComponentProps = {
       startCount: START_COUNT
@@ -42,6 +42,6 @@ export class SampleReactView extends ItemView {
       </StrictMode>
     );
 
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

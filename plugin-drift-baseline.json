@@ -91,10 +91,6 @@
       "pluginCount": 29,
       "why": "The real plugins' `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the real plugins, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
     },
-    "demo/layout/missing/scripts/eslint-config.ts": {
-      "pluginCount": 29,
-      "why": "The real plugins' ESLint config is obsidian-dev-utils' `defineEslintConfigs` with a per-plugin override. The generator emits a self-contained `eslint.config.mts` because the same config has to serve the standalone preset, which depends on nothing from the ecosystem. Adopting the shared config on the odu presets is a design change, not a file move; recorded as a follow-up."
-    },
     "demo/layout/partial/CHANGELOG.md": {
       "pluginCount": 28,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
@@ -166,10 +162,6 @@
     "demo/odu-modules/missing/scripts/build-compile-typescript.ts": {
       "pluginCount": 29,
       "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the real plugins' duplicate of `build-compile.ts`."
-    },
-    "demo/odu-modules/missing/scripts/eslint-config.ts": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/eslint-config.ts` -- the generator's ESLint config is self-contained rather than wrapping obsidian-dev-utils'."
     },
     "demo/odu-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 29,
@@ -243,10 +235,6 @@
       "pluginCount": 29,
       "why": "The real plugins' `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the real plugins, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
     },
-    "enhanced/layout/missing/scripts/eslint-config.ts": {
-      "pluginCount": 29,
-      "why": "The real plugins' ESLint config is obsidian-dev-utils' `defineEslintConfigs` with a per-plugin override. The generator emits a self-contained `eslint.config.mts` because the same config has to serve the standalone preset, which depends on nothing from the ecosystem. Adopting the shared config on the odu presets is a design change, not a file move; recorded as a follow-up."
-    },
     "enhanced/layout/partial/CHANGELOG.md": {
       "pluginCount": 28,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
@@ -318,10 +306,6 @@
     "enhanced/odu-modules/missing/scripts/build-compile-typescript.ts": {
       "pluginCount": 29,
       "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the real plugins' duplicate of `build-compile.ts`."
-    },
-    "enhanced/odu-modules/missing/scripts/eslint-config.ts": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/eslint-config.ts` -- the generator's ESLint config is self-contained rather than wrapping obsidian-dev-utils'."
     },
     "enhanced/odu-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 29,

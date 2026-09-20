@@ -54,6 +54,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
     }
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Override must keep the base param type.
   protected override async onSaveSettings(params: PluginSettingsComponentBaseOnSaveSettingsParams<PluginSettings>): Promise<void> {
     await super.onSaveSettings(params);
     if (params.newState.effectiveValues.textSetting === 'baz' && params.oldState.effectiveValues.textSetting === 'bar') {

@@ -219,10 +219,11 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
       .setName('Typed dropdown setting name')
       .setDesc('Typed dropdown setting description.')
       .addTypedDropdown((typedDropdown) => {
-        const map = new Map<TypedItem, string>();
-        map.set(TypedItem.Foo, 'Display Foo');
-        map.set(TypedItem.Bar, 'Display Bar');
-        map.set(TypedItem.Baz, 'Display Baz');
+        const map = new Map<TypedItem, string>([
+          [TypedItem.Bar, 'Display Bar'],
+          [TypedItem.Baz, 'Display Baz'],
+          [TypedItem.Foo, 'Display Foo']
+        ]);
         typedDropdown.addOptions(map);
         this.bind({
           onChanged(newValue, oldValue) {
@@ -237,10 +238,11 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
       .setName('Typed multiple dropdown setting name')
       .setDesc('Typed multiple dropdown setting description.')
       .addTypedMultipleDropdown((typedMultipleDropdown) => {
-        const map = new Map<TypedItem, string>();
-        map.set(TypedItem.Foo, 'Display Foo');
-        map.set(TypedItem.Bar, 'Display Bar');
-        map.set(TypedItem.Baz, 'Display Baz');
+        const map = new Map<TypedItem, string>([
+          [TypedItem.Bar, 'Display Bar'],
+          [TypedItem.Baz, 'Display Baz'],
+          [TypedItem.Foo, 'Display Foo']
+        ]);
         typedMultipleDropdown.addOptions(map);
         this.bind({
           onChanged(newValue, oldValue) {

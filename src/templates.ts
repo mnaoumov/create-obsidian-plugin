@@ -280,6 +280,19 @@ export function copyTemplates(
       currentTemplatePath = previousTemplatePath;
       renderRoot = previousRenderRoot;
       return result;
+    },
+    /**
+     * Sorts a block of `import` statements a template composed from partials, by the module each names.
+     *
+     * A section that contributes imports emits them in PARTIAL order, which is the order the answers were
+     * registered in {@link FEATURE_REGISTRIES} -- and that has nothing to do with the order an
+     * import-sorting lint rule wants. The obsidian-dev-utils presets now adopt that package's shared
+     * ESLint config, which sorts imports as an ERROR, so `uiFramework=lit editorExtensions=codemirror`
+     * emitted a `src/plugin.ts` that was red the moment it was generated. The sorting cannot be pushed
+     * into the partials: each one knows only itself, and which others are beside it is the answer set.
+     */
+    sortImports(text: string): string {
+      return sortImportStatements(text);
     }
   };
 
@@ -408,6 +421,10 @@ function isPartialFile(templatePath: string): boolean {
   return fileName.includes('_');
 }
 
+function importedModule(block: string): string {
+  return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
+}
+
 function logUpdateSummary(updated: string[], created: string[], skipped: string[]): void {
   if (updated.length > 0) {
     log.success(`Updated ${String(updated.length)} file(s):`);
@@ -461,4 +478,23 @@ function migrateAnswers(raw: Record<string, unknown>): void {
 
 function sha256(content: Buffer | string): string {
   return createHash('sha256').update(content).digest('hex');
+}
+
+/**
+ * Sorts a run of `import` statements by the module each one names.
+ *
+ * A statement may span several lines -- a named-import list is written one name per line here -- so the
+ * split is on a newline FOLLOWED BY `import `, which is the only place a new statement can start. Blocks
+ * are compared by the specifier in their trailing `from '...'`, which is what an import-sorting lint rule
+ * asks for within one group. A side-effect import (`import './x.ts';`) has no `from`, and its own text
+ * is then the key.
+ */
+function sortImportStatements(text: string): string {
+  const blocks = text.split(/\n(?=import )/).map((block) => block.trim()).filter((block) => block !== '');
+  if (blocks.length === 0) {
+    return text;
+  }
+
+  blocks.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
+  return `${blocks.join('\n')}\n`;
 }
