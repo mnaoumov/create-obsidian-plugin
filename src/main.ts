@@ -39,6 +39,7 @@ import {
   getHelpText,
   parseCliArgs
 } from './cli-args.ts';
+import { findUnlistableManifestAnswers } from './directory-constraints.ts';
 import {
   getInstallCommand,
   getRunCommand
@@ -84,6 +85,24 @@ const JSON_INDENT_SPACES = 2;
 
 /** Owner-writable, everyone-executable: a script the user must `chmod` before running is a poor hand-off. */
 const SCRIPT_MODE = 0o755;
+
+/**
+ * Refuses to scaffold a plugin the Community directory would not list, naming the flag that fixes it.
+ *
+ * Only on the create path: `runUpdate` reads an existing project's saved answers, which may predate any
+ * of this and are not ours to refuse. The same stderr-then-exit shape as a rejected flag, because that
+ * is what this is -- a usage error found one step later than the parser can find it.
+ */
+function assertManifestAnswersAreListable(answers: Answers): void {
+  const problems = findUnlistableManifestAnswers(answers);
+  if (problems.length === 0) {
+    return;
+  }
+
+  const lines = problems.map((problem) => `"${problem.value}" is not a valid ${problem.key}. ${problem.message}.\nPass --${problem.key}=<value> to set it yourself.`);
+  process.stderr.write(`${lines.join('\n\n')}\n`);
+  process.exit(1);
+}
 
 async function checkForUpdates(currentVersion: string): Promise<void> {
   const latestVer = await fetchLatestVersion('@mnaoumov/create-obsidian-plugin');
@@ -246,6 +265,7 @@ async function resolveExternalVersions(answers: Answers): Promise<ResolvedExtern
 
 async function runCreate(currentVersion: string, useDefaults: boolean, suppliedAnswers: Partial<Answers>): Promise<void> {
   const answers = useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers);
+  assertManifestAnswersAreListable(answers);
 
   // Not under `--yes`: that path is what an exported script itself runs, so offering to export from
   // Inside it would be asking a question of a run that exists to ask none.

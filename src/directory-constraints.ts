@@ -30,6 +30,20 @@
  * `invalid`.
  */
 
+/** One answer the directory would reject, named by the key that sets it. */
+export interface ManifestAnswerProblem {
+  key: string;
+  message: string;
+  value: string;
+}
+
+/** The three answers that become `manifest.json`'s listed fields. */
+export interface ManifestAnswers {
+  pluginDescription: string;
+  pluginId: string;
+  pluginName: string;
+}
+
 /**
  * The names of Obsidian's core plugins and core features, which the directory refuses to let a community
  * plugin take.
@@ -110,6 +124,33 @@ const SELF_REFERENCE_PATTERNS = [
   /^the plugin\b/i,
   /^plugin\b/i
 ];
+
+/**
+ * Every reason the Community directory would refuse these three answers, or an empty array if it would
+ * accept them.
+ *
+ * Exists for the answers NOBODY TYPED. Each of the three validators below already guards every answered
+ * value -- the prompts and `cli-args.ts` share one table of them -- but a DERIVED value passes through
+ * neither: `--yes --pluginId=my-plugin-helper` asks no name question and computes `My Plugin Helper`
+ * from the id, which the directory rejects for carrying `Plugin`. Checking the finished set once, just
+ * before anything is written, is what closes that.
+ */
+export function findUnlistableManifestAnswers(answers: ManifestAnswers): ManifestAnswerProblem[] {
+  const checked = [
+    { key: 'pluginId', message: validatePluginId(answers.pluginId), value: answers.pluginId },
+    { key: 'pluginName', message: validatePluginName(answers.pluginName), value: answers.pluginName },
+    { key: 'pluginDescription', message: validatePluginDescription(answers.pluginDescription), value: answers.pluginDescription }
+  ];
+
+  const problems: ManifestAnswerProblem[] = [];
+  for (const { key, message, value } of checked) {
+    if (message !== undefined) {
+      problems.push({ key, message, value });
+    }
+  }
+
+  return problems;
+}
 
 /**
  * Reports what the Community directory would reject about a plugin description, or `undefined` if it

@@ -7,6 +7,7 @@ import {
 import { answersAtOrdinal } from './answer-space.ts';
 import {
   CORE_FEATURE_NAMES,
+  findUnlistableManifestAnswers,
   MAX_DESCRIPTION_LENGTH,
   validatePluginDescription,
   validatePluginId,
@@ -146,5 +147,35 @@ describe('the answers the generator supplies itself', () => {
     expect(validatePluginId(answers.pluginId)).toBeUndefined();
     expect(validatePluginName(answers.pluginName)).toBeUndefined();
     expect(validatePluginDescription(answers.pluginDescription)).toBeUndefined();
+  });
+});
+
+// The three validators guard every answer somebody TYPED, on both the prompt and the flag path. A name
+// Nobody typed passes through neither: `--yes --pluginId=my-plugin-helper` asks no name question and
+// Derives one from the id.
+describe('the finished set of answers', () => {
+  it('accepts answers the directory would list', () => {
+    expect(findUnlistableManifestAnswers(getDefaultAnswers())).toStrictEqual([]);
+  });
+
+  it('catches a name DERIVED from a legal id that the directory would reject', () => {
+    const answers = getDefaultAnswers({ pluginId: 'my-plugin-helper' });
+    expect(validatePluginId(answers.pluginId)).toBeUndefined();
+    expect(answers.pluginName).toBe('My Plugin Helper');
+
+    const problems = findUnlistableManifestAnswers(answers);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]?.key).toBe('pluginName');
+    expect(problems[0]?.value).toBe('My Plugin Helper');
+    expect(problems[0]?.message).toMatch(/not contain "Plugin"/);
+  });
+
+  it('reports every offending answer at once, not just the first', () => {
+    const problems = findUnlistableManifestAnswers({
+      pluginDescription: 'This plugin does things.',
+      pluginId: 'my-plugin',
+      pluginName: 'Bases'
+    });
+    expect(problems.map((problem) => problem.key)).toStrictEqual(['pluginId', 'pluginName', 'pluginDescription']);
   });
 });
