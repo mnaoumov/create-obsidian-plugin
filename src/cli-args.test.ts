@@ -89,7 +89,7 @@ describe('parsing flags', () => {
   });
 
   it('reads a free-text answer', () => {
-    expect(parseCliArgs(['--pluginName=My Plugin']).answers).toStrictEqual({ pluginName: 'My Plugin' });
+    expect(parseCliArgs(['--pluginName=My Tool']).answers).toStrictEqual({ pluginName: 'My Tool' });
   });
 
   // A funding URL can carry a query string, so the split is on the FIRST `=` only.
@@ -124,10 +124,22 @@ describe('parsing flags', () => {
 
   // These ran only inside the clack prompt, so an answer arriving any other way was unchecked.
   it('applies the free-text validators the prompts use', () => {
-    expect(() => parseCliArgs(['--pluginId=obsidian-thing'])).toThrow(/not start with "obsidian-"/);
+    expect(() => parseCliArgs(['--pluginId=obsidian-thing'])).toThrow(/not contain "obsidian"/);
     expect(() => parseCliArgs(['--pluginId=My_Plugin'])).toThrow(/lowercase English letters/);
     expect(() => parseCliArgs(['--pluginDescription=No trailing dot'])).toThrow(/end with a dot/);
     expect(() => parseCliArgs(['--authorName='])).toThrow(/Should not be empty/);
+  });
+
+  // The three manifest answers carry the Community directory's constraints, so a flag that would produce
+  // An unlistable plugin is refused here rather than at the review -- an id cannot be changed at all once
+  // The plugin is published.
+  it('refuses a flag the Community directory would reject', () => {
+    expect(() => parseCliArgs(['--pluginId=my-obsidian-helper'])).toThrow(/not contain "obsidian"/);
+    expect(() => parseCliArgs(['--pluginId=my-plugin'])).toThrow(/not end with "plugin"/);
+    expect(() => parseCliArgs(['--pluginName=My Plugin'])).toThrow(/not contain "Plugin"/);
+    expect(() => parseCliArgs(['--pluginName=Bases'])).toThrow(/core plugin or core feature/);
+    expect(() => parseCliArgs(['--pluginDescription=This plugin does things.'])).toThrow(/refer to itself/);
+    expect(() => parseCliArgs(['--pluginDescription=Indexes Obsidian notes.'])).toThrow(/not contain the word "Obsidian"/);
   });
 });
 

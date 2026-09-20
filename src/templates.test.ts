@@ -731,9 +731,9 @@ describe('copyTemplates', () => {
       packageManager: 'npm',
       platformSupport: 'desktop-and-mobile',
       pluginDescription: 'A test plugin.',
-      pluginId: 'my-plugin',
-      pluginName: 'My Plugin',
-      pluginShortName: 'MyPlugin',
+      pluginId: 'my-tool',
+      pluginName: 'My Tool',
+      pluginShortName: 'MyTool',
       preset: 'standalone',
       spellChecker: 'none',
       styling: 'none',
@@ -757,15 +757,15 @@ describe('copyTemplates', () => {
   it('creates package.json with correct metadata', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as Record<string, unknown>;
-    expect(pkg['name']).toBe('my-plugin');
+    expect(pkg['name']).toBe('my-tool');
     expect(pkg['description']).toBe('A test plugin.');
   });
 
   it('creates manifest.json with correct fields', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
-    expect(manifest['id']).toBe('my-plugin');
-    expect(manifest['name']).toBe('My Plugin');
+    expect(manifest['id']).toBe('my-tool');
+    expect(manifest['name']).toBe('My Tool');
     expect(manifest['author']).toBe('testuser');
   });
 
@@ -840,7 +840,7 @@ describe('copyTemplates', () => {
   it('creates README with plugin name', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    expect(readme).toContain('# My Plugin');
+    expect(readme).toContain('# My Tool');
   });
 
   it('leads the README with the plugin description', () => {
@@ -873,8 +873,8 @@ describe('copyTemplates', () => {
       expect(readme, preset).toContain('## Demo vault');
       // All three access routes the skeleton names, plus the plain-markdown entry point.
       expect(readme, preset).toContain('[Start reading here](<./demo-vault/00 Start.md>)');
-      expect(readme, preset).toContain('**My Plugin: Open demo vault** command');
-      expect(readme, preset).toContain('`my-plugin-demo-vault-<version>.zip`');
+      expect(readme, preset).toContain('**My Tool: Open demo vault** command');
+      expect(readme, preset).toContain('`my-tool-demo-vault-<version>.zip`');
       expect(readme, preset).toContain('[`demo-vault/`](./demo-vault/README.md)');
     }
   });
@@ -911,7 +911,7 @@ describe('copyTemplates', () => {
 
     const demoSetup = readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts'), 'utf-8');
     // The plugin id keys both the command ids and `data.json`; getting it wrong breaks every button.
-    expect(demoSetup).toContain('const PLUGIN_ID = \'my-plugin\';');
+    expect(demoSetup).toContain('const PLUGIN_ID = \'my-tool\';');
 
     const startupScript = readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/startup.ts'), 'utf-8');
     // A top-level script throws `this.startupScript.invoke is not a function` when the vault loads.
@@ -923,7 +923,7 @@ describe('copyTemplates', () => {
 
     const communityPlugins = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/community-plugins.json'), 'utf-8')) as string[];
     // Listing only the helper is a silent failure: it enables CodeScript Toolkit, not the plugin itself.
-    expect(communityPlugins).toStrictEqual(['demo-vault-helper', 'my-plugin']);
+    expect(communityPlugins).toStrictEqual(['demo-vault-helper', 'my-tool']);
 
     const appJson = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/app.json'), 'utf-8')) as Record<string, unknown>;
     // These four are injected into the ARCHIVED vault by obsidian-dev-utils; a committed copy is a second
