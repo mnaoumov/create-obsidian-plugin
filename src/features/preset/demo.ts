@@ -12,6 +12,7 @@ export class Demo extends FeatureOption {
     builder
       .addPackage('@tsconfig/strictest')
       .addPackage('moment')
+      .addDepcheckIgnore('moment', 'imported through `obsidian` rather than directly, and the typings of `obsidian` resolve it by name.')
       .addPackage('obsidian-dev-utils')
       // Not a testing dependency here, despite the name. The obsidian-dev-utils esbuild bundler
       // STATICALLY imports it from its copy-to-obsidian-plugins-folder plugin, so a preset built on

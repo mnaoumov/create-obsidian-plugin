@@ -17,6 +17,7 @@ export class Biome extends FeatureOption {
 
     builder
       .addPackage('@biomejs/biome')
+      .addDepcheckIgnore('@biomejs/biome', 'run as the `biome` CLI by the format and lint scripts, configured by `biome.jsonc`.')
       .addScript('format')
       .addScript('format:check')
       .addFiles([

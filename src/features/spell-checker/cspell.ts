@@ -10,6 +10,7 @@ export class Cspell extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('cspell')
+      .addDepcheckIgnore('cspell', 'run as a CLI by `scripts/spellcheck.ts`, configured by `cspell.json`.')
       .addScript('spellcheck')
       .addFiles([
         'cspell.json',

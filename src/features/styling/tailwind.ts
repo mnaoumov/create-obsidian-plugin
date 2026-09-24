@@ -17,7 +17,9 @@ export class Tailwind extends FeatureOption {
       // Compiling first means every bundler receives ordinary, already-expanded CSS and the question
       // Does not arise. It also drops autoprefixer and the JavaScript config v3 needed.
       .addPackage('@tailwindcss/cli')
+      .addDepcheckIgnore('@tailwindcss/cli', 'run as a CLI by `scripts/build-styles.ts`.')
       .addPackage('tailwindcss')
+      .addDepcheckIgnore('tailwindcss', 'imported by `src/styles/main.css` (`@import "tailwindcss"`), which depcheck does not read.')
       .addScript('build:styles')
       .addFiles([
         'scripts/build-styles.ts',
@@ -35,6 +37,7 @@ export class Tailwind extends FeatureOption {
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
+        .addDepcheckIgnore('css-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
         .addPackage('mini-css-extract-plugin')
         .addPartial('webpack-css-extract');
     }

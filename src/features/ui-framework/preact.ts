@@ -41,6 +41,7 @@ export class Preact extends FeatureOption {
       builder
         .addPackage('@babel/core')
         .addPackage('@babel/plugin-transform-react-jsx')
+        .addDepcheckIgnore('@babel/plugin-transform-react-jsx', 'named as a string in `scripts/babel.config.ts`, never imported.')
         .addFiles([
           'babel.config.mjs',
           'scripts/babel.config.ts'

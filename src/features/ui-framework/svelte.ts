@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
@@ -42,6 +43,17 @@ export class Svelte extends FeatureOption {
     const plugin = getBuildPlugin(answers.bundler);
     if (plugin !== null) {
       builder.addPackage(plugin);
+    }
+
+    // `scripts/build.ts` runs it on every path but one: on the obsidian-dev-utils presets' esbuild build
+    // That library runs its own copy, so the project's declaration is genuinely unused there and must
+    // Stay reported.
+    if (!(isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild')) {
+      builder.addDepcheckIgnore('svelte-check', 'run as a CLI by `scripts/build.ts`.');
+    }
+
+    if (answers.bundler === 'webpack') {
+      builder.addDepcheckIgnore('svelte-loader', 'named as a loader string in `scripts/webpack.config.ts`.');
     }
 
     if (answers.bundler === 'parcel') {

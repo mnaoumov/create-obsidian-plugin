@@ -11,7 +11,9 @@ export class Webpack extends FeatureOption {
     builder
       .addPackage('webpack')
       .addPackage('webpack-cli')
+      .addDepcheckIgnore('webpack-cli', 'what `npx webpack` in the build script runs.')
       .addPackage('ts-loader')
+      .addDepcheckIgnore('ts-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
       .addFiles([
         'webpack.config.ts',
         'scripts/webpack.config.ts'

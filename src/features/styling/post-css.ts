@@ -29,8 +29,10 @@ export class PostCss extends FeatureOption {
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
+        .addDepcheckIgnore('css-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
         .addPackage('mini-css-extract-plugin')
         .addPackage('postcss-loader')
+        .addDepcheckIgnore('postcss-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
         .addPartial('webpack-css-extract');
     }
   }

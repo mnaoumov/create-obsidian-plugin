@@ -11,6 +11,7 @@ export class Dprint extends FeatureOption {
     builder
       .addLintStagedCommand('*.{ts,tsx,mts}', 'dprint fmt')
       .addPackage('dprint')
+      .addDepcheckIgnore('dprint', 'run as a CLI by the format scripts, configured by `dprint.json`.')
       .addScript('format')
       .addScript('format:check')
       .addFiles([

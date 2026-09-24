@@ -1,3 +1,9 @@
+/** One `.depcheckrc.json` entry: a declared package depcheck cannot see used, and the reference proving it is. */
+export interface DepcheckIgnore {
+  packageName: string;
+  reason: string;
+}
+
 /** One `.lintstagedrc` entry: the glob and the commands registered against it, in registration order. */
 export interface LintStagedPattern {
   commands: string[];
@@ -21,6 +27,12 @@ export class Dependency {
 }
 
 export class TemplateBuilder {
+  public get depcheckIgnores(): DepcheckIgnore[] {
+    return [...this._depcheckIgnores.entries()]
+      .map(([packageName, reason]) => ({ packageName, reason }))
+      .sort((a, b) => a.packageName.localeCompare(b.packageName));
+  }
+
   public get dependencies(): Dependency[] {
     return [...this._dependencies.values()].sort((a, b) => a.packageName.localeCompare(b.packageName));
   }
@@ -45,6 +57,8 @@ export class TemplateBuilder {
     return new Set(this._templateFiles);
   }
 
+  private readonly _depcheckIgnores = new Map<string, string>();
+
   private readonly _dependencies = new Map<string, Dependency>();
 
   private readonly _lintStagedPatterns = new Map<string, string[]>();
@@ -56,6 +70,22 @@ export class TemplateBuilder {
   private readonly _sentenceCaseBrands = new Set<string>();
 
   private readonly _templateFiles = new Set<string>();
+
+  /**
+   * Registers a declared package that depcheck reports as unused although it is not -- one only ever
+   * invoked as a CLI, named as a string in a config, or reached by a compiler option.
+   *
+   * Called beside the `addPackage` that declares it, so an ignore exists exactly when its package does.
+   * Collected here rather than concatenated from template partials for the same reason as
+   * {@link addLintStagedCommand}: a partial can only emit `'<name>',`, and the last trailing comma is
+   * invalid JSON. The reason is kept because the emitted file records one per entry: once the file
+   * exists, a dependency sweep treats anything depcheck still reports as a failure, so an entry without
+   * its reason is a false positive nobody can re-verify.
+   */
+  public addDepcheckIgnore(packageName: string, reason: string): this {
+    this._depcheckIgnores.set(packageName, reason);
+    return this;
+  }
 
   public addFiles(paths: string[]): this {
     for (const p of paths) {

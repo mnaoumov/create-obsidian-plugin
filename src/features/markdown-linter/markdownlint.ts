@@ -12,8 +12,10 @@ export class Markdownlint extends FeatureOption {
       .addLintStagedCommand('*.md', 'markdownlint-cli2 --fix')
       .addPackage('markdownlint')
       .addPackage('markdownlint-cli2')
+      .addDepcheckIgnore('markdownlint-cli2', 'run as a CLI by the `lint:md` scripts, configured by `.markdownlint-cli2.mjs`.')
       .addPackage('markdownlint-rule-relative-links')
       .addPackage('linkinator')
+      .addDepcheckIgnore('linkinator', 'run as a CLI by the `lint:md` scripts.')
       .addScript('lint:md')
       .addScript('lint:md:fix')
       .addFiles([

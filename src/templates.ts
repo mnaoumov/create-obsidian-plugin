@@ -74,6 +74,8 @@ const JSON_INDENT_SPACES = 2;
 const UNRESOLVED_VERSION = 'latest';
 
 const BASE_TEMPLATE_FILES = [
+  // Never empty: `tslib` and `typescript` below are false positives on every answer set.
+  '.depcheckrc.json',
   '.editorconfig',
   '.env',
   '.gitattributes',
@@ -163,7 +165,9 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     .addPackage('jiti')
     .addPackage('obsidian')
     .addPackage('tslib')
+    .addDepcheckIgnore('tslib', 'never imported by name: `importHelpers: true` in `tsconfig.json` makes the compiled output import it.')
     .addPackage('typescript')
+    .addDepcheckIgnore('typescript', 'the compiler `tsconfig.json` configures, reached by `tsc`, by the TypeScript step of the bundler and by the editor rather than by an import.')
     // The plugin's own name is a proper noun in its own UI, so `obsidianmd/ui/sentence-case` must not
     // Ask for `My awesome plugin`. Registered here rather than by a feature because every plugin has
     // One, whatever else it picks.
@@ -231,6 +235,7 @@ export function copyTemplates(
 
   const templateContext: Record<string, unknown> = {
     ...answers,
+    _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
       packageName: dependency.packageName,
       version: dependency.version ?? resolvedVersions.get(dependency.packageName) ?? PINNED_VERSIONS[dependency.packageName]?.version ?? UNRESOLVED_VERSION

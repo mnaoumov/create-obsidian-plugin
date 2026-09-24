@@ -17,6 +17,10 @@ import {
 import type { Answers } from './answers.ts';
 
 import {
+  ANSWER_SPACE,
+  makeAnswers as makeSpaceAnswers
+} from './answer-space.ts';
+import {
   buildTemplate,
   copyTemplates,
   getScriptDir
@@ -681,6 +685,26 @@ describe('buildTemplate', () => {
     });
   });
 
+  // An ignore for a package the project never declares is a false-positive entry for nothing, and
+  // Registering one beside the wrong `addPackage` branch is exactly how it would happen. Every value of
+  // Every question, under each preset, since several ignores depend on the preset as well.
+  describe('depcheck ignores', () => {
+    it('names only packages the project declares', () => {
+      for (const preset of ['standalone', 'enhanced', 'demo']) {
+        for (const dimension of ANSWER_SPACE) {
+          for (const value of dimension.values) {
+            const answers = makeSpaceAnswers({ [dimension.answerKey]: value, preset });
+            const builder = buildTemplate(answers);
+            const declared = new Set(builder.dependencies.map((dependency) => dependency.packageName));
+            for (const { packageName } of builder.depcheckIgnores) {
+              expect(declared, `${packageName} under preset=${preset} ${dimension.answerKey}=${value}`).toContain(packageName);
+            }
+          }
+        }
+      }
+    });
+  });
+
   describe('all scripts use default convention', () => {
     it('every script follows jiti scripts/{name}.ts pattern', () => {
       const configs: Partial<Answers>[] = [
@@ -701,6 +725,11 @@ describe('buildTemplate', () => {
 });
 
 describe('copyTemplates', () => {
+  interface ParsedDepcheckRc {
+    comment: string[];
+    ignores: string[];
+  }
+
   interface ParsedPackageJson {
     scripts: Record<string, string>;
   }
@@ -1603,6 +1632,20 @@ describe('copyTemplates', () => {
   it('restricts the standalone vitest config to src, so the e2e suite is not collected', () => {
     copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8')).toContain('include: [\'src/**/*.test.ts\']');
+  });
+
+  it('emits a .depcheckrc.json whose ignores and reasons agree', () => {
+    copyTemplates(
+      makeAnswers({ bundler: 'webpack', commitLinting: 'conventional-commits', styling: 'scss', uiFramework: 'svelte' }),
+      targetDir,
+      '1.0.0',
+      null
+    );
+    const config = JSON.parse(readFileSync(join(targetDir, '.depcheckrc.json'), 'utf-8')) as ParsedDepcheckRc;
+    expect(config.ignores).toEqual(expect.arrayContaining(['czg', 'sass-loader', 'svelte-check', 'svelte-loader', 'typescript']));
+    // One reason line per entry, in the same order, so no entry lands without the reference proving it.
+    const reasonNames = config.comment.slice(config.comment.indexOf('') + 1).map((line) => line.split(' - ')[0]);
+    expect(reasonNames).toEqual(config.ignores);
   });
 
   it('writes generator config file', () => {
