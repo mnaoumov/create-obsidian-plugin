@@ -5,17 +5,32 @@
   `.` -- so `parcel build --dist-dir dist/build` wrote the bundle to the project root instead and left
   `dist/build` holding nothing but `manifest.json`. Disabling that target is what lets `--dist-dir` apply.
 
-  The replacement target has to be node context and CommonJS: the default is browser, and Parcel refuses
-  outright to leave any module external when building for the browser -- which an Obsidian plugin must,
-  since the app supplies `obsidian` and CodeMirror at runtime.
+  The replacement target is `electron-renderer`, which is where Obsidian runs a plugin, and CommonJS.
+  Parcel counts that context as BOTH a browser and a node one, and each half is load-bearing:
+
+  - node: builtins stay external, and the resolver may exclude `obsidian` and CodeMirror, which the app
+    supplies at runtime. A plain browser target refuses outright to leave any module external.
+  - browser: package `exports` resolve the `browser` condition. A plain `node` context resolves `node`,
+    which is Solid's and Svelte's SERVER build -- a view whose `render` / `mount` never mounts anything.
+
+  `includeNodeModules` is what bundles the dependencies at all. A node-flavoured context defaults it to
+  false, which left every package a `require()` in `main.js` that nothing installs beside a plugin -- a
+  build that exited 0 and a plugin that failed to load.
+
+  `packageExports` makes the resolver read package `exports`. Without it, a subpath such as
+  `svelte/internal/client` does not resolve once the package is bundled rather than required.
 -%>
   "targets": {
     "main": false,
     "obsidianPlugin": {
-      "context": "node",
+      "context": "electron-renderer",
+      "includeNodeModules": true,
       "isLibrary": false,
       "optimize": true,
       "outputFormat": "commonjs",
       "sourceMap": false
     }
+  },
+  "@parcel/resolver-default": {
+    "packageExports": true
   },

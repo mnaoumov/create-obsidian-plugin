@@ -643,6 +643,20 @@ stay external. Resolving only the `node` condition hands Solid and Svelte their 
 `svelte/src/index-server.js`. No tier can see this, because the gate builds and never mounts a view. So
 `src/templates.test.ts` pins the webpack line.
 
+Parcel takes the condition from its target's `context`, not from an option, and its `node` context did the
+webpack defect and a worse one: it also bundled NO package, so `main.js` required `svelte` / `solid-js` from a
+`node_modules` no installed plugin has. That hid the first defect, and it hid that parcel had never compiled
+Solid at all — its own transformer emits a React-style runtime import that `solid-js` does not export, and
+nothing resolved the import. The target is now `electron-renderer`, which Parcel treats as both a browser
+context (the `browser` condition) and a node one (builtins stay external, and the resolver may exclude
+`obsidian`), plus `includeNodeModules: true` and `@parcel/resolver-default.packageExports`, all in
+`package.json@targets_parcel.ejs`. Parcel + Solid gets a static `babel.config.json` carrying
+`babel-preset-solid`. Vite's lib build was measured and resolves the browser builds already.
+
+**The gate tier now sees the bundling half.** The `bundle` step fails `unbundled-dependency` when `main.js`
+`require()`s anything but a Node builtin, `obsidian`, `electron`, `@codemirror/*` or `@lezer/*`
+(`findUnbundledRequires`). The condition half stays test-pinned only: no tier mounts a view.
+
 Webpack + Solid also needs a babel pass of its own: `jsx: preserve` makes ts-loader emit the JSX
 untouched and rewrite `./view.tsx` imports to `./view.jsx`. A post-enforced `babel-loader` rule
 (`webpack.config.ts@rule_solid.ejs`, `babel-preset-solid` only) compiles it after ts-loader, and
@@ -815,7 +829,9 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
    the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
 5. **A bundler that code-splits exits 0.** obsidian-dev-utils has dynamic imports, and webpack and vite
    (lib mode inlines them only for `umd` / `iife`, not `cjs`) each turned them into sibling chunks that
-   `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. Each
+   `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. The same
+step also fails a bundle that `require()`s a package Obsidian does not supply, which is what parcel's
+node context did for every dependency. Each
    bundler is told to keep one file: rollup `inlineDynamicImports`, vite
    `rollupOptions.output.inlineDynamicImports`, webpack `output.asyncChunks: false`; esbuild writes one
    `outfile`, and parcel's node target was measured emitting one file with no sibling `require`. The gate

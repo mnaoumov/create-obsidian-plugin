@@ -1,0 +1,8 @@
+<%# Parcel only, for Solid: its own JavaScript transformer compiles JSX as a React-style automatic runtime -%>
+<%# against `solid-js/jsx-runtime`, which exports no `jsx`, so Solid's JSX has to go through -%>
+<%# `babel-preset-solid` first. Parcel runs a project babel config ahead of its own transformer, which -%>
+<%# still strips the TypeScript. JSON rather than rollup's `babel.config.mjs` wrapper, because Parcel -%>
+<%# warns on every build that a JavaScript babel config can be neither watched nor cached. -%>
+{
+  "presets": ["babel-preset-solid"]
+}
