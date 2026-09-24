@@ -25,6 +25,7 @@ export interface GateResult {
 export type GateStep =
   | 'audit'
   | 'build'
+  | 'bundle'
   | 'compile'
   | 'format'
   | 'install'
@@ -44,14 +45,16 @@ export interface GateViolation {
 /**
  * How a gate step failed.
  *
- * `no-tests-collected`, `unreadable-stylesheet` and `unbundled-wasm-module` are separate from
- * `step-failed` because they are the failures a green exit code hides: the runner ran, reported success,
- * and collected nothing; the bundler ran, reported success, and wrote the stylesheet under a name
- * Obsidian does not read; the bundler ran, reported success, and left the WebAssembly module in a
- * separate file that an Obsidian release does not ship.
+ * `no-tests-collected`, `split-bundle`, `unreadable-stylesheet` and `unbundled-wasm-module` are separate
+ * from `step-failed` because they are the failures a green exit code hides: the runner ran, reported
+ * success, and collected nothing; the bundler ran, reported success, and split the code across sibling
+ * chunks that an Obsidian release does not ship; the bundler ran, reported success, and wrote the
+ * stylesheet under a name Obsidian does not read; the bundler ran, reported success, and left the
+ * WebAssembly module in a separate file that an Obsidian release does not ship.
  */
 export type GateViolationKind =
   | 'no-tests-collected'
+  | 'split-bundle'
   | 'step-failed'
   | 'unbundled-wasm-module'
   | 'unreadable-stylesheet';
@@ -89,6 +92,9 @@ const COMMAND_TIMEOUT_MS = 900_000;
  */
 const BUILD_DIST_FOLDER = 'dist/build';
 
+/** The one script Obsidian loads. Any other `.js` beside it ships with no release and is never read. */
+const MAIN_JS = 'main.js';
+
 /** The one stylesheet name Obsidian loads. Anything else ships with the plugin and is never read. */
 const STYLES_CSS = 'styles.css';
 
@@ -109,6 +115,9 @@ const WASM_MODULE_PATH = 'src/wasm/module.wasm';
  * wrong. The import is the thing that makes the bundler emit CSS, so the import is the trigger.
  */
 const STYLESHEET_IMPORT_PATTERN = /^import '[^']+\.(?:css|less|sass|scss)';/m;
+
+/** A JavaScript file in any of the module flavours a bundler may be told to write. */
+const SCRIPT_FILE_PATTERN = /\.[cm]?js$/;
 
 /**
  * Matches the collected test count in either runner's summary.
@@ -154,6 +163,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
 
   const scripts = readScripts(targetDir);
   violations.push(...runScriptStep('build', 'build', targetDir, answers, scripts, passed, skipped));
+  violations.push(...checkBundle(targetDir, passed, skipped));
   violations.push(...checkStyles(targetDir, passed, skipped));
   violations.push(...checkWasm(targetDir, passed, skipped));
   violations.push(...runScriptStep('lint', 'lint', targetDir, answers, scripts, passed, skipped));
@@ -191,6 +201,58 @@ function checkAudit(targetDir: string, answers: Answers, skipped: GateStep[], pa
     detail: `At or above "${AUDIT_LEVEL}":\n${audit.output}`,
     kind: 'step-failed',
     step: 'audit'
+  }];
+}
+
+/**
+ * Insists that the build is ONE script, `main.js`.
+ *
+ * The {@link checkStyles} twin, for the JavaScript. An Obsidian release ships `main.js`, `manifest.json`
+ * and `styles.css` and nothing else, and the app loads the plugin from `main.js` alone. A bundler that
+ * code-splits writes sibling chunks that `main.js` then resolves by name at runtime -- webpack's runtime
+ * carries `e => e + ".main.js"` -- so every code path reaching one of them fails once the plugin is
+ * installed, in a build that exited 0.
+ *
+ * Two things are asserted: `main.js` exists, and it is the ONLY script in the folder. The second clause
+ * is the whole check, exactly as the "only css" clause is in {@link checkStyles}.
+ */
+function checkBundle(targetDir: string, passed: GateStep[], skipped: GateStep[]): GateViolation[] {
+  if (!passed.includes('build')) {
+    skipped.push('bundle');
+    return [];
+  }
+
+  const distFolder = join(targetDir, BUILD_DIST_FOLDER);
+  let emitted: string[];
+  try {
+    emitted = readdirSync(distFolder, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && SCRIPT_FILE_PATTERN.test(entry.name))
+      .map((entry) => entry.name);
+  } catch {
+    emitted = [];
+  }
+
+  const problems: string[] = [];
+
+  if (!emitted.includes(MAIN_JS)) {
+    problems.push(`\`${BUILD_DIST_FOLDER}/${MAIN_JS}\` does not exist.`);
+  }
+
+  const stray = emitted.filter((name) => name !== MAIN_JS);
+  if (stray.length > 0) {
+    problems.push(`${stray.map((name) => `\`${name}\``).join(', ')} ships beside \`${MAIN_JS}\`, and an Obsidian release does not carry it.`);
+  }
+
+  if (problems.length === 0) {
+    passed.push('bundle');
+    return [];
+  }
+
+  return [{
+    detail: `An Obsidian plugin is one script, but ${problems.join(' ')}\n`
+      + `Scripts in \`${BUILD_DIST_FOLDER}\`: ${emitted.length > 0 ? emitted.join(', ') : '(none)'}`,
+    kind: 'split-bundle',
+    step: 'bundle'
   }];
 }
 
