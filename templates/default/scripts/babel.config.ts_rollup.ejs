@@ -3,13 +3,14 @@
 <%# `demo` does with react -- rendered two of them into one file: TS2451. The file now declares `config` -%>
 <%# exactly once however many frameworks are active. -%>
 <%# -%>
+<%# Each list item ends in the comma a partial cannot help writing, so the last one is stripped here, as -%>
+<%# `rollup.config.ts.ejs` does with its plugins, and a list nothing contributed to collapses to `[]`. -%>
+<%# `plugins` comes first because `perfectionist/sort-objects` wants the keys sorted. -%>
+<%# -%>
 <%# What SHOULD happen when two JSX transforms are both active is a separate question, and not this -%>
 <%# file's to answer: it is the same demo-collision question the forced frameworks raise everywhere. -%>
+<% const list = (items) => `[\n${items}  ]`.replace(/,(?<Trailing>\s*)\]$/, '$<Trailing>]').replace(/^\[\s*\]$/, '[]'); -%>
 export const config = {
-  presets: [
-<%- render('babel-preset') -%>
-  ],
-  plugins: [
-<%- render('babel-plugin') -%>
-  ],
+  plugins: <%- list(render('babel-plugin')) %>,
+  presets: <%- list(render('babel-preset')) %>
 };
