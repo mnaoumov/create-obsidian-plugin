@@ -736,7 +736,10 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
    bundler is told to keep one file: rollup `inlineDynamicImports`, vite
    `rollupOptions.output.inlineDynamicImports`, webpack `output.asyncChunks: false`; esbuild writes one
    `outfile`, and parcel's node target was measured emitting one file with no sibling `require`. The gate
-   tier's `bundle` step asserts `dist/build/main.js` exists and is the only script there.
+   tier's `bundle` step asserts `dist/build/main.js` exists and is the only script there. Its catch-all
+   sibling, `release-files`, fails any other file there beyond `manifest.json` and `styles.css`. Webpack's
+   terser used to cut the bundled dependencies' license comments into a `main.js.LICENSE.txt` that no
+   release ships, until `new TerserPlugin({ extractComments: false })` kept them inline in `main.js`.
 6. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
    every newline in a README or a demo-vault note becomes a `<br>` — both a README and a demo-vault note need one source line
    per paragraph, per list item, per blockquote line. Nothing in a generated project says so: `MD013` is

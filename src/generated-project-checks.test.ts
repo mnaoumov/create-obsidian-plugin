@@ -4,7 +4,10 @@ import {
   it
 } from 'vitest';
 
-import { readCollectedTestCount } from './generated-project-checks.ts';
+import {
+  findUnshippedFiles,
+  readCollectedTestCount
+} from './generated-project-checks.ts';
 
 describe('readCollectedTestCount', () => {
   const VITEST_PASSED = 3;
@@ -48,5 +51,19 @@ describe('readCollectedTestCount', () => {
     expect(readCollectedTestCount('No test files found, exiting with code 0\n')).toBe(0);
     expect(readCollectedTestCount('No tests found, exiting with code 0\n')).toBe(0);
     expect(readCollectedTestCount('      Tests  2 skipped (2)\n')).toBe(0);
+  });
+});
+
+describe('findUnshippedFiles', () => {
+  it('reports nothing for exactly what an Obsidian release carries', () => {
+    expect(findUnshippedFiles(['main.js', 'manifest.json', 'styles.css'])).toEqual([]);
+  });
+
+  it('reports the license file that terser in webpack extracts by default', () => {
+    expect(findUnshippedFiles(['main.js', 'main.js.LICENSE.txt', 'manifest.json'])).toEqual(['main.js.LICENSE.txt']);
+  });
+
+  it('leaves stray scripts, stylesheets and WebAssembly modules to the steps that own them', () => {
+    expect(findUnshippedFiles(['main.js', '1.main.js', 'main.css', 'module.wasm', 'main.mjs'])).toEqual([]);
   });
 });
