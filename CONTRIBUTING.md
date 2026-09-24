@@ -53,7 +53,7 @@ npm run test
 
 ### Verify the answer space
 
-The 23 questions multiply out to over fifteen billion combinations, so `npm run test` covers every *pair*
+The 24 questions multiply out to over 150 billion combinations, so `npm run test` covers every *pair*
 of answers and the three `verify:*` scripts go deeper on demand. They are not part of `npm test` because
 they take from half a minute to the better part of an hour.
 
@@ -79,8 +79,8 @@ Worth knowing:
 - `verify:projects` accepts `--limit=N` for a quick subset and `--keep` to leave failing projects on disk
   for inspection. Both it and `verify:rendering` take `--out=<dir>`; point it somewhere short if Windows
   path lengths bite.
-- `verify:answer-space --exhaustive` checks all 15,049,359,360 combinations. It prints its projected cost
-  first — on a 12-core machine that is roughly 13 hours.
+- `verify:answer-space --exhaustive` checks all 150,493,593,600 combinations. It prints its projected cost
+  first — on a 12-core machine that is roughly 134 hours.
 - `verify:plugin-drift` scans the checkout's parent directory for plugins — anything with both a
   `manifest.json` and a `src/main.ts` — so it only does anything on a machine that has them checked out
   beside this repo. `--plugins-dir <dir>` points it elsewhere. It exits 1 rather than reporting a clean pass
