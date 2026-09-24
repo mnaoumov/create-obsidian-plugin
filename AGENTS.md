@@ -624,6 +624,21 @@ Both unit runners alias every `.wasm` import to `scripts/wasm-module-stub.ts`, e
 reaches the module, and neither runner can load one — vitest fetches it from a dev-server URL that does
 not exist, jest has no transform for the extension.
 
+### Every bundler has to resolve the `browser` export condition
+
+A plugin runs in Obsidian's renderer, but the bundles are built for a Node-shaped target so that builtins
+stay external. Resolving only the `node` condition hands Solid and Svelte their SERVER builds, where
+`render` / `mount` never mount a view, and the build still exits 0. esbuild asks for `conditions:
+['browser']`, rollup for `nodeResolve({ browser: true })`, and webpack for `resolve.conditionNames:
+['browser', '...']`. Webpack lacked it until a webpack + svelte bundle was found carrying
+`svelte/src/index-server.js`. No tier can see this, because the gate builds and never mounts a view. So
+`src/templates.test.ts` pins the webpack line.
+
+Webpack + Solid also needs a babel pass of its own: `jsx: preserve` makes ts-loader emit the JSX
+untouched and rewrite `./view.tsx` imports to `./view.jsx`. A post-enforced `babel-loader` rule
+(`webpack.config.ts@rule_solid.ejs`, `babel-preset-solid` only) compiles it after ts-loader, and
+`extensionAlias` maps `.jsx` back to `.tsx`.
+
 ### The dev-utils presets pass their extra esbuild plugins through `customEsbuildPlugins`
 
 obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
