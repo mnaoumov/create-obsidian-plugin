@@ -31,6 +31,7 @@ export type GateStep =
   | 'format'
   | 'install'
   | 'lint'
+  | 'release-files'
   | 'styles'
   | 'test'
   | 'wasm';
@@ -46,19 +47,21 @@ export interface GateViolation {
 /**
  * How a gate step failed.
  *
- * `no-tests-collected`, `split-bundle`, `unreadable-stylesheet` and `unbundled-wasm-module` are separate
+ * `no-tests-collected`, `split-bundle`, `unreadable-stylesheet`, `unbundled-wasm-module` and `unshipped-file` are separate
  * from `step-failed` because they are the failures a green exit code hides: the runner ran, reported
  * success, and collected nothing; the bundler ran, reported success, and split the code across sibling
  * chunks that an Obsidian release does not ship; the bundler ran, reported success, and wrote the
  * stylesheet under a name Obsidian does not read; the bundler ran, reported success, and left the
- * WebAssembly module in a separate file that an Obsidian release does not ship.
+ * WebAssembly module in a separate file that an Obsidian release does not ship; the bundler ran, reported
+ * success, and wrote something else beside the bundle that the release leaves behind.
  */
 export type GateViolationKind =
   | 'no-tests-collected'
   | 'split-bundle'
   | 'step-failed'
   | 'unbundled-wasm-module'
-  | 'unreadable-stylesheet';
+  | 'unreadable-stylesheet'
+  | 'unshipped-file';
 
 interface CommandResult {
   ok: boolean;
@@ -99,6 +102,12 @@ const MAIN_JS = 'main.js';
 /** The one stylesheet name Obsidian loads. Anything else ships with the plugin and is never read. */
 const STYLES_CSS = 'styles.css';
 
+/** Everything an Obsidian release carries. A file anywhere else in the build output is left behind. */
+const RELEASE_FILES: ReadonlySet<string> = new Set([MAIN_JS, 'manifest.json', STYLES_CSS]);
+
+/** Output files that another gate step already owns, so the release-files step does not report them twice. */
+const OWNED_BY_ANOTHER_STEP_PATTERN = /\.(?:[cm]?js|css|wasm)$/;
+
 /**
  * The sample WebAssembly module, and so the trigger for the WASM step.
  *
@@ -135,6 +144,17 @@ const TESTS_LINE_PATTERN = /^\s*Tests:?\s(?<Totals>.*)$/m;
 
 /** Matches the passed count within the totals, which may follow a failed or skipped count. */
 const PASSED_COUNT_PATTERN = /(?<Passed>\d+) passed/;
+
+/**
+ * Names the files in a production build folder that an Obsidian release leaves behind.
+ *
+ * Scripts, stylesheets and `.wasm` modules are left out: the `bundle`, `styles` and `wasm` steps each
+ * report their own kind of stray file, with a detail that says what went wrong, and the same file named
+ * again here would only repeat it.
+ */
+export function findUnshippedFiles(fileNames: readonly string[]): string[] {
+  return fileNames.filter((name) => !RELEASE_FILES.has(name) && !OWNED_BY_ANOTHER_STEP_PATTERN.test(name));
+}
 
 /**
  * Reads how many tests passed out of a test runner's output, or 0 when no count can be found.
@@ -187,6 +207,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   violations.push(...checkBundle(targetDir, passed, skipped));
   violations.push(...checkStyles(targetDir, passed, skipped));
   violations.push(...checkWasm(targetDir, passed, skipped));
+  violations.push(...checkReleaseFiles(targetDir, passed, skipped));
   violations.push(...runScriptStep('lint', 'lint', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkFormat(targetDir, answers, scripts, passed, skipped));
   violations.push(...checkTests(targetDir, answers, scripts, passed, skipped));
@@ -301,6 +322,45 @@ function checkFormat(targetDir: string, answers: Answers, scripts: Readonly<Reco
   }
 
   return runScriptStep('format', 'format:check', targetDir, answers, scripts, passed, skipped);
+}
+
+/**
+ * Insists that the build folder holds nothing an Obsidian release leaves behind.
+ *
+ * The catch-all beside {@link checkBundle}, {@link checkStyles} and {@link checkWasm}, each of which knows
+ * one kind of stray file. What showed the need for it is webpack's terser, which by default cuts the
+ * bundled dependencies' license comments out of `main.js` into a `main.js.LICENSE.txt` beside it. Nothing
+ * loads that file, so the plugin runs; it just ships without the notices its dependencies are licensed
+ * under, in a build that exited 0.
+ */
+function checkReleaseFiles(targetDir: string, passed: GateStep[], skipped: GateStep[]): GateViolation[] {
+  if (!passed.includes('build')) {
+    skipped.push('release-files');
+    return [];
+  }
+
+  let emitted: string[];
+  try {
+    emitted = readdirSync(join(targetDir, BUILD_DIST_FOLDER), { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+  } catch {
+    emitted = [];
+  }
+
+  const unshipped = findUnshippedFiles(emitted);
+  if (unshipped.length === 0) {
+    passed.push('release-files');
+    return [];
+  }
+
+  return [{
+    detail: `${unshipped.map((name) => `\`${name}\``).join(', ')} ships beside \`${MAIN_JS}\`, and an Obsidian release `
+      + `carries only ${[...RELEASE_FILES].map((name) => `\`${name}\``).join(', ')}.\n`
+      + `Files in \`${BUILD_DIST_FOLDER}\`: ${emitted.join(', ')}`,
+    kind: 'unshipped-file',
+    step: 'release-files'
+  }];
 }
 
 /**

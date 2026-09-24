@@ -12,6 +12,7 @@ export class Webpack extends FeatureOption {
       .addPackage('webpack')
       .addPackage('webpack-cli')
       .addDepcheckIgnore('webpack-cli', 'what `npx webpack` in the build script runs.')
+      .addPackage('terser-webpack-plugin')
       .addPackage('ts-loader')
       .addDepcheckIgnore('ts-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
       .addFiles([

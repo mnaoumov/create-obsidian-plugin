@@ -5,6 +5,7 @@ import type { Configuration } from 'webpack';
 <%- sortImports(`import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import process from 'node:process';
+import TerserPlugin from 'terser-webpack-plugin';
 ${render('lint-webpack-default')}import webpack from 'webpack';
 ${render('import')}`) -%>
 
@@ -80,6 +81,13 @@ export const config: Configuration = {
     rules: [
 <%- rules.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
     ]
+  },
+  optimization: {
+    // Terser's default `extractComments` cuts every bundled dependency's `/*! ... */` and `@license`
+    // Comment out of `main.js` into a `main.js.LICENSE.txt` beside it -- which no Obsidian release ships,
+    // So the installed plugin would carry the code without the notices it is licensed under. Kept inline
+    // Instead, as esbuild's `legalComments` default keeps them.
+    minimizer: [new TerserPlugin({ extractComments: false })]
   },
   output: {
     // An Obsidian release ships `main.js` and nothing beside it, so a dynamic import -- obsidian-dev-utils
