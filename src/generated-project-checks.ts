@@ -5,6 +5,7 @@ import {
   readFileSync,
   statSync
 } from 'node:fs';
+import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
 
@@ -48,10 +49,11 @@ export interface GateViolation {
 /**
  * How a gate step failed.
  *
- * `no-tests-collected`, `split-bundle`, `unreadable-stylesheet`, `unbundled-wasm-module` and `unshipped-file` are separate
- * from `step-failed` because they are the failures a green exit code hides: the runner ran, reported
+ * `no-tests-collected`, `split-bundle`, `unbundled-dependency`, `unreadable-stylesheet`, `unbundled-wasm-module` and
+ * `unshipped-file` are separate from `step-failed` because they are the failures a green exit code hides: the runner ran, reported
  * success, and collected nothing; the bundler ran, reported success, and split the code across sibling
- * chunks that an Obsidian release does not ship; the bundler ran, reported success, and wrote the
+ * chunks that an Obsidian release does not ship; the bundler ran, reported success, and left a package as
+ * a `require()` that nothing installs beside a plugin; the bundler ran, reported success, and wrote the
  * stylesheet under a name Obsidian does not read; the bundler ran, reported success, and left the
  * WebAssembly module in a separate file that an Obsidian release does not ship; the bundler ran, reported
  * success, and wrote something else beside the bundle that the release leaves behind.
@@ -60,6 +62,7 @@ export type GateViolationKind =
   | 'no-tests-collected'
   | 'split-bundle'
   | 'step-failed'
+  | 'unbundled-dependency'
   | 'unbundled-wasm-module'
   | 'unreadable-stylesheet'
   | 'unshipped-file';
@@ -127,6 +130,25 @@ const WASM_MODULE_PATH = 'src/wasm/module.wasm';
  */
 const STYLESHEET_IMPORT_PATTERN = /^import '[^']+\.(?:css|less|sass|scss)';/m;
 
+/**
+ * Matches a `require()` of a string literal in the bundle, capturing the specifier.
+ *
+ * A computed `require(name)` is not matched: no bundler leaves one for a module it was asked to bundle,
+ * and a dependency that builds one itself is beyond what a text scan can judge. Neither is a specifier
+ * holding `${`, which is code a dependency GENERATES rather than runs: Vue's compiler writes
+ * `require("${l}")` into a template string.
+ */
+const REQUIRE_PATTERN = /\brequire\((?<Quote>["'])(?<Specifier>(?:(?!\$\{)[^"'])+)\k<Quote>\)/g;
+
+/** The packages Obsidian supplies at runtime, and so the only ones a plugin may leave to `require()`. */
+const OBSIDIAN_SUPPLIED_PACKAGES: ReadonlySet<string> = new Set(['electron', 'obsidian']);
+
+/** How many `/`-separated segments a scoped package name has: `@scope/name`. */
+const SCOPED_PACKAGE_NAME_SEGMENTS = 2;
+
+/** The package scopes Obsidian supplies at runtime: the CodeMirror 6 its editor runs on. */
+const OBSIDIAN_SUPPLIED_SCOPES: readonly string[] = ['@codemirror/', '@lezer/'];
+
 /** A JavaScript file in any of the module flavours a bundler may be told to write. */
 const SCRIPT_FILE_PATTERN = /\.[cm]?js$/;
 
@@ -145,6 +167,33 @@ const TESTS_LINE_PATTERN = /^\s*Tests:?\s(?<Totals>.*)$/m;
 
 /** Matches the passed count within the totals, which may follow a failed or skipped count. */
 const PASSED_COUNT_PATTERN = /(?<Passed>\d+) passed/;
+
+/**
+ * Names the modules a bundle `require()`s that neither Obsidian nor Node supplies at runtime.
+ *
+ * An Obsidian plugin is installed as `main.js` alone, with no `node_modules` beside it, so every package
+ * other than the app's own has to be inside the bundle. A bundler told to target node may leave them all
+ * external -- Parcel did, for every dependency -- and the build exits 0 with a `main.js` that throws on
+ * load. A Node builtin passes with or without the `node:` prefix, and so does a subpath of one
+ * (`fs/promises`); a subpath of a package is judged by its package.
+ */
+export function findUnbundledRequires(bundle: string): string[] {
+  const builtins = new Set(builtinModules);
+  const found = new Set<string>();
+  for (const match of bundle.matchAll(REQUIRE_PATTERN)) {
+    const specifier = match.groups?.['Specifier'] ?? '';
+    const packageName = specifier.startsWith('@') ? specifier.split('/').slice(0, SCOPED_PACKAGE_NAME_SEGMENTS).join('/') : specifier.split('/')[0] ?? '';
+    const isSupplied = specifier.startsWith('.')
+      || specifier.startsWith('node:')
+      || builtins.has(packageName)
+      || OBSIDIAN_SUPPLIED_PACKAGES.has(packageName)
+      || OBSIDIAN_SUPPLIED_SCOPES.some((scope) => specifier.startsWith(scope));
+    if (!isSupplied) {
+      found.add(specifier);
+    }
+  }
+  return [...found].sort();
+}
 
 /**
  * Names the files in a production build folder that an Obsidian release leaves behind.
@@ -289,12 +338,27 @@ function checkBundle(targetDir: string, passed: GateStep[], skipped: GateStep[])
     problems.push(`${stray.map((name) => `\`${name}\``).join(', ')} ships beside \`${MAIN_JS}\`, and an Obsidian release does not carry it.`);
   }
 
-  if (problems.length === 0) {
+  const unbundled = emitted.includes(MAIN_JS) ? findUnbundledRequires(readFileSync(join(distFolder, MAIN_JS), 'utf-8')) : [];
+
+  if (problems.length === 0 && unbundled.length === 0) {
     passed.push('bundle');
     return [];
   }
 
-  return [{
+  const violations: GateViolation[] = [];
+  if (unbundled.length > 0) {
+    violations.push({
+      detail: `\`${BUILD_DIST_FOLDER}/${MAIN_JS}\` requires ${unbundled.map((name) => `\`${name}\``).join(', ')} at runtime, and nothing `
+        + 'installs a package beside an Obsidian plugin: the bundler left it external instead of bundling it.',
+      kind: 'unbundled-dependency',
+      step: 'bundle'
+    });
+  }
+  if (problems.length === 0) {
+    return violations;
+  }
+
+  return [...violations, {
     detail: `An Obsidian plugin is one script, but ${problems.join(' ')}\n`
       + `Scripts in \`${BUILD_DIST_FOLDER}\`: ${emitted.length > 0 ? emitted.join(', ') : '(none)'}`,
     kind: 'split-bundle',

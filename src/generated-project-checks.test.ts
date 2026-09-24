@@ -5,6 +5,7 @@ import {
 } from 'vitest';
 
 import {
+  findUnbundledRequires,
   findUnshippedFiles,
   readCollectedTestCount
 } from './generated-project-checks.ts';
@@ -65,5 +66,37 @@ describe('findUnshippedFiles', () => {
 
   it('leaves stray scripts, stylesheets and WebAssembly modules to the steps that own them', () => {
     expect(findUnshippedFiles(['main.js', '1.main.js', 'main.css', 'module.wasm', 'main.mjs'])).toEqual([]);
+  });
+});
+
+describe('findUnbundledRequires', () => {
+  it('passes what Obsidian and Node supply at runtime', () => {
+    const bundle = [
+      'require("obsidian")',
+      'require(\'electron\')',
+      'require("@codemirror/state")',
+      'require("@lezer/common")',
+      'require("node:async_hooks")',
+      'require("fs")',
+      'require("fs/promises")',
+      'require("./chunk.js")'
+    ].join(';');
+    expect(findUnbundledRequires(bundle)).toEqual([]);
+  });
+
+  // What Parcel's node context emitted for every dependency, behind a green build.
+  it('reports a package left external, once, with its subpath', () => {
+    const bundle = 'require("obsidian");require("svelte");require("svelte/internal/client");require("svelte")';
+    expect(findUnbundledRequires(bundle)).toEqual(['svelte', 'svelte/internal/client']);
+  });
+
+  it('judges a scoped subpath by its package, not by its scope', () => {
+    expect(findUnbundledRequires('require("@codemirror-community/x");require("@babel/runtime/helpers")')).toEqual(['@babel/runtime/helpers', '@codemirror-community/x']);
+  });
+
+  // Vue's compiler writes this into a template string; it is never a require the bundle performs.
+  it('ignores a specifier that interpolates', () => {
+    // eslint-disable-next-line no-template-curly-in-string -- The string IS generated code; that is what is under test.
+    expect(findUnbundledRequires('const code = `require("${l}")`;')).toEqual([]);
   });
 });

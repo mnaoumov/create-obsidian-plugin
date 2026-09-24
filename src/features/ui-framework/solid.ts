@@ -49,6 +49,13 @@ export class Solid extends FeatureOption {
         .addPackage('babel-preset-solid')
         .addDepcheckIgnore('babel-preset-solid', 'named as a string in `scripts/webpack.config.ts`, never imported.');
     }
+    // Parcel compiles JSX for a React-style runtime, which Solid has not got: see `babel.config.json.ejs`.
+    if (answers.bundler === 'parcel') {
+      builder
+        .addPackage('babel-preset-solid')
+        .addDepcheckIgnore('babel-preset-solid', 'named as a string in `babel.config.json`, never imported.')
+        .addFiles(['babel.config.json']);
+    }
     if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-plugin-solid');
     }

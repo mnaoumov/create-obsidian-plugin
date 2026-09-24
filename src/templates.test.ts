@@ -1151,6 +1151,24 @@ describe('copyTemplates', () => {
     scripts: Record<string, string>;
   }
 
+  interface ParcelResolverConfig {
+    packageExports?: boolean;
+  }
+
+  interface ParcelTarget {
+    context?: string;
+    includeNodeModules?: boolean;
+  }
+
+  interface ParcelTargets {
+    obsidianPlugin?: ParcelTarget;
+  }
+
+  interface ParcelPackageJson {
+    '@parcel/resolver-default'?: ParcelResolverConfig;
+    'targets'?: ParcelTargets;
+  }
+
   const CURRENT_YEAR = 2026;
 
   function makeAnswers(overrides: Partial<Answers> = {}): Answers {
@@ -2190,6 +2208,34 @@ describe('copyTemplates', () => {
   it('resolves the browser export condition on webpack', () => {
     copyTemplates(makeAnswers({ bundler: 'webpack' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).toContain('conditionNames: [\'browser\', \'...\']');
+  });
+
+  // Parcel's `node` context did both halves of the webpack defect and one more: it resolved the `node`
+  // Condition, and it bundled no package at all, so `main.js` required `svelte` / `solid-js` from a folder
+  // No installed plugin has. `electron-renderer` is both a browser and a node context to Parcel.
+  it('bundles every dependency and resolves the browser export condition on parcel', () => {
+    copyTemplates(makeAnswers({ bundler: 'parcel' }), targetDir, '1.0.0', null);
+    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParcelPackageJson;
+    expect(pkg.targets?.obsidianPlugin?.context).toBe('electron-renderer');
+    expect(pkg.targets?.obsidianPlugin?.includeNodeModules).toBe(true);
+    expect(pkg['@parcel/resolver-default']?.packageExports).toBe(true);
+  });
+
+  // Parcel compiles JSX for a React-style runtime, and `solid-js/jsx-runtime` exports none. The build was
+  // Green only while `solid-js` stayed external and nothing resolved the import at all.
+  it('compiles Solid JSX on parcel through babel-preset-solid, and adds babel for no other framework', () => {
+    copyTemplates(makeAnswers({ bundler: 'parcel', preset: 'standalone', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    expect(JSON.parse(readFileSync(join(targetDir, 'babel.config.json'), 'utf-8'))).toEqual({ presets: ['babel-preset-solid'] });
+    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+    expect(Object.keys(pkg.devDependencies ?? {})).toContain('babel-preset-solid');
+
+    const reactDir = mkdtempSync(join(tmpdir(), 'cop-parcel-react-'));
+    try {
+      copyTemplates(makeAnswers({ bundler: 'parcel', preset: 'standalone', uiFramework: 'react' }), reactDir, '1.0.0', null);
+      expect(existsSync(join(reactDir, 'babel.config.json'))).toBe(false);
+    } finally {
+      rmSync(reactDir, { force: true, recursive: true });
+    }
   });
 
   // The point of the whole exercise. A sample test that imports nothing passes on every combination while
