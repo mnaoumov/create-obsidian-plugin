@@ -279,6 +279,17 @@ can take the gate away. The emitted `version` script calls the same `gate()` as 
 fails the same way on such a project; that is obsidian-dev-utils' to fix, and once it treats those steps as
 optional the condition here can go.
 
+### The emitted `cspell.json` knows every word the scaffold writes
+
+`gate()` and the emitted `version` both run `spellcheck` first, so one unknown word in a template leaves
+a fresh project red on its own release preflight. The gate tier's `spellcheck` step runs it. The word
+list is one static list, like the framework names already in it, not a per-answer one: a word no file
+of this project uses costs nothing, and a missing one fails the project. GitHub advisory ids
+(`GHSA-xxxx-xxxx-xxxx`) are skipped by `ignoreRegExpList` rather than listed, because their fragments are
+random and change with every advisory `pinned-versions.json` cites. The list was measured by rendering
+one case per answer value under each preset and running cspell over all of them, which takes a minute.
+Do that again after adding prose to a template.
+
 ### `.depcheckrc.json` is emitted, measured; `AGENTS.md` is not
 
 Every real plugin carries both. They split because only one is derivable from the answers.
