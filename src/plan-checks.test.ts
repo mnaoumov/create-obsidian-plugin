@@ -201,7 +201,7 @@ describe('checkPlan', () => {
   });
 
   // A registered path is the emitted file's path, so an underscore in it is part of the name. Skipping it
-  // As a partial is how `bug_report.yml` went silently unemitted; with no template behind it, it is now
+  // As a partial is how `bug_report.yml` was silently never emitted; with no template behind it, it is now
   // Reported like any other file that would be written empty.
   it('checks a registered path with an underscore like any other file', () => {
     const builder = new TemplateBuilder().addFiles(['some_file.md']);
