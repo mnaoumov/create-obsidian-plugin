@@ -262,6 +262,21 @@ command for it, and it can never run an empty `nano-staged-config.ts`. Both hook
 gets no husky at all. The real plugins beside this repo split the same way: all of them run nano-staged, and
 only some also run commitlint.
 
+### `npm run gate` is emitted only where it can pass
+
+`scripts/gate.ts` is the one-line wrapper over obsidian-dev-utils' `gate()` that every real plugin ships
+byte for byte: the release preflight's checks, reachable before committing. `gate()` runs `format:check`,
+`spellcheck`, `lint:md`, `build` and `lint` through `npmRun`, which throws on a script the project does not
+define, so on a project that answered `none` for any of those tools it dies on its first step.
+
+So `addBranchGate` (`src/features/branch-gate.ts`) runs after every answer and demo override, like the
+pre-commit hook, and registers the script, the file and the `has-gate` partial (its `CONTRIBUTING.md`
+line) only on an odu preset whose builder holds all five scripts. It reads the registered scripts, not the
+answers: `demo` forces the linter, markdown linter and spell checker back in, so there only the formatter
+can take the gate away. The emitted `version` script calls the same `gate()` as its preflight, so it
+fails the same way on such a project; that is obsidian-dev-utils' to fix, and once it treats those steps as
+optional the condition here can go.
+
 ### `.depcheckrc.json` is emitted, measured; `AGENTS.md` is not
 
 Every real plugin carries both. They split because only one is derivable from the answers.
