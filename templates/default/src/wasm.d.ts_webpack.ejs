@@ -3,6 +3,5 @@
 // Reaches a user. An `asset/inline` rule carries the module inside the bundle as a `data:` URL instead.
 declare module '*.wasm' {
   const dataUrl: string;
-  // eslint-disable-next-line import-x/no-default-export -- A `.wasm` import is a default import; the declaration has to match.
   export default dataUrl;
 }

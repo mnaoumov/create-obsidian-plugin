@@ -1,10 +1,13 @@
-import i18next from 'i18next';
+// The named exports are bound to the default instance, the stateful singleton the package documents.
+import {
+  init,
+  t as translate
+} from 'i18next';
 
 import en from './locales/en.json';
 
 export async function initI18n(): Promise<void> {
-  // eslint-disable-next-line import-x/no-named-as-default-member -- `i18next` is a stateful singleton; the named `init` binds to that same instance and the default is how the package documents it.
-  await i18next.init({
+  await init({
     fallbackLng: 'en',
     lng: 'en',
     resources: {
@@ -14,6 +17,5 @@ export async function initI18n(): Promise<void> {
 }
 
 export function t(key: string): string {
-  // eslint-disable-next-line import-x/no-named-as-default-member -- See `initI18n` above: the singleton is the API.
-  return i18next.t(key);
+  return translate(key);
 }

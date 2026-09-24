@@ -4,6 +4,5 @@
 // URL a `data:` URL carried inside `main.js` rather than a path to a file no release would ship.
 declare module '*.wasm?url' {
   const dataUrl: string;
-  // eslint-disable-next-line import-x/no-default-export -- A `.wasm` import is a default import; the declaration has to match.
   export default dataUrl;
 }

@@ -14,7 +14,6 @@ const MESSAGE = 'Single-file components are not compiled in unit tests. Render t
  *
  * @throws Always.
  */
-// eslint-disable-next-line import-x/no-default-export -- Both runners alias a single-file component to this module, and a component is imported as a default.
 export default function frameworkComponentStub(): never {
   throw new Error(MESSAGE);
 }

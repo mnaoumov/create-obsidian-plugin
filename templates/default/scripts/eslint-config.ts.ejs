@@ -59,7 +59,33 @@ export const configs: Linter.Config[] = defineEslintConfigs({
             }
           ]
         }
-      }<%- render('custom-config') %>
+      },
+      {
+        // Two imports only a build or a bundler can resolve. `src/main.ts` imports the stylesheet
+        // `npm run build:styles` writes, which is absent until the first build and present after it -- so an
+        // Inline disable is wrong in both states, an unresolved import before and an unused directive after.
+        // `data-url:` is a parcel scheme that only parcel's own resolver knows. Both patterns are named
+        // Whether or not the answer that emits them was chosen: a pattern matching nothing costs nothing.
+        files: context.sourceFiles,
+        rules: {
+          'import-x/no-unresolved': ['error', { ignore: ['^data-url:', String.raw`tailwind\.generated\.css$`] }]
+        }
+      },
+      {
+        // Files whose default export is dictated from outside, the way the shared config already exempts
+        // The root configs and `src/main.ts`. An ambient `declare module` describes how a `.wasm`, a CSS
+        // Module or a single-file component is imported, and each of those IS a default import. The two
+        // Stubs stand in for such modules in the unit runners, and typesafe-i18n's generator reads each
+        // Locale's default export.
+        files: [
+          '**/*.d.ts',
+          'scripts/*-stub.ts',
+          'src/i18n/*/index.ts'
+        ],
+        rules: {
+          'import-x/no-default-export': 'off'
+        }
+      }
     );
   },
   editContext(context) {

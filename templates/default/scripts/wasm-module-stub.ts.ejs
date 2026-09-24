@@ -16,7 +16,6 @@
  *
  * @throws Always.
  */
-// eslint-disable-next-line import-x/no-default-export -- Both runners alias a `.wasm` import to this module, and such an import is a default.
 export default function wasmModuleStub(): never {
   throw new Error('A `.wasm` import is not loaded in unit tests. Read the file and instantiate it directly if a test needs the real module.');
 }

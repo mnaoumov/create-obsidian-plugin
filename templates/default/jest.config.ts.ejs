@@ -44,7 +44,7 @@ const config: Config = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
 <%- render('ts-jest-tsconfig') -%>
-        // eslint-disable-next-line unicorn/name-replacements -- `rootDir` is TypeScript's own compiler-option name.
+<%- render('lint-root-dir') -%>
         rootDir: '.'
       },
       useESM: true

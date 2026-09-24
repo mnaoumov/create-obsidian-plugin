@@ -1,9 +1,8 @@
 // `node:test`'s `test()` returns a promise that the runner owns and awaits itself, so nothing here
 // Should await it -- but that makes every call a floating promise. `void` is the marker
 // `@typescript-eslint/no-floating-promises` accepts for exactly this case, and it keeps the rule armed
-// For the tests you write yourself. This file is nothing but such calls, so the ban on `void` is lifted
-// For the whole of it rather than line by line.
-/* eslint-disable no-void -- See above: no call in this file awaits its `node:test`, deliberately. */
+// For the tests you write yourself.
+<%- render('lint-no-void-disable') -%>
 import assert from 'node:assert';
 import test from 'node:test';
 import { embedded } from 'obsidian-test';
@@ -14,4 +13,4 @@ embedded((app) => {
   });
 <%- render('unofficial') -%>
 });
-/* eslint-enable no-void -- See the top of the file. */
+<%- render('lint-no-void-enable') -%>

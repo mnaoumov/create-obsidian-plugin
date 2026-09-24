@@ -17,9 +17,10 @@ import { getWasmAnswer } from './answer.ts';
  */
 export function registerSampleWasmCommand(plugin: Plugin): void {
   plugin.addCommand({
-    callback: () => {
-      // eslint-disable-next-line no-void -- The command callback is synchronous; `void` is the marker `no-floating-promises` accepts.
-      void showWasmAnswer();
+    // `Command.callback` is typed `() => any`, so an async callback is not a misused promise -- and awaiting
+    // Here needs no `void`, which one preset's lint config bans and the other's does not.
+    callback: async () => {
+      await showWasmAnswer();
     },
     id: 'sample-wasm-answer',
     name: 'Sample WASM answer'

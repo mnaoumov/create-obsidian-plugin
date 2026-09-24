@@ -5,8 +5,7 @@ import type { Configuration } from 'webpack';
 <%- sortImports(`import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import process from 'node:process';
-// eslint-disable-next-line import-x/no-named-as-default -- The default export IS the \`webpack\` namespace; the same name is the point.
-import webpack from 'webpack';
+${render('lint-webpack-default')}import webpack from 'webpack';
 ${render('import')}`) -%>
 
 const isProduction = process.env['BUILD'] === 'production';

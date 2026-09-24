@@ -72,8 +72,7 @@ const EXTERNAL = [
     // \`rootDir\` for the same reason.
     typescript({
       noEmit: false,
-      // eslint-disable-next-line unicorn/name-replacements -- \`outDir\` is TypeScript's own compiler-option name.
-      outDir: distFolder,
+${render('lint-out-dir')}      outDir: distFolder,
       rewriteRelativeImportExtensions: true,
       sourceMap: !isProduction
     }),
