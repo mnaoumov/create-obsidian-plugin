@@ -1152,7 +1152,12 @@ describe('copyTemplates', () => {
       // All three access routes the skeleton names, plus the plain-markdown entry point.
       expect(readme, preset).toContain('[Start reading here](<./demo-vault/00 Start.md>)');
       expect(readme, preset).toContain('**My Tool: Open demo vault** command');
-      expect(readme, preset).toContain('`my-tool-demo-vault-<version>.zip`');
+      expect(readme, preset).toContain('`my-tool-demo-vault.zip`');
+      expect(readme, preset).toContain('a single `my-tool-demo-vault-<version>` folder');
+      // The vault's own README names the same unversioned asset and the folder it unzips into.
+      const vaultReadme = readFileSync(join(targetDir, 'demo-vault/README.md'), 'utf-8');
+      expect(vaultReadme, preset).toContain('download `my-tool-demo-vault.zip`');
+      expect(vaultReadme, preset).toContain('select the `my-tool-demo-vault-<version>` folder it unzips into');
       expect(readme, preset).toContain('[`demo-vault/`](./demo-vault/README.md)');
     }
   });
