@@ -97,7 +97,7 @@ export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   showHotkeyHints();
 
-  const defaultTooling = getDefaultTooling('enhanced');
+  const defaultTooling = getDefaultTooling();
   const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, defaultTooling), defaults ?? {});
   const answers = await runPromptSteps(steps);
 
@@ -399,7 +399,7 @@ function extractWords(pluginId: string): string[] {
 
 function getDefaultAnswersBase(pluginId: string): Answers {
   return {
-    ...getDefaultTooling('enhanced'),
+    ...getDefaultTooling(),
     authorGitHubName: 'johndoe',
     authorName: 'John Doe',
     bundler: 'esbuild',
@@ -419,13 +419,13 @@ function getDefaultAnswersBase(pluginId: string): Answers {
   };
 }
 
-function getDefaultTooling(preset: string): DefaultTooling {
+function getDefaultTooling(): DefaultTooling {
   return {
     apiSubset: 'official',
     commitLinting: 'conventional-commits',
     coverageBadge: 'none',
     e2eTestRunner: 'none',
-    editorExtensions: preset === 'demo' ? 'codemirror' : 'none',
+    editorExtensions: 'none',
     formatter: 'dprint',
     gitHubActions: 'ci-and-release',
     gitHubIssueTemplates: 'bug-and-feature',
