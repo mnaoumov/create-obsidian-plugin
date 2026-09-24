@@ -13,7 +13,7 @@ export interface LintStagedPattern {
 /**
  * The shape every partial name must have: kebab-case, so it holds no `_`, no `.` and no `@`.
  *
- * A template on disk is recognised as a partial by what follows the LAST `_` in its basename, and only
+ * A template on disk is recognized as a partial by what follows the LAST `_` in its basename, and only
  * when that tail reads as a partial name (see `isPartialTemplatePath` in `templates.ts`). Requiring the
  * name to be kebab-case is what lets a real filename keep its underscores: `bug_report.yml` ends in
  * `report.yml`, which no partial can be called, so it is a template of its own. A name outside this
@@ -144,7 +144,7 @@ export class TemplateBuilder {
 
   public addPartial(name: string): this {
     if (!PARTIAL_NAME_PATTERN.test(name)) {
-      throw new Error(`Partial name "${name}" is not kebab-case, so its template files would not be recognised as partials.`);
+      throw new Error(`Partial name "${name}" is not kebab-case, so its template files would not be recognized as partials.`);
     }
     this._partials.add(name);
     return this;
