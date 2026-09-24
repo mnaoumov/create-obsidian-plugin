@@ -1131,6 +1131,7 @@ describe('copyTemplates', () => {
   }
 
   interface ParsedPackageJson {
+    devDependencies?: Record<string, string>;
     scripts: Record<string, string>;
   }
 
@@ -2127,6 +2128,26 @@ describe('copyTemplates', () => {
     // Wrong for every other framework's runtime, so it must not leak into them.
     copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'react' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('solid-js');
+  });
+
+  // Webpack's ts-loader leaves Solid's JSX preserved and rewrites the view's `.tsx` import to `.jsx`, so
+  // Every webpack + solid build failed to resolve it -- and, resolved, could not have parsed it. A babel
+  // Pass after ts-loader compiles the JSX, and `extensionAlias` maps the `.jsx` name back.
+  it('compiles Solid JSX on webpack, and adds babel for no other framework', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ bundler: 'webpack', preset, uiFramework: 'solid' }), targetDir, '1.0.0', null);
+      const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
+      expect(config, preset).toContain('loader: \'babel-loader\'');
+      expect(config, preset).toContain('enforce: \'post\'');
+      expect(config, preset).toContain('presets: [\'babel-preset-solid\']');
+      expect(config, preset).toContain('\'.jsx\': [\'.tsx\', \'.jsx\']');
+      const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+      const devDependencies = Object.keys(pkg.devDependencies ?? {});
+      expect(devDependencies, preset).toEqual(expect.arrayContaining(['@babel/core', 'babel-loader', 'babel-preset-solid']));
+    }
+
+    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'enhanced', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).not.toContain('babel-loader');
   });
 
   // The point of the whole exercise. A sample test that imports nothing passes on every combination while

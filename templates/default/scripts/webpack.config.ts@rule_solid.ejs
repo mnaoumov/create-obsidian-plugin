@@ -1,0 +1,17 @@
+<%# Solid's JSX is not React's, so ts-loader leaves it alone: the Solid answer sets `jsx: preserve` for -%>
+<%# `babel-preset-solid`, and ts-loader emits every `.tsx` with its JSX intact. This rule compiles it. -%>
+<%# `enforce: 'post'` runs it AFTER ts-loader, which still type-checks and strips the types, so babel -%>
+<%# needs only the Solid preset. `configFile: false` keeps a babel config another answer emits away from it. -%>
+      {
+        enforce: 'post',
+        exclude: /node_modules/,
+        test: /\.tsx$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            babelrc: false,
+            configFile: false,
+            presets: ['babel-preset-solid']
+          }
+        }
+      },

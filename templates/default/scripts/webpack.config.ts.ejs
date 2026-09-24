@@ -106,8 +106,12 @@ export const config: Configuration = {
     // The loader above rewrites `./plugin.ts` to `./plugin.js` on emit, but only `./plugin.ts` exists on
     // Disk, and webpack's `extensions` list only appends a suffix to a request that has no extension --
     // It does not map one extension to another. Without this the bundle fails to resolve "./plugin.js".
+    //
+    // Under `jsx: preserve` (the Solid answer) it rewrites `./view.tsx` to `./view.jsx` instead, so that
+    // Name is mapped back the same way. Nothing else emits a `.jsx` specifier, so elsewhere it is inert.
     extensionAlias: {
-      '.js': ['.ts', '.tsx', '.js']
+      '.js': ['.ts', '.tsx', '.js'],
+      '.jsx': ['.tsx', '.jsx']
     },
     extensions: ['.ts', '.tsx', '.js']
   },
