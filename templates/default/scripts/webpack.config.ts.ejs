@@ -82,6 +82,10 @@ export const config: Configuration = {
     ]
   },
   output: {
+    // An Obsidian release ships `main.js` and nothing beside it, so a dynamic import -- obsidian-dev-utils
+    // Has several -- must not become a sibling chunk that `main.js` then loads by name at runtime. This is
+    // Webpack's twin of rollup's `inlineDynamicImports`.
+    asyncChunks: false,
     filename: 'main.js',
     libraryExport: 'default',
     libraryTarget: 'commonjs2',
