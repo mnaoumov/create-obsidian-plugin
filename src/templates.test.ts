@@ -1183,6 +1183,35 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toBe(generated);
   });
 
+  // A path the previous run never emitted has no recorded hash, and the protection above only compared
+  // Against a recorded one -- so the user's own file there was overwritten and listed under "Updated".
+  it('keeps skipping a user\'s own file at a path the previous run never emitted', () => {
+    const own = 'My own commit script.\n';
+    let config = copyTemplates(makeAnswers({ commitLinting: 'none' }), targetDir, '1.0.0', null);
+    expect(config.fileHashes).not.toHaveProperty('scripts/commit.ts');
+    writeFileSync(join(targetDir, 'scripts', 'commit.ts'), own);
+
+    for (const version of ['1.0.1', '1.0.2']) {
+      config = copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, version, config);
+      expect(readFileSync(join(targetDir, 'scripts', 'commit.ts'), 'utf-8'), version).toBe(own);
+      expect(config.fileHashes, version).not.toHaveProperty('scripts/commit.ts');
+    }
+
+    rmSync(join(targetDir, 'scripts', 'commit.ts'));
+    config = copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.3', config);
+    expect(readFileSync(join(targetDir, 'scripts', 'commit.ts'), 'utf-8')).not.toBe(own);
+    expect(config.fileHashes).toHaveProperty('scripts/commit.ts');
+  });
+
+  it('adopts an unrecorded file whose content already matches the render', () => {
+    const generated = copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
+    const script = readFileSync(join(targetDir, 'scripts', 'commit.ts'), 'utf-8');
+    const { 'scripts/commit.ts': commitHash, ...otherHashes } = generated.fileHashes;
+    const config = copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.1', { ...generated, fileHashes: otherHashes });
+    expect(readFileSync(join(targetDir, 'scripts', 'commit.ts'), 'utf-8')).toBe(script);
+    expect(config.fileHashes['scripts/commit.ts']).toBe(commitHash);
+  });
+
   it('adds the commit script only when commit linting is on', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const withLinting = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;

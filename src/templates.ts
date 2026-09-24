@@ -391,7 +391,6 @@ export function copyTemplates(
     }
 
     const newHash = sha256(rendered);
-    newConfig.fileHashes[destinationPath] = newHash;
 
     if (existingConfig && existsSync(fullDestinationPath)) {
       const currentContent = isAsset ? readFileSync(fullDestinationPath) : readFileSync(fullDestinationPath, 'utf-8');
@@ -399,10 +398,19 @@ export function copyTemplates(
       const originalHash = existingConfig.fileHashes[destinationPath];
 
       if (currentHash === newHash) {
+        newConfig.fileHashes[destinationPath] = newHash;
         continue;
       }
 
-      if (originalHash && currentHash !== originalHash) {
+      if (originalHash === undefined) {
+        skipped.push(destinationPath);
+        // The generator never wrote this path -- a template new in this version, or an answer that now
+        // Registers it -- so the file there is the user's own. Recording no hash keeps it skipped on every
+        // Later update, until it matches a render or the user deletes it to take the generator's version.
+        continue;
+      }
+
+      if (currentHash !== originalHash) {
         skipped.push(destinationPath);
         // Keep the hash the generator wrote, not the user's. Recording the user's made the next update read
         // The edit as untouched and overwrite it, reported as an ordinary "Updated". The file stays skipped
@@ -415,6 +423,8 @@ export function copyTemplates(
     } else {
       created.push(destinationPath);
     }
+
+    newConfig.fileHashes[destinationPath] = newHash;
 
     const destDir = dirname(fullDestinationPath);
     if (!existsSync(destDir)) {

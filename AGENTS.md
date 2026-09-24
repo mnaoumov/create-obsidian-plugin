@@ -385,6 +385,11 @@ the code until `copyTemplates` was fixed, so the protection lasted exactly one u
 updates when its content matches a render again, or when the user deletes it. `src/templates.test.ts` drives
 three updates over one edit to pin this.
 
+A file at a path with NO recorded hash is the user's too, unless it already matches the render. That is a path
+the previous run never emitted: a template new in this generator version, or an answer that now registers it.
+Comparing only against a recorded hash let the update overwrite it under "Updated". It is skipped with the same
+warning and no hash is recorded for it, so it stays skipped on later updates by the same two exits.
+
 ### A user's own templates are an overlay searched ahead of `templates/default`
 
 `--customTemplate=<dir>` (`src/overlay.ts`) is for what the answers cannot say. The directory mirrors
