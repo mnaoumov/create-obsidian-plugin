@@ -514,7 +514,7 @@ green build the whole time:
 | path | emitted before | what names it now |
 | --- | --- | --- |
 | webpack | `styles.css` | `MiniCssExtractPlugin({ filename: 'styles.css' })` — always did |
-| rollup | `styles.css` | `postcss({ extract: … })` / `scss({ output: … })` — always did |
+| rollup | `styles.css` (postcss); `assets/output-<hash>.css` (scss) | `postcss({ extract: … })` / `scss({ fileName: … })` — rollup-plugin-scss 4 ignores a string `output` |
 | esbuild (dev-utils) | `styles.css` | obsidian-dev-utils' own `renameCssPlugin` — always did |
 | esbuild (standalone) | `main.css` | a local `renameCssPlugin`; the CSS lands beside `outfile` |
 | vite | `<pluginId>.css` | `build.lib.cssFileName`; lib mode names it after the package |
