@@ -53,6 +53,7 @@ export async function runSampleEditorCommandOnScratchNote(app: App): Promise<voi
   app.commands.executeCommandById(`${PLUGIN_ID}:sample-editor`);
   new Notice('Ran the Sample editor command. Look at the end of the scratch note.');
 }
+<%- render('commands') -%>
 
 /**
  * Sets the plugin's `textSetting` to the given value.

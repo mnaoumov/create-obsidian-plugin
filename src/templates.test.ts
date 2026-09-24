@@ -1048,6 +1048,34 @@ describe('copyTemplates', () => {
     expect(startupScript).toContain('export async function invoke(');
   });
 
+  it('documents the WebAssembly command in the demo vault only when both answers ask for it', () => {
+    const wasmNote = join(targetDir, 'demo-vault', '03 WebAssembly.md');
+
+    copyTemplates(makeAnswers({ preset: 'enhanced', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+    const note = readFileSync(wasmNote, 'utf-8');
+    expect(note.startsWith('# WebAssembly\n')).toBe(true);
+    expect(note).toContain('require(\'/demoSetup.ts\').runSampleWasmAnswerCommand(app);');
+    // The coverage suite fails a note that `00 Start.md` does not reach.
+    expect(readFileSync(join(targetDir, 'demo-vault', '00 Start.md'), 'utf-8')).toContain('| [03 WebAssembly](<./03 WebAssembly.md>) |');
+    expect(readFileSync(join(targetDir, 'demo-vault', '01 Sample commands.md'), 'utf-8')).toContain('## Sample WASM answer');
+    // The id the button runs has to be the one `src/wasm/sample-command.ts` registers.
+    expect(readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts'), 'utf-8')).toContain(':sample-wasm-answer`);');
+    expect(readFileSync(join(targetDir, 'src/wasm/sample-command.ts'), 'utf-8')).toContain('id: \'sample-wasm-answer\'');
+
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ preset: 'enhanced', wasmSupport: 'none' }), targetDir, '1.0.0', null);
+    expect(existsSync(wasmNote)).toBe(false);
+    const startNote = readFileSync(join(targetDir, 'demo-vault', '00 Start.md'), 'utf-8');
+    expect(startNote).not.toContain('WebAssembly');
+    // The seam renders nothing: the table still ends where the next heading starts.
+    expect(startNote).toContain('`data.json`. |\n\n## Materials');
+    expect(readFileSync(join(targetDir, 'demo-vault', '01 Sample commands.md'), 'utf-8')).not.toContain('WASM');
+    expect(readFileSync(join(targetDir, 'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts'), 'utf-8')).not.toContain('wasm');
+
+    // `standalone` answers `wasm` and still ships no vault to document it in.
+    expect(buildTemplate(makeAnswers({ preset: 'standalone', wasmSupport: 'wasm' })).templateFiles).not.toContain('demo-vault/03 WebAssembly.md');
+  });
+
   it('commits both plugin ids and none of the injected app.json settings in the demo vault', () => {
     copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
 
