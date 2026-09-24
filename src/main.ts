@@ -26,6 +26,7 @@ import type {
   GeneratorConfig,
   PackageJson
 } from './answers.ts';
+import type { CliArgs } from './cli-args.ts';
 import type { Overlay } from './overlay.ts';
 
 import {
@@ -109,8 +110,7 @@ function assertManifestAnswersAreListable(answers: Answers): void {
   }
 
   const lines = problems.map((problem) => `"${problem.value}" is not a valid ${problem.key}. ${problem.message}.\nPass --${problem.key}=<value> to set it yourself.`);
-  process.stderr.write(`${lines.join('\n\n')}\n`);
-  process.exit(1);
+  exitWithUsageError(lines.join('\n\n'));
 }
 
 /**
@@ -130,9 +130,20 @@ async function checkForUpdates(currentVersion: string): Promise<void> {
   }
 }
 
-async function detectMode(): Promise<Mode> {
+async function detectMode(cliArgs: CliArgs): Promise<Mode> {
+  if (cliArgs.mode) {
+    return cliArgs.mode;
+  }
+
   const configPath = join(process.cwd(), CONFIG_FILE_NAME);
   if (existsSync(configPath)) {
+    // Refused rather than defaulted: updating is not safe to assume about a project the caller may have
+    // Meant to leave alone, and creating would ignore the one thing detected here.
+    if (cliArgs.useDefaults) {
+      exitWithUsageError(`Existing project detected (${CONFIG_FILE_NAME}), and --yes cannot ask whether to update it.
+Pass --mode=update to update it, or --mode=create to scaffold a new plugin beside it.`);
+    }
+
     const shouldUpdate = await confirm({
       message: 'Existing project detected. Would you like to update it?'
     });
@@ -176,6 +187,16 @@ function execAsync(command: string, cwd: string): Promise<ExecResult> {
 }
 
 /**
+ * Stops with a usage error on stderr: a rejected answer, an overlay that does not load, or a question `--yes`
+ * would otherwise have had to ask. Under `--yes` there may be nobody to ask, and a prompt with no TTY behind
+ * it waits forever -- so the run names the flag that answers it and exits instead.
+ */
+function exitWithUsageError(message: string): never {
+  process.stderr.write(`${message}\n`);
+  process.exit(1);
+}
+
+/**
  * Loads the overlay or stops with the reason, the same stderr-then-exit shape as a rejected flag: an
  * overlay that does not load is a usage error, and it is found before any question is asked.
  */
@@ -183,9 +204,7 @@ function loadOverlayOrExit(dir: string, hint = ''): Overlay {
   try {
     return loadOverlay(dir);
   } catch (error: unknown) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}${hint}
-`);
-    process.exit(1);
+    exitWithUsageError(`${error instanceof Error ? error.message : String(error)}${hint}`);
   }
 }
 
@@ -224,12 +243,12 @@ async function main(): Promise<void> {
 
   await checkForUpdates(currentVersion);
 
-  const mode = await detectMode();
+  const mode = await detectMode(cliArgs);
 
   if (mode === Mode.Create) {
-    await runCreate(currentVersion, cliArgs.useDefaults, cliArgs.answers, cliArgs.customTemplate);
+    await runCreate(currentVersion, cliArgs);
   } else {
-    await runUpdate(currentVersion, cliArgs.answers, cliArgs.customTemplate);
+    await runUpdate(currentVersion, cliArgs);
   }
 }
 
@@ -276,7 +295,7 @@ async function offerAnswersExport(answers: Answers, customTemplate: string | und
       writeFileSync(join(process.cwd(), answersFileName), formatAnswersJson(answers));
       log.success(`Wrote ${answersFileName}`);
       const overlayFlag = customTemplate ? ` --customTemplate=${customTemplate}` : '';
-      note(`npm create @mnaoumov/obsidian-plugin -- --yes --answersFile=${answersFileName}${overlayFlag}`, 'Non-interactive command');
+      note(`npm create @mnaoumov/obsidian-plugin -- --yes --mode=create --answersFile=${answersFileName}${overlayFlag}`, 'Non-interactive command');
     }
 
     choice = await ask();
@@ -297,7 +316,8 @@ async function resolveExternalVersions(answers: Answers, overlay: null | Overlay
   return { minAppVersion, resolvedVersions };
 }
 
-async function runCreate(currentVersion: string, useDefaults: boolean, suppliedAnswers: Partial<Answers>, customTemplate: string | undefined): Promise<void> {
+async function runCreate(currentVersion: string, cliArgs: CliArgs): Promise<void> {
+  const { answers: suppliedAnswers, customTemplate, useDefaults } = cliArgs;
   const overlay = customTemplate ? loadOverlayOrExit(resolvePath(customTemplate)) : null;
   const answers = useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers);
   assertManifestAnswersAreListable(answers);
@@ -310,7 +330,13 @@ async function runCreate(currentVersion: string, useDefaults: boolean, suppliedA
 
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
 
-  if (existsSync(targetDir)) {
+  if (existsSync(targetDir) && !cliArgs.force) {
+    // The prompt's own default is no, but taking it silently would exit 0 having generated nothing.
+    if (useDefaults) {
+      exitWithUsageError(`Directory obsidian-${answers.pluginId} already exists, and --yes cannot ask whether to scaffold into it.
+Pass --force to scaffold into it anyway.`);
+    }
+
     const shouldContinue = await confirm({
       initialValue: false,
       message: `Directory obsidian-${answers.pluginId} already exists. Continue anyway?`
@@ -438,7 +464,8 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
   }
 }
 
-async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answers>, customTemplate: string | undefined): Promise<void> {
+async function runUpdate(currentVersion: string, cliArgs: CliArgs): Promise<void> {
+  const { answers: suppliedAnswers, customTemplate, useDefaults } = cliArgs;
   const targetDir = process.cwd();
   const existingConfig = loadConfig(targetDir);
 
@@ -474,10 +501,13 @@ This project records it in ${CONFIG_FILE_NAME}. Pass --customTemplate=<dir> to p
     // An existing project without walking the whole wizard again.
     const saved: Answers = { ...savedConfig.answers, ...suppliedAnswers };
     log.info('Using saved answers from previous generation.');
-    const shouldRePrompt = await confirm({
-      initialValue: false,
-      message: 'Would you like to change any settings?'
-    });
+    // Under `--yes` the flags ARE the changes, so there is nothing left to ask.
+    const shouldRePrompt = useDefaults
+      ? false
+      : await confirm({
+        initialValue: false,
+        message: 'Would you like to change any settings?'
+      });
     assertNotCancelled(shouldRePrompt);
 
     if (shouldRePrompt) {
@@ -486,6 +516,11 @@ This project records it in ${CONFIG_FILE_NAME}. Pass --customTemplate=<dir> to p
       answers = saved;
     }
   } else {
+    // Not the defaults: each of them, the plugin id first, would be a guess about a project that exists.
+    if (useDefaults) {
+      exitWithUsageError(`${CONFIG_FILE_NAME} records no answers, so --yes has none to reuse.
+Run without --yes to answer them again.`);
+    }
     log.warn('No saved answers found. Please provide the settings again.');
     answers = await promptAnswers(suppliedAnswers);
   }

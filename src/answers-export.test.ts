@@ -200,6 +200,13 @@ describe('the emitted command', () => {
     expect(formatCreateCommand(answers, 'sh')).toContain('--yes');
   });
 
+  // Run from inside an existing project, `--yes` alone refuses to guess between creating and updating.
+  it('passes --mode=create, so a run beside an existing project still creates', () => {
+    const answers = getDefaultAnswers({ pluginId: 'my-tool' });
+    expect(formatCreateCommand(answers, 'sh')).toContain('--yes --mode=create');
+    expect(formatCreateCommand(answers, 'cmd')).toContain('--yes --mode=create');
+  });
+
   // Npm needs `--` to hand flags to the initializer; the other three forward them directly.
   it('uses each package manager\'s own create form', () => {
     expect(formatCreateCommand(getDefaultAnswers({ packageManager: 'npm' }), 'sh'))

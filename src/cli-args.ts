@@ -9,6 +9,7 @@ import type {
 } from './answers.ts';
 
 import { ANSWER_SPACE } from './answer-space.ts';
+import { Mode } from './answers.ts';
 import {
   validatePluginDescription,
   validatePluginId,
@@ -28,6 +29,13 @@ export interface CliArgs {
    * recorded, otherwise the directory as typed.
    */
   customTemplate: string | undefined;
+  /** `--force`: scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. */
+  force: boolean;
+  /**
+   * `--mode=create|update`: `undefined` when not given, which means asking when a project is detected in the
+   * current directory -- or, under `--yes`, refusing, because neither answer is safe to assume.
+   */
+  mode: Mode | undefined;
   showHelp: boolean;
   useDefaults: boolean;
 }
@@ -55,6 +63,10 @@ const REFUSED_KEYS: readonly string[] = [...COMPUTED_ANSWER_KEYS, ...DERIVED_TEM
 const ANSWERS_FILE_PREFIX = '--answersFile=';
 
 const CUSTOM_TEMPLATE_PREFIX = '--customTemplate=';
+
+const MODE_PREFIX = '--mode=';
+
+const MODES: readonly string[] = [Mode.Create, Mode.Update];
 
 /** The length of the leading `--` a flag name sits behind. */
 const FLAG_PREFIX_LENGTH = 2;
@@ -130,8 +142,12 @@ export function getHelpText(): string {
     'Usage: npm create @mnaoumov/obsidian-plugin [-- <options>]',
     '',
     'Options:',
-    '  -y, --yes                 Take every default and skip the post-scaffold prompts.',
+    '  -y, --yes                 Take every default and skip the post-scaffold prompts. Never asks:',
+    '                            a question no flag answers stops the run and names the flag.',
     '  -h, --help                Show this help.',
+    `      --mode=${MODES.join('|')}  Create a new plugin, or update the project in the current`,
+    '                            directory, without being asked which.',
+    '      --force               Scaffold into an obsidian-<pluginId> directory that already exists.',
     '      --answersFile=<path>  Read answers from a JSON file. Accepts a bare answers object or a',
     '                            `.create-obsidian-plugin.json`. Individual flags override it.',
     '      --customTemplate=<dir> Layer your own templates over the built-in ones: a directory',
@@ -153,6 +169,8 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   const flagAnswers: Partial<Record<StringAnswerKey, string>> = {};
   let answersFilePath: null | string = null;
   let customTemplate: string | undefined;
+  let force = false;
+  let mode: Mode | undefined;
   let showHelp = false;
   let useDefaults = false;
 
@@ -177,6 +195,16 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
       continue;
     }
 
+    if (argument === '--force') {
+      force = true;
+      continue;
+    }
+
+    if (argument.startsWith(MODE_PREFIX)) {
+      mode = toMode(argument.slice(MODE_PREFIX.length));
+      continue;
+    }
+
     const [rawKey, value] = splitFlag(argument);
     const key = toAnswerKey(rawKey);
     assertValidAnswer(key, value);
@@ -190,6 +218,8 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   return {
     answers,
     customTemplate,
+    force,
+    mode,
     showHelp,
     useDefaults
   };
@@ -309,4 +339,11 @@ function splitFlag(argument: string): [string, string] {
   // `indexOf` rather than `split`, so a value containing `=` survives -- a funding URL can carry a query
   // String.
   return [argument.slice(FLAG_PREFIX_LENGTH, separatorIndex), argument.slice(separatorIndex + 1)];
+}
+
+function toMode(value: string): Mode {
+  if (!MODES.includes(value)) {
+    throw new Error(`"${value}" is not a mode. It accepts: ${MODES.join(', ')}.`);
+  }
+  return value as Mode;
 }

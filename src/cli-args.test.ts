@@ -13,6 +13,7 @@ import {
 } from 'vitest';
 
 import { ANSWER_SPACE } from './answer-space.ts';
+import { Mode } from './answers.ts';
 import {
   COMPUTED_ANSWER_KEYS,
   getAnswerableKeys,
@@ -77,6 +78,29 @@ describe('parsing flags', () => {
     expect(parseCliArgs(['--yes']).useDefaults).toBe(true);
     expect(parseCliArgs(['-y']).useDefaults).toBe(true);
     expect(parseCliArgs([]).useDefaults).toBe(false);
+  });
+
+  it('reads --force', () => {
+    expect(parseCliArgs(['--force']).force).toBe(true);
+    expect(parseCliArgs([]).force).toBe(false);
+  });
+
+  // The two answers to "Existing project detected. Would you like to update it?", which `--yes` cannot ask.
+  it('reads --mode, and leaves it unset when not given', () => {
+    expect(parseCliArgs(['--mode=create']).mode).toBe(Mode.Create);
+    expect(parseCliArgs(['--mode=update']).mode).toBe(Mode.Update);
+    expect(parseCliArgs([]).mode).toBeUndefined();
+    expect(parseCliArgs(['--mode=update']).answers).toStrictEqual({});
+  });
+
+  it('refuses a mode it does not know, naming the ones it does', () => {
+    expect(() => parseCliArgs(['--mode=upgrade'])).toThrow('"upgrade" is not a mode. It accepts: create, update.');
+  });
+
+  it('lists --mode and --force in --help', () => {
+    const help = getHelpText();
+    expect(help).toContain('--mode=create|update');
+    expect(help).toContain('--force');
   });
 
   it('reads --help and -h', () => {
