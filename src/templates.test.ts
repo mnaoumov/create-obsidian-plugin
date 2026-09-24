@@ -1457,6 +1457,16 @@ describe('copyTemplates', () => {
     expect(plugin).not.toContain('Stale');
   });
 
+  // The shared config's `prefer-setting-definitions` warns on a tab without it: an imperative `display()` is invisible
+  // to Obsidian's settings search from 1.13.0 on.
+  it('builds the standalone settings tab declaratively, with no display()', () => {
+    copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+    const settings = readFileSync(join(targetDir, 'src/settings.ts'), 'utf-8');
+    expect(settings).toContain('public override getSettingDefinitions(): SettingDefinitionItem[] {');
+    expect(settings).toContain('key: \'mySetting\'');
+    expect(settings).not.toContain('display(');
+  });
+
   it('creates README with plugin name', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');

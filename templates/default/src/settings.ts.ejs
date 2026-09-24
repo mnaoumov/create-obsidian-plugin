@@ -1,11 +1,6 @@
-import type { App } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
 
-import {
-  PluginSettingTab,
-  Setting
-} from 'obsidian';
-
-import type <%= pluginShortName %>Plugin from './main.ts';
+import { PluginSettingTab } from 'obsidian';
 
 export interface PluginSettings {
   mySetting: string;
@@ -15,29 +10,23 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   mySetting: 'default'
 };
 
+/**
+ * The settings tab is declarative: return one definition per row from `getSettingDefinitions()` and Obsidian renders
+ * them and indexes them for the settings search. A `control` row's `key` names a property of `plugin.settings`, which
+ * `PluginSettingTab` reads and persists itself.
+ */
 export class <%= pluginShortName %>SettingTab extends PluginSettingTab {
-  public plugin: <%= pluginShortName %>Plugin;
-
-  public constructor(app: App, plugin: <%= pluginShortName %>Plugin) {
-    super(app, plugin);
-    this.plugin = plugin;
-  }
-
-  public display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-
-    new Setting(containerEl)
-      .setName('Setting #1')
-      .setDesc('Description')
-      .addText((text) =>
-        text
-          .setPlaceholder('Enter your value')
-          .setValue(this.plugin.settings.mySetting)
-          .onChange(async (value) => {
-            this.plugin.settings.mySetting = value;
-            await this.plugin.saveSettings();
-          })
-      );
+  public override getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        control: {
+          key: 'mySetting',
+          placeholder: 'Enter your value',
+          type: 'text'
+        },
+        desc: 'Description',
+        name: 'Setting #1'
+      }
+    ];
   }
 }
