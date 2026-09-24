@@ -49,6 +49,6 @@ export class Enhanced extends FeatureOption {
         'src/plugin-settings-tab.ts',
         ...DEMO_VAULT_TEMPLATE_FILES
       ])
-      .addPartial('odu');
+      .addPartial('dev-utils');
   }
 }

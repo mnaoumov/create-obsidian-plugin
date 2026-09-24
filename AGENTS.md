@@ -11,7 +11,7 @@
 - `templates/default/` — EJS template files (all must have `.ejs` extension), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
 - `scripts/` — All build/lint/test logic lives here
 - `dist/` — Built output (published to npm, not tracked in git)
-- `plugin-drift-baseline.json` — the differences between the emitted odu presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
+- `plugin-drift-baseline.json` — the differences between the emitted dev-utils presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
 
 ## Design Decisions
 
@@ -24,12 +24,12 @@ The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, 
 - **Enhanced/demo presets**: thin wrapper scripts that call the matching `obsidian-dev-utils` module — `script-utils/bundlers/esbuild`, `script-utils/linters/eslint`, `script-utils/test-runners/vitest`, `script-utils/version`, and so on, each wrapped in `wrapCliTask`. Updates propagate via `npm update`. There is no `script-utils/commands` barrel; every command has its own module.
 - **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
 
-The ESLint *config* follows the same split. The odu presets wrap `defineEslintConfigs` in `scripts/eslint-config.ts`, and `standalone` inlines its config in the root `eslint.config.mts`. See "Root configs are thin wrappers".
+The ESLint *config* follows the same split. The dev-utils presets wrap `defineEslintConfigs` in `scripts/eslint-config.ts`, and `standalone` inlines its config in the root `eslint.config.mts`. See "Root configs are thin wrappers".
 
 **Four scripts are the documented exceptions: they split on the TOOL first, not the preset.**
 
 `build.ts` and `dev.ts` split on the **bundler**, and they must stay the same decision made once —
-`dev` is `build` in watch mode. Splitting on the preset first is what made every odu preset run
+`dev` is `build` in watch mode. Splitting on the preset first is what made every dev-utils preset run
 esbuild whatever was answered, while still installing the chosen bundler and emitting its config for
 nothing to read. `build.ts` was fixed in `9fe2d67` and `dev.ts` was left behind, which is exactly how
 the two came to disagree: `npm run build` ran webpack, `npm run dev` ran esbuild, both green.
@@ -51,7 +51,7 @@ The two format scripts split on the **formatter** for the same class of reason.
 What `npm run format` runs is decided by the formatter answer, and only dprint has a preset-specific
 runner (dev-utils resolves `dprint.json` from the repo root and falls back to its bundled copy).
 prettier and biome are a plain `execSync`, identical everywhere, so they are one file each shared by
-every preset. Splitting on the preset first is what let the odu half import the dprint runner whatever
+every preset. Splitting on the preset first is what let the dev-utils half import the dprint runner whatever
 was chosen — installing prettier or biome, emitting its config, then running dprint over it, with
 dprint not even a dependency.
 
@@ -77,7 +77,7 @@ ts-jest compiles **with** emit whatever the tsconfig says, so TypeScript 6 raise
 setting must be explicitly set") against a config that infers its common source directory. The fix belongs in
 `jest.config.ts`, as a `transform`-level `tsconfig: { rootDir: '.' }` — **not** in the emitted
 `tsconfig.json`. That file declares `noEmit: true` and is read by more than tsc: `scripts/rollup.config.ts`
-hands it to `@rollup/plugin-typescript`, and the odu presets run `buildCompileTypeScript` over it. Putting an
+hands it to `@rollup/plugin-typescript`, and the dev-utils presets run `buildCompileTypeScript` over it. Putting an
 emit-layout option there changes what those tools see, for the sake of the one tool that ignores `noEmit`.
 (`.` and not `./src`: the tsconfig's `include` also covers `./*.ts` and `./scripts/**/*.ts`.) ts-jest merges
 the inline object over the discovered tsconfig rather than replacing it, which is what keeps this narrow.
@@ -94,9 +94,9 @@ The CommonJS alternative is a dead end, not an untried option: forcing `module: 
 `moduleResolution` down to `node10`, which TypeScript 6 rejects outright (TS5107, deprecated) and TypeScript 7
 removes.
 
-### Three preset partials: `odu`, `enhanced`, `demo`
+### Three preset partials: `dev-utils`, `enhanced`, `demo`
 
-`enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`odu`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
+`enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`dev-utils`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
 
 They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_enhanced` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `enhanced`. `src/plugin.ts_enhanced*` and the three `plugin-settings*_enhanced` files therefore stay keyed on `enhanced`, which only that preset carries.
 
@@ -104,11 +104,11 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 `demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by CodeScript Toolkit. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
 
-Only the `odu` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
+Only the `dev-utils` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
 A note that only some answers need is registered by that answer's `configure` behind `isDevUtilsPreset`, and reaches the vault through seams rather than conditionals: `00 Start.md` renders a `features` section inside its `## Features` table (the coverage suite fails a note `00 Start.md` does not reach), and `01 Sample commands.md` and `demoSetup.ts` each render a `commands` section. `wasm` is the one user today, with `03 WebAssembly.md`. Each seam renders nothing on a project that did not answer for it.
 
-Two suites guard it, both emitted only when the preset is `odu` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
+Two suites guard it, both emitted only when the preset is `dev-utils` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
 
 ### Unit tests import the plugin, which is what forces every piece of the mock wiring
 
@@ -119,7 +119,7 @@ actually loads the code under test. Everything below exists because that import 
 is optional decoration, and each piece was found by a combination that failed without it.
 
 - **`obsidian` is types-only** (`"main": ""`, a tarball of `.d.ts` files), so it must be aliased to
-  `obsidian-test-mocks/obsidian` in every runner. The odu presets get that free from
+  `obsidian-test-mocks/obsidian` in every runner. The dev-utils presets get that free from
   `defineObsidianPluginVitestConfig`'s `unit-tests` project; `standalone`'s own `vitest.config.ts` and
   `jest.config.ts` declare it themselves. `obsidian-test-mocks` is therefore added by the **test-runner**
   answer, not the preset — `standalone`'s premise is "no obsidian-dev-utils", which this does not breach,
@@ -132,7 +132,7 @@ is optional decoration, and each piece was found by a combination that failed wi
 - **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
   Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
   `preset: demo` imports the svelte view from `plugin.ts` **unconditionally**, so this is not a
-  svelte-answer-only concern. The mapping is emitted for every jest project and every odu vitest project
+  svelte-answer-only concern. The mapping is emitted for every jest project and every dev-utils vitest project
   rather than through partials: the pattern does not depend on any answer, which keeps the two configs
   identical across the matrix and avoids the partial-built-list trailing comma trap below.
 - **A vite alias built from a RegExp replaces only what the pattern MATCHED.** `/\.svelte$/` rewrites the
@@ -162,7 +162,7 @@ is optional decoration, and each piece was found by a combination that failed wi
 Beside `src/plugin.test.ts`, `src/features/test-runner/sample-unit-tests.ts` registers the sample tests
 the real plugins carry, and only those with something true to assert: `src/main.test.ts` on every preset
 (the default export Obsidian loads is the plugin class), `src/plugin-settings-component.test.ts` on the
-odu presets (driven through `loadWithPromises()`, the lifecycle Obsidian runs), and
+dev-utils presets (driven through `loadWithPromises()`, the lifecycle Obsidian runs), and
 `src/plugin-settings.test.ts` on `demo` only. `enhanced`'s settings class is one default value, and a
 test of it would only restate the source. There is no settings-tab test: rendering a row reaches `bind`,
 which throws on the test-mocks components unless spied on, and jest under ES modules has no `jest`
@@ -178,9 +178,9 @@ provisioned Obsidian or emulator, so a fresh project would ship tests nothing ca
 
 All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `commitlint.config.ts`, `vitest.config.ts`) are minimal re-exports from `scripts/`. Root `package.json` scripts all use `jiti scripts/*.ts`.
 
-The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The odu presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-utils' `defineEslintConfigs` the way every real plugin does.
+The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The dev-utils presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-utils' `defineEslintConfigs` the way every real plugin does.
 
-`scripts/markdownlint-cli2-config.ts` splits the same way. The odu presets spread obsidian-dev-utils' `obsidianDevUtilsConfig` and turn `no-soft-break-in-paragraph` on, byte for byte what the real plugins carry; `standalone` inlines its rules and is the only preset that declares `markdownlint` and `markdownlint-rule-relative-links`.
+`scripts/markdownlint-cli2-config.ts` splits the same way. The dev-utils presets spread obsidian-dev-utils' `obsidianDevUtilsConfig` and turn `no-soft-break-in-paragraph` on, byte for byte what the real plugins carry; `standalone` inlines its rules and is the only preset that declares `markdownlint` and `markdownlint-rule-relative-links`.
 
 **The shared config is much stricter than the inlined one.** It adds unicorn, perfectionist, `@stylistic`, import-x, eslint-comments and obsidian-dev-utils' own rules, and the templates are written to pass it. A sample that is red under its own `npm run lint` means the project has not really adopted the config. Two things were structural:
 
@@ -191,9 +191,9 @@ The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole
 
 It also carries two categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the three `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-unresolved` ignores `data-url:` and the generated tailwind stylesheet. The stylesheet does not exist until the first build, so an inline disable would be wrong both before the build and after it.
 
-### A lint directive for the shared config goes in an `_odu` section
+### A lint directive for the shared config goes in an `_dev-utils` section
 
-Most templates are shared by all three presets, but only the odu presets load import-x, unicorn, perfectionist and the other plugins the shared config registers. On `standalone`, a directive naming one of those rules is `Definition for rule ... was not found`, which is an error. A directive for a core rule that only the shared config enables, such as `no-void`, is an unused directive there, which is also an error. So such a directive is written as `<%- render('lint-<what>') -%>` and lives in `<template>@lint-<what>_odu.ejs`. The `odu` partial is carried by both odu presets and by nothing else. Inside a JavaScript template literal (the `sortImports` blocks, rollup's plugin list) the same section is `${render('lint-<what>')}`.
+Most templates are shared by all three presets, but only the dev-utils presets load import-x, unicorn, perfectionist and the other plugins the shared config registers. On `standalone`, a directive naming one of those rules is `Definition for rule ... was not found`, which is an error. A directive for a core rule that only the shared config enables, such as `no-void`, is an unused directive there, which is also an error. So such a directive is written as `<%- render('lint-<what>') -%>` and lives in `<template>@lint-<what>_dev-utils.ejs`. The `dev-utils` partial is carried by both dev-utils presets and by nothing else. Inside a JavaScript template literal (the `sortImports` blocks, rollup's plugin list) the same section is `${render('lint-<what>')}`.
 
 Two options come before adding a section: change the code so that neither config complains, or exempt a whole category in `scripts/eslint-config.ts`. The wasm sample's command callback became `async` for the first reason, and i18next's `init` / `t` became named imports for the same reason. A foreign member name (`outDir`, `rootDir`, `emptyOutDir`) stays an inline disable, which is what obsidian-dev-utils' own source does for `unicorn/name-replacements`. The render tier's `foreign-lint-directive` check catches a directive written straight into a shared template.
 
@@ -273,7 +273,7 @@ define, so on a project that answered `none` for any of those tools it dies on i
 
 So `addBranchGate` (`src/features/branch-gate.ts`) runs after every answer and demo override, like the
 pre-commit hook, and registers the script, the file and the `has-gate` partial (its `CONTRIBUTING.md`
-line) only on an odu preset whose builder holds all five scripts. It reads the registered scripts, not the
+line) only on a dev-utils preset whose builder holds all five scripts. It reads the registered scripts, not the
 answers: `demo` forces the linter, markdown linter and spell checker back in, so there only the formatter
 can take the gate away. The emitted `version` script calls the same `gate()` as its preflight, so it
 fails the same way on such a project; that is obsidian-dev-utils' to fix, and once it treats those steps as
@@ -291,13 +291,13 @@ every question under each preset), and the file writes one reason line per entry
 a dependency sweep treats anything depcheck still reports as a failure, so an entry is added only for a
 package that IS used where depcheck cannot see it — never to quiet a package nothing uses. The list was
 measured, not copied: generate and install a case, run `npx depcheck` in it, and read what is left.
-Several answers are conditional for a reason: `svelte-check` is ignored everywhere except the odu
+Several answers are conditional for a reason: `svelte-check` is ignored everywhere except the dev-utils
 presets' esbuild build, where obsidian-dev-utils runs its own copy and the project's declaration really
 is unused.
 
 `AGENTS.md` is not emitted. A scaffolded one could only restate the README about a codebase nobody has
 written yet, and it is a maintained file from the moment it exists — a stub is confidently empty where
-an absent file is honestly absent. `plugin-drift-baseline.json` records that under both odu presets.
+an absent file is honestly absent. `plugin-drift-baseline.json` records that under both dev-utils presets.
 
 ### A line that is not really per-answer gets ONE partial, named for what it is
 
@@ -447,7 +447,7 @@ stops either drifting back.
 Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the ESLint file
 list, the emitted `tsconfig.json`'s `include`, and the set of files actually written have to say the
 same thing. The ESLint file list is `typeScriptFiles` in `standalone`'s inlined `eslint.config.mts`, and
-on the odu presets it is obsidian-dev-utils' own context, which `scripts/eslint-config.ts` widens through
+on the dev-utils presets it is obsidian-dev-utils' own context, which `scripts/eslint-config.ts` widens through
 `editContext` — the root wrappers for jest, vite and webpack, and `e2e/`. `e2e/` was in neither list while
 `obsidianmd.configs.recommended` still linted it, which is the whole of "You have used a rule which
 requires type information" — the largest single class of install-tier failures. It reaches both lists
@@ -500,7 +500,7 @@ green build the whole time:
 | --- | --- | --- |
 | webpack | `styles.css` | `MiniCssExtractPlugin({ filename: 'styles.css' })` — always did |
 | rollup | `styles.css` | `postcss({ extract: … })` / `scss({ output: … })` — always did |
-| esbuild (odu) | `styles.css` | obsidian-dev-utils' own `renameCssPlugin` — always did |
+| esbuild (dev-utils) | `styles.css` | obsidian-dev-utils' own `renameCssPlugin` — always did |
 | esbuild (standalone) | `main.css` | a local `renameCssPlugin`; the CSS lands beside `outfile` |
 | vite | `<pluginId>.css` | `build.lib.cssFileName`; lib mode names it after the package |
 | parcel | `main.<hash>.css` | `parcel-namer-obsidian.cjs`; sibling bundles are content-hashed |
@@ -570,17 +570,17 @@ Both unit runners alias every `.wasm` import to `scripts/wasm-module-stub.ts`, e
 reaches the module, and neither runner can load one — vitest fetches it from a dev-server URL that does
 not exist, jest has no transform for the extension.
 
-### The odu presets pass their extra esbuild plugins through `customEsbuildPlugins`
+### The dev-utils presets pass their extra esbuild plugins through `customEsbuildPlugins`
 
 obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
 own plugin list. They already register a svelte wrapper and a sass plugin — which is exactly why svelte
 and SCSS work on these presets untouched — but nothing for Vue, so `esbuild-plugin-vue3` was installed
-and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the odu presets when the
+and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the dev-utils presets when the
 bundler is esbuild, and both `build.ts` and `dev.ts` pass it.
 
 Both import it **unconditionally**, because both live under `@bundler_esbuild` where the answer is
 guaranteed. `dev.ts` used to gate the import and the argument on the `esbuild` partial
-(`dev.ts_odu@import_esbuild`, `dev.ts_odu@options_esbuild`) from a position where the bundler was
+(`dev.ts_dev-utils@import_esbuild`, `dev.ts_dev-utils@options_esbuild`) from a position where the bundler was
 *not* yet decided — so on any other bundler that gate rendered a bare `dev()` with no plugin list at
 all. A partial keyed on the answer its own branch already guarantees is a tautology in the good case
 and a silent hole in the bad one.
@@ -742,7 +742,7 @@ error, so the parse pass sees nothing; all three are cheap enough to run over al
 
 A fourth, `foreign-lint-directive`, is about which preset a line reaches. On a `standalone` + ESLint case,
 it fails any inline directive naming a rule that only obsidian-dev-utils' shared config turns on. See
-"A lint directive for the shared config goes in an `_odu` section".
+"A lint directive for the shared config goes in an `_dev-utils` section".
 
 Three rules that are easy to get wrong and were:
 

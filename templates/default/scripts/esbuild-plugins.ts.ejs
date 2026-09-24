@@ -1,5 +1,5 @@
 import type { Plugin } from 'esbuild';
-<%- render('odu-import') -%>
+<%- render('dev-utils-import') -%>
 
 /**
  * The esbuild plugins obsidian-dev-utils' own build does not already register.
@@ -15,7 +15,7 @@ import type { Plugin } from 'esbuild';
 <%# Each per-answer partial ends its entry with a comma so two of them concatenate into a valid list. -%>
 <%# The LAST one's comma is then a trailing comma, which the shared ESLint config rejects, so it is -%>
 <%# stripped here rather than by making every partial know whether it is last. -%>
-<% const oduPlugins = render('odu-plugin'); -%>
+<% const devUtilsPlugins = render('dev-utils-plugin'); -%>
 export const customEsbuildPlugins: Plugin[] = [
-<%- oduPlugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
+<%- devUtilsPlugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
 ];

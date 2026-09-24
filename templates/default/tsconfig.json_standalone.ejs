@@ -29,7 +29,7 @@
 <%# Not optional. With no `types` entry, NOTHING under `node_modules/@types` reaches the program -%>
 <%# — measured: zero packages, so every `node:fs` import and every `process` reference in `scripts/` -%>
 <%# fails with TS2591 even though `@types/node` is installed. Naming what the project needs is what -%>
-<%# the odu config and this generator's own tsconfig both already do. -%>
+<%# the dev-utils config and this generator's own tsconfig both already do. -%>
     "types": [
       "node"<%- render('types') %>
     ],

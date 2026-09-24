@@ -72,8 +72,8 @@ export type BaselineViolationKind =
  * `types` -- so re-reporting them here would re-litigate a closed decision rather than find anything.
  */
 export type DriftDimension =
+  | 'dev-utils-modules'
   | 'layout'
-  | 'odu-modules'
   | 'plugin-shape'
   | 'scripts'
   | 'workflows';
@@ -392,8 +392,8 @@ export function extractProfile(projectDir: string, files: readonly string[]): Pr
   const relevant = files.filter((file) => !IGNORED_FILES.has(lastSegment(file)));
 
   return new Map<DriftDimension, ReadonlyMap<string, string>>([
+    ['dev-utils-modules', extractDevUtilsModules(projectDir, relevant)],
     ['layout', new Map(relevant.map((file) => [file, '']))],
-    ['odu-modules', extractOduModules(projectDir, relevant)],
     ['plugin-shape', extractPluginShape(projectDir)],
     ['scripts', extractScripts(projectDir)],
     ['workflows', new Map(relevant.filter((file) => file.startsWith(WORKFLOWS_PREFIX)).map((file) => [file, '']))]
@@ -542,7 +542,7 @@ function exportedNames(statement: Statement): string[] {
  * `buildClean` versus `buildCompileTypeScript` out of the same `script-utils/build` module is exactly
  * the difference worth catching.
  */
-function extractOduModules(projectDir: string, files: readonly string[]): Map<string, string> {
+function extractDevUtilsModules(projectDir: string, files: readonly string[]): Map<string, string> {
   const traits = new Map<string, string>();
 
   for (const file of files) {
@@ -581,7 +581,7 @@ function extractOduModules(projectDir: string, files: readonly string[]): Map<st
  * What a reader checks by eye when asking whether a generated project looks like a real one: which of
  * the files exist, what each one's exported class extends, and what each module exports. The base class
  * is the substance -- obsidian-dev-utils' `PluginBase` rather than Obsidian's own `Plugin` is the
- * single clearest marker that a project is on an odu preset at all.
+ * single clearest marker that a project is on a dev-utils preset at all.
  */
 function extractPluginShape(projectDir: string): Map<string, string> {
   const traits = new Map<string, string>();
