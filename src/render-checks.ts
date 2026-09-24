@@ -71,6 +71,7 @@ export type RenderViolationKind =
   | 'duplicate-json-key'
   | 'empty-block'
   | 'empty-file'
+  | 'foreign-lint-directive'
   | 'hard-wrapped-markdown'
   | 'invalid-json'
   | 'invalid-typescript'
@@ -152,6 +153,20 @@ const SCOPED_PACKAGE_SEGMENTS = 2;
  */
 const SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/;
 
+/**
+ * Rules that only obsidian-dev-utils' shared ESLint config turns on: the plugins it registers and
+ * `standalone`'s inlined config does not, plus the one core rule it enables that the inlined config leaves
+ * off. `standalone` shares most templates with the odu presets, so a directive written for the shared
+ * config lands in a project whose config has never heard of the rule.
+ */
+const SHARED_CONFIG_ONLY_RULES = {
+  exact: new Set(['no-void']),
+  prefixes: ['@eslint-community/', '@stylistic/', 'import-x/', 'obsidian-dev-utils/', 'perfectionist/', 'unicorn/']
+};
+
+/** An inline ESLint directive, capturing the rule list up to its `--` reason or the comment's end. */
+const LINT_DIRECTIVE_PATTERN = /eslint-(?:disable|enable)(?:-next-line|-line)?\s+(?<Rules>[^\n]*?)\s*(?:--|\*\/|$)/gm;
+
 /** Checks an already-rendered project directory against the answers that produced it. */
 export function checkRenderedProject(targetDir: string, answers: Answers): RenderViolation[] {
   const violations: RenderViolation[] = [];
@@ -162,6 +177,7 @@ export function checkRenderedProject(targetDir: string, answers: Answers): Rende
 
   violations.push(...checkPackageJsonScripts(targetDir, answers));
   violations.push(...checkDeclaredDependencies(targetDir, answers));
+  violations.push(...checkForeignLintDirectives(targetDir, answers));
   return violations;
 }
 
@@ -359,6 +375,43 @@ function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
  * Consecutive list items and consecutive blockquote lines are legal -- each is already one source line.
  * What is left, a prose line following a prose line without opening a block of its own, is a wrap.
  */
+/**
+ * An inline ESLint directive in a `standalone` project that names a rule only the shared config turns on.
+ *
+ * ESLint does not ignore such a directive. A rule from a plugin the config never registered is
+ * "Definition for rule ... was not found", and a core rule the config leaves off makes the directive
+ * unused. Both are errors, so `npm run lint` is red on a freshly generated project. The odu presets emit
+ * these directives through `_odu` sections, and this check catches one written straight into a template
+ * both presets share. Without it, only the install tier could see it, and it reaches few standalone cases.
+ */
+function checkForeignLintDirectives(targetDir: string, answers: Answers): RenderViolation[] {
+  if (answers.preset !== 'standalone' || answers.linter !== 'eslint') {
+    return [];
+  }
+
+  const violations: RenderViolation[] = [];
+  for (const relativePath of walk(targetDir, '')) {
+    if (!TYPESCRIPT_EXTENSIONS.includes(extname(relativePath))) {
+      continue;
+    }
+
+    const content = readFileSync(join(targetDir, relativePath), 'utf-8');
+    for (const match of content.matchAll(LINT_DIRECTIVE_PATTERN)) {
+      const rules = (match.groups?.['Rules'] ?? '').split(',').map((rule) => rule.trim()).filter((rule) => rule !== '');
+      const foreign = rules.filter((rule) => SHARED_CONFIG_ONLY_RULES.exact.has(rule) || SHARED_CONFIG_ONLY_RULES.prefixes.some((prefix) => rule.startsWith(prefix)));
+      if (foreign.length > 0) {
+        violations.push({
+          detail: `Names ${foreign.join(', ')}, which only obsidian-dev-utils' shared config turns on: ${match[0].trim()}`,
+          kind: 'foreign-lint-directive',
+          subject: relativePath
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
 function checkMarkdownWrapping(relativePath: string, fileName: string, content: string): RenderViolation[] {
   if (!MARKDOWN_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
     return [];
