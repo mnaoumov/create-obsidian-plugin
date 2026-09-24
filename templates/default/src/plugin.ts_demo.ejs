@@ -143,7 +143,7 @@ export class Plugin extends PluginBase {
     });
 
     // `OpenDemoVaultCommandHandler` is what makes the README's first demo-vault route real: it downloads
-    // The `<plugin-id>-demo-vault-<version>.zip` attached to the GitHub release and opens it as a vault in
+    // The `<plugin-id>-demo-vault.zip` attached to the GitHub release and opens it as a vault in
     // A new window. It is not registered automatically -- a demo vault without this command can only be
     // Reached by downloading the asset by hand. It hides itself on mobile, so no platform guard is needed.
     await this.commandHandlerComponent.registerCommandHandlers(() => [
