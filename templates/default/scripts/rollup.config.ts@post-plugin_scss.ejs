@@ -1,1 +1,4 @@
-    scss({ output: 'styles.css' }),
+    // `fileName`, not the deprecated `output`: rollup-plugin-scss 4 tests `options.output === 'string'`
+    // (the value, not its type), so `output: 'styles.css'` is ignored and the asset falls back to its
+    // Default name -- rollup then writes `assets/output-<hash>.css`, which Obsidian never loads.
+    scss({ fileName: 'styles.css' }),
