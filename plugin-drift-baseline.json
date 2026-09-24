@@ -1,6 +1,6 @@
 {
   "comment": [
-    "Differences between what the generator emits for the obsidian-dev-utils presets and what the 29 real",
+    "Differences between what the generator emits for the obsidian-dev-utils presets and what the real",
     "plugins beside this checkout actually look like, each one recorded as deliberate with the reason it is.",
     "`npm run verify:plugin-drift` fails on any difference that is NOT listed here, on any entry here whose",
     "difference has since gone, and on any entry whose `pluginCount` has moved -- the count is the evidence",
@@ -80,7 +80,7 @@
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "demo/layout/partial/CHANGELOG.md": {
-      "pluginCount": 30,
+      "pluginCount": 31,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "demo/layout/partial/images/screenshots/screenshot-desktop-1.png": {
@@ -192,7 +192,7 @@
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "enhanced/layout/partial/CHANGELOG.md": {
-      "pluginCount": 30,
+      "pluginCount": 31,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-desktop-1.png": {
