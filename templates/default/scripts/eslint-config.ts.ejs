@@ -59,7 +59,7 @@ export const configs: Linter.Config[] = defineEslintConfigs({
             }
           ]
         }
-      }
+      }<%- render('custom-config') %>
     );
   },
   editContext(context) {

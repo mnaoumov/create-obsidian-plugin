@@ -1,0 +1,10 @@
+,
+      {
+        // `src/main.ts` imports the stylesheet `npm run build:styles` writes, so the file is absent until the
+        // First build and present after it. An inline disable is wrong in both states at once: unresolved
+        // Before the build, an unused directive after it. So the one generated file is ignored here instead.
+        files: context.sourceFiles,
+        rules: {
+          'import-x/no-unresolved': ['error', { ignore: [String.raw`tailwind\.generated\.css$`] }]
+        }
+      }
