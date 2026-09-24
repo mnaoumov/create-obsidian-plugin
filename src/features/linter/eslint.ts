@@ -38,7 +38,9 @@ export class Eslint extends FeatureOption {
     // Depends on nothing from the ecosystem -- and that is why the emitted config could not simply BE the
     // Shared one.
     if (isDevUtilsPreset(answers.preset)) {
-      builder.addFiles(['scripts/eslint-config.ts']);
+      builder
+        .addDepcheckIgnore('typescript-eslint', 'imported by nothing here -- the shared config brings its own -- but the `typescript` pin\'s check reads its `package.json` for the peer range.')
+        .addFiles(['scripts/eslint-config.ts']);
       return;
     }
 
