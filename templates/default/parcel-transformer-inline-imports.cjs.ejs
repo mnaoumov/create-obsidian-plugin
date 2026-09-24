@@ -1,0 +1,39 @@
+/*
+ * Keeps every dynamic `import()` inside `main.js`.
+ *
+ * Obsidian loads a plugin's `main.js` and nothing beside it, so a code-split chunk is shipped by no
+ * release and fails to load in an installed plugin. Parcel's default bundler makes every `import()` a
+ * new bundle root unconditionally, and has no option to inline one. The other bundlers each do:
+ * rollup's `inlineDynamicImports`, vite's `rollupOptions.output.inlineDynamicImports`, webpack's
+ * `asyncChunks: false`. This transformer is that option for Parcel, for the same reason
+ * `parcel-resolver-obsidian.cjs` is its `external` list. obsidian-dev-utils is what needs it: it
+ * reaches its desktop-only modules through `await import(...)`.
+ *
+ * It runs before Parcel's own JavaScript transformer and rewrites `import('<literal>')` into a
+ * `require()` inside an async arrow. The module still evaluates only when that code runs -- Parcel wraps
+ * a module it reaches through a nested `require()` -- which is what the dynamic import was for, and the
+ * promise still rejects when evaluation throws. The shape is deliberate: Parcel recognizes
+ * `Promise.resolve().then(() => require(...))` as a dynamic import and splits it all the same.
+ *
+ * Only a plain string specifier is rewritten; a computed one cannot be bundled by any bundler. The
+ * rewrite is textual, so an `import('<literal>')` spelled out inside a string or a comment is rewritten
+ * too, which changes nothing a plugin runs unless that string is itself code.
+ *
+ * CommonJS on purpose, as with the resolver beside it.
+ */
+
+const { Transformer } = require('@parcel/plugin');
+
+const DYNAMIC_IMPORT = /\bimport\(\s*(["'])([^"'`\n\\]+)\1\s*\)/gu;
+
+module.exports = new Transformer({
+  async transform({ asset }) {
+    const source = await asset.getCode();
+
+    if (source.includes('import(')) {
+      asset.setCode(source.replace(DYNAMIC_IMPORT, (_match, quote, specifier) => `(async () => require(${quote}${specifier}${quote}))()`));
+    }
+
+    return [asset];
+  }
+});

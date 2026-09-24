@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { runInNewContext } from 'node:vm';
 import {
   afterEach,
   beforeEach,
@@ -359,6 +360,29 @@ describe('buildTemplate', () => {
         expect(parcelrc).toContain('./parcel-transformer-svelte.cjs');
       } finally {
         rmSync(targetDir, { force: true, recursive: true });
+      }
+    });
+
+    // Parcel's default bundler makes every `import()` a bundle root of its own and has no option to inline
+    // One, so on the dev-utils presets obsidian-dev-utils' `await import(...)` of its desktop-only modules
+    // Shipped as a sibling chunk no release carries. The transformer rewrites a literal `import()` into a
+    // `require()` inside an async arrow -- NOT `Promise.resolve().then(() => require())`, which Parcel
+    // Recognizes as a dynamic import and splits all the same.
+    it('keeps every dynamic import inside main.js on parcel, with or without the svelte transformer', async () => {
+      for (const uiFramework of ['none', 'svelte'] as const) {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-parcel-inline-'));
+        try {
+          copyTemplates(makeAnswers({ bundler: 'parcel', uiFramework }), targetDir, '1.0.0', null);
+          const parcelrc = JSON.parse(readFileSync(join(targetDir, '.parcelrc'), 'utf-8')) as ParcelRc;
+          expect(parcelrc.transformers['*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'], uiFramework).toEqual(['./parcel-transformer-inline-imports.cjs', '...']);
+
+          const transformer = loadParcelTransformer(readFileSync(join(targetDir, 'parcel-transformer-inline-imports.cjs'), 'utf-8'));
+          expect(await transformer('const { a } = await import("../opener.mjs");\nconst b = await import(specifier);')).toBe(
+            'const { a } = await (async () => require("../opener.mjs"))();\nconst b = await import(specifier);'
+          );
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
       }
     });
 
@@ -2535,3 +2559,60 @@ describe('sortImportStatements', () => {
     ].join('\n'));
   });
 });
+
+interface ParcelRc {
+  transformers: Record<string, string[]>;
+}
+
+interface StubAsset {
+  getCode(): Promise<string>;
+  setCode(value: string): void;
+}
+
+interface StubModule {
+  exports: null | ParcelTransformerStub;
+}
+
+interface StubTransformerOptions {
+  transform(params: StubTransformParams): Promise<unknown>;
+}
+
+interface StubTransformParams {
+  asset: StubAsset;
+}
+
+/**
+ * Stands in for `@parcel/plugin`'s `Transformer`, which only holds on to the options it is given.
+ */
+class ParcelTransformerStub {
+  public readonly options: StubTransformerOptions;
+
+  public constructor(options: StubTransformerOptions) {
+    this.options = options;
+  }
+}
+
+/**
+ * Evaluates the emitted Parcel transformer with `@parcel/plugin` stubbed, and returns its rewrite of one
+ * source text. The generator does not depend on Parcel, so the real `Transformer` class is not available.
+ */
+function loadParcelTransformer(code: string): (source: string) => Promise<string> {
+  const sandbox = {
+    module: { exports: null } as StubModule,
+    require: (): unknown => ({ Transformer: ParcelTransformerStub })
+  };
+  runInNewContext(code, sandbox);
+
+  return async (source) => {
+    let result = source;
+    await sandbox.module.exports?.options.transform({
+      asset: {
+        getCode: async () => Promise.resolve(source),
+        setCode: (value) => {
+          result = value;
+        }
+      }
+    });
+    return result;
+  };
+}
