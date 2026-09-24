@@ -612,6 +612,10 @@ TypeScript; on `enhanced` rollup's own parser did.
 It stayed hidden because nothing imported the component: `plugin.ts_demo.ejs` registered only the react and
 svelte views, and a bundler never compiles a module nothing reaches, so `demo` + rollup built green while
 claiming Vue. A forced framework needs its view registered, which `src/templates.test.ts` now asserts.
+`standalone` had the same hole for every framework: `plugin.ts_standalone.ejs` had no seam for a view, so
+whichever framework was answered, its component was written and never compiled. It now registers the
+answered view like `enhanced` does, and the same test covers both presets over every framework. The
+`openViewOnLayoutReady` helper both need is one `ui-view` partial per preset, not one copy per framework.
 
 ### addFiles uses array syntax, no .ejs suffix
 

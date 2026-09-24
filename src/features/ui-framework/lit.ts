@@ -10,6 +10,7 @@ export class Lit extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('lit')
+      .addPartial('ui-view')
       .addSentenceCaseBrand('Lit')
       .addFiles([
         'src/lit-elements/sample-lit-element.ts',

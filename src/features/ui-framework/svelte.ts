@@ -36,6 +36,7 @@ export class Svelte extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('svelte')
+      .addPartial('ui-view')
       .addSentenceCaseBrand('Svelte')
       .addFiles([
         'src/svelte-components/sample-svelte-component.d.ts',

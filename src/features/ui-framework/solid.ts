@@ -16,6 +16,7 @@ export class Solid extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('solid-js')
+      .addPartial('ui-view')
       .addSentenceCaseBrand('Solid')
       .addFiles([
         'src/solid-components/sample-solid-component.tsx',

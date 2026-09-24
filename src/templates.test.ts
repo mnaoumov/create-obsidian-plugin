@@ -923,6 +923,32 @@ describe('buildTemplate', () => {
         rmSync(targetDir, { force: true, recursive: true });
       }
     });
+
+    // A view nothing registers is never imported, so no bundler compiles its component and a green build
+    // Proves nothing about the framework. `standalone` shipped every framework's view that way.
+    const FRAMEWORK_VIEWS = [
+      ['lit', 'SampleLitView'],
+      ['preact', 'SamplePreactView'],
+      ['react', 'SampleReactView'],
+      ['solid', 'SampleSolidView'],
+      ['svelte', 'SampleSvelteView'],
+      ['vue', 'SampleVueView']
+    ] as const;
+
+    it.each(['standalone', 'enhanced'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework, view]) => [preset, uiFramework, view])))(
+      'registers the %s + %s view',
+      (preset, uiFramework, view) => {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-views-'));
+        try {
+          copyTemplates(makeAnswers({ preset, uiFramework }), targetDir, '1.0.0', null);
+          const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
+          expect(plugin).toContain(`(leaf) => new ${view}(leaf)`);
+          expect(plugin.match(/private openViewOnLayoutReady\(/g)).toHaveLength(1);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    );
   });
 
   // An ignore for a package the project never declares is a false-positive entry for nothing, and
