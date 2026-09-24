@@ -627,6 +627,10 @@ Not always-include, not `<% if`. When `resolveFunding` finds a URL, `buildTempla
 
 Templates must be logicless — no `<% if %>` conditionals. Use the partial system for conditional content. Loops (`<% for %>`) are acceptable for iterating data. All conditional logic is handled by which partials are included, not by branching in templates.
 
+### `<%=` escapes for HTML, so it belongs only where the output is HTML
+
+EJS's `<%=` HTML-escapes its value. That is right in a README's `<a href>` and wrong everywhere else: a funding URL with two query parameters reached `manifest.json` as `&amp;`, which Obsidian reads verbatim, and a free-text description with `&` or `"` did the same to `package.json`. So a JSON template writes a value as `<%- JSON.stringify(value) %>`, never inside quotes — `<%-` alone would leave a `"` or `\` to break the JSON. A plain-text file such as `.env` takes `<%-`. `src/templates.test.ts` fails any JSON template that interpolates inside a string literal.
+
 ### Three-tier answer-space verification
 
 The generator asks 24 questions — 22 choices plus two presence branches (`fundingUrl` and

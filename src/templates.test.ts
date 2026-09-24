@@ -1023,6 +1023,52 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, '.github', 'FUNDING.yml'), 'utf-8')).toContain('custom: [\'https://example.com/it\'\'s#me\']\n');
   });
 
+  // EJS's `<%=` escapes for HTML, which is right in the README's `<a href>` and wrong in JSON: a funding
+  // URL with two query parameters shipped as `&amp;`, and Obsidian reads the manifest verbatim.
+  it('writes a funding URL into manifest.json unescaped, and still as valid JSON', () => {
+    const fundingUrl = 'https://example.com/pay?ref=a%20b&x=1&q="<it\'s>"\\';
+    copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl }), targetDir, '1.0.0', null);
+    const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(manifest['fundingUrl']).toBe(fundingUrl);
+  });
+
+  it('round-trips a free-text description through every JSON file that carries it', () => {
+    const pluginDescription = 'Links notes & attachments, "quoted" <tags> and a back\\slash.';
+    copyTemplates(makeAnswers({ pluginDescription }), targetDir, '1.0.0', null);
+    for (const file of ['manifest.json', 'package.json']) {
+      const json = JSON.parse(readFileSync(join(targetDir, file), 'utf-8')) as Record<string, unknown>;
+      expect(json['description'], file).toBe(pluginDescription);
+    }
+  });
+
+  it('writes the vault config folder into .env verbatim, not HTML-escaped', () => {
+    const obsidianConfigFolder = 'C:\\Users\\Tom & Jerry\\vault\\.obsidian';
+    copyTemplates(makeAnswers({ obsidianConfigFolder }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, '.env'), 'utf-8')).toContain(`OBSIDIAN_CONFIG_FOLDER=${obsidianConfigFolder}\n`);
+  });
+
+  // The tests above cover the answers known today; this covers the next interpolation somebody adds.
+  // Inside a JSON string, `<%=` escapes for HTML and `<%-` escapes for nothing, so both are wrong there.
+  it('interpolates into no JSON template string except through JSON.stringify', () => {
+    const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
+    function walk(dir: string): string[] {
+      return readdirSync(join(templatesDir, dir), { withFileTypes: true }).flatMap((entry) => {
+        const relativePath = dir === '' ? entry.name : `${dir}/${entry.name}`;
+        return entry.isDirectory() ? walk(relativePath) : [relativePath];
+      });
+    }
+    const offenders = walk('')
+      .filter((path) => /\.jsonc?[_@.]/.test(path.split('/').pop() ?? ''))
+      .flatMap((path) =>
+        readFileSync(join(templatesDir, path), 'utf-8')
+          .split('\n')
+          // An odd number of quotes before the tag puts it inside a JSON string.
+          .filter((line) => [...line.matchAll(/<%[=-]/g)].some((match) => /^[^"]*"(?:[^"]*"[^"]*")*[^"]*$/.test(line.slice(0, match.index))))
+          .map((line) => `${path}: ${line.trim()}`)
+      );
+    expect(offenders).toEqual([]);
+  });
+
   it('puts the badges on one source line, in the order the real plugins use', () => {
     copyTemplates(makeAnswers({ coverageBadge: 'coverage-badge', fundingPlatform: 'buy-me-a-coffee', fundingUsername: 'testuser' }), targetDir, '1.0.0', null);
     // Line 3: the title, a blank line, then the badges.

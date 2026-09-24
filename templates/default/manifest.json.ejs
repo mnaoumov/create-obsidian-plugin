@@ -1,11 +1,11 @@
 {
-  "author": "<%= authorGitHubName %>",
-  "authorUrl": "https://github.com/<%= authorGitHubName %>/",
-  "description": "<%= pluginDescription %>",
+  "author": <%- JSON.stringify(authorGitHubName) %>,
+  "authorUrl": <%- JSON.stringify(`https://github.com/${authorGitHubName}/`) %>,
+  "description": <%- JSON.stringify(pluginDescription) %>,
 <%- render('funding') -%>
-  "id": "<%= pluginId %>",
+  "id": <%- JSON.stringify(pluginId) %>,
 <%- render('platform') -%>
-  "minAppVersion": "<%= _minAppVersion %>",
-  "name": "<%= pluginName %>",
+  "minAppVersion": <%- JSON.stringify(_minAppVersion) %>,
+  "name": <%- JSON.stringify(pluginName) %>,
   "version": "0.0.0"
 }
