@@ -90,6 +90,12 @@ describe('TemplateBuilder', () => {
       expect(builder.partials.size).toBe(1);
     });
 
+    // A partial's template files are recognised by a kebab-case tail after the last `_`, so a name of any
+    // Other shape would have its files read as plain templates and never composed in.
+    it.each(['bug_report', 'report.yml', 'Svelte', 'has@vault', ''])('refuses the non-kebab-case name %j', (name) => {
+      expect(() => new TemplateBuilder().addPartial(name)).toThrow(/not kebab-case/);
+    });
+
     it('is chainable', () => {
       const builder = new TemplateBuilder();
       const result = builder.addPartial('foo');

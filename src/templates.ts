@@ -44,7 +44,10 @@ import { STYLING_OPTIONS } from './features/styling/index.ts';
 import { TEST_RUNNER_OPTIONS } from './features/test-runner/index.ts';
 import { UI_FRAMEWORK_OPTIONS } from './features/ui-framework/index.ts';
 import { WASM_SUPPORT_OPTIONS } from './features/wasm-support/index.ts';
-import { TemplateBuilder } from './template-builder.ts';
+import {
+  PARTIAL_NAME_PATTERN,
+  TemplateBuilder
+} from './template-builder.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
@@ -308,10 +311,6 @@ export function copyTemplates(
   const created: string[] = [];
 
   for (const registeredPath of templateFiles) {
-    if (isPartialFile(registeredPath)) {
-      continue;
-    }
-
     const destinationPath = getDestinationPath(registeredPath, answers);
     const fullDestinationPath = join(targetDir, destinationPath);
     const isAsset = ASSET_EXTENSIONS.has(extname(registeredPath));
@@ -388,6 +387,25 @@ export function getDestinationPath(templatePath: string, answers: Answers): stri
 
 export function getScriptDir(): string {
   return dirname(fileURLToPath(import.meta.url));
+}
+
+/**
+ * Whether a template file on disk is a partial rather than a template of its own.
+ *
+ * A partial is `<base>_<partialName>.ejs` or `<base>@<section>_<partialName>.ejs`, so the tail after the
+ * LAST `_` decides, and only when that tail is a partial name -- which {@link PARTIAL_NAME_PATTERN} makes
+ * kebab-case. `bug_report.yml.ejs` ends in `report.yml`, which no partial can be called, so it is a plain
+ * template and emits `bug_report.yml`. Reading any `_` as the marker is what made the real plugins' own
+ * issue-template names impossible to emit: the file was silently skipped, and everything that checked
+ * for the directory still passed.
+ *
+ * Only a path on disk is classified. A registered path never names a partial -- `addFiles` takes the
+ * emitted file's path, and `render()` builds each partial's name itself -- so the render loop does not ask.
+ */
+export function isPartialTemplatePath(templatePath: string): boolean {
+  const fileName = (templatePath.split('/').pop() ?? '').replace(/\.ejs$/, '');
+  const markerIndex = fileName.lastIndexOf('_');
+  return markerIndex > 0 && PARTIAL_NAME_PATTERN.test(fileName.slice(markerIndex + 1));
 }
 
 export function loadConfig(dir: string): GeneratorConfig | null {
@@ -470,11 +488,6 @@ function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): bo
 
 function importedModule(block: string): string {
   return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
-}
-
-function isPartialFile(templatePath: string): boolean {
-  const fileName = templatePath.split('/').pop() ?? '';
-  return fileName.includes('_');
 }
 
 function logUpdateSummary(updated: string[], created: string[], skipped: string[]): void {

@@ -19,14 +19,6 @@
       "pluginCount": 0,
       "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No real plugin was made by the generator, so none has one."
     },
-    "demo/layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml": {
-      "pluginCount": 0,
-      "why": "Kebab-case here is forced by the composition system, not chosen. `isPartialFile` treats ANY `_` in a basename as the partial marker, so the real plugins' `bug_report.yml` was skipped by the render loop entirely and every project asking for issue templates shipped only `config.yml`, pointing at forms that were never written (fixed in d1077c1). GitHub does not care what the files are called."
-    },
-    "demo/layout/extra/.github/ISSUE_TEMPLATE/feature-request.yml": {
-      "pluginCount": 0,
-      "why": "The other half of the `bug-report.yml` rename; see that entry. `feature_request.yml` would be skipped by the render loop for the same reason."
-    },
     "demo/layout/extra/demo-vault/01 Sample commands.md": {
       "pluginCount": 0,
       "why": "The scaffold's starter demo vault. Each real plugin's vault documents that plugin's own features, so no note title is common across all 29 -- the generator ships a starter set instead of copying one plugin's notes."
@@ -78,14 +70,6 @@
     "demo/layout/extra/src/vue-components/sample-vue-component.vue": {
       "pluginCount": 0,
       "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
-    },
-    "demo/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
-      "pluginCount": 29,
-      "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
-    },
-    "demo/layout/missing/.github/ISSUE_TEMPLATE/feature_request.yml": {
-      "pluginCount": 29,
-      "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
     },
     "demo/layout/missing/AGENTS.md": {
       "pluginCount": 32,
@@ -175,14 +159,6 @@
       "pluginCount": 0,
       "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No real plugin was made by the generator, so none has one."
     },
-    "enhanced/layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml": {
-      "pluginCount": 0,
-      "why": "Kebab-case here is forced by the composition system, not chosen. `isPartialFile` treats ANY `_` in a basename as the partial marker, so the real plugins' `bug_report.yml` was skipped by the render loop entirely and every project asking for issue templates shipped only `config.yml`, pointing at forms that were never written (fixed in d1077c1). GitHub does not care what the files are called."
-    },
-    "enhanced/layout/extra/.github/ISSUE_TEMPLATE/feature-request.yml": {
-      "pluginCount": 0,
-      "why": "The other half of the `bug-report.yml` rename; see that entry. `feature_request.yml` would be skipped by the render loop for the same reason."
-    },
     "enhanced/layout/extra/demo-vault/01 Sample commands.md": {
       "pluginCount": 0,
       "why": "The scaffold's starter demo vault. Each real plugin's vault documents that plugin's own features, so no note title is common across all 29 -- the generator ships a starter set instead of copying one plugin's notes."
@@ -214,14 +190,6 @@
     "enhanced/layout/extra/src/styles/styles.d.ts": {
       "pluginCount": 0,
       "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The real plugins, being scss throughout, name their copy after the extension."
-    },
-    "enhanced/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
-      "pluginCount": 29,
-      "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
-    },
-    "enhanced/layout/missing/.github/ISSUE_TEMPLATE/feature_request.yml": {
-      "pluginCount": 29,
-      "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
     },
     "enhanced/layout/missing/AGENTS.md": {
       "pluginCount": 32,

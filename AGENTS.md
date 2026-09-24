@@ -539,7 +539,7 @@ anything that needs rendering is EJS.
 
 ### Partial template composition
 
-- `_` in filename basename = partial (skipped in main render loop)
+- A template on disk is a partial when the tail after the LAST `_` in its basename (minus `.ejs`) is a partial name. Partial names are kebab-case, which `addPartial` enforces (`PARTIAL_NAME_PATTERN`), so a real filename keeps its underscores: `bug_report.yml.ejs` ends in `report.yml` and is a template of its own. `isPartialTemplatePath` (`src/templates.ts`) is the one classifier, and only on-disk paths are classified. A registered path is the emitted file's path and is never a partial. Reading any `_` as the marker used to skip `bug_report.yml` and `feature_request.yml` silently.
 - `render(section)` auto-discovers partials by convention: `{basePath}_{section}_{partial}.ejs` — always use a section name
 - `buildTemplate()` auto-adds each feature option's `partialName` as a partial after `configure()`
 - Virtual templates: if no file exists on disk, `render()` composes from partials

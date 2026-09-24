@@ -200,9 +200,14 @@ describe('checkPlan', () => {
     expect(kinds(checkPlan(builder, makeAnswers(), inventory))).toEqual(['empty-emitted-file']);
   });
 
-  it('skips registered paths that the generator itself treats as partials', () => {
-    const builder = new TemplateBuilder().addFiles(['some_partial.md']);
-    expect(checkPlan(builder, makeAnswers(), makeInventory())).toEqual([]);
+  // A registered path is the emitted file's path, so an underscore in it is part of the name. Skipping it
+  // As a partial is how `bug_report.yml` went silently unemitted; with no template behind it, it is now
+  // Reported like any other file that would be written empty.
+  it('checks a registered path with an underscore like any other file', () => {
+    const builder = new TemplateBuilder().addFiles(['some_file.md']);
+    expect(kinds(checkPlan(builder, makeAnswers(), makeInventory()))).toEqual(['empty-emitted-file']);
+    const inventory = makeInventory({ directTemplates: new Set(['some_file.md']) });
+    expect(checkPlan(builder, makeAnswers(), inventory)).toEqual([]);
   });
 
   it('flags a script whose file was never registered', () => {

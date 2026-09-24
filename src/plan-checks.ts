@@ -18,7 +18,8 @@ import {
   ASSET_EXTENSIONS,
   buildTemplate,
   getDestinationPath,
-  getScriptDir
+  getScriptDir,
+  isPartialTemplatePath
 } from './templates.ts';
 
 /** What one case's plan came to: what is wrong with it, and the dependency set it declared. */
@@ -167,10 +168,6 @@ export function checkPlan(builder: TemplateBuilder, answers: Answers, inventory:
   let anySubstitution = false;
 
   for (const registeredPath of files) {
-    if (isPartialPath(registeredPath)) {
-      continue;
-    }
-
     emitted.push(registeredPath);
     anySubstitution ||= registeredPath.includes('%');
 
@@ -299,7 +296,7 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
     const withoutSuffix = relativePath.slice(0, -EJS_SUFFIX.length);
     const body = readFileSync(join(templatesDir, relativePath), 'utf-8');
 
-    if (isPartialPath(relativePath)) {
+    if (isPartialTemplatePath(relativePath)) {
       partials.push(parsePartialPath(relativePath));
     } else {
       directTemplates.add(withoutSuffix);
@@ -346,7 +343,7 @@ export function newUsage(): TemplateUsage {
  *
  * Right to left because both the base and the section can themselves contain the separators: a nested
  * composition like `scripts/build.ts_standalone@bundler_esbuild.ejs` has `scripts/build.ts_standalone`
- * as its base. Partial names are `settingValue`s, which are kebab-case and never contain `_`, so the
+ * as its base. Partial names are kebab-case (`addPartial` enforces `PARTIAL_NAME_PATTERN`) and never contain `_`, so the
  * last `_` always begins the partial name.
  */
 export function parsePartialPath(relativePath: string): PartialFile {
@@ -495,10 +492,6 @@ function findEmptyReason(registeredPath: string, partials: ReadonlySet<string>, 
   }
 
   return `No contributed partial matches. On disk: ${[...candidates].sort((a, b) => a.localeCompare(b)).join(', ')}.`;
-}
-
-function isPartialPath(relativePath: string): boolean {
-  return (relativePath.split('/').pop() ?? '').includes('_');
 }
 
 function walkTemplates(templatesDir: string, relativeDir: string): string[] {
