@@ -17,11 +17,16 @@ import {
 import { promptApiSubset } from './features/api-subset/index.ts';
 import { promptBundler } from './features/bundler/index.ts';
 import { promptCommitLinting } from './features/commit-linting/index.ts';
+import { promptCoverageBadge } from './features/coverage-badge/index.ts';
 import { promptE2eTestRunner } from './features/e2e-test-runner/index.ts';
 import { promptEditorExtensions } from './features/editor-extensions/index.ts';
 import { promptFormatter } from './features/formatter/index.ts';
+import {
+  asksFundingUsername,
+  promptFundingPlatform,
+  validateFundingUsername
+} from './features/funding-platform/index.ts';
 import { promptGitHubActions } from './features/git-hub-actions/index.ts';
-import { promptGitHubFunding } from './features/git-hub-funding/index.ts';
 import { promptGitHubIssueTemplates } from './features/git-hub-issue-templates/index.ts';
 import { promptHotReload } from './features/hot-reload/index.ts';
 import { promptInternationalization } from './features/internationalization/index.ts';
@@ -39,11 +44,11 @@ import { promptWasmSupport } from './features/wasm-support/index.ts';
 interface DefaultTooling {
   apiSubset: string;
   commitLinting: string;
+  coverageBadge: string;
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
   gitHubActions: string;
-  gitHubFunding: string;
   gitHubIssueTemplates: string;
   hotReload: string;
   internationalization: string;
@@ -79,7 +84,8 @@ export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
   if (!defaults) {
     return base;
   }
-  const overrides: Record<string, unknown> = {};
+  // The handle defaults to the GitHub username, as the prompt's own default does.
+  const overrides: Record<string, unknown> = { fundingUsername: defaults.authorGitHubName ?? base.fundingUsername };
   for (const [key, value] of Object.entries(defaults)) {
     if (value !== undefined) {
       overrides[key] = value;
@@ -118,14 +124,16 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     authorName: get('authorName', 'John Doe'),
     bundler: get('bundler', 'esbuild'),
     commitLinting: get('commitLinting', defaultTooling.commitLinting),
+    coverageBadge: get('coverageBadge', defaultTooling.coverageBadge),
     currentYear: new Date().getFullYear(),
     defaultBranch: get('defaultBranch', 'main'),
     e2eTestRunner: get('e2eTestRunner', defaultTooling.e2eTestRunner),
     editorExtensions: get('editorExtensions', defaultTooling.editorExtensions),
     formatter: get('formatter', defaultTooling.formatter),
+    fundingPlatform: get('fundingPlatform', 'buy-me-a-coffee'),
     fundingUrl: get('fundingUrl', ''),
+    fundingUsername: get('fundingUsername', get('authorGitHubName', 'johndoe')),
     gitHubActions: get('gitHubActions', defaultTooling.gitHubActions),
-    gitHubFunding: get('gitHubFunding', defaultTooling.gitHubFunding),
     gitHubIssueTemplates: get('gitHubIssueTemplates', defaultTooling.gitHubIssueTemplates),
     hotReload: get('hotReload', defaultTooling.hotReload),
     internationalization: get('internationalization', defaultTooling.internationalization),
@@ -265,9 +273,9 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.gitHubFunding ?? defaultTooling.gitHubFunding,
-      key: 'gitHubFunding',
-      prompt: (saved): Promise<string> => promptGitHubFunding(saved),
+      defaultValue: () => d.coverageBadge ?? defaultTooling.coverageBadge,
+      key: 'coverageBadge',
+      prompt: (saved): Promise<string> => promptCoverageBadge(saved),
       skip: skipUnlessCustomize
     },
     {
@@ -342,15 +350,36 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
           validate: validateNotEmpty
         })
     },
+    // Asked outside Customize: it is a fact about the author, not a tooling choice, and choosing `none`
+    // Here is the only way the recommended-defaults path has to opt out of funding altogether.
     {
-      defaultValue: (answers) => d.fundingUrl ?? `https://buymeacoffee.com/${answers.get('authorGitHubName') ?? 'johndoe'}`,
-      key: 'fundingUrl',
+      defaultValue: () => d.fundingPlatform ?? 'buy-me-a-coffee',
+      key: 'fundingPlatform',
+      prompt: (saved): Promise<string> => promptFundingPlatform(saved)
+    },
+    {
+      defaultValue: (answers) => d.fundingUsername ?? answers.get('authorGitHubName') ?? 'johndoe',
+      key: 'fundingUsername',
       prompt: (saved): Promise<string> =>
         text({
           defaultValue: saved,
-          message: 'Funding URL (leave empty if not needed)',
-          placeholder: saved
-        })
+          message: 'Your username on that funding platform',
+          placeholder: saved,
+          validate: validateFundingUsername
+        }),
+      skip: (answers) => !asksFundingUsername(answers.get('fundingPlatform'))
+    },
+    {
+      defaultValue: () => d.fundingUrl ?? '',
+      key: 'fundingUrl',
+      prompt: (saved): Promise<string> =>
+        text({
+          defaultValue: saved || undefined,
+          message: 'Funding URL',
+          placeholder: saved || 'https://example.com/support-me',
+          validate: validateNotEmpty
+        }),
+      skip: (answers) => answers.get('fundingPlatform') !== 'custom'
     },
     {
       defaultValue: () => d.obsidianConfigFolder ?? '',
@@ -377,7 +406,9 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     bundler: 'esbuild',
     currentYear: new Date().getFullYear(),
     defaultBranch: 'main',
-    fundingUrl: 'https://buymeacoffee.com/johndoe',
+    fundingPlatform: 'buy-me-a-coffee',
+    fundingUrl: '',
+    fundingUsername: 'johndoe',
     obsidianConfigFolder: '',
     packageManager: 'npm',
     platformSupport: 'desktop-only',
@@ -394,11 +425,11 @@ function getDefaultTooling(preset: string): DefaultTooling {
   return {
     apiSubset: 'official',
     commitLinting: 'conventional-commits',
+    coverageBadge: 'none',
     e2eTestRunner: 'none',
     editorExtensions: preset === 'demo' ? 'codemirror' : 'none',
     formatter: 'dprint',
     gitHubActions: 'ci-and-release',
-    gitHubFunding: 'funding-yml',
     gitHubIssueTemplates: 'bug-and-feature',
     hotReload: 'obsidian-cli',
     internationalization: 'none',

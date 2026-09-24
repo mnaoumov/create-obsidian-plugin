@@ -17,15 +17,15 @@ import {
 import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
 
 describe('ANSWER_SPACE', () => {
-  const DIMENSION_COUNT = 23;
-  const CHOICE_QUESTION_COUNT = 21;
-  const CHOICE_QUESTION_SPACE_SIZE = 3_762_339_840;
+  const DIMENSION_COUNT = 24;
+  const CHOICE_QUESTION_COUNT = 22;
+  const CHOICE_QUESTION_SPACE_SIZE = 37_623_398_400;
   const PRESENCE_BRANCHES = ['fundingUrl', 'obsidianConfigFolder'];
   const PRESENCE_BRANCH_VALUE_COUNT = 2;
   const EXPECTED_ANSWER_SPACE_SIZE = CHOICE_QUESTION_SPACE_SIZE * PRESENCE_BRANCH_VALUE_COUNT ** PRESENCE_BRANCHES.length;
   const OUT_OF_RANGE_VALUE_INDEX = 99;
   const NON_INTEGER_ORDINAL = 1.5;
-  const FIXED_ANSWER_COUNT = 8;
+  const FIXED_ANSWER_COUNT = 9;
 
   it('has one dimension per choice question, plus the two presence branches', () => {
     expect(ANSWER_SPACE).toHaveLength(DIMENSION_COUNT);

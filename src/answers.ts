@@ -11,14 +11,16 @@ export interface Answers {
   authorName: string;
   bundler: string;
   commitLinting: string;
+  coverageBadge: string;
   currentYear: number;
   defaultBranch: string;
   e2eTestRunner: string;
   editorExtensions: string;
   formatter: string;
+  fundingPlatform: string;
   fundingUrl: string;
+  fundingUsername: string;
   gitHubActions: string;
-  gitHubFunding: string;
   gitHubIssueTemplates: string;
   hotReload: string;
   internationalization: string;

@@ -398,8 +398,8 @@ function spawnShards(options: Options): Promise<ShardResult>[] {
 /**
  * States what an exhaustive run will cost before starting one, rather than after.
  *
- * Measured 2026-08-30 on a 12-core box: 32 us per case, so the whole space is ~134 hours single-threaded
- * and ~13 hours on ten workers. That is a deliberate, stated choice -- not a run someone starts by
+ * Measured 2026-08-30 on a 12-core box: 32 us per case, so the whole space is ~1340 hours single-threaded
+ * and ~134 hours on ten workers. That is a deliberate, stated choice -- not a run someone starts by
  * accident and kills an hour later.
  */
 function warnAboutExhaustiveCost(workers: number): void {

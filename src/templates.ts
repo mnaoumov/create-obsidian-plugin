@@ -25,12 +25,17 @@ import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
 import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
+import { COVERAGE_BADGE_OPTIONS } from './features/coverage-badge/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/e2e-test-runner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
+import {
+  FUNDING_PLATFORM_OPTIONS,
+  resolveFunding,
+  validateFundingUsername
+} from './features/funding-platform/index.ts';
 import { addStagedFilesHook } from './features/git-hooks.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
-import { GITHUB_FUNDING_OPTIONS } from './features/git-hub-funding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
 import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
 import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
@@ -129,7 +134,8 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
   { answerKey: 'internationalization', options: INTERNATIONALIZATION_OPTIONS },
   { answerKey: 'gitHubActions', options: GITHUB_ACTIONS_OPTIONS },
   { answerKey: 'gitHubIssueTemplates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
-  { answerKey: 'gitHubFunding', options: GITHUB_FUNDING_OPTIONS },
+  { answerKey: 'fundingPlatform', options: FUNDING_PLATFORM_OPTIONS },
+  { answerKey: 'coverageBadge', options: COVERAGE_BADGE_OPTIONS },
   { answerKey: 'wasmSupport', options: WASM_SUPPORT_OPTIONS },
   { answerKey: 'apiSubset', options: API_SUBSET_OPTIONS },
   // Both of these were missing, and a question absent from this list is a question the user is asked
@@ -178,9 +184,20 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     .addSentenceCaseBrand(answers.pluginName)
     .addPartial('common');
 
-  if (answers.fundingUrl) {
-    builder.addPartial('has-funding');
+  // The funding badge comes first on the line, then release and downloads, then the coverage badge its
+  // Own answer adds from the registry loop below -- the order every real plugin's README has.
+  const funding = resolveFunding(answers);
+  if (funding) {
+    builder
+      .addFiles(['.github/FUNDING.yml'])
+      .addBadge(funding.getBadge(answers))
+      .addPartial('has-funding');
   }
+
+  const repoUrl = `https://github.com/${answers.authorGitHubName}/obsidian-${answers.pluginId}`;
+  builder
+    .addBadge(`[![GitHub release](https://img.shields.io/github/v/release/${answers.authorGitHubName}/obsidian-${answers.pluginId})](${repoUrl}/releases)`)
+    .addBadge(`[![GitHub downloads](https://img.shields.io/github/downloads/${answers.authorGitHubName}/obsidian-${answers.pluginId}/total)](${repoUrl}/releases)`);
 
   if (answers.obsidianConfigFolder) {
     builder.addPartial('has-vault-true');
@@ -245,6 +262,8 @@ export function copyTemplates(
 
   const templateContext: Record<string, unknown> = {
     ...answers,
+    ...getFundingTemplateContext(answers),
+    _badges: builder.badges,
     _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
       packageName: dependency.packageName,
@@ -486,6 +505,21 @@ function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): bo
     && chosen.jsxImportSource !== demo.jsxImportSource;
 }
 
+/**
+ * The funding values the templates read, all derived from the one resolved platform.
+ *
+ * `fundingUrl` overrides the stored answer, so the manifest, the README and `FUNDING.yml` cannot disagree.
+ * The stored answer is only ever what is shown for `custom`, the one platform with no handle.
+ */
+function getFundingTemplateContext(answers: Answers): Record<string, string> {
+  const funding = resolveFunding(answers);
+  return {
+    _fundingYmlKey: funding?.fundingYmlKey ?? '',
+    _fundingYmlValue: funding?.getFundingYmlValue(answers) ?? '',
+    fundingUrl: funding?.getUrl(answers) ?? ''
+  };
+}
+
 function importedModule(block: string): string {
   return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
 }
@@ -539,6 +573,56 @@ function migrateAnswers(raw: Record<string, unknown>): void {
   // Default -- is what leaves their `ci.yml` byte-identical, so an update reports no change instead of
   // Silently retargeting a CI trigger. Re-prompting is how they opt into `main`.
   answers['defaultBranch'] ??= 'master';
+  migrateFundingAnswers(answers);
+  // Unread unless the platform takes a handle, but every answer set carries one -- the prompt's default.
+  answers['fundingUsername'] ??= answers['authorGitHubName'];
+  // Every project generated before the badge was an answer had none.
+  answers['coverageBadge'] ??= 'none';
+}
+
+/**
+ * Turns the old free-text `fundingUrl` plus the `gitHubFunding` on/off switch into a platform and handle.
+ *
+ * A URL on a known platform becomes that platform and the handle in it; any other URL becomes `custom`,
+ * which keeps it verbatim. No URL means `none` whatever `gitHubFunding` said: the `FUNDING.yml` that switch
+ * emitted listed every platform blank, which GitHub renders as no funding at all, so there is nothing to
+ * carry forward.
+ */
+function migrateFundingAnswers(answers: Record<string, unknown>): void {
+  if (answers['fundingPlatform'] !== undefined) {
+    return;
+  }
+  delete answers['gitHubFunding'];
+
+  const url = typeof answers['fundingUrl'] === 'string' ? answers['fundingUrl'] : '';
+  if (!url) {
+    answers['fundingPlatform'] = 'none';
+    answers['fundingUrl'] = '';
+    return;
+  }
+
+  // `www.` is optional on both sides: the old default was `https://buymeacoffee.com/<name>`, and every real
+  // Plugin links to `https://www.buymeacoffee.com/<name>`.
+  function stripWww(value: string): string {
+    return value.replace('://www.', '://');
+  }
+
+  for (const option of FUNDING_PLATFORM_OPTIONS) {
+    const prefix = stripWww(option.getUrl({ fundingUrl: '', fundingUsername: '' } as Answers));
+    const normalizedUrl = stripWww(url);
+    if (!prefix || !normalizedUrl.startsWith(prefix)) {
+      continue;
+    }
+    const handle = normalizedUrl.slice(prefix.length).replace(/\/$/, '');
+    if (!validateFundingUsername(handle)) {
+      answers['fundingPlatform'] = option.settingValue;
+      answers['fundingUsername'] = handle;
+      answers['fundingUrl'] = '';
+      return;
+    }
+  }
+
+  answers['fundingPlatform'] = 'custom';
 }
 
 function sha256(content: Buffer | string): string {

@@ -7,11 +7,12 @@ import type { FeatureOption } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
 import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
+import { COVERAGE_BADGE_OPTIONS } from './features/coverage-badge/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/e2e-test-runner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
+import { FUNDING_PLATFORM_OPTIONS } from './features/funding-platform/index.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
-import { GITHUB_FUNDING_OPTIONS } from './features/git-hub-funding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
 import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
 import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
@@ -35,7 +36,7 @@ export interface AnswerDimension {
 }
 
 /** A funding URL that is present, for the dimension that branches on whether one was given at all. */
-const SAMPLE_FUNDING_URL = 'https://buymeacoffee.com/testuser';
+const SAMPLE_FUNDING_URL = 'https://example.com/support-testuser';
 
 /** A vault config folder that is present, for the dimension that branches on whether one was given. */
 const SAMPLE_OBSIDIAN_CONFIG_FOLDER = 'demo-vault/.obsidian';
@@ -49,22 +50,27 @@ const SAMPLE_OBSIDIAN_CONFIG_FOLDER = 'demo-vault/.obsidian';
  * questions whose options contribute a partial, and a question missing from it is exactly the defect
  * class the plan-level checks exist to catch.
  *
- * The 21 choice questions are joined by two **presence branches**: `fundingUrl` and
- * `obsidianConfigFolder` are free text, but `buildTemplate` contributes `has-funding` and
- * `has-vault-true` / `has-vault-false` purely on whether they are empty. Leaving them out would report
- * those three partials as unreachable, which is not a finding about the templates -- it is a gap in the
- * space. Their content varies nothing else, so two values each is the whole branch.
+ * The 22 choice questions are joined by two **presence branches**: `fundingUrl` and
+ * `obsidianConfigFolder` are free text, but `buildTemplate` branches on whether they are empty --
+ * `has-vault-true` / `has-vault-false` directly, and `has-funding` plus `.github/FUNDING.yml` when the
+ * funding platform is `custom`, the one platform that reads the URL rather than deriving it. Leaving them
+ * out would report those partials as unreachable, which is not a finding about the templates -- it is a
+ * gap in the space. Their content varies nothing else, so two values each is the whole branch.
+ *
+ * `fundingUsername` is free text that is never empty (its prompt refuses it), so it branches nothing and
+ * is held fixed with the other non-question answers.
  */
 export const ANSWER_SPACE: readonly AnswerDimension[] = [
   toDimension('apiSubset', API_SUBSET_OPTIONS),
   toDimension('bundler', BUNDLER_OPTIONS),
   toDimension('commitLinting', COMMIT_LINTING_OPTIONS),
+  toDimension('coverageBadge', COVERAGE_BADGE_OPTIONS),
   toDimension('e2eTestRunner', E2E_TEST_RUNNER_OPTIONS),
   toDimension('editorExtensions', EDITOR_EXTENSIONS_OPTIONS),
   toDimension('formatter', FORMATTER_OPTIONS),
+  toDimension('fundingPlatform', FUNDING_PLATFORM_OPTIONS),
   toValueDimension('fundingUrl', ['', SAMPLE_FUNDING_URL]),
   toDimension('gitHubActions', GITHUB_ACTIONS_OPTIONS),
-  toDimension('gitHubFunding', GITHUB_FUNDING_OPTIONS),
   toDimension('gitHubIssueTemplates', GITHUB_ISSUE_TEMPLATES_OPTIONS),
   toDimension('hotReload', HOT_RELOAD_OPTIONS),
   toDimension('internationalization', INTERNATIONALIZATION_OPTIONS),
@@ -105,6 +111,7 @@ const FIXED_ANSWERS = {
   authorName: 'Test User',
   currentYear: VERIFICATION_CURRENT_YEAR,
   defaultBranch: 'main',
+  fundingUsername: 'testuser',
   pluginDescription: 'A generated plugin.',
   pluginId: 'my-tool',
   pluginName: 'My Tool',

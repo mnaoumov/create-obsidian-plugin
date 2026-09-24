@@ -15,6 +15,7 @@
     "Backlinks",
     "baselining",
     "bunx",
+    "buymeacoffee",
     "collab",
     "coprime",
     "creatordate",
@@ -24,11 +25,13 @@
     "ERESOLVE",
     "geckodriver",
     "GHSA",
+    "githubsponsors",
     "hotreload",
     "inlines",
     "Invocables",
     "johndoe",
     "judgements",
+    "kofi",
     "lezer",
     "linkinator",
     "lintstagedrc",
@@ -40,6 +43,7 @@
     "npmjs",
     "Obsi",
     "obsidianmd",
+    "opencollective",
     "packument",
     "parcelrc",
     "pjeby",
@@ -58,7 +62,8 @@
     "wikilinks"
   ],
   "ignoreRegExpList": [
-    "GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}"
+    "GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}",
+    "badgeColor: '[0-9a-f]{6}'"
   ],
   "ignoreWords": [],
   "import": [],
