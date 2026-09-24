@@ -23,7 +23,8 @@ import {
 import {
   buildTemplate,
   copyTemplates,
-  getScriptDir
+  getScriptDir,
+  sortImportStatements
 } from './templates.ts';
 
 describe('buildTemplate', () => {
@@ -1706,5 +1707,48 @@ describe('copyTemplates', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
+  });
+});
+
+describe('sortImportStatements', () => {
+  // The directive has to stay on the import it was written for. A split on the newline before `import `
+  // Also fired between the comment and its import, so the comment was sorted as a block of its own and
+  // Landed above whichever import followed -- an unused directive there, and a live violation here.
+  it('keeps a comment line with the import directly below it', () => {
+    const text = [
+      'import typescriptModule from \'@rollup/plugin-typescript\';',
+      'import { builtinModules } from \'node:module\';',
+      '// eslint-disable-next-line import-x/no-rename-default -- reason',
+      'import wasmModule from \'@rollup/plugin-wasm\';',
+      ''
+    ].join('\n');
+
+    expect(sortImportStatements(text)).toBe([
+      'import typescriptModule from \'@rollup/plugin-typescript\';',
+      '// eslint-disable-next-line import-x/no-rename-default -- reason',
+      'import wasmModule from \'@rollup/plugin-wasm\';',
+      'import { builtinModules } from \'node:module\';',
+      ''
+    ].join('\n'));
+  });
+
+  it('keeps a multi-line import together', () => {
+    const text = [
+      'import { z } from \'z\';',
+      'import {',
+      '  a,',
+      '  b',
+      '} from \'a\';',
+      ''
+    ].join('\n');
+
+    expect(sortImportStatements(text)).toBe([
+      'import {',
+      '  a,',
+      '  b',
+      '} from \'a\';',
+      'import { z } from \'z\';',
+      ''
+    ].join('\n'));
   });
 });

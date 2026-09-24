@@ -395,6 +395,51 @@ export function loadConfig(dir: string): GeneratorConfig | null {
 }
 
 /**
+ * Sorts a run of `import` statements by the module each one names.
+ *
+ * A statement may span several lines -- a named-import list is written one name per line here -- so a
+ * new statement starts only at a line beginning with `import `, and every other line belongs to the
+ * statement above it. Blocks are compared by the specifier in their trailing `from '...'`, which is what an import-sorting lint rule
+ * asks for within one group. A side-effect import (`import './x.ts';`) has no `from`, and its own text
+ * is then the key.
+ *
+ * A run of `//` comment lines directly above an `import` belongs to it and travels with it. Without that,
+ * an `eslint-disable-next-line` written above one import was carried along by the one BEFORE it and
+ * landed on whatever the sort put next -- which is both an unused directive and a live violation on the
+ * statement it left behind. This is a line walk rather than a split for that reason: splitting on the
+ * newline before `import ` ALSO fires between a comment and the import under it, which cuts the comment
+ * loose as a block of its own, sorted by its own text.
+ */
+export function sortImportStatements(text: string): string {
+  const blocks: string[][] = [];
+  let pendingComments: string[] = [];
+  for (const line of text.split('\n')) {
+    if (line.trim() === '') {
+      continue;
+    }
+
+    if (line.startsWith('import ')) {
+      blocks.push([...pendingComments, line]);
+      pendingComments = [];
+    } else if (line.startsWith('//')) {
+      pendingComments.push(line);
+    } else {
+      blocks.at(-1)?.push(line);
+    }
+  }
+
+  if (blocks.length === 0) {
+    return text;
+  }
+
+  // A comment with no import below it stays last, where it was.
+  blocks.at(-1)?.push(...pendingComments);
+  const statements = blocks.map((block) => block.join('\n'));
+  statements.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
+  return `${statements.join('\n')}\n`;
+}
+
+/**
  * Whether a demo override and the answer actually chosen want different JSX runtimes.
  *
  * The demo preset deliberately forces a SECOND answer into a question so the demo vault shows every
@@ -478,28 +523,4 @@ function migrateAnswers(raw: Record<string, unknown>): void {
 
 function sha256(content: Buffer | string): string {
   return createHash('sha256').update(content).digest('hex');
-}
-
-/**
- * Sorts a run of `import` statements by the module each one names.
- *
- * A statement may span several lines -- a named-import list is written one name per line here -- so the
- * split is on a newline FOLLOWED BY `import `, which is the only place a new statement can start. Blocks
- * are compared by the specifier in their trailing `from '...'`, which is what an import-sorting lint rule
- * asks for within one group. A side-effect import (`import './x.ts';`) has no `from`, and its own text
- * is then the key.
- *
- * A run of `//` comment lines directly above an `import` belongs to it and travels with it. Without that,
- * an `eslint-disable-next-line` written above one import was carried along by the one BEFORE it and
- * landed on whatever the sort put next -- which is both an unused directive and a live violation on the
- * statement it left behind.
- */
-function sortImportStatements(text: string): string {
-  const blocks = text.split(/\n(?=(?:\/\/[^\n]*\n)*import )/).map((block) => block.trim()).filter((block) => block !== '');
-  if (blocks.length === 0) {
-    return text;
-  }
-
-  blocks.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
-  return `${blocks.join('\n')}\n`;
 }
