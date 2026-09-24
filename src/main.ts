@@ -6,7 +6,8 @@ import {
   note,
   outro,
   select,
-  spinner
+  spinner,
+  text
 } from '@clack/prompts';
 import { spawn } from 'node:child_process';
 import {
@@ -47,6 +48,11 @@ import {
 } from './cli-args.ts';
 import { findUnlistableManifestAnswers } from './directory-constraints.ts';
 import {
+  fetchCommunityPluginIds,
+  makeUnlistedPluginIdValidator,
+  validatePluginIdIsUnlisted
+} from './directory-registry.ts';
+import {
   getInstallCommand,
   getRunCommand
 } from './features/package-manager/index.ts';
@@ -56,6 +62,7 @@ import {
 } from './overlay.ts';
 import {
   getDefaultAnswers,
+  makePluginName,
   promptAnswers
 } from './prompts.ts';
 import {
@@ -103,10 +110,10 @@ const SCRIPT_MODE = 0o755;
  * of this and are not ours to refuse. The same stderr-then-exit shape as a rejected flag, because that
  * is what this is -- a usage error found one step later than the parser can find it.
  */
-function assertManifestAnswersAreListable(answers: Answers): void {
+function assertManifestAnswersAreListable(answers: Answers): Answers {
   const problems = findUnlistableManifestAnswers(answers);
   if (problems.length === 0) {
-    return;
+    return answers;
   }
 
   const lines = problems.map((problem) => `"${problem.value}" is not a valid ${problem.key}. ${problem.message}.\nPass --${problem.key}=<value> to set it yourself.`);
@@ -151,6 +158,72 @@ Pass --mode=update to update it, or --mode=create to scaffold a new plugin besid
     return shouldUpdate ? Mode.Update : Mode.Create;
   }
   return Mode.Create;
+}
+
+/**
+ * Checks the plugin id against `community-plugins.json`, the one directory constraint no synchronous prompt
+ * validator can check, and returns the answers with the id the run should use.
+ *
+ * - The list could not be fetched: a warning naming what went unchecked, and the answers unchanged --
+ *   generating offline must still work.
+ * - The id is taken, under `--yes`: a usage error naming `--pluginId`, since there is nobody to ask.
+ * - The id is taken, interactively: ask again for the id alone rather than abort, which would throw away
+ *   every other answer. Keeping it is offered too, for the author of that listed plugin re-scaffolding it.
+ */
+async function ensurePluginIdIsUnlisted(answers: Answers, useDefaults: boolean): Promise<Answers> {
+  const s = spinner();
+  s.start('Checking the plugin id against the Community directory...');
+  const listedIds = await fetchCommunityPluginIds();
+
+  if (listedIds === null) {
+    s.stop('Could not check the plugin id against the Community directory.');
+    log.warn(`Could not fetch community-plugins.json, so "${answers.pluginId}" was not checked for a collision with a published plugin. The directory rejects a duplicate id, and an id can never be changed once published: check it by hand before submitting.`);
+    return answers;
+  }
+
+  const collision = validatePluginIdIsUnlisted(answers.pluginId, listedIds);
+  if (collision === undefined) {
+    s.stop('The plugin id is free in the Community directory.');
+    return answers;
+  }
+
+  s.stop('The plugin id is already taken in the Community directory.');
+
+  if (useDefaults) {
+    exitWithUsageError(`${collision}.
+Pass --pluginId=<value> to choose another.`);
+  }
+
+  log.warn(collision);
+  const choice = await select({
+    initialValue: 'reenter',
+    message: `What should happen to "${answers.pluginId}"?`,
+    options: [
+      { hint: 'Every other answer is kept', label: 'Choose a different id', value: 'reenter' },
+      { hint: 'Only if that listed plugin is your own', label: 'Keep it anyway', value: 'keep' },
+      { label: 'Cancel', value: 'cancel' }
+    ]
+  });
+  assertNotCancelled(choice);
+
+  if (choice === 'cancel') {
+    cancel('Aborted.');
+    process.exit(0);
+  }
+
+  if (choice === 'keep') {
+    return answers;
+  }
+
+  const pluginId = await text({
+    message: 'Plugin id (lowercase, hyphens allowed)',
+    validate: makeUnlistedPluginIdValidator(listedIds)
+  });
+  assertNotCancelled(pluginId);
+
+  // A name that is still the one derived from the old id was never a separate choice, so it follows the id.
+  const pluginName = answers.pluginName === makePluginName(answers.pluginId) ? makePluginName(pluginId) : answers.pluginName;
+  return { ...answers, pluginId, pluginName };
 }
 
 function execAsync(command: string, cwd: string): Promise<ExecResult> {
@@ -319,8 +392,10 @@ async function resolveExternalVersions(answers: Answers, overlay: null | Overlay
 async function runCreate(currentVersion: string, cliArgs: CliArgs): Promise<void> {
   const { answers: suppliedAnswers, customTemplate, useDefaults } = cliArgs;
   const overlay = customTemplate ? loadOverlayOrExit(resolvePath(customTemplate)) : null;
-  const answers = useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers);
-  assertManifestAnswersAreListable(answers);
+  const answers = await ensurePluginIdIsUnlisted(
+    assertManifestAnswersAreListable(useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers)),
+    useDefaults
+  );
 
   // Not under `--yes`: that path is what an exported script itself runs, so offering to export from
   // Inside it would be asking a question of a run that exists to ask none.
@@ -523,6 +598,14 @@ Run without --yes to answer them again.`);
     }
     log.warn('No saved answers found. Please provide the settings again.');
     answers = await promptAnswers(suppliedAnswers);
+  }
+
+  // Only an id this run CHANGED is checked: a plugin already listed in the directory would otherwise match
+  // Itself on every update. With no saved answers there is no id to compare against, and the likeliest
+  // Answer is the project's own id, so that case is left unchecked too.
+  const savedPluginId = savedConfig.answers?.pluginId;
+  if (savedPluginId !== undefined && answers.pluginId !== savedPluginId) {
+    answers = await ensurePluginIdIsUnlisted(answers, useDefaults);
   }
 
   // A project that has already released carries a `manifest.json` its own `npm run version` rewrote, so its
