@@ -396,7 +396,10 @@ export function copyTemplates(
 
       if (originalHash && currentHash !== originalHash) {
         skipped.push(destinationPath);
-        newConfig.fileHashes[destinationPath] = currentHash;
+        // Keep the hash the generator wrote, not the user's. Recording the user's made the next update read
+        // The edit as untouched and overwrite it, reported as an ordinary "Updated". The file stays skipped
+        // Until it matches a render again, or the user deletes it to take the generator's version back.
+        newConfig.fileHashes[destinationPath] = originalHash;
         continue;
       }
 

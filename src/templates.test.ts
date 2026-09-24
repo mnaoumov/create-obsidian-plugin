@@ -937,6 +937,31 @@ describe('copyTemplates', () => {
     expect(manifest['minAppVersion']).toBe('0.0.0');
   });
 
+  // The skip used to record the USER's hash, so the next update saw a file matching its record, took it for
+  // Untouched and overwrote it, listed under "Updated". The protection was one update deep.
+  it('keeps skipping a hand-edited file on every later update', () => {
+    const edited = 'My own README.\n';
+    let config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+    const generatedHash = config.fileHashes['README.md'];
+    writeFileSync(join(targetDir, 'README.md'), edited);
+
+    for (const version of ['1.0.1', '1.0.2', '1.0.3']) {
+      config = copyTemplates(makeAnswers(), targetDir, version, config);
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8'), version).toBe(edited);
+      expect(config.fileHashes['README.md'], version).toBe(generatedHash);
+    }
+  });
+
+  it('resumes updating a hand-edited file once it is deleted', () => {
+    const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+    const generated = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    writeFileSync(join(targetDir, 'README.md'), 'My own README.\n');
+    const skipping = copyTemplates(makeAnswers(), targetDir, '1.0.1', config);
+    rmSync(join(targetDir, 'README.md'));
+    copyTemplates(makeAnswers(), targetDir, '1.0.2', skipping);
+    expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toBe(generated);
+  });
+
   it('adds the commit script only when commit linting is on', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const withLinting = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;

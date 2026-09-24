@@ -338,6 +338,16 @@ Three things about it are load-bearing.
 
 The exported script is runnable rather than copyable text, which makes quoting per-shell: `sh` gets single quotes with `'\''` for an embedded one, `cmd` gets double quotes with `""` — **and a literal `%` doubled to `%%`, because a batch file expands `%…%` as a variable**. Funding and badge URLs are percent-encoded, so that is a real value, not a hypothetical. `cmd`'s `^` line continuation is silently broken by one trailing space, so the batch form stays on a single line and only the shell form wraps. The tests generate BOTH forms whatever the host runs and parse them back through the real parser; the quoting was additionally executed through actual `cmd.exe` and actual `sh`.
 
+### A hand-edited file is skipped on every update, not just the next one
+
+`.create-obsidian-plugin.json` records, per file, the hash of what the generator WROTE. On an update a file
+whose content matches neither that hash nor the new render is the user's, so it is skipped with a warning and
+the generator's hash is carried forward unchanged. It must not record the user's hash instead: the next update
+would then find the file matching its record, take it as untouched, and overwrite it under "Updated". That was
+the code until `copyTemplates` was fixed, so the protection lasted exactly one update. A skipped file rejoins
+updates when its content matches a render again, or when the user deletes it. `src/templates.test.ts` drives
+three updates over one edit to pin this.
+
 ### A user's own templates are an overlay searched ahead of `templates/default`
 
 `--customTemplate=<dir>` (`src/overlay.ts`) is for what the answers cannot say. The directory mirrors
