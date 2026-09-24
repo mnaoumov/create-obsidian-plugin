@@ -1,0 +1,4 @@
+<%# Shared by every styling answer that reaches rollup through rollup-plugin-postcss, like its `import` and -%>
+<%# `unwrap` twins. `autoModules` is the plugin's default and is what scopes `*.module.css` while leaving an -%>
+<%# ordinary stylesheet alone -- which matters because `demo` forces a second styling answer alongside. -%>
+    postcss({ extract: 'styles.css' }),

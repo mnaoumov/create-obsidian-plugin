@@ -557,6 +557,12 @@ name has to be right there too. The two esbuild paths use `build.onEnd`, which d
 the standalone one is registered **before** `copyToObsidianPluginsFolderPlugin`, since esbuild runs
 `onEnd` callbacks in plugin order and the copy has to see the renamed file.
 
+Rollup differs from the rest in one more way: it has no CSS handling at all, so a styling answer that
+gives it no plugin fails the build outright, parsing the stylesheet as JavaScript. Plain `css` did
+exactly that. Every styling answer except `none` and `scss` therefore adds the one shared
+`rollup-postcss` partial (import, unwrap and `post-plugin`), which with no PostCSS config passes the
+CSS through and extracts it to `styles.css`.
+
 Parcel needed a second plugin file for the same reason it needed the first: every other bundler takes an
 output name as an option, and Parcel takes a namer — as it takes a resolver where the others take an
 `external` list.

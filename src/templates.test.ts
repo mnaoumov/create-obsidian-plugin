@@ -410,6 +410,22 @@ describe('buildTemplate', () => {
       }
     });
 
+    // Rollup parses an import it has no plugin for as JavaScript, so a styling answer that gave it no CSS
+    // Plugin failed the build on the stylesheet `src/main.ts` imports -- plain `css` did, with "Expression
+    // Expected". Every answer but `none` and `scss` reaches it through ONE shared rollup-plugin-postcss line.
+    it('gives rollup exactly one postcss plugin for every stylesheet answer it does not compile with scss', () => {
+      for (const styling of ['css', 'css-modules', 'postcss', 'tailwind'] as const) {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-css-'));
+        try {
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', styling }), targetDir, '1.0.0', null);
+          const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
+          expect(config.match(/postcss\(\{ extract: 'styles\.css' \}\)/gu), styling).toHaveLength(1);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    });
+
     // Every rollup plugin is imported as `<name>Module` for `asPluginFactory` to unwrap. A per-import
     // Directive rendered from inside the import partial only when that partial came first, so the rule is
     // Exempted for the whole file instead, and no import carries a directive of its own.
