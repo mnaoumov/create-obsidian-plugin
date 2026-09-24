@@ -3,7 +3,7 @@
 // `@typescript-eslint/no-floating-promises` accepts for exactly this case, and it keeps the rule armed
 // For the tests you write yourself. This file is nothing but such calls, so the ban on `void` is lifted
 // For the whole of it rather than line by line.
-/* eslint-disable no-void -- See above: every call in this file is a deliberately unawaited `node:test`. */
+/* eslint-disable no-void -- See above: no call in this file awaits its `node:test`, deliberately. */
 import assert from 'node:assert';
 import test from 'node:test';
 import { embedded } from 'obsidian-test';
