@@ -145,7 +145,6 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     pluginDescription: get('pluginDescription', 'Does something awesome.'),
     pluginId,
     pluginName: get('pluginName', makePluginName(pluginId)),
-    pluginShortName: extractWords(pluginId).join(''),
     preset: get('preset', 'enhanced'),
     spellChecker: get('spellChecker', defaultTooling.spellChecker),
     styling: get('styling', defaultTooling.styling),
@@ -415,7 +414,6 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     pluginDescription: 'Does something awesome.',
     pluginId,
     pluginName: makePluginName(pluginId),
-    pluginShortName: extractWords(pluginId).join(''),
     preset: 'enhanced',
     uiFramework: 'none'
   };
