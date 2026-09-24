@@ -338,6 +338,40 @@ Three things about it are load-bearing.
 
 The exported script is runnable rather than copyable text, which makes quoting per-shell: `sh` gets single quotes with `'\''` for an embedded one, `cmd` gets double quotes with `""` — **and a literal `%` doubled to `%%`, because a batch file expands `%…%` as a variable**. Funding and badge URLs are percent-encoded, so that is a real value, not a hypothetical. `cmd`'s `^` line continuation is silently broken by one trailing space, so the batch form stays on a single line and only the shell form wraps. The tests generate BOTH forms whatever the host runs and parse them back through the real parser; the quoting was additionally executed through actual `cmd.exe` and actual `sh`.
 
+### A user's own templates are an overlay searched ahead of `templates/default`
+
+`--customTemplate=<dir>` (`src/overlay.ts`) is for what the answers cannot say. The directory mirrors
+`templates/default`, and `copyTemplates` resolves every template path through one `findTemplate` that looks
+there first: whole files, partials at any depth and assets. So a template at a built-in's path replaces it, and it
+uses the same grammar rather than a second one. `overlay.json` declares only what a path cannot carry:
+`partials`, `files`, `packages` and `badges`. `buildTemplate(answers, overlay)` applies them LAST, after
+every answer and demo override, so an overlay partial renders after the built-in ones at each seam and a badge
+goes at the end of the line. An overlay sets no answers. It layers onto the output, so it is not a fifth rung of
+the answer precedence above.
+
+**The overlay is recorded in `.create-obsidian-plugin.json` as `customTemplate`, beside `answers`,** relative
+to the project. `copyTemplates` compares each file on disk with the hash it recorded LAST time. So an overlay
+dropped on the next run would not look user-modified. Every overlaid file would still match its hash and be
+silently reverted to the built-in. An update therefore re-applies the recorded overlay, and one that has gone
+missing is refused rather than skipped. `--customTemplate=` (empty) is the explicit way to drop it.
+`src/overlay.test.ts` pins all three update outcomes.
+
+**No tier covers an overlay, so it is held to a smaller contract at load time instead.** The four tiers sweep a
+closed answer space, and an overlay is outside it by definition. The render tier also needs TypeScript, which is
+a dev dependency, so it cannot run inside the published CLI. `loadOverlay` checks what can be checked without
+rendering: every template it carries is reachable, a declared partial name is not a built-in one, and what it
+declares exists. Reachable means a partial is declared or overrides a built-in partial file by path, a whole
+file overrides a registrable built-in or is listed in `files`, and a section answers a `render()` site that
+exists. The partial-name check matters because partial names are one flat namespace: `esbuild` declared by an
+overlay would pull every esbuild partial into every project. An overlay template that fails EJS is an error.
+The built-ins' fall-back of emitting the raw source would hide the user's mistake in the generated project.
+
+An override of a file the answers do not register is deliberately NOT an error. It applies exactly when the
+built-in it replaces is emitted, which is what lets one overlay serve several answer sets.
+
+Deferred: an overlay published as an npm package (what would make one shareable), and `render:case` /
+`gate:case` taking `--customTemplate`.
+
 ### The three manifest answers are checked against the Community directory, at the prompt
 
 `src/directory-constraints.ts` holds what the directory's automated review enforces on `id`, `name` and

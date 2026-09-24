@@ -48,6 +48,7 @@ Every question the wizard asks can be answered up front instead, which is what l
 | `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts |
 | `-h`, `--help` | List every option, including the accepted values for each answer |
 | `--answersFile=<path>` | Read answers from a JSON file |
+| `--customTemplate=<dir>` | Layer your own templates over the built-in ones — see [Your own templates](#your-own-templates) |
 | `--<answer>=<value>` | Set one answer, e.g. `--packageManager=yarn` |
 
 Because `npm create` needs to be told which flags are yours rather than its own, npm takes a `--` first; pnpm, yarn and bun do not:
@@ -75,6 +76,37 @@ Invalid input is refused rather than quietly ignored: an unknown answer, a value
 ### Saving the answers from an interactive run
 
 At the end of the wizard, before scaffolding, you can save what you just answered as either form — a runnable script (`.cmd` on Windows, `.sh` elsewhere) or an answers file. You can save both and then generate; saving does not end the run. Every answer is written, not only the ones that differ from a default, so the recipe keeps producing the same project after a release changes a default.
+
+## Your own templates
+
+When the answers cannot express what every plugin of yours needs, keep it in a directory of your own and pass `--customTemplate=<dir>`. The directory mirrors the generator's `templates/default` and is searched ahead of it, so it uses the same EJS templates and the same partials:
+
+```text
+my-obsidian-template/
+  overlay.json
+  README.md@support_mine.ejs   # adds a section at an existing render('support') seam
+  LICENSE.ejs                  # replaces the built-in LICENSE
+  docs/NOTES.md.ejs            # a file the built-ins do not have
+```
+
+```json
+{
+  "partials": ["mine"],
+  "files": ["docs/NOTES.md"],
+  "packages": ["type-fest"],
+  "badges": ["[![Docs](https://img.shields.io/badge/docs-here-blue)](https://example.com)"]
+}
+```
+
+- A template at a built-in's path replaces it, but only when your answers emit that file: a `vite.config.ts.ejs` does nothing on an esbuild project.
+- `partials` names what your partial files contribute. The names share one namespace with the built-in partials, so a name the generator already uses is refused. Your partials render after the built-in ones at every seam.
+- `files` lists the paths you add, without `.ejs`. A built-in path is refused there; to replace one, just place its template.
+- `packages` are added to `devDependencies`, and their versions are resolved when you generate, as the built-in ones are.
+- `badges` go after the built-in badges, on the same README line.
+
+The directory is checked before any question is asked. A template that nothing would ever emit, a partial nobody declared, a section no template renders, or any other file (except `overlay.json` and a `README.md` of its own) stops the run with the reason.
+
+The directory is recorded in `.create-obsidian-plugin.json`, relative to the project, and an update applies it again. That keeps the files it produced updating cleanly rather than looking hand-edited. Pass `--customTemplate=<dir>` on an update to point at a moved directory, or `--customTemplate=` to stop using one. A recorded directory that is missing stops the update instead of quietly reverting your files to the built-ins.
 
 ## Feature options
 
@@ -273,6 +305,8 @@ The `.create-obsidian-plugin.json` file stores:
 
 - `generatorVersion` — version of the generator that created the project
 - `fileHashes` — SHA-256 hashes of generated files for update detection
+- `answers` — every answer, which an update reuses
+- `customTemplate` — the [custom template](#your-own-templates) directory, if one was used
 
 ## Architecture
 
