@@ -1,6 +1,9 @@
 {
   "extends": "@parcel/config-default",
+  "transformers": {
 <%- render('transformers') -%>
+    "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}": ["./parcel-transformer-inline-imports.cjs", "..."]
+  },
   "namers": ["./parcel-namer-obsidian.cjs", "..."],
   "resolvers": ["./parcel-resolver-obsidian.cjs", "..."]
 }

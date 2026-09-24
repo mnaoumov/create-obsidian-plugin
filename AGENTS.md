@@ -830,11 +830,14 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
 5. **A bundler that code-splits exits 0.** obsidian-dev-utils has dynamic imports, and webpack and vite
    (lib mode inlines them only for `umd` / `iife`, not `cjs`) each turned them into sibling chunks that
    `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. The same
-step also fails a bundle that `require()`s a package Obsidian does not supply, which is what parcel's
-node context did for every dependency. Each
-   bundler is told to keep one file: rollup `inlineDynamicImports`, vite
-   `rollupOptions.output.inlineDynamicImports`, webpack `output.asyncChunks: false`; esbuild writes one
-   `outfile`, and parcel's node target was measured emitting one file with no sibling `require`. The gate
+   step also fails a bundle that `require()`s a package Obsidian does not supply, which is what parcel's
+   node context did for every dependency. Each bundler is told to keep one file: rollup
+   `inlineDynamicImports`, vite `rollupOptions.output.inlineDynamicImports`, webpack
+   `output.asyncChunks: false`; esbuild writes one `outfile`. Parcel has no such option: its default
+   bundler makes every `import()` a bundle root. So `parcel-transformer-inline-imports.cjs` runs before its
+   JavaScript transformer and rewrites a literal `import('x')` into `(async () => require('x'))()`, which
+   Parcel wraps and evaluates only when reached. The obvious `Promise.resolve().then(() => require('x'))`
+   does not work, because Parcel recognizes that shape as a dynamic import and splits it anyway. The gate
    tier's `bundle` step asserts `dist/build/main.js` exists and is the only script there. Its catch-all
    sibling, `release-files`, fails any other file there beyond `manifest.json` and `styles.css`. Webpack's
    terser used to cut the bundled dependencies' license comments into a `main.js.LICENSE.txt` that no
