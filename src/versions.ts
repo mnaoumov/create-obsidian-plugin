@@ -114,17 +114,26 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     version: '2.29.4',
     why: 'Obsidian bundles moment 2.29.4 and re-exports it. Type-checking against a newer moment describes an API the running app does not have.'
   },
-  // `obsidian-integration-testing` was pinned to ^10.4.0 here, and RETIRED on 2026-08-31 because the
-  // Condition it was written against stopped holding. The pin existed only because obsidian-dev-utils
-  // Declared `peerOptional obsidian-integration-testing@"^10.0.0"` while the registry tagged 11.0.0 as
-  // Latest, so resolving latest produced an ERESOLVE. Its own `manualCheck` said it "retires itself the
-  // Moment that range widens to ^11" -- and obsidian-dev-utils 96.5.2 widened it. The two agree again,
-  // So the package resolves like any other and needs no entry.
+  // Pinned once before, to ^10.4.0, and retired on 2026-08-31 when obsidian-dev-utils 96.5.2 widened its
+  // Peer to ^11. The same gap opened again when obsidian-integration-testing 16 went latest against a ^14
+  // Peer, so the pin is back, with a check that says when it can go again.
   //
-  // It retired mid-run, which is worth knowing: 96.5.2 was published while the install tier was going,
-  // So the early cases installed against 96.5.1 and passed while every later one failed at `install`.
-  // A sudden cluster of install failures across unrelated answers is the signature of a dependency
-  // Moving under the run, not of a template defect.
+  // The first retirement happened mid-run: 96.5.2 was published while the install tier was going, so the
+  // Early cases installed against 96.5.1 and passed while every later one failed at `install`. A sudden
+  // Cluster of install failures across unrelated answers is the signature of a dependency moving under
+  // The run, not of a template defect.
+  'obsidian-integration-testing': {
+    // Read off disk: obsidian-dev-utils exports no `./package.json`, and its `./*` subpath maps a
+    // `require` of one into `dist/lib`, where there is none.
+    check: 'node -e "process.stdout.write(JSON.parse(require(\'node:fs\').readFileSync(\'node_modules/obsidian-dev-utils/package.json\', \'utf8\')).peerDependencies[\'obsidian-integration-testing\'])"',
+    checkRequires: 'obsidian-dev-utils',
+    expect: '^14.0.0',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^14.1.0',
+    why: 'obsidian-dev-utils declares `peerOptional obsidian-integration-testing@"^14.0.0"` while the registry tags a later major as latest, so resolving latest produced an `npm install` that fails outright with ERESOLVE on every obsidian-dev-utils preset. The check reads the peer range obsidian-dev-utils itself declares, so the pin retires itself the moment that range moves: follow it to the new range, or drop the entry once the range admits latest.'
+  },
   'typescript': {
     check: 'node -e "process.stdout.write(require(\'typescript-eslint/package.json\').peerDependencies.typescript)"',
     checkRequires: 'typescript-eslint',
