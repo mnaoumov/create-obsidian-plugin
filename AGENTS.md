@@ -206,8 +206,28 @@ change instead of silently retargeting their CI.
 A partial can only emit `'<item>',`, so the last one always leaves a trailing comma — which the formatter
 config strips, meaning the generated file fails its own `format:check`. Anything shaped like a list is
 therefore collected on `TemplateBuilder` and rendered with a `forEach` that knows which element is last:
-`addScript`, `addPackage`, `addLintStagedCommand`, `addSentenceCaseBrand`. Partials stay for content that
+`addScript`, `addPackage`, `addLintStagedCommand`, `addSentenceCaseBrand`, `addDepcheckIgnore`. Partials stay for content that
 is a block, not an item.
+
+### `.depcheckrc.json` is emitted, measured; `AGENTS.md` is not
+
+Every real plugin carries both. They split because only one is derivable from the answers.
+
+`.depcheckrc.json` lists the declared packages depcheck reports as unused although they are not — a
+CLI run from a script, a loader or preset named as a string in a config, a compiler option. Each is
+registered by `addDepcheckIgnore(name, reason)` **beside the `addPackage` that declares it**, so an
+ignore exists exactly when its package does (`src/templates.test.ts` asserts that over every value of
+every question under each preset), and the file writes one reason line per entry. Once the file exists,
+a dependency sweep treats anything depcheck still reports as a failure, so an entry is added only for a
+package that IS used where depcheck cannot see it — never to quiet a package nothing uses. The list was
+measured, not copied: generate and install a case, run `npx depcheck` in it, and read what is left.
+Several answers are conditional for a reason: `svelte-check` is ignored everywhere except the odu
+presets' esbuild build, where obsidian-dev-utils runs its own copy and the project's declaration really
+is unused.
+
+`AGENTS.md` is not emitted. A scaffolded one could only restate the README about a codebase nobody has
+written yet, and it is a maintained file from the moment it exists — a stub is confidently empty where
+an absent file is honestly absent. `plugin-drift-baseline.json` records that under both odu presets.
 
 ### A line that is not really per-answer gets ONE partial, named for what it is
 
