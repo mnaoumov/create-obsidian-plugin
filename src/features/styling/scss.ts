@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 
 /**
  * The plugin each bundler needs to read `.scss`.
@@ -25,7 +26,7 @@ const SCSS_PLUGINS: Partial<Record<string, string>> = {
  * Why depcheck cannot see a bundler's SCSS package used, for the bundlers that reach it by name.
  *
  * esbuild and rollup import theirs from the build script, so they have no entry -- and on the
- * obsidian-dev-utils presets `esbuild-sass-plugin` is not reached by the project at all.
+ * obsidian-dev-utils presets `esbuild-sass-plugin` is not declared at all.
  */
 const SCSS_PLUGIN_DEPCHECK_REASONS: Partial<Record<string, string>> = {
   parcel: 'resolved by name by `@parcel/config-default` for `.scss`; nothing imports it.',
@@ -41,7 +42,9 @@ export class Scss extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder.addFiles(['src/styles/main.scss', 'src/styles/styles.d.ts']);
 
-    const plugin = SCSS_PLUGINS[answers.bundler];
+    // Obsidian-dev-utils' esbuild build depends on and registers `esbuild-sass-plugin` itself, so the
+    // Project's build never names it there.
+    const plugin = isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild' ? undefined : SCSS_PLUGINS[answers.bundler];
     if (plugin) {
       builder.addPackage(plugin);
       const depcheckReason = SCSS_PLUGIN_DEPCHECK_REASONS[answers.bundler];

@@ -291,9 +291,14 @@ every question under each preset), and the file writes one reason line per entry
 a dependency sweep treats anything depcheck still reports as a failure, so an entry is added only for a
 package that IS used where depcheck cannot see it — never to quiet a package nothing uses. The list was
 measured, not copied: generate and install a case, run `npx depcheck` in it, and read what is left.
-Several answers are conditional for a reason: `svelte-check` is ignored everywhere except the dev-utils
-presets' esbuild build, where obsidian-dev-utils runs its own copy and the project's declaration really
-is unused.
+The same measurement decides what is declared at all: a package depcheck reports and nothing in the
+project reaches is removed from that path, not ignored. So on the dev-utils presets' esbuild build, where
+obsidian-dev-utils depends on and registers its own copies, `esbuild-sass-plugin`, `esbuild-svelte` and
+`svelte-preprocess` are not declared. `svelte-preprocess` is also declared only on the bundlers whose
+config imports it. `svelte-check` looks like the same case and is not: obsidian-dev-utils' `build:compile`
+refuses to build a project with `.svelte` files unless package.json declares it, so it stays declared
+everywhere and is ignored with that reason. `type-fest` and `@codemirror/language` are declared nowhere, because no
+template imports either one.
 
 `AGENTS.md` is not emitted. A scaffolded one could only restate the README about a codebase nobody has
 written yet, and it is a maintained file from the moment it exists — a stub is confidently empty where

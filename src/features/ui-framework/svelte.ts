@@ -7,6 +7,9 @@ import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
  *
+ * On the obsidian-dev-utils presets' esbuild build the `esbuild` entry is not declared at all: that library
+ * depends on `esbuild-svelte` and registers it itself, so the project's build never names it.
+ *
  * **Parcel has no entry, and cannot have one.** Parcel publishes a scoped transformer for Vue but never
  * has for Svelte, and the community `parcel-transformer-svelte` is a Svelte 3-era package: it peers on
  * `svelte@^3` and reaches for `svelte/compiler.js`, a path Svelte 5 does not ship, so registering it
@@ -23,6 +26,8 @@ const BUILD_PLUGINS: Record<string, null | string> = {
   webpack: 'svelte-loader'
 };
 
+const SVELTE_PREPROCESS_BUNDLERS = new Set(['esbuild', 'rollup', 'webpack']);
+
 export class Svelte extends FeatureOption {
   public constructor() {
     super({ promptHint: 'Lightweight reactive components', promptLabel: 'Svelte', settingValue: 'svelte' });
@@ -31,8 +36,6 @@ export class Svelte extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('svelte')
-      .addPackage('svelte-check')
-      .addPackage('svelte-preprocess')
       .addSentenceCaseBrand('Svelte')
       .addFiles([
         'src/svelte-components/sample-svelte-component.d.ts',
@@ -40,16 +43,29 @@ export class Svelte extends FeatureOption {
         'src/views/sample-svelte-view.ts'
       ]);
 
+    // Obsidian-dev-utils' esbuild build compiles Svelte with its own `esbuild-svelte` and `svelte-preprocess`,
+    // So there the project reaches neither.
+    const isDevUtilsEsbuild = isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild';
     const plugin = getBuildPlugin(answers.bundler);
-    if (plugin !== null) {
+    if (plugin !== null && !isDevUtilsEsbuild) {
       builder.addPackage(plugin);
     }
 
-    // `scripts/build.ts` runs it on every path but one: on the obsidian-dev-utils presets' esbuild build
-    // That library runs its own copy, so the project's declaration is genuinely unused there and must
-    // Stay reported.
-    if (!(isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild')) {
-      builder.addDepcheckIgnore('svelte-check', 'run as a CLI by `scripts/build.ts`.');
+    // `svelte-check` is the exception: obsidian-dev-utils' `build:compile` runs the PROJECT's copy and
+    // Refuses to build when package.json does not declare it, although it also depends on its own.
+    builder
+      .addPackage('svelte-check')
+      .addDepcheckIgnore(
+        'svelte-check',
+        isDevUtilsEsbuild
+          ? 'run as a CLI by obsidian-dev-utils\' `build:compile`, which refuses to build without it declared.'
+          : 'run as a CLI by `scripts/build.ts`.'
+      );
+
+    // Only the esbuild, rollup and webpack configs preprocess; vite's plugin and the parcel transformer
+    // The project ships do not import it.
+    if (!isDevUtilsEsbuild && SVELTE_PREPROCESS_BUNDLERS.has(answers.bundler)) {
+      builder.addPackage('svelte-preprocess');
     }
 
     if (answers.bundler === 'webpack') {
