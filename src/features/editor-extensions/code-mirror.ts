@@ -8,8 +8,8 @@ export class CodeMirror extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder): void {
+    // Not `@codemirror/language`: no sample imports it, and Obsidian peers only on these two.
     builder
-      .addPackage('@codemirror/language')
       .addPackage('@codemirror/state')
       .addPackage('@codemirror/view')
       .addFiles([

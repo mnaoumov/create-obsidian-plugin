@@ -391,11 +391,44 @@ describe('buildTemplate', () => {
 
   describe('uiFramework feature', () => {
     it('adds svelte packages and build plugin', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', uiFramework: 'svelte' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', preset: 'standalone', uiFramework: 'svelte' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('svelte');
       expect(depNames).toContain('svelte-check');
+      expect(depNames).toContain('svelte-preprocess');
       expect(depNames).toContain('esbuild-svelte');
+    });
+
+    // Obsidian-dev-utils' esbuild build compiles Svelte with its own copies of these two, so a declaration
+    // Here is one depcheck reports as unused. `svelte-check` is the opposite: its `build:compile` refuses to
+    // Build unless package.json declares it.
+    it.each(['enhanced', 'demo'])('declares only svelte-check of the svelte build tooling on %s + esbuild', (preset) => {
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', preset, uiFramework: 'svelte' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('svelte');
+      expect(depNames).toContain('svelte-check');
+      expect(builder.depcheckIgnores.map((ignore) => ignore.packageName)).toContain('svelte-check');
+      expect(depNames).not.toContain('esbuild-svelte');
+      expect(depNames).not.toContain('svelte-preprocess');
+    });
+
+    it.each([
+      ['rollup', true],
+      ['webpack', true],
+      ['vite', false],
+      ['parcel', false]
+    ])('declares svelte-preprocess on %s only where its config imports it', (bundler, expected) => {
+      const answers = makeAnswers({ bundler, preset: 'enhanced', uiFramework: 'svelte' });
+      const depNames = buildTemplate(answers).dependencies.map((d) => d.packageName);
+      expect(depNames.includes('svelte-preprocess')).toBe(expected);
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-svelte-preprocess-'));
+      try {
+        copyTemplates(answers, targetDir, '1.0.0', null);
+        const importers = readdirSync(join(targetDir, 'scripts')).filter((name) => readFileSync(join(targetDir, 'scripts', name), 'utf-8').includes('from \'svelte-preprocess\''));
+        expect(importers.length > 0, importers.join(', ')).toBe(expected);
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
     });
 
     it('adds react packages and build plugin for vite', () => {
@@ -853,6 +886,29 @@ describe('buildTemplate', () => {
   // An ignore for a package the project never declares is a false-positive entry for nothing, and
   // Registering one beside the wrong `addPackage` branch is exactly how it would happen. Every value of
   // Every question, under each preset, since several ignores depend on the preset as well.
+  // Each of these was declared and reached by nothing in the project, which depcheck reports as unused:
+  // Obsidian-dev-utils depends on its own copy of the first two, and no sample imports the last two.
+  describe('packages nothing in the project reaches', () => {
+    it.each(['enhanced', 'demo'])('declares no esbuild-sass-plugin on %s + esbuild', (preset) => {
+      const depNames = buildTemplate(makeAnswers({ bundler: 'esbuild', preset, styling: 'scss' })).dependencies.map((d) => d.packageName);
+      expect(depNames).not.toContain('esbuild-sass-plugin');
+      expect(depNames).toContain('sass-embedded');
+    });
+
+    it('declares esbuild-sass-plugin on standalone + esbuild, whose build script imports it', () => {
+      const depNames = buildTemplate(makeAnswers({ bundler: 'esbuild', preset: 'standalone', styling: 'scss' })).dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('esbuild-sass-plugin');
+    });
+
+    it.each(['standalone', 'enhanced', 'demo'])('declares neither type-fest nor @codemirror/language on %s', (preset) => {
+      const depNames = buildTemplate(makeAnswers({ editorExtensions: 'codemirror', preset })).dependencies.map((d) => d.packageName);
+      expect(depNames).not.toContain('type-fest');
+      expect(depNames).not.toContain('@codemirror/language');
+      expect(depNames).toContain('@codemirror/state');
+      expect(depNames).toContain('@codemirror/view');
+    });
+  });
+
   describe('depcheck ignores', () => {
     it('names only packages the project declares', () => {
       for (const preset of ['standalone', 'enhanced', 'demo']) {

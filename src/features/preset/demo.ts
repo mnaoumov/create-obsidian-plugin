@@ -21,7 +21,6 @@ export class Demo extends FeatureOption {
       // "Cannot find module 'obsidian-integration-testing'" -- and obsidian-dev-utils declares it as an
       // Optional peer, which is exactly what makes npm leave it out without a word.
       .addPackage('obsidian-integration-testing')
-      .addPackage('type-fest')
       .addScript('dev')
       .addScript('build')
       .addScript('build:clean')
