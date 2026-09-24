@@ -116,7 +116,8 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
   },
   // Pinned once before, to ^10.4.0, and retired on 2026-08-31 when obsidian-dev-utils 96.5.2 widened its
   // Peer to ^11. The same gap opened again when obsidian-integration-testing 16 went latest against a ^14
-  // Peer, so the pin is back, with a check that says when it can go again.
+  // Peer, so the pin is back, with a check that says when it can go again. obsidian-dev-utils 106 moved the
+  // Peer to ^16 while 17 was already latest, so the pin followed it to ^16 rather than retiring.
   //
   // The first retirement happened mid-run: 96.5.2 was published while the install tier was going, so the
   // Early cases installed against 96.5.1 and passed while every later one failed at `install`. A sudden
@@ -127,12 +128,12 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     // `require` of one into `dist/lib`, where there is none.
     check: 'node -e "process.stdout.write(JSON.parse(require(\'node:fs\').readFileSync(\'node_modules/obsidian-dev-utils/package.json\', \'utf8\')).peerDependencies[\'obsidian-integration-testing\'])"',
     checkRequires: 'obsidian-dev-utils',
-    expect: '^14.0.0',
+    expect: '^16.0.0',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
-    version: '^14.1.0',
-    why: 'obsidian-dev-utils declares `peerOptional obsidian-integration-testing@"^14.0.0"` while the registry tags a later major as latest, so resolving latest produced an `npm install` that fails outright with ERESOLVE on every obsidian-dev-utils preset. The check reads the peer range obsidian-dev-utils itself declares, so the pin retires itself the moment that range moves: follow it to the new range, or drop the entry once the range admits latest.'
+    version: '^16.0.0',
+    why: 'obsidian-dev-utils declares `peerOptional obsidian-integration-testing@"^16.0.0"` while the registry tags a later major as latest, so resolving latest produced an `npm install` that fails outright with ERESOLVE on every obsidian-dev-utils preset. The check reads the peer range obsidian-dev-utils itself declares, so the pin retires itself the moment that range moves: follow it to the new range, or drop the entry once the range admits latest.'
   },
   'typescript': {
     check: 'node -e "process.stdout.write(require(\'typescript-eslint/package.json\').peerDependencies.typescript)"',
