@@ -1242,10 +1242,11 @@ describe('copyTemplates', () => {
     expect(versions[manifest['version'] as string]).toBe('1.13.7');
   });
 
-  it('falls back to a manifest that claims no minimum app version', () => {
+  // The standalone settings tab is built from `getSettingDefinitions()`, which 1.13.0 introduced.
+  it('falls back to the first app version the settings tab runs on', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
-    expect(manifest['minAppVersion']).toBe('0.0.0');
+    expect(manifest['minAppVersion']).toBe('1.13.0');
   });
 
   // The skip used to record the USER's hash, so the next update saw a file matching its record, took it for
@@ -1457,8 +1458,8 @@ describe('copyTemplates', () => {
     expect(plugin).not.toContain('Stale');
   });
 
-  // The shared config's `prefer-setting-definitions` warns on a tab without it: an imperative `display()` is invisible
-  // to Obsidian's settings search from 1.13.0 on.
+  // The shared config's `prefer-setting-definitions` warns on a tab without it.
+  // An imperative `display()` is invisible to Obsidian's settings search from 1.13.0 on.
   it('builds the standalone settings tab declaratively, with no display()', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const settings = readFileSync(join(targetDir, 'src/settings.ts'), 'utf-8');

@@ -233,8 +233,10 @@ the number comes from. `versions.json` ships the matching `"0.0.0": "<minAppVers
 of that, it is a different (wrong) claim.
 
 Like the dependency versions, it is resolved in `main.ts` and handed to `copyTemplates`, which stays
-synchronous. An offline generation falls back to `0.0.0` — no minimum, which is honest — rather than
-inventing a number.
+synchronous. An offline generation falls back to `1.13.0`, the lowest version the scaffolded code runs on:
+the `standalone` settings tab is built from `getSettingDefinitions()` alone, which that release introduced,
+so a lower claim installs a plugin whose settings tab renders empty. Raise the fallback when a template
+starts calling a newer API; never let it sit below what the templates call.
 
 ### The default branch is one answer, used twice
 
