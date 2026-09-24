@@ -180,6 +180,8 @@ All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `c
 
 The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The odu presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-utils' `defineEslintConfigs` the way every real plugin does.
 
+`scripts/markdownlint-cli2-config.ts` splits the same way. The odu presets spread obsidian-dev-utils' `obsidianDevUtilsConfig` and turn `no-soft-break-in-paragraph` on, byte for byte what the real plugins carry; `standalone` inlines its rules and is the only preset that declares `markdownlint` and `markdownlint-rule-relative-links`.
+
 **The shared config is much stricter than the inlined one.** It adds unicorn, perfectionist, `@stylistic`, import-x, eslint-comments and obsidian-dev-utils' own rules, and the templates are written to pass it. A sample that is red under its own `npm run lint` means the project has not really adopted the config. Two things were structural:
 
 - **Sample views `return super.onOpen()` / `super.onClose()`** rather than `await Promise.resolve()`. The shared config's `prefer-noop-async` rejects the latter, and its fleet answer, `noopAsync()`, cannot be imported on `standalone`, which shares three of the view templates.
