@@ -106,6 +106,8 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 Only the `odu` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
+A note that only some answers need is registered by that answer's `configure` behind `isDevUtilsPreset`, and reaches the vault through seams rather than conditionals: `00 Start.md` renders a `features` section inside its `## Features` table (the coverage suite fails a note `00 Start.md` does not reach), and `01 Sample commands.md` and `demoSetup.ts` each render a `commands` section. `wasm` is the one user today, with `03 WebAssembly.md`. Each seam renders nothing on a project that did not answer for it.
+
 Two suites guard it, both emitted only when the preset is `odu` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
 
 ### Unit tests import the plugin, which is what forces every piece of the mock wiring

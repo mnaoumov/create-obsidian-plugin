@@ -1,0 +1,34 @@
+# WebAssembly
+
+<%= pluginName %> ships a working WebAssembly module and a command that calls into it. WebAssembly is how a plugin uses code compiled from Rust, C, Go or AssemblyScript — and unlike a native Node binary it runs on mobile too, so it is the portable route.
+
+```code-button
+---
+caption: Run Sample WASM answer
+---
+require('/demoSetup.ts').runSampleWasmAnswerCommand(app);
+```
+
+A notice saying `WebAssembly says: 42` should have appeared. The number was not computed in JavaScript: the command loaded the module, called its exported `answer()` function, and showed what it returned.
+
+Manual equivalent: open the Command Palette (`Ctrl+P` / `Cmd+P`) and run **<%= pluginName %>: Sample WASM answer**.
+
+## The module
+
+The module is `src/wasm/module.wasm` in the plugin's repository, 39 bytes long. Its source is checked in beside it as `src/wasm/module.wat`:
+
+```wat
+(module
+  (func (export "answer") (result i32)
+    i32.const 42))
+```
+
+It exports one function, `answer()`, returning the constant `42`, and imports nothing at all — no host functions, no memory — so returning that number is the only thing it can do. `wat2wasm` from [WABT](https://github.com/WebAssembly/wabt) rebuilds the binary from that source byte for byte.
+
+## Why it is inside main.js
+
+Obsidian installs a plugin as `main.js`, `styles.css` and `manifest.json`, and nothing else. A module left beside the bundle as a separate `.wasm` file works in the repository and is missing from every installed copy. So the build embeds the module in `main.js`, which is why this command works in the released plugin and not only in development.
+
+## Where it is defined
+
+The command is registered in `src/wasm/sample-command.ts`, and `src/wasm/answer.ts` loads the module. `src/wasm/README.md` explains how to replace the sample with a module of your own.

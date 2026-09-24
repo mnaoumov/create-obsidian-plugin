@@ -1,6 +1,6 @@
 # Sample commands
 
-<%= pluginName %> adds two commands to the Command Palette. They are the scaffolded samples the generator gives every new plugin — replace them with your own, and rewrite this note as you do.
+<%= pluginName %> adds the sample commands below to the Command Palette. They are the scaffolded samples the generator gives every new plugin — replace them with your own, and rewrite this note as you do.
 
 ## Sample
 
@@ -34,4 +34,5 @@ The scratch note is gitignored, so whatever you write in it stays out of your re
 
 ## Where they are defined
 
-Both live in `src/plugin.ts`, registered in `onloadImpl` with `this.addCommand(...)`. The command id you see in `demoSetup.ts` is `<%= pluginId %>:sample` — Obsidian prefixes every command id with the plugin id from `manifest.json`.
+**Sample** and **Sample editor** live in `src/plugin.ts`, registered in `onloadImpl` with `this.addCommand(...)`. The command id you see in `demoSetup.ts` is `<%= pluginId %>:sample` — Obsidian prefixes every command id with the plugin id from `manifest.json`.
+<%- render('commands') -%>

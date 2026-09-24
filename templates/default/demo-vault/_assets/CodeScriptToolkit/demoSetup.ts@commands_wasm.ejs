@@ -1,0 +1,10 @@
+
+/**
+ * Runs the plugin's `Sample WASM answer` command, which calls into the bundled WebAssembly module and shows
+ * what it returned.
+ *
+ * Manual equivalent: `<%= pluginName %>: Sample WASM answer` in the Command Palette.
+ */
+export function runSampleWasmAnswerCommand(app: App): void {
+  app.commands.executeCommandById(`${PLUGIN_ID}:sample-wasm-answer`);
+}
