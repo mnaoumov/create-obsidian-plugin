@@ -646,6 +646,25 @@ whichever framework was answered, its component was written and never compiled. 
 answered view like `enhanced` does, and the same test covers both presets over every framework. The
 `openViewOnLayoutReady` helper both need is one `ui-view` partial per preset, not one copy per framework.
 
+### On rollup, the TypeScript plugin is handed a TypeScript that knows each file's module format
+
+`@rollup/plugin-typescript` (12.3.0, the latest) asks `ts.getModeForResolutionAtIndex` for each import's
+resolution mode without passing the compiler options, and TypeScript answers `undefined` without them. So the
+plugin's program resolves every import in `src/` under the `require` condition, while tsc resolves them as
+`import`. A dual package then loads twice: obsidian-dev-utils' `.d.cts` pins `@codemirror/state` with
+`resolution-mode: import`, the sample's own import gets `index.d.cts`, and the codemirror sample's
+`implements StateFieldSpec` printed TS2416 three times on every rollup build while plain tsc passed.
+`scripts/rollup.config.ts` therefore passes the plugin's `typescript` option a copy of TypeScript whose
+`getModeForResolutionAtIndex` supplies `module: Node16`. It is fixed there rather than in the sample, because
+any user code that mixes obsidian-dev-utils' codemirror types with its own `@codemirror/*` imports meets the
+same split. Turning the plugin's type check off was the other option and was refused: on `standalone` it is
+the rollup build's only type check.
+
+The same `typescript({...})` block also overrides `inlineSourceMap` / `inlineSources` to follow `isProduction`.
+The emitted `tsconfig.json` inlines a source map, and a production build writes none, so every production build
+warned that nothing would output the map. No tier fails on a build warning, so `src/templates.test.ts` is what
+pins both fixes.
+
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.

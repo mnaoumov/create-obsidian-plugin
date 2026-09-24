@@ -6,6 +6,10 @@ import terserModule from '@rollup/plugin-terser';
 import typescriptModule from '@rollup/plugin-typescript';
 import { builtinModules } from 'node:module';
 import process from 'node:process';
+import ts, {
+  getModeForResolutionAtIndex,
+  ModuleKind
+} from 'typescript';
 ${render('import')}`) -%>
 
 /**
@@ -39,6 +43,21 @@ const terser = asPluginFactory(terserModule);
 const typescript = asPluginFactory(typescriptModule);
 <%- render('unwrap') -%>
 
+/**
+ * TypeScript as `@rollup/plugin-typescript` ought to call it.
+ *
+ * The plugin asks `getModeForResolutionAtIndex` for each import's resolution mode without passing the
+ * compiler options, and without them TypeScript answers `undefined`. So every import in `src/` resolves
+ * under the `require` condition, while a declaration file that pins `resolution-mode: import` gets the
+ * ESM types. A package that ships both, such as `@codemirror/state`, is then loaded twice, and its
+ * classes stop being assignable to themselves: TS2416 against obsidian-dev-utils' `StateFieldSpec`.
+ * Handing over the `module` the emitted `tsconfig.json` declares restores the per-file mode tsc uses.
+ */
+const typescriptWithResolutionModes: typeof ts = {
+  ...ts,
+  getModeForResolutionAtIndex: (file, index) => getModeForResolutionAtIndex(file, index, { module: ModuleKind.Node16 })
+};
+
 const isProduction = process.env['BUILD'] === 'production';
 const distFolder = process.env['DIST_FOLDER'] ?? (isProduction ? 'dist/build' : 'dist/dev');
 
@@ -71,10 +90,15 @@ const EXTERNAL = [
     // Overrides belong here, in the one tool that needs them, exactly as \`jest.config.ts\` overrides
     // \`rootDir\` for the same reason.
     typescript({
+      // The emitted \`tsconfig.json\` inlines a source map. A production build writes none, and the plugin
+      // Warns on every such build that it was asked for one that nothing will output.
+      inlineSourceMap: !isProduction,
+      inlineSources: !isProduction,
       noEmit: false,
 ${render('lint-out-dir')}      outDir: distFolder,
       rewriteRelativeImportExtensions: true,
-      sourceMap: !isProduction
+      sourceMap: !isProduction,
+      typescript: typescriptWithResolutionModes
     }),
     nodeResolve({ browser: true }),
     commonjs(),
