@@ -32,6 +32,7 @@ export type GateStep =
   | 'install'
   | 'lint'
   | 'release-files'
+  | 'spellcheck'
   | 'styles'
   | 'test'
   | 'wasm';
@@ -209,6 +210,9 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   violations.push(...checkWasm(targetDir, passed, skipped));
   violations.push(...checkReleaseFiles(targetDir, passed, skipped));
   violations.push(...runScriptStep('lint', 'lint', targetDir, answers, scripts, passed, skipped));
+  // The emitted `gate` and `version` scripts both run spellcheck first, so a word the scaffold writes and
+  // Its own `cspell.json` does not know leaves a fresh project red on its own release preflight.
+  violations.push(...runScriptStep('spellcheck', 'spellcheck', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkFormat(targetDir, answers, scripts, passed, skipped));
   violations.push(...checkTests(targetDir, answers, scripts, passed, skipped));
 
