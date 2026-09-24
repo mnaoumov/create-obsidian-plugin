@@ -1,5 +1,12 @@
-import { css, html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import {
+  css,
+  html,
+  LitElement
+} from 'lit';
+import {
+  customElement,
+  property
+} from 'lit/decorators.js';
 
 @customElement('sample-lit-element')
 export class SampleLitElement extends LitElement {
@@ -19,13 +26,6 @@ export class SampleLitElement extends LitElement {
   @property({ type: String })
   public vaultName = '';
 
-  // An arrow property rather than a method: the template below hands `this.increment` to lit as a bare
-  // Reference, and a method detached from its object is what `@typescript-eslint/unbound-method`
-  // Forbids. Binding at the declaration is the fix lit's own docs reach for too.
-  private readonly increment = (): void => {
-    this.count++;
-  };
-
   public override render(): unknown {
     return html`
       <h4>Sample Lit Element!</h4>
@@ -35,5 +35,20 @@ export class SampleLitElement extends LitElement {
       <button type="button" @click=${this.increment}>Increment</button>
       <div>Vault name: ${this.vaultName}</div>
     `;
+  }
+
+  // An arrow property rather than a method: the template below hands `this.increment` to lit as a bare
+  // Reference, and a method detached from its object is what `@typescript-eslint/unbound-method`
+  // Forbids. Binding at the declaration is the fix lit's own docs reach for too.
+  private readonly increment = (): void => {
+    this.count++;
+  };
+}
+
+declare global {
+  // Lit's own pattern for a custom element: it is what lets `createEl('sample-lit-element')` type-check,
+  // And return a `SampleLitElement` whose properties can be set directly.
+  interface HTMLElementTagNameMap {
+    'sample-lit-element': SampleLitElement;
   }
 }

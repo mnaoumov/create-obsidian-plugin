@@ -23,7 +23,8 @@ import {
 import {
   buildTemplate,
   copyTemplates,
-  getScriptDir
+  getScriptDir,
+  sortImportStatements
 } from './templates.ts';
 
 describe('buildTemplate', () => {
@@ -159,10 +160,32 @@ describe('buildTemplate', () => {
     });
 
     it('adds eslint dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ linter: 'eslint' }));
+      const builder = buildTemplate(makeAnswers({ linter: 'eslint', preset: 'standalone' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('eslint');
       expect(depNames).toContain('@eslint/js');
       expect(depNames).toContain('typescript-eslint');
+    });
+
+    // The obsidian-dev-utils presets get the shared config, which brings its own plugins, so the three
+    // Packages only the inlined config imported would be declared and imported by nothing. `eslint` stays
+    // Because the binary runs, and `typescript-eslint` because the `typescript` pin's `check` command
+    // Reads its `package.json` for the peer range -- `checkRequires` silently downgrades that pin to a
+    // Manual one the moment the package leaves the project.
+    it('declares only the eslint packages a dev-utils preset actually uses', () => {
+      const builder = buildTemplate(makeAnswers({ linter: 'eslint', preset: 'enhanced' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('eslint');
+      expect(depNames).toContain('typescript-eslint');
+      expect(depNames).not.toContain('@eslint/js');
+      expect(depNames).not.toContain('globals');
+      expect(depNames).not.toContain('eslint-plugin-obsidianmd');
+    });
+
+    it('emits the shared-config wrapper on a dev-utils preset and not on standalone', () => {
+      expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'enhanced' })).templateFiles]).toContain('scripts/eslint-config.ts');
+      expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'demo' })).templateFiles]).toContain('scripts/eslint-config.ts');
+      expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'standalone' })).templateFiles]).not.toContain('scripts/eslint-config.ts');
     });
 
     it('adds biome scripts and files', () => {
@@ -645,7 +668,7 @@ describe('buildTemplate', () => {
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('react');
       expect(depNames).toContain('svelte');
-      expect(depNames).toContain('@eslint/js');
+      expect(depNames).toContain('eslint');
       expect(depNames).toContain('cspell');
 
       expect(builder.partials.has('react')).toBe(true);
@@ -1234,7 +1257,7 @@ describe('copyTemplates', () => {
   it('creates dev.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const devScript = readFileSync(join(targetDir, 'scripts/dev.ts'), 'utf-8');
-    expect(devScript).toContain('process.argv[2] = \'dev\'');
+    expect(devScript).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
     expect(devScript).toContain('import(\'./build.ts\')');
   });
 
@@ -1265,7 +1288,7 @@ describe('copyTemplates', () => {
 
         // Everywhere else `dev` IS `build` in watch mode, so it re-enters build.ts rather than
         // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
-        expect(devScript, label).toContain('process.argv[2] = \'dev\'');
+        expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
         expect(devScript, label).toContain('import(\'./build.ts\')');
         expect(devScript, label).not.toContain(oduDevImport);
       }
@@ -1603,19 +1626,51 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
   });
 
+  // On a dev-utils preset the ESLint file list lives in `scripts/eslint-config.ts`, which the root
+  // `eslint.config.mts` re-exports -- so that is where the `e2e/` entry has to appear.
   it('puts e2e in the tsconfig include and the ESLint file list on the enhanced preset', () => {
     copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
-    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
+    expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('e2e/**/*.ts');
   });
 
   it('names neither list an e2e directory that was not emitted', () => {
-    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint', preset: 'standalone' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'e2e'))).toBe(false);
     // The entry, not the substring: both templates carry a comment naming `e2e/` and explaining why the
     // Two lists must agree.
     expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).not.toContain('"./e2e/**/*.ts"');
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
+  });
+
+  it('names neither list an e2e directory that was not emitted, on the enhanced preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'e2e'))).toBe(false);
+    expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).not.toContain('"./e2e/**/*.ts"');
+    expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
+  });
+
+  // The repo's own "root configs are thin wrappers" decision, which the emitted `eslint.config.mts` was
+  // The one violation of until the dev-utils presets adopted the shared config.
+  it('emits a thin root eslint config on a dev-utils preset and an inlined one on standalone', () => {
+    copyTemplates(makeAnswers({ linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8').trim()).toBe('export { configs as default } from \'./scripts/eslint-config.ts\';');
+    expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('defineEslintConfigs');
+  });
+
+  it('inlines the whole config on the standalone preset, which depends on nothing from the ecosystem', () => {
+    copyTemplates(makeAnswers({ linter: 'eslint', preset: 'standalone' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'scripts/eslint-config.ts'))).toBe(false);
+    const config = readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8');
+    expect(config).toContain('from \'typescript-eslint\'');
+    expect(config).not.toContain('from \'obsidian-dev-utils');
+  });
+
+  // The per-plugin brands are the whole of what a real plugin's wrapper overrides, so they have to
+  // Survive the move into `scripts/eslint-config.ts`.
+  it('carries the sentence-case brands into the shared-config wrapper', () => {
+    copyTemplates(makeAnswers({ linter: 'eslint', pluginName: 'My Awesome Plugin', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('\'My Awesome Plugin\'');
   });
 
   // `WebdriverIO.Config` requires `capabilities`, and the namespace itself only reaches the program
@@ -1652,5 +1707,48 @@ describe('copyTemplates', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
+  });
+});
+
+describe('sortImportStatements', () => {
+  // The directive has to stay on the import it was written for. A split on the newline before `import `
+  // Also fired between the comment and its import, so the comment was sorted as a block of its own and
+  // Landed above whichever import followed -- an unused directive there, and a live violation here.
+  it('keeps a comment line with the import directly below it', () => {
+    const text = [
+      'import typescriptModule from \'@rollup/plugin-typescript\';',
+      'import { builtinModules } from \'node:module\';',
+      '// eslint-disable-next-line import-x/no-rename-default -- reason',
+      'import wasmModule from \'@rollup/plugin-wasm\';',
+      ''
+    ].join('\n');
+
+    expect(sortImportStatements(text)).toBe([
+      'import typescriptModule from \'@rollup/plugin-typescript\';',
+      '// eslint-disable-next-line import-x/no-rename-default -- reason',
+      'import wasmModule from \'@rollup/plugin-wasm\';',
+      'import { builtinModules } from \'node:module\';',
+      ''
+    ].join('\n'));
+  });
+
+  it('keeps a multi-line import together', () => {
+    const text = [
+      'import { z } from \'z\';',
+      'import {',
+      '  a,',
+      '  b',
+      '} from \'a\';',
+      ''
+    ].join('\n');
+
+    expect(sortImportStatements(text)).toBe([
+      'import {',
+      '  a,',
+      '  b',
+      '} from \'a\';',
+      'import { z } from \'z\';',
+      ''
+    ].join('\n'));
   });
 });

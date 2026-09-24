@@ -13,7 +13,7 @@ export class SampleWidget extends WidgetType {
   }
 
   public toDOM(): HTMLElement {
-    const span = createEl('span', {
+    const span = createSpan({
       cls: 'cm-sample-word-count',
       text: ` [${String(this.count)} words]`
     });

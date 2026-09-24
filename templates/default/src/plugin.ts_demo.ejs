@@ -12,7 +12,10 @@ import {
   Menu,
   Notice
 } from 'obsidian';
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
+import {
+  convertAsyncToSync,
+  invokeAsyncSafely
+} from 'obsidian-dev-utils/async';
 import { getDebugger } from 'obsidian-dev-utils/debug';
 import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
@@ -24,7 +27,10 @@ import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
-import { sampleStateField } from './editor-extensions/sample-state-field.ts';
+<%# Sorted as one group, not written in order: the `import` section is composed from the per-answer -%>
+<%# partials, whose order is the order the questions are registered. See `sortImports` in -%>
+<%# `src/templates.ts`. -%>
+<%- sortImports(`import { sampleStateField } from './editor-extensions/sample-state-field.ts';
 import { sampleViewPlugin } from './editor-extensions/sample-view-plugin.ts';
 import { SampleEditorSuggest } from './editor-suggests/sample-editor-suggest.ts';
 import { SampleFormModal } from './modals/sample-form-modal.ts';
@@ -43,7 +49,7 @@ import {
   SAMPLE_VIEW_TYPE,
   SampleView
 } from './views/sample-view.ts';
-<%- render('import') -%>
+${render('import')}`) -%>
 
 export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {
@@ -101,6 +107,7 @@ export class Plugin extends PluginBase {
     this.registerExtensions(['sample-extension-1', 'sample-extension-2'], SAMPLE_VIEW_TYPE);
 
     this.registerHoverLinkSource(SAMPLE_VIEW_TYPE, {
+      // eslint-disable-next-line unicorn/name-replacements -- `defaultMod` is declared by `obsidian`; renaming it here would not match the API.
       defaultMod: true,
       display: this.manifest.name
     });
@@ -127,7 +134,7 @@ export class Plugin extends PluginBase {
 
     this.app.workspace.onLayoutReady(() => {
       new Notice('This is executed after all plugins are loaded');
-      void this.openSampleViews();
+      invokeAsyncSafely(() => this.openSampleViews());
     });
 
     // `OpenDemoVaultCommandHandler` is what makes the README's first demo-vault route real: it downloads
@@ -166,13 +173,13 @@ export class Plugin extends PluginBase {
     });
   }
 
-  private handleSampleCodeBlockProcessor(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
-    getDebugger('handleSampleCodeBlockProcessor')(source, el, ctx);
+  private handleSampleCodeBlockProcessor(source: string, el: HTMLElement, context: MarkdownPostProcessorContext): void {
+    getDebugger('handleSampleCodeBlockProcessor')(source, el, context);
     el.setText('Sample code block processor');
   }
 
-  private handleSampleDomEvent(evt: MouseEvent): void {
-    const tagName = evt.target instanceof HTMLElement ? evt.target.tagName : '';
+  private handleSampleDomEvent($event: MouseEvent): void {
+    const tagName = $event.target instanceof HTMLElement ? $event.target.tagName : '';
     new Notice(`Sample DOM event: ${tagName}`);
   }
 
@@ -188,8 +195,8 @@ export class Plugin extends PluginBase {
     new Notice('Sample interval tick');
   }
 
-  private handleSampleMarkdownPostProcessor(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
-    getDebugger('handleSampleMarkdownPostProcessor')(el, ctx);
+  private handleSampleMarkdownPostProcessor(el: HTMLElement, context: MarkdownPostProcessorContext): void {
+    getDebugger('handleSampleMarkdownPostProcessor')(el, context);
     if (el.hasClass('el-h6')) {
       el.setText('Sample markdown post processor');
     }
@@ -251,13 +258,13 @@ export class Plugin extends PluginBase {
     new Notice('Sample command');
   }
 
-  private runSampleCommandWithCheck(checking: boolean): boolean {
+  private runSampleCommandWithCheck(isChecking: boolean): boolean {
     const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!markdownView) {
       return false;
     }
 
-    if (!checking) {
+    if (!isChecking) {
       new Notice('Sample command with check');
     }
 
@@ -281,13 +288,13 @@ export class Plugin extends PluginBase {
   }
 
   private async showConfirm(): Promise<void> {
-    const result = await confirm({
+    const isConfirmed = await confirm({
       app: this.app,
       message: 'Sample confirm message',
       title: 'Sample confirm title'
     });
 
-    new Notice(`Sample confirm result: ${String(result)}`);
+    new Notice(`Sample confirm result: ${String(isConfirmed)}`);
   }
 
   private async showPrompt(): Promise<void> {

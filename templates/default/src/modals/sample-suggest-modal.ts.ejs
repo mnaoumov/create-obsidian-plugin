@@ -1,9 +1,9 @@
+import type { FuzzyMatch } from 'obsidian';
+
 import {
   FuzzySuggestModal,
   Notice
 } from 'obsidian';
-
-import type { FuzzyMatch } from 'obsidian';
 
 interface SampleItem {
   icon: string;
@@ -19,19 +19,19 @@ const SAMPLE_ITEMS: readonly SampleItem[] = [
 ];
 
 export class SampleSuggestModal extends FuzzySuggestModal<SampleItem> {
-  public override getItemText(item: SampleItem): string {
-    return item.name;
-  }
-
   public override getItems(): SampleItem[] {
     return [...SAMPLE_ITEMS];
   }
 
-  public override onChooseItem(item: SampleItem, evt: KeyboardEvent | MouseEvent): void {
-    new Notice(`Selected: ${item.icon} ${item.name} (${evt.type})`);
+  public override getItemText(item: SampleItem): string {
+    return item.name;
+  }
+
+  public override onChooseItem(item: SampleItem, $event: KeyboardEvent | MouseEvent): void {
+    new Notice(`Selected: ${item.icon} ${item.name} (${$event.type})`);
   }
 
   public override renderSuggestion(match: FuzzyMatch<SampleItem>, el: HTMLElement): void {
-    el.createEl('span', { text: `${match.item.icon} ${match.item.name}` });
+    el.createSpan({ text: `${match.item.icon} ${match.item.name}` });
   }
 }

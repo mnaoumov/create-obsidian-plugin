@@ -1,6 +1,7 @@
 
   private openViewOnLayoutReady(viewType: string): void {
     this.app.workspace.onLayoutReady(() => {
+      // eslint-disable-next-line no-void -- `onLayoutReady` takes a synchronous callback; `void` is the marker `no-floating-promises` accepts.
       void this.app.workspace.ensureSideLeaf(viewType, 'right');
     });
   }

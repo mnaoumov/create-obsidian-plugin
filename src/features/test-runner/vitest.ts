@@ -18,9 +18,12 @@ export class Vitest extends FeatureOption {
       // Obsidian installs. The npm package is types-only -- `"main": ""` and a tarball of `.d.ts` files
       // -- so without this every test that touches the plugin's own code dies in the resolver.
       .addPackage('obsidian-test-mocks')
-      .addDepcheckIgnore('obsidian-test-mocks', isDevUtilsPreset(answers.preset)
-        ? 'aliased and loaded as a setup file by name by `defineObsidianPluginVitestConfig` from obsidian-dev-utils.'
-        : 'aliased and loaded as a setup file by name in `vitest.config.ts`.')
+      .addDepcheckIgnore(
+        'obsidian-test-mocks',
+        isDevUtilsPreset(answers.preset)
+          ? 'aliased and loaded as a setup file by name by `defineObsidianPluginVitestConfig` from obsidian-dev-utils.'
+          : 'aliased and loaded as a setup file by name in `vitest.config.ts`.'
+      )
       .addPackage('vitest')
       .addScript('test')
       .addScript('test:watch')

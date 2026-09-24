@@ -1,0 +1,7 @@
+
+
+    // Typed rules need every file ESLint reaches to be in the tsconfig `include`, so this list and the
+    // Emitted `tsconfig.json`'s `include` have to agree. `e2e/` reaches both through the same `has-e2e`
+    // Partial, and only when an end-to-end runner was chosen. It goes in `testFiles` rather than
+    // `sourceFiles`, because an end-to-end spec is a test and wants the same relaxations one gets.
+    context.testFiles.push('e2e/**/*.ts');

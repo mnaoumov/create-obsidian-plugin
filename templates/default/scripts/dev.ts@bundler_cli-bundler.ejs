@@ -3,5 +3,6 @@
 <%# `dev` re-enters it rather than restating any of that. Byte-identical to the esbuild+standalone -%>
 <%# partial, and deliberately a second copy: one shared partial contributed by both the CLI bundlers -%>
 <%# and `standalone` would render TWICE on standalone plus a command-line bundler. -%>
-process.argv[2] = 'dev';
+const BUILD_MODE_ARGUMENT_INDEX = 2;
+process.argv[BUILD_MODE_ARGUMENT_INDEX] = 'dev';
 await import('./build.ts');

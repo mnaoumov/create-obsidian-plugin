@@ -1,9 +1,13 @@
-import i18next from 'i18next';
+// The named exports are bound to the default instance, the stateful singleton the package documents.
+import {
+  init,
+  t as translate
+} from 'i18next';
 
 import en from './locales/en.json';
 
 export async function initI18n(): Promise<void> {
-  await i18next.init({
+  await init({
     fallbackLng: 'en',
     lng: 'en',
     resources: {
@@ -13,5 +17,5 @@ export async function initI18n(): Promise<void> {
 }
 
 export function t(key: string): string {
-  return i18next.t(key);
+  return translate(key);
 }

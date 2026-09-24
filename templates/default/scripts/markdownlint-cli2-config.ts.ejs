@@ -2,16 +2,31 @@ import type { Options } from 'markdownlint';
 
 import relativeLinksRule from 'markdownlint-rule-relative-links';
 
-export const config: Options & { customRules?: unknown[]; globs?: string[]; ignores?: string[] } = {
+/**
+ * The keys `markdownlint-cli2` reads from a config module that `markdownlint`'s own `Options` does not
+ * declare. Named rather than written inline, because an anonymous object type in a signature is a type
+ * nothing else can refer to -- and an intersection is exactly where a reader wants to look one up.
+ */
+interface MarkdownlintCli2Extras {
+  customRules?: unknown[];
+  globs?: string[];
+  ignores?: string[];
+}
+
+export const config: MarkdownlintCli2Extras & Options = {
   config: {
-    default: true,
-    MD013: false,
-    MD024: {
+    // Every key quoted because `'relative-links'` has to be, and the style is all-or-none per object.
+    'default': true,
+    'MD013': false,
+    'MD024': {
+      // eslint-disable-next-line camelcase -- `siblings_only` is markdownlint's own option name.
       siblings_only: true
     },
-    MD052: {
+    'MD052': {
+      /* eslint-disable camelcase -- `ignored_labels` and `shortcut_syntax` are markdownlint's own option names. */
       ignored_labels: ['!note', '!warning'],
       shortcut_syntax: true
+      /* eslint-enable camelcase -- `ignored_labels` and `shortcut_syntax` are markdownlint's own option names. */
     },
     'relative-links': true
   },

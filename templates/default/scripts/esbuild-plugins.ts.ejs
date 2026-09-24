@@ -12,6 +12,10 @@ import type { Plugin } from 'esbuild';
  *
  * Shared by `build.ts` and `dev.ts` rather than written into each: one list, one place to add to.
  */
+<%# Each per-answer partial ends its entry with a comma so two of them concatenate into a valid list. -%>
+<%# The LAST one's comma is then a trailing comma, which the shared ESLint config rejects, so it is -%>
+<%# stripped here rather than by making every partial know whether it is last. -%>
+<% const oduPlugins = render('odu-plugin'); -%>
 export const customEsbuildPlugins: Plugin[] = [
-<%- render('odu-plugin') -%>
+<%- oduPlugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
 ];

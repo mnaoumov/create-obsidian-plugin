@@ -1,4 +1,5 @@
 import { ItemView } from 'obsidian';
+// eslint-disable-next-line import-x/no-deprecated -- Only the third `replaceNode` parameter is deprecated; the two-argument form this file uses is not.
 import { render } from 'preact';
 
 import type { SamplePreactComponentProps } from '../preact-components/sample-preact-component.tsx';
@@ -19,17 +20,19 @@ export class SamplePreactView extends ItemView {
     return SAMPLE_PREACT_VIEW_TYPE;
   }
 
-  public override async onClose(): Promise<void> {
+  public override onClose(): Promise<void> {
+    // eslint-disable-next-line import-x/no-deprecated -- See the import: the two-argument form is not deprecated.
     render(null, this.contentEl);
-    await Promise.resolve();
+    return super.onClose();
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
     const props: SamplePreactComponentProps = {
       startCount: START_COUNT
     };
 
+    // eslint-disable-next-line import-x/no-deprecated -- See the import: the two-argument form is not deprecated.
     render(
       <AppContext.Provider value={this.app}>
         <SamplePreactComponent {...props} />
@@ -37,6 +40,6 @@ export class SamplePreactView extends ItemView {
       this.contentEl
     );
 
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

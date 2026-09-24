@@ -8,9 +8,12 @@ import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
-import { PluginSettingsComponent } from './plugin-settings-component.ts';
+<%# Sorted as one group, not written in order: `import2` is composed from the per-answer partials, whose -%>
+<%# order is the order the questions are registered, and the two settings imports sort into the middle of -%>
+<%# what they contribute. See `sortImports` in `src/templates.ts`. -%>
+<%- sortImports(`import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
-<%- render('import2') -%>
+${render('import2')}`) -%>
 
 export class Plugin extends PluginBase {
   protected override async onloadImpl(): Promise<void> {

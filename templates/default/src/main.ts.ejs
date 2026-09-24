@@ -1,4 +1,4 @@
-<%- render('import') -%>
-import { Plugin } from './plugin.ts';
-
-export default Plugin;
+<% const styleImports = render('import'); -%>
+<%- styleImports -%>
+<%- styleImports ? '\n' : '' -%>
+export { Plugin as default } from './plugin.ts';

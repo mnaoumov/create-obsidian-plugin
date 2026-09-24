@@ -18,17 +18,17 @@ export class SampleVueView extends ItemView {
     return SAMPLE_VUE_VIEW_TYPE;
   }
 
-  public override async onClose(): Promise<void> {
+  public override onClose(): Promise<void> {
     this.vueApp?.unmount();
-    await Promise.resolve();
+    return super.onClose();
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
     this.vueApp = createApp(SampleVueComponent, {
       startCount: START_COUNT
     });
     this.vueApp.mount(this.contentEl);
-    await Promise.resolve();
+    return super.onOpen();
   }
 }

@@ -280,6 +280,19 @@ export function copyTemplates(
       currentTemplatePath = previousTemplatePath;
       renderRoot = previousRenderRoot;
       return result;
+    },
+    /**
+     * Sorts a block of `import` statements a template composed from partials, by the module each names.
+     *
+     * A section that contributes imports emits them in PARTIAL order, which is the order the answers were
+     * registered in {@link FEATURE_REGISTRIES} -- and that has nothing to do with the order an
+     * import-sorting lint rule wants. The obsidian-dev-utils presets now adopt that package's shared
+     * ESLint config, which sorts imports as an ERROR, so `uiFramework=lit editorExtensions=codemirror`
+     * emitted a `src/plugin.ts` that was red the moment it was generated. The sorting cannot be pushed
+     * into the partials: each one knows only itself, and which others are beside it is the answer set.
+     */
+    sortImports(text: string): string {
+      return sortImportStatements(text);
     }
   };
 
@@ -382,6 +395,51 @@ export function loadConfig(dir: string): GeneratorConfig | null {
 }
 
 /**
+ * Sorts a run of `import` statements by the module each one names.
+ *
+ * A statement may span several lines -- a named-import list is written one name per line here -- so a
+ * new statement starts only at a line beginning with `import `, and every other line belongs to the
+ * statement above it. Blocks are compared by the specifier in their trailing `from '...'`, which is what an import-sorting lint rule
+ * asks for within one group. A side-effect import (`import './x.ts';`) has no `from`, and its own text
+ * is then the key.
+ *
+ * A run of `//` comment lines directly above an `import` belongs to it and travels with it. Without that,
+ * an `eslint-disable-next-line` written above one import was carried along by the one BEFORE it and
+ * landed on whatever the sort put next -- which is both an unused directive and a live violation on the
+ * statement it left behind. This is a line walk rather than a split for that reason: splitting on the
+ * newline before `import ` ALSO fires between a comment and the import under it, which cuts the comment
+ * loose as a block of its own, sorted by its own text.
+ */
+export function sortImportStatements(text: string): string {
+  const blocks: string[][] = [];
+  let pendingComments: string[] = [];
+  for (const line of text.split('\n')) {
+    if (line.trim() === '') {
+      continue;
+    }
+
+    if (line.startsWith('import ')) {
+      blocks.push([...pendingComments, line]);
+      pendingComments = [];
+    } else if (line.startsWith('//')) {
+      pendingComments.push(line);
+    } else {
+      blocks.at(-1)?.push(line);
+    }
+  }
+
+  if (blocks.length === 0) {
+    return text;
+  }
+
+  // A comment with no import below it stays last, where it was.
+  blocks.at(-1)?.push(...pendingComments);
+  const statements = blocks.map((block) => block.join('\n'));
+  statements.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
+  return `${statements.join('\n')}\n`;
+}
+
+/**
  * Whether a demo override and the answer actually chosen want different JSX runtimes.
  *
  * The demo preset deliberately forces a SECOND answer into a question so the demo vault shows every
@@ -401,6 +459,10 @@ function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): bo
   return chosen.jsxImportSource !== undefined
     && demo.jsxImportSource !== undefined
     && chosen.jsxImportSource !== demo.jsxImportSource;
+}
+
+function importedModule(block: string): string {
+  return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
 }
 
 function isPartialFile(templatePath: string): boolean {

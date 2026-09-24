@@ -30,7 +30,7 @@ export class SampleSvelteView extends ItemView {
     }
   }
 
-  public override async onOpen(): Promise<void> {
+  public override onOpen(): Promise<void> {
     const START_COUNT = 10;
     const props: SampleSvelteComponentProps = {
       startCount: START_COUNT
@@ -42,6 +42,6 @@ export class SampleSvelteView extends ItemView {
     }) as SampleSvelteComponentExports;
 
     this.sampleSvelteComponent.increment();
-    await Promise.resolve();
+    return super.onOpen();
   }
 }
