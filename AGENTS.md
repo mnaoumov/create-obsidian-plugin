@@ -601,7 +601,7 @@ while changing a bundler's configuration, and the one the whole WebAssembly pass
 `--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
 single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
 
-**Five failure modes make a silent pass the default here, and every tier is shaped around them.**
+**Six failure modes make a silent pass the default here, and every tier is shaped around them.**
 
 1. **An unresolved partial renders as `''`, not an error.** A registered file whose partials were all
    left unresolved is written EMPTY — and an empty `.ts` compiles, an empty config reads as "no
@@ -618,7 +618,14 @@ single-threaded and ~13 on ten workers, and the flag prints that projection befo
    gate tier's `wasm` step asserts no stray `.wasm` in `dist/build` AND the module's bytes inside
    `main.js`. Both clauses: without the second, a bundler that tree-shook the import away would pass on
    the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
-5. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
+5. **A bundler that code-splits exits 0.** obsidian-dev-utils has dynamic imports, and webpack and vite
+   (lib mode inlines them only for `umd` / `iife`, not `cjs`) each turned them into sibling chunks that
+   `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. Each
+   bundler is told to keep one file: rollup `inlineDynamicImports`, vite
+   `rollupOptions.output.inlineDynamicImports`, webpack `output.asyncChunks: false`; esbuild writes one
+   `outfile`, and parcel's node target was measured emitting one file with no sibling `require`. The gate
+   tier's `bundle` step asserts `dist/build/main.js` exists and is the only script there.
+6. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
    every newline in a README or a demo-vault note becomes a `<br>` — both a README and a demo-vault note need one source line
    per paragraph, per list item, per blockquote line. Nothing in a generated project says so: `MD013` is
    off in the emitted markdownlint config, dprint excludes markdown, and obsidian-dev-utils' demo-vault
