@@ -1,6 +1,7 @@
 import {
   existsSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync
 } from 'node:fs';
@@ -24,6 +25,7 @@ import {
   buildTemplate,
   copyTemplates,
   getScriptDir,
+  isPartialTemplatePath,
   sortImportStatements
 } from './templates.ts';
 
@@ -1628,12 +1630,12 @@ describe('copyTemplates', () => {
     expect(config).toContain('prettier --write');
   });
 
-  // All three were registered, but `isPartialFile` reads any `_` in a basename as the partial marker,
-  // So the render loop skipped `bug_report.yml` and `feature_request.yml` and wrote only `config.yml` --
+  // All three were registered, but reading any `_` in a basename as the partial marker made the render loop
+  // Skip `bug_report.yml` and `feature_request.yml` and write only `config.yml` --
   // Leaving every project that asked for issue templates pointing at forms that did not exist.
   it('creates all three issue template files, not just the one without an underscore', () => {
     copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
-    for (const name of ['bug-report.yml', 'config.yml', 'feature-request.yml']) {
+    for (const name of ['bug_report.yml', 'config.yml', 'feature_request.yml']) {
       const path = join(targetDir, '.github/ISSUE_TEMPLATE', name);
       expect(existsSync(path), `${name} should be created`).toBe(true);
       expect(readFileSync(path, 'utf-8').trim(), `${name} should not be empty`).not.toBe('');
@@ -1742,6 +1744,44 @@ describe('copyTemplates', () => {
     const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(config.generatorVersion).toBe('1.0.0');
     expect(Object.keys(config.fileHashes).length).toBeGreaterThan(0);
+  });
+});
+
+describe('isPartialTemplatePath', () => {
+  it.each([
+    'manifest.json_has-funding.ejs',
+    'scripts/build.ts_standalone@bundler_esbuild.ejs',
+    'src/main.ts@import_scss.ejs',
+    '.github/ISSUE_TEMPLATE/bug_report.yml_has-funding.ejs'
+  ])('reads %s as a partial', (path) => {
+    expect(isPartialTemplatePath(path)).toBe(true);
+  });
+
+  // The real plugins' own names: a `_` whose tail is not a partial name is part of the filename.
+  it.each([
+    '.github/ISSUE_TEMPLATE/bug_report.yml.ejs',
+    '.github/ISSUE_TEMPLATE/feature_request.yml.ejs',
+    'manifest.json.ejs',
+    'scripts_dir/build.ts.ejs',
+    '_leading.ejs'
+  ])('reads %s as a template of its own', (path) => {
+    expect(isPartialTemplatePath(path)).toBe(false);
+  });
+
+  // Every partial actually on disk must still classify as one, or it would be emitted as a file of its
+  // Own named after the partial; the plan tier's inventory reads the same function.
+  it('still classifies every on-disk partial the old any-underscore rule did, except the two real filenames', () => {
+    const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
+    function walk(dir: string): string[] {
+      return readdirSync(join(templatesDir, dir), { withFileTypes: true }).flatMap((entry) => {
+        const relativePath = dir === '' ? entry.name : `${dir}/${entry.name}`;
+        return entry.isDirectory() ? walk(relativePath) : [relativePath];
+      });
+    }
+    const changed = walk('')
+      .filter((path) => path.endsWith('.ejs'))
+      .filter((path) => (path.split('/').pop() ?? '').includes('_') !== isPartialTemplatePath(path));
+    expect(changed.sort()).toEqual(['.github/ISSUE_TEMPLATE/bug_report.yml.ejs', '.github/ISSUE_TEMPLATE/feature_request.yml.ejs']);
   });
 });
 
