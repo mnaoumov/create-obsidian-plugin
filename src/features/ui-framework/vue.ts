@@ -27,6 +27,18 @@ export class Vue extends FeatureOption {
         'src/views/sample-vue-view.ts'
       ]);
 
+    // `rollup-plugin-vue` hands a `<script lang="ts">` block on as a virtual module and compiles none of
+    // It, and `@rollup/plugin-typescript` only compiles files in the tsconfig program, which a virtual
+    // Module never is. So on rollup a babel pass carrying only the TypeScript preset strips the types.
+    if (answers.bundler === 'rollup') {
+      builder
+        .addPackage('@babel/core')
+        .addPackage('@babel/preset-typescript')
+        .addPackage('@rollup/plugin-babel')
+        .addDepcheckIgnore('@babel/preset-typescript', 'named as a string in `scripts/rollup.config.ts`, never imported.')
+        .addPartial('rollup-babel');
+    }
+
     if (answers.bundler === 'parcel') {
       builder.addDepcheckIgnore('@parcel/transformer-vue', 'resolved by name by `@parcel/config-default` for `.vue`; nothing imports it.');
     }

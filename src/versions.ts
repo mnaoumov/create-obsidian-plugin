@@ -64,6 +64,16 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     version: '^7.29.7',
     why: 'Held on 7.x for the same reason as @babel/core, and it has to move as one set: 8.0.1 peers on `@babel/core@^8.0.0`. Only ever added for rollup + react, which is exactly where @rollup/plugin-babel forces 7.'
   },
+  '@babel/preset-typescript': {
+    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    checkRequires: '@rollup/plugin-babel',
+    expect: '^7.0.0',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^7.29.7',
+    why: 'Held on 7.x for the same reason as @babel/core, and it has to move as one set: 8.0.1 peers on `@babel/core@^8.0.0`. Only ever added for rollup + vue, which is exactly where @rollup/plugin-babel forces 7.'
+  },
   '@codemirror/language': {
     check: null,
     checkRequires: null,
