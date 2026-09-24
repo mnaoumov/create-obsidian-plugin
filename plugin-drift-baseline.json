@@ -76,7 +76,7 @@
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "demo/layout/partial/CHANGELOG.md": {
-      "pluginCount": 28,
+      "pluginCount": 30,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "demo/layout/partial/images/screenshots/screenshot-desktop-1.png": {
@@ -132,7 +132,7 @@
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
     "demo/odu-modules/missing/scripts/nano-staged-config.ts": {
-      "pluginCount": 29,
+      "pluginCount": 32,
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
     },
     "demo/odu-modules/partial/scripts/capture-screenshots.ts": {
@@ -184,7 +184,7 @@
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "enhanced/layout/partial/CHANGELOG.md": {
-      "pluginCount": 28,
+      "pluginCount": 30,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-desktop-1.png": {
@@ -244,7 +244,7 @@
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
     "enhanced/odu-modules/missing/scripts/nano-staged-config.ts": {
-      "pluginCount": 29,
+      "pluginCount": 32,
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
     },
     "enhanced/odu-modules/partial/scripts/capture-screenshots.ts": {
