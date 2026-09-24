@@ -27,6 +27,10 @@
       "pluginCount": 0,
       "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
     },
+    "demo/layout/extra/linkinator.config.json": {
+      "pluginCount": 0,
+      "why": "Skips the links to the plugin's own GitHub repository for the linkinator half of `lint:md`. The scaffold writes those links from the answers, and they 404 until the user creates and pushes the repository and cuts a release, so without it a fresh project fails its own `lint:md`, `gate` and `version`. Every real plugin's repository already exists, so none needs one."
+    },
     "demo/layout/extra/pnpm-workspace.yaml": {
       "pluginCount": 0,
       "why": "Emitted for every project regardless of the package-manager answer, because which tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with ERR_PNPM_IGNORED_BUILDS. The real plugins are installed with npm throughout, so no plugin has one."
@@ -154,6 +158,10 @@
     "enhanced/layout/extra/demo-vault/Materials/01 Sample commands/Scratch note.md": {
       "pluginCount": 0,
       "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
+    },
+    "enhanced/layout/extra/linkinator.config.json": {
+      "pluginCount": 0,
+      "why": "Skips the links to the plugin's own GitHub repository for the linkinator half of `lint:md`. The scaffold writes those links from the answers, and they 404 until the user creates and pushes the repository and cuts a release, so without it a fresh project fails its own `lint:md`, `gate` and `version`. Every real plugin's repository already exists, so none needs one."
     },
     "enhanced/layout/extra/pnpm-workspace.yaml": {
       "pluginCount": 0,

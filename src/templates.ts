@@ -303,6 +303,7 @@ export function copyTemplates(
     _lintStagedPatterns: builder.lintStagedPatterns,
     _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
+    _ownRepoLinkPattern: getOwnRepoLinkPattern(answers),
     _pinnedVersionsJson: buildPinnedVersionsJson(dependencies),
     _resolutions: Object.entries(buildResolutions(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _scripts: builder.scripts,
@@ -584,6 +585,19 @@ function getFundingTemplateContext(answers: Answers): Record<string, string> {
     _fundingYmlValue: funding?.getFundingYmlValue(answers) ?? '',
     fundingUrl: funding?.getUrl(answers) ?? ''
   };
+}
+
+/**
+ * The linkinator `skip` pattern for the plugin's own GitHub repository, read by `linkinator.config.json`.
+ *
+ * Anchored at the start, so the BRAT install link, which carries the repository URL in its query, is
+ * still checked. linkinator splits a `skip` entry on whitespace and commas, which a GitHub name and a
+ * plugin id cannot contain.
+ */
+function getOwnRepoLinkPattern(answers: Answers): string {
+  const repoUrl = `https://github.com/${answers.authorGitHubName}/obsidian-${answers.pluginId}`;
+  // Not `RegExp.escape`, which escapes a leading letter and every `-` as `\xNN` and leaves the emitted file unreadable.
+  return `^${repoUrl.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`)}(?:[/.?#]|$)`;
 }
 
 function importedModule(block: string): string {

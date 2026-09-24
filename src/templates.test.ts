@@ -1414,6 +1414,48 @@ describe('copyTemplates', () => {
     }
   });
 
+  // `lint:md` runs linkinator over every Markdown file, and the README and the demo vault link to the plugin's
+  // Own repository and its releases. Those 404 until the user pushes, so a fresh project failed its own
+  // `lint:md`, `gate` and `version` for a reason nothing local could fix.
+  it('skips exactly the plugin\'s own repository links in the linkinator config, on every preset', () => {
+    interface ParsedLinkinatorConfig {
+      skip: string[];
+    }
+
+    function createSkipMatcher(skip: string[]): (url: string) => boolean {
+      const patterns = skip.map((pattern) => new RegExp(pattern));
+      return (url) => patterns.some((pattern) => pattern.test(url));
+    }
+
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset }), targetDir, '1.0.0', null);
+      const config = JSON.parse(readFileSync(join(targetDir, 'linkinator.config.json'), 'utf-8')) as ParsedLinkinatorConfig;
+      const isSkipped = createSkipMatcher(config.skip);
+
+      const projectDir = targetDir;
+      const ownRepoUrls = readdirSync(projectDir, { recursive: true })
+        .map(String)
+        .filter((path) => path.endsWith('.md'))
+        .flatMap((path) => [...readFileSync(join(projectDir, path), 'utf-8').matchAll(/\]\((?<Url>[^)\s]+)\)/g)])
+        .map((match) => match.groups?.['Url'] ?? '')
+        .filter((url) => url.startsWith('https://github.com/testuser/obsidian-my-tool'));
+      expect(ownRepoUrls, preset).toContain('https://github.com/testuser/obsidian-my-tool/releases');
+      for (const url of ownRepoUrls) {
+        expect(isSkipped(url), `${preset}: ${url}`).toBe(true);
+      }
+
+      expect(isSkipped('https://github.com/testuser/'), preset).toBe(false);
+      expect(isSkipped('https://github.com/testuser/obsidian-my-tool-extra'), preset).toBe(false);
+      expect(isSkipped('https://intradeus.github.io/http-protocol-redirector?r=obsidian://brat?plugin=https://github.com/testuser/obsidian-my-tool'), preset)
+        .toBe(false);
+    }
+
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ markdownLinter: 'none' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, 'linkinator.config.json'))).toBe(false);
+  });
+
   it('omits the Demo vault section and the vault for the standalone preset', () => {
     copyTemplates(makeAnswers({ preset: 'standalone' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
