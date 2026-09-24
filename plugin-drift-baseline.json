@@ -47,6 +47,10 @@
       "pluginCount": 0,
       "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
     },
+    "demo/layout/extra/scripts/stylesheet-stub.ts": {
+      "pluginCount": 0,
+      "why": "The unit runners' stand-in for a stylesheet import, and the sibling of `wasm-module-stub.ts` above: `src/main.test.ts` imports `src/main.ts`, which imports the stylesheet, and on `tailwind` that file does not exist until the first build -- while jest cannot parse one at all. No real plugin needs one: each is one fixed set of answers, on vitest, whose own stylesheet vite loads as it is."
+    },
     "demo/layout/extra/scripts/wasm-module-stub.ts": {
       "pluginCount": 0,
       "why": "The unit runners' stand-in for a `.wasm` import, and the sibling of `framework-component-stub.ts` above: loading one is the bundler's job, vitest resolves it through vite's WebAssembly helper and jest has no transform for the extension at all. Emitted for every project with a test runner rather than only for the `wasm` answer, which is what keeps one runner config identical across the matrix. No real plugin imports WebAssembly, so none has one."
@@ -96,64 +100,52 @@
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "demo/layout/partial/images/screenshots/screenshot-desktop-1.png": {
-      "pluginCount": 25,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/images/screenshots/screenshot-desktop-2.png": {
-      "pluginCount": 24,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 30,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/images/screenshots/screenshot-desktop-3.png": {
-      "pluginCount": 16,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 20,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/images/screenshots/screenshot-mobile-1.png": {
-      "pluginCount": 23,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/images/screenshots/screenshot-mobile-2.png": {
-      "pluginCount": 23,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/images/screenshots/screenshot-mobile-3.png": {
-      "pluginCount": 15,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 19,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "demo/layout/partial/scripts/capture-screenshots.ts": {
-      "pluginCount": 25,
-      "why": "The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, and 4 of the 29 plugins do without it. Whether the scaffold should ship it is a judgement recorded as a follow-up."
-    },
-    "demo/layout/partial/src/main.test.ts": {
-      "pluginCount": 26,
-      "why": "The generator emits one sample unit test, `src/plugin.test.ts`, and that one is load-bearing: it imports the plugin, which is what forces every piece of the mock wiring. Co-located tests for `main.ts` and the settings trio are sample code rather than verification, and each has to pass the install tier on every combination. Recorded as a follow-up."
-    },
-    "demo/layout/partial/src/plugin-settings-component.test.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/plugin-settings-tab.test.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
-    },
-    "demo/layout/partial/src/plugin-settings.test.ts": {
-      "pluginCount": 26,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+      "pluginCount": 27,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The one true thing to say about the settings tab is that it binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components unless it is spied on -- and jest running ES modules has no `jest` global to spy with, so the test could not be one file across both runners. `src/main.test.ts` and `src/plugin-settings-component.test.ts` are shipped."
     },
     "demo/layout/partial/src/plugin.android.integration.test.ts": {
-      "pluginCount": 22,
-      "why": "An integration suite that drives a provisioned Android emulator. The generator already declines to run that project from `test:integration` for the same reason -- a fresh project would fail on a machine without one -- so shipping the suite would mean shipping a test nothing can run."
+      "pluginCount": 24,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "demo/layout/partial/src/plugin.desktop.integration.test.ts": {
-      "pluginCount": 22,
-      "why": "An integration suite that drives a real desktop Obsidian install; see the android entry beside it."
+      "pluginCount": 24,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "demo/layout/partial/src/screenshots.android-capture.integration.test.ts": {
-      "pluginCount": 23,
-      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
-      "pluginCount": 25,
-      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/styles/scss.d.ts": {
       "pluginCount": 19,
@@ -168,16 +160,16 @@
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
     },
     "demo/odu-modules/partial/scripts/capture-screenshots.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/scripts/missing/build:compile:typescript": {
       "pluginCount": 29,
       "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the real plugins' duplicate of `build-compile.ts`."
     },
     "demo/scripts/partial/capture:screenshots": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "enhanced/layout/extra/.create-obsidian-plugin.json": {
       "pluginCount": 0,
@@ -211,6 +203,10 @@
       "pluginCount": 0,
       "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
     },
+    "enhanced/layout/extra/scripts/stylesheet-stub.ts": {
+      "pluginCount": 0,
+      "why": "The unit runners' stand-in for a stylesheet import, and the sibling of `wasm-module-stub.ts` above: `src/main.test.ts` imports `src/main.ts`, which imports the stylesheet, and on `tailwind` that file does not exist until the first build -- while jest cannot parse one at all. No real plugin needs one: each is one fixed set of answers, on vitest, whose own stylesheet vite loads as it is."
+    },
     "enhanced/layout/extra/scripts/wasm-module-stub.ts": {
       "pluginCount": 0,
       "why": "The unit runners' stand-in for a `.wasm` import, and the sibling of `framework-component-stub.ts` above: loading one is the bundler's job, vitest resolves it through vite's WebAssembly helper and jest has no transform for the extension at all. Emitted for every project with a test runner rather than only for the `wasm` answer, which is what keeps one runner config identical across the matrix. No real plugin imports WebAssembly, so none has one."
@@ -240,64 +236,56 @@
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-desktop-1.png": {
-      "pluginCount": 25,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-desktop-2.png": {
-      "pluginCount": 24,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 30,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-desktop-3.png": {
-      "pluginCount": 16,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 20,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-mobile-1.png": {
-      "pluginCount": 23,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-mobile-2.png": {
-      "pluginCount": 23,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/images/screenshots/screenshot-mobile-3.png": {
-      "pluginCount": 15,
-      "why": "Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
+      "pluginCount": 19,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. Screenshots of a plugin that does not exist yet, produced by `capture:screenshots` against a real Obsidian. Nothing a scaffold can write."
     },
     "enhanced/layout/partial/scripts/capture-screenshots.ts": {
-      "pluginCount": 25,
-      "why": "The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, and 4 of the 29 plugins do without it. Whether the scaffold should ship it is a judgement recorded as a follow-up."
-    },
-    "enhanced/layout/partial/src/main.test.ts": {
-      "pluginCount": 26,
-      "why": "The generator emits one sample unit test, `src/plugin.test.ts`, and that one is load-bearing: it imports the plugin, which is what forces every piece of the mock wiring. Co-located tests for `main.ts` and the settings trio are sample code rather than verification, and each has to pass the install tier on every combination. Recorded as a follow-up."
-    },
-    "enhanced/layout/partial/src/plugin-settings-component.test.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "enhanced/layout/partial/src/plugin-settings-tab.test.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+      "pluginCount": 27,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The one true thing to say about the settings tab is that it binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components unless it is spied on -- and jest running ES modules has no `jest` global to spy with, so the test could not be one file across both runners. `src/main.test.ts` and `src/plugin-settings-component.test.ts` are shipped."
     },
     "enhanced/layout/partial/src/plugin-settings.test.ts": {
-      "pluginCount": 26,
-      "why": "See `layout/partial/src/main.test.ts` -- sample tests for the settings trio are a follow-up."
+      "pluginCount": 27,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. On `enhanced` the settings class is one default value, and a test of it would only restate the source -- the `1 + 1 === 2` shape the project's AGENTS.md warns about. `demo`, whose `TypedItem.deserialize` is behavior, ships one; the component test covers loading this preset's setting from `data.json`."
     },
     "enhanced/layout/partial/src/plugin.android.integration.test.ts": {
-      "pluginCount": 22,
-      "why": "An integration suite that drives a provisioned Android emulator. The generator already declines to run that project from `test:integration` for the same reason -- a fresh project would fail on a machine without one -- so shipping the suite would mean shipping a test nothing can run."
+      "pluginCount": 24,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "enhanced/layout/partial/src/plugin.desktop.integration.test.ts": {
-      "pluginCount": 22,
-      "why": "An integration suite that drives a real desktop Obsidian install; see the android entry beside it."
+      "pluginCount": 24,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "enhanced/layout/partial/src/screenshots.android-capture.integration.test.ts": {
-      "pluginCount": 23,
-      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 29,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "enhanced/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
-      "pluginCount": 25,
-      "why": "Part of the screenshot-capture harness; see `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "enhanced/layout/partial/src/styles/scss.d.ts": {
       "pluginCount": 19,
@@ -312,16 +300,16 @@
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
     },
     "enhanced/odu-modules/partial/scripts/capture-screenshots.ts": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "enhanced/scripts/missing/build:compile:typescript": {
       "pluginCount": 29,
       "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the real plugins' duplicate of `build-compile.ts`."
     },
     "enhanced/scripts/partial/capture:screenshots": {
-      "pluginCount": 25,
-      "why": "See `layout/partial/scripts/capture-screenshots.ts`."
+      "pluginCount": 31,
+      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     }
   }
 }
