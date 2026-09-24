@@ -27,6 +27,7 @@ import {
 } from './answers.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
+import { addBranchGate } from './features/branch-gate.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
 import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
 import { COVERAGE_BADGE_OPTIONS } from './features/coverage-badge/index.ts';
@@ -244,6 +245,9 @@ export function buildTemplate(answers: Answers, overlay: null | Overlay = null):
   if (builder.lintStagedPatterns.length > 0) {
     addStagedFilesHook(builder);
   }
+
+  // Last for the same reason: whether the gate can run depends on scripts four other answers register.
+  addBranchGate(builder);
 
   return builder;
 }
