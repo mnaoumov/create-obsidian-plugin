@@ -52,4 +52,5 @@ export class Plugin extends ObsidianPlugin {
   public async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
   }
+<%- render('method') -%>
 }

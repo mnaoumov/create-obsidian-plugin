@@ -27,6 +27,7 @@ export class Preact extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('preact')
+      .addPartial('ui-view')
       .addSentenceCaseBrand('Preact')
       .addFiles([
         'src/preact-components/sample-preact-component.tsx',
