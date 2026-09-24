@@ -137,7 +137,8 @@ interface PackageJsonScripts {
  * swamp the signal and make the baseline meaningless. Every value below was measured across the real plugins
  * rather than chosen: vitest and esbuild are unanimous, `@obsidian-typings/obsidian-public-latest` is
  * in all 29 `devDependencies` (so `with-unofficial`), 27 of 29 manifests say `isDesktopOnly: false`,
- * all 29 carry `.github/FUNDING.yml` and an `ISSUE_TEMPLATE/` directory, and 24 of 29 lint commits.
+ * all 29 carry `.github/FUNDING.yml` naming Buy Me a Coffee and an `ISSUE_TEMPLATE/` directory, every README
+ * ends its badge line with the `coverage: 100%` badge, and 24 of 29 lint commits.
  *
  * `gitHubActions: 'none'` is the one that reads oddly and is the most important. No real plugin has a
  * `ci.yml` or a `release.yml`; asking for them would report the generator's own CI workflows as drift
@@ -148,12 +149,14 @@ export const PLUGIN_SHAPED_ANSWERS: Readonly<Partial<Answers>> = {
   apiSubset: 'with-unofficial',
   bundler: 'esbuild',
   commitLinting: 'conventional-commits',
+  coverageBadge: 'coverage-badge',
   e2eTestRunner: 'none',
   editorExtensions: 'none',
   formatter: 'dprint',
-  fundingUrl: 'https://buymeacoffee.com/testuser',
+  fundingPlatform: 'buy-me-a-coffee',
+  fundingUrl: '',
+  fundingUsername: 'testuser',
   gitHubActions: 'none',
-  gitHubFunding: 'funding-yml',
   gitHubIssueTemplates: 'bug-and-feature',
   hotReload: 'none',
   internationalization: 'none',

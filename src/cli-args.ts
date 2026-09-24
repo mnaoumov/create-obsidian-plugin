@@ -14,6 +14,7 @@ import {
   validatePluginId,
   validatePluginName
 } from './directory-constraints.ts';
+import { validateFundingUsername } from './features/funding-platform/index.ts';
 import {
   getDefaultAnswers,
   validateNotEmpty
@@ -58,6 +59,7 @@ const FREE_TEXT_VALIDATORS: Partial<Record<StringAnswerKey, (value: string) => s
   authorGitHubName: validateNotEmpty,
   authorName: validateNotEmpty,
   defaultBranch: validateNotEmpty,
+  fundingUsername: validateFundingUsername,
   pluginDescription: validatePluginDescription,
   pluginId: validatePluginId,
   pluginName: validatePluginName

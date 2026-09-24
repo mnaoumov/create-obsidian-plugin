@@ -38,6 +38,10 @@ export class Dependency {
 }
 
 export class TemplateBuilder {
+  public get badges(): string[] {
+    return [...this._badges];
+  }
+
   public get depcheckIgnores(): DepcheckIgnore[] {
     return [...this._depcheckIgnores.entries()]
       .map(([packageName, reason]) => ({ packageName, reason }))
@@ -68,6 +72,8 @@ export class TemplateBuilder {
     return new Set(this._templateFiles);
   }
 
+  private readonly _badges: string[] = [];
+
   private readonly _depcheckIgnores = new Map<string, string>();
 
   private readonly _dependencies = new Map<string, Dependency>();
@@ -81,6 +87,18 @@ export class TemplateBuilder {
   private readonly _sentenceCaseBrands = new Set<string>();
 
   private readonly _templateFiles = new Set<string>();
+
+  /**
+   * Registers a README badge, rendered in registration order on the line under the title.
+   *
+   * Collected here rather than composed from a `render('badges')` seam because the badges have to stay on
+   * ONE source line: Obsidian renders markdown with `breaks: true`, and each partial would end in the
+   * newline that turns into a `<br>` between two badges.
+   */
+  public addBadge(markdown: string): this {
+    this._badges.push(markdown);
+    return this;
+  }
 
   /**
    * Registers a declared package that depcheck reports as unused although it is not -- one only ever

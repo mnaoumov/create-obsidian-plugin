@@ -567,9 +567,17 @@ step twice. A section name does not help: `render('tool')` still iterates every 
 options therefore set `partialName: 'biome-formatter'` / `'biome-linter'` explicitly. Any future option
 whose value collides needs the same.
 
-### fundingUrl uses partial system
+### Funding is one platform and one handle, and everything else is derived
 
-Not always-include, not `<% if`. Uses `has-funding` partial — conditionally added when `answers.fundingUrl` is set. Partial files: `manifest.json_has-funding.ejs`, `README.md_support_has-funding.ejs`.
+`fundingPlatform` (`src/features/funding-platform/`) names one of the platforms GitHub's `FUNDING.yml` understands, or `none`, or `custom`. `fundingUsername` is the handle on it. Each option derives the URL, the one `FUNDING.yml` line and the shields.io badge from those two, so the manifest's `fundingUrl`, the README's badge and `## Support` link and `.github/FUNDING.yml` cannot disagree. The template context's `fundingUrl` is that derived URL, and it overrides the stored answer. The stored `fundingUrl` is read only under `custom`, the one platform with no handle, and it is prompted for only then. GitHub's four project-slug keys (`tidelift`, `community_bridge`, `issuehunt`, `lfx_crowdfunding`) are left to `custom`, because their value names a project rather than the author.
+
+The platform is asked with the project details, not under Customize. It is a fact about the author, and choosing `none` there is the only opt-out the recommended-defaults path has.
+
+Not always-include, not `<% if`. When `resolveFunding` finds a URL, `buildTemplate` registers `.github/FUNDING.yml`, the funding badge and the `has-funding` partial (`manifest.json@funding_has-funding.ejs`, `README.md@support_has-funding.ejs`). Before this, `FUNDING.yml` was GitHub's stock template with all 13 platforms blank, which GitHub renders as no funding at all. `migrateAnswers` turns an old project's `fundingUrl` into the platform and handle it names, turns any other URL into `custom`, and turns no URL into `none`.
+
+### README badges are collected on the builder, not composed from partials
+
+`addBadge` collects them and `README.md.ejs` joins them with a space on line 3, because they must stay on ONE source line (see the hard-wrapped markdown failure mode below). A `render('badges')` seam would end every partial in a newline. The order is the real plugins' order: funding, release, downloads, then the `coverageBadge` answer's `coverage: 100%` badge. `src/templates.test.ts` asserts that line byte for byte against the real plugins' line, which is what covers the content that `verify:plugin-drift` does not compare. `coverageBadge` defaults to `none`, because the badge is a claim drawn from a URL and not a measurement, and a fresh project does not hold 100% coverage. `PLUGIN_SHAPED_ANSWERS` sets it, as every real plugin does.
 
 ### Logicless templates
 
@@ -577,9 +585,9 @@ Templates must be logicless — no `<% if %>` conditionals. Use the partial syst
 
 ### Three-tier answer-space verification
 
-The generator asks 23 questions — 21 choices plus two presence branches (`fundingUrl` and
-`obsidianConfigFolder`, on which `buildTemplate` contributes `has-funding` and `has-vault-true`/`false`).
-They multiply out to **15,049,359,360** combinations, so "test every combination" is not one job. It is
+The generator asks 24 questions — 22 choices plus two presence branches (`fundingUrl` and
+`obsidianConfigFolder`, on which `buildTemplate` contributes `has-funding` under `fundingPlatform: custom` and `has-vault-true`/`false`).
+They multiply out to **150,493,593,600** combinations, so "test every combination" is not one job. It is
 three, each covering as much as its per-case cost allows.
 
 | tier | per case | what runs it | coverage it can afford |
@@ -600,8 +608,8 @@ over it, in the minute or two one case costs rather than the hour `verify:projec
 tool for *does this combination actually build, and what did the bundler emit?* — the question asked
 while changing a bundler's configuration, and the one the whole WebAssembly pass was driven from.
 
-`--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~134 hours
-single-threaded and ~13 on ten workers, and the flag prints that projection before it starts.
+`--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~1340 hours
+single-threaded and ~134 on ten workers, and the flag prints that projection before it starts.
 
 **Six failure modes make a silent pass the default here, and every tier is shaped around them.**
 

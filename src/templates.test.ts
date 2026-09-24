@@ -3,7 +3,8 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
-  rmSync
+  rmSync,
+  writeFileSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -26,6 +27,7 @@ import {
   copyTemplates,
   getScriptDir,
   isPartialTemplatePath,
+  loadConfig,
   sortImportStatements
 } from './templates.ts';
 
@@ -39,14 +41,16 @@ describe('buildTemplate', () => {
       authorName: 'User',
       bundler: 'esbuild',
       commitLinting: 'conventional-commits',
+      coverageBadge: 'none',
       currentYear: CURRENT_YEAR,
       defaultBranch: 'main',
       e2eTestRunner: 'none',
       editorExtensions: 'none',
       formatter: 'prettier',
+      fundingPlatform: 'custom',
       fundingUrl: '',
+      fundingUsername: 'user',
       gitHubActions: 'ci-and-release',
-      gitHubFunding: 'funding-yml',
       gitHubIssueTemplates: 'bug-and-feature',
       hotReload: 'obsidian-cli',
       internationalization: 'none',
@@ -844,14 +848,16 @@ describe('copyTemplates', () => {
       authorName: 'Test User',
       bundler: 'esbuild',
       commitLinting: 'none',
+      coverageBadge: 'none',
       currentYear: CURRENT_YEAR,
       defaultBranch: 'main',
       e2eTestRunner: 'none',
       editorExtensions: 'none',
       formatter: 'none',
+      fundingPlatform: 'custom',
       fundingUrl: '',
+      fundingUsername: 'user',
       gitHubActions: 'none',
-      gitHubFunding: 'funding-yml',
       gitHubIssueTemplates: 'bug-and-feature',
       hotReload: 'hot-reload-plugin',
       internationalization: 'none',
@@ -965,6 +971,63 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor' }), targetDir, '1.0.0', null);
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
     expect(manifest['fundingUrl']).toBe('https://example.com/sponsor');
+  });
+
+  it('derives one funding URL for the manifest, the README and FUNDING.yml from the platform and handle', () => {
+    copyTemplates(makeAnswers({ fundingPlatform: 'buy-me-a-coffee', fundingUrl: 'https://ignored.example.com', fundingUsername: 'someone' }), targetDir, '1.0.0', null);
+    const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(manifest['fundingUrl']).toBe('https://www.buymeacoffee.com/someone');
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    expect(readme).toContain('<a href="https://www.buymeacoffee.com/someone"');
+    // Exactly the line every real plugin carries -- not GitHub's stock template with every platform blank.
+    expect(readFileSync(join(targetDir, '.github', 'FUNDING.yml'), 'utf-8')).toBe('# These are supported funding model platforms\n\nbuy_me_a_coffee: someone\n');
+  });
+
+  it('emits no FUNDING.yml, funding badge or Support section when the platform is none', () => {
+    copyTemplates(makeAnswers({ fundingPlatform: 'none', fundingUrl: 'https://ignored.example.com' }), targetDir, '1.0.0', null);
+    expect(existsSync(join(targetDir, '.github', 'FUNDING.yml'))).toBe(false);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    expect(readme).not.toContain('## Support');
+    expect(readme).not.toContain('ignored.example.com');
+    const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
+    expect(manifest).not.toHaveProperty('fundingUrl');
+  });
+
+  it('writes a custom funding URL into FUNDING.yml as a quoted one-element list', () => {
+    copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl: 'https://example.com/it\'s#me' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, '.github', 'FUNDING.yml'), 'utf-8')).toContain('custom: [\'https://example.com/it\'\'s#me\']\n');
+  });
+
+  it('puts the badges on one source line, in the order the real plugins use', () => {
+    copyTemplates(makeAnswers({ coverageBadge: 'coverage-badge', fundingPlatform: 'buy-me-a-coffee', fundingUsername: 'testuser' }), targetDir, '1.0.0', null);
+    // Line 3: the title, a blank line, then the badges.
+    const [, , badgeLine] = readFileSync(join(targetDir, 'README.md'), 'utf-8').split('\n');
+    // Byte-identical to the real plugins' line, so the generator and the plugins cannot drift apart unseen.
+    expect(badgeLine).toBe([
+      '[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/testuser)',
+      '[![GitHub release](https://img.shields.io/github/v/release/testuser/obsidian-my-tool)](https://github.com/testuser/obsidian-my-tool/releases)',
+      '[![GitHub downloads](https://img.shields.io/github/downloads/testuser/obsidian-my-tool/total)](https://github.com/testuser/obsidian-my-tool/releases)',
+      '[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/testuser/obsidian-my-tool)'
+    ].join(' '));
+  });
+
+  it('carries an old project\'s funding URL forward as a platform and handle', () => {
+    const cases: [string, string, string, string][] = [
+      ['https://buymeacoffee.com/someone', 'buy-me-a-coffee', 'someone', ''],
+      ['https://www.buymeacoffee.com/someone/', 'buy-me-a-coffee', 'someone', ''],
+      ['https://ko-fi.com/someone', 'ko-fi', 'someone', ''],
+      ['https://example.com/pay?a=1', 'custom', 'testuser', 'https://example.com/pay?a=1'],
+      ['', 'none', 'testuser', '']
+    ];
+    for (const [fundingUrl, fundingPlatform, fundingUsername, migratedUrl] of cases) {
+      writeFileSync(
+        join(targetDir, '.create-obsidian-plugin.json'),
+        JSON.stringify({ answers: { authorGitHubName: 'testuser', fundingUrl, gitHubFunding: 'funding-yml' }, fileHashes: {}, generatorVersion: '1.0.0' })
+      );
+      const answers = loadConfig(targetDir)?.answers;
+      expect(answers, fundingUrl).toMatchObject({ coverageBadge: 'none', fundingPlatform, fundingUrl: migratedUrl, fundingUsername });
+      expect(answers, fundingUrl).not.toHaveProperty('gitHubFunding');
+    }
   });
 
   it('creates README with plugin name', () => {

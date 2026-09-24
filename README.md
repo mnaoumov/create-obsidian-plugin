@@ -19,7 +19,7 @@ A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin project
 
 This walks you through an interactive wizard to scaffold a new Obsidian plugin project with optional post-scaffold actions (npm install, git init, GitHub repo creation).
 
-The wizard first asks for the project's own details — plugin id, name and description, your name and GitHub username, the default branch (`main` unless you say otherwise; `git init` creates it and the CI workflow triggers on it), a funding URL, and the path to a test vault's config folder — then the feature options below.
+The wizard first asks for the project's own details — plugin id, name and description, your name and GitHub username, the default branch (`main` unless you say otherwise; `git init` creates it and the CI workflow triggers on it), where people can support you (a funding platform and your username on it, or any URL), and the path to a test vault's config folder — then the feature options below.
 
 The id, name and description are checked against what the Obsidian Community directory's automated review enforces, and a rejection says which rule you hit. That matters most for the id: the directory re-reads your `manifest.json` when you submit, and an id can never be changed once your plugin is published.
 
@@ -220,12 +220,29 @@ The wizard lets you pick and choose from the following categories:
 | (none)        | No issue templates                       |
 | Bug & Feature | Bug report and feature request templates |
 
-### GitHub funding
+### Coverage badge
 
-| Option      | Description                           |
-|-------------|---------------------------------------|
-| (none)      | No funding configuration              |
-| FUNDING.yml | GitHub Sponsors funding configuration |
+| Option         | Description                                                    |
+|----------------|----------------------------------------------------------------|
+| (none)         | No coverage badge                                              |
+| Coverage badge | A `coverage: 100%` badge at the end of the README's badge line |
+
+### Funding
+
+Asked with the project details, not under Customize. The platform and your username on it produce the `fundingUrl` in `manifest.json`, the README's badge and `## Support` link, and a `.github/FUNDING.yml` with that one platform's line. `(none)` emits none of them.
+
+| Option          | Description                                                |
+|-----------------|------------------------------------------------------------|
+| (none)          | No funding link, FUNDING.yml or badge                      |
+| Buy Me a Coffee | buymeacoffee.com/&lt;username&gt;                          |
+| GitHub Sponsors | github.com/sponsors/&lt;username&gt;                       |
+| Ko-fi           | ko-fi.com/&lt;username&gt;                                 |
+| Liberapay       | liberapay.com/&lt;username&gt;                             |
+| Open Collective | opencollective.com/&lt;username&gt;                        |
+| Patreon         | patreon.com/&lt;username&gt;                               |
+| Polar           | polar.sh/&lt;username&gt;                                  |
+| thanks.dev      | thanks.dev/&lt;username&gt;, e.g. `u/gh/<GitHub username>` |
+| Custom URL      | Any other URL, asked for as a URL rather than a username   |
 
 ### Obsidian API subset
 
