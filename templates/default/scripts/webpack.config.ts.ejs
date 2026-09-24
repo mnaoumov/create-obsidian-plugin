@@ -103,6 +103,11 @@ export const config: Configuration = {
 <%- plugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
   ],
   resolve: {
+    // A plugin runs in Obsidian's renderer, not in Node, but `target: 'node'` resolves only the `node`
+    // Export condition -- which hands Solid and Svelte their SERVER builds, where `render` / `mount` do
+    // Nothing a view can use, with the build green. `browser` is what esbuild's `conditions` and rollup's
+    // `nodeResolve({ browser: true })` already ask for; `'...'` keeps webpack's own defaults beside it.
+    conditionNames: ['browser', '...'],
     // The loader above rewrites `./plugin.ts` to `./plugin.js` on emit, but only `./plugin.ts` exists on
     // Disk, and webpack's `extensions` list only appends a suffix to a request that has no extension --
     // It does not map one extension to another. Without this the bundle fails to resolve "./plugin.js".

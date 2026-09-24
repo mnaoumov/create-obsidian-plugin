@@ -2150,6 +2150,14 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).not.toContain('babel-loader');
   });
 
+  // `target: 'node'` alone resolves the `node` export condition, which is Solid's and Svelte's SERVER
+  // Build: a view whose `render` / `mount` never mounts anything, behind a green build. Obsidian runs a
+  // Plugin in its renderer, which is why esbuild and rollup already ask for `browser`.
+  it('resolves the browser export condition on webpack', () => {
+    copyTemplates(makeAnswers({ bundler: 'webpack' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).toContain('conditionNames: [\'browser\', \'...\']');
+  });
+
   // The point of the whole exercise. A sample test that imports nothing passes on every combination while
   // Proving nothing, which is what hid the missing `obsidian` runtime for as long as it did. Importing the
   // Plugin under test is what gives the gate tier's non-zero collected-test count something to mean.
