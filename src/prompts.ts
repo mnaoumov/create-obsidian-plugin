@@ -94,6 +94,13 @@ export function getDefaultAnswers(defaults?: Partial<Answers>): Answers {
   return { ...base, ...overrides as Partial<Answers> };
 }
 
+/**
+ * The display name derived from a plugin id: each hyphen-separated word capitalized.
+ */
+export function makePluginName(pluginId: string): string {
+  return extractWords(pluginId).join(' ');
+}
+
 export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
   showHotkeyHints();
 
@@ -438,10 +445,6 @@ function getDefaultTooling(): DefaultTooling {
     testRunner: 'vitest',
     wasmSupport: 'none'
   };
-}
-
-function makePluginName(pluginId: string): string {
-  return extractWords(pluginId).join(' ');
 }
 
 function promptPluginDescription(saved: string): Promise<string> {

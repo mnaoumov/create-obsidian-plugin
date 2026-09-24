@@ -442,6 +442,16 @@ names carried `Plugin` for the same reason. So the `--yes` path shipped an unlis
 verified case generated one. `src/directory-constraints.test.ts` asserts both sets pass, which is what
 stops either drifting back.
 
+**Uniqueness is the one constraint the prompt cannot check, so it is checked once the answers are in.**
+The directory also requires the `id` to be absent from `community-plugins.json`, a fact about the world
+that a synchronous clack `validate` cannot fetch. `src/directory-registry.ts` fetches the list, and
+`ensurePluginIdIsUnlisted` (`src/main.ts`) checks it between the answers and the answers export, so an
+exported script carries the corrected id. A failed fetch is a warning naming what went unchecked, never a
+refusal, for the reason `resolveVersions()` falls back to `latest`. A collision under `--yes` is a usage
+error naming `--pluginId`; interactively it asks for the id alone again, and also offers to keep it,
+for the author of that listed plugin. An update checks only an id the run CHANGED, because a listed
+plugin's own saved id matches itself.
+
 ### Three lists have to agree about which files are in the program
 
 Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the ESLint file
