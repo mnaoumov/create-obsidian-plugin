@@ -26,7 +26,10 @@ export class Markdownlint extends FeatureOption {
         '.markdownlint-cli2.mjs',
         'scripts/markdownlint-cli2-config.ts',
         'scripts/lint-md.ts',
-        'scripts/lint-md-fix.ts'
+        'scripts/lint-md-fix.ts',
+        // Read by linkinator from the project root under both presets; it skips the links to the plugin's own
+        // Repository, which 404 until the user pushes it.
+        'linkinator.config.json'
       ]);
 
     // Split on the preset, the way `scripts/lint-md.ts` itself already is. The obsidian-dev-utils presets

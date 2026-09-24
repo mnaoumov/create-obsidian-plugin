@@ -315,6 +315,19 @@ template imports either one.
 written yet, and it is a maintained file from the moment it exists — a stub is confidently empty where
 an absent file is honestly absent. `plugin-drift-baseline.json` records that under both dev-utils presets.
 
+### linkinator skips the plugin's own repository, and nothing else
+
+`lint:md` runs linkinator over every Markdown file, and the README and demo vault link to
+`https://github.com/<author>/obsidian-<id>` and its `/releases`. Those links 404 until the user creates and
+pushes the repository and cuts a release, so without a skip a fresh project fails its own `lint:md`, `gate` and
+`version` for a reason nothing local can fix. The markdownlint answer therefore emits `linkinator.config.json`
+under every preset. Both presets' `lint:md` run linkinator from the project root with no `--config` or `--skip`,
+and linkinator reads that file by default and merges it under its flags. Its one `skip` pattern
+(`getOwnRepoLinkPattern`, `src/templates.ts`) is anchored, so the BRAT install link that carries the repo URL in
+its query is still checked. The author's profile link stays checked too, because it exists for a real author
+and is what catches a mistyped GitHub name. No tier runs `lint:md`: it needs the network, and the fixture author
+`testuser` has no GitHub profile.
+
 ### A line that is not really per-answer gets ONE partial, named for what it is
 
 The sibling of the trailing-comma rule, and the more dangerous one. Writing the same line into one
