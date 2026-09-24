@@ -38,6 +38,17 @@ export class Solid extends FeatureOption {
         ])
         .addPartial('rollup-babel');
     }
+    // Webpack's ts-loader leaves Solid's JSX in place under `jsx: preserve`, so a babel pass after it
+    // Compiles it: see `scripts/webpack.config.ts@rule_solid.ejs`.
+    if (answers.bundler === 'webpack') {
+      builder
+        .addPackage('@babel/core')
+        .addDepcheckIgnore('@babel/core', 'the peer dependency `babel-loader` loads, never imported.')
+        .addPackage('babel-loader')
+        .addDepcheckIgnore('babel-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
+        .addPackage('babel-preset-solid')
+        .addDepcheckIgnore('babel-preset-solid', 'named as a string in `scripts/webpack.config.ts`, never imported.');
+    }
     if (answers.bundler === 'esbuild') {
       builder.addPackage('esbuild-plugin-solid');
     }

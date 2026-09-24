@@ -1131,6 +1131,7 @@ describe('copyTemplates', () => {
   }
 
   interface ParsedPackageJson {
+    devDependencies?: Record<string, string>;
     scripts: Record<string, string>;
   }
 
@@ -2127,6 +2128,34 @@ describe('copyTemplates', () => {
     // Wrong for every other framework's runtime, so it must not leak into them.
     copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'react' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('solid-js');
+  });
+
+  // Webpack's ts-loader leaves Solid's JSX preserved and rewrites the view's `.tsx` import to `.jsx`, so
+  // Every webpack + solid build failed to resolve it -- and, resolved, could not have parsed it. A babel
+  // Pass after ts-loader compiles the JSX, and `extensionAlias` maps the `.jsx` name back.
+  it('compiles Solid JSX on webpack, and adds babel for no other framework', () => {
+    for (const preset of ['standalone', 'enhanced']) {
+      copyTemplates(makeAnswers({ bundler: 'webpack', preset, uiFramework: 'solid' }), targetDir, '1.0.0', null);
+      const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
+      expect(config, preset).toContain('loader: \'babel-loader\'');
+      expect(config, preset).toContain('enforce: \'post\'');
+      expect(config, preset).toContain('presets: [\'babel-preset-solid\']');
+      expect(config, preset).toContain('\'.jsx\': [\'.tsx\', \'.jsx\']');
+      const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+      const devDependencies = Object.keys(pkg.devDependencies ?? {});
+      expect(devDependencies, preset).toEqual(expect.arrayContaining(['@babel/core', 'babel-loader', 'babel-preset-solid']));
+    }
+
+    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'enhanced', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).not.toContain('babel-loader');
+  });
+
+  // `target: 'node'` alone resolves the `node` export condition, which is Solid's and Svelte's SERVER
+  // Build: a view whose `render` / `mount` never mounts anything, behind a green build. Obsidian runs a
+  // Plugin in its renderer, which is why esbuild and rollup already ask for `browser`.
+  it('resolves the browser export condition on webpack', () => {
+    copyTemplates(makeAnswers({ bundler: 'webpack' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).toContain('conditionNames: [\'browser\', \'...\']');
   });
 
   // The point of the whole exercise. A sample test that imports nothing passes on every combination while
