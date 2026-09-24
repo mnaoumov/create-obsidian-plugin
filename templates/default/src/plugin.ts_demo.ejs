@@ -38,21 +38,9 @@ import { SampleSuggestModal } from './modals/sample-suggest-modal.ts';
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import {
-  SAMPLE_REACT_VIEW_TYPE,
-  SampleReactView
-} from './views/sample-react-view.tsx';
-import {
-  SAMPLE_SVELTE_VIEW_TYPE,
-  SampleSvelteView
-} from './views/sample-svelte-view.ts';
-import {
   SAMPLE_VIEW_TYPE,
   SampleView
 } from './views/sample-view.ts';
-import {
-  SAMPLE_VUE_VIEW_TYPE,
-  SampleVueView
-} from './views/sample-vue-view.ts';
 ${render('import')}`) -%>
 
 export class Plugin extends PluginBase {
@@ -126,9 +114,6 @@ export class Plugin extends PluginBase {
     this.registerObsidianProtocolHandler('sample-action', this.handleSampleObsidianProtocolHandler.bind(this));
 
     this.registerView(SAMPLE_VIEW_TYPE, (leaf) => new SampleView(leaf));
-    this.registerView(SAMPLE_SVELTE_VIEW_TYPE, (leaf) => new SampleSvelteView(leaf));
-    this.registerView(SAMPLE_REACT_VIEW_TYPE, (leaf) => new SampleReactView(leaf));
-    this.registerView(SAMPLE_VUE_VIEW_TYPE, (leaf) => new SampleVueView(leaf));
 
     this.registerModalCommands();
 <%- render('onload') -%>
@@ -139,7 +124,7 @@ export class Plugin extends PluginBase {
 
     this.app.workspace.onLayoutReady(() => {
       new Notice('This is executed after all plugins are loaded');
-      invokeAsyncSafely(() => this.openSampleViews());
+      invokeAsyncSafely(() => this.openSampleView());
     });
 
     // `OpenDemoVaultCommandHandler` is what makes the README's first demo-vault route real: it downloads
@@ -211,16 +196,10 @@ export class Plugin extends PluginBase {
     new Notice(`Sample obsidian protocol handler: ${params.action}`);
   }
 
-  private async openSampleViews(): Promise<void> {
-    await this.openView(SAMPLE_VIEW_TYPE);
-    await this.openView(SAMPLE_SVELTE_VIEW_TYPE);
-    await this.openView(SAMPLE_REACT_VIEW_TYPE);
-    await this.openView(SAMPLE_VUE_VIEW_TYPE);
+  private async openSampleView(): Promise<void> {
+    await this.app.workspace.ensureSideLeaf(SAMPLE_VIEW_TYPE, 'right');
   }
-
-  private async openView(viewType: string): Promise<void> {
-    await this.app.workspace.ensureSideLeaf(viewType, 'right');
-  }
+<%- render('method') -%>
 
   private registerModalCommands(): void {
     this.addCommand({

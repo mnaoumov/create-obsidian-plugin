@@ -131,8 +131,8 @@ is optional decoration, and each piece was found by a combination that failed wi
   `Element.prototype` and `window`. Jest needs `jest-environment-jsdom` installed by name.
 - **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
   Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
-  `preset: demo` imports the svelte view from `plugin.ts` **unconditionally**, so this is not a
-  svelte-answer-only concern. The mapping is emitted for every jest project and every dev-utils vitest project
+  `preset: demo` forces svelte in whatever was answered, so its `plugin.ts` always imports the svelte
+  view and this is not a svelte-answer-only concern. The mapping is emitted for every jest project and every dev-utils vitest project
   rather than through partials: the pattern does not depend on any answer, which keeps the two configs
   identical across the matrix and avoids the partial-built-list trailing comma trap below.
 - **A vite alias built from a RegExp replaces only what the pattern MATCHED.** `/\.svelte$/` rewrites the
@@ -608,6 +608,16 @@ different hat. `src/wasm/sample-command.ts` registers a `Sample WASM answer` com
 preset `plugin.ts` partials gained `import` / `onload` seams to reach it. The gate's `wasm` step asserts
 the artifact rather than the exit code: no `.wasm` beside `main.js`, and the module's bytes present
 inside it in one of the four encodings the five bundlers produce.
+
+**The rule is general: every answer that emits a module of its own reaches it from each preset's
+`plugin.ts`, through that preset's `import` / `onload` seams.** i18next and typesafe-i18n were emitted and
+never imported on `standalone` and `demo`, CodeMirror on `standalone`, and lit / preact / solid on `demo`,
+all with every tier green, because an unreached module is not even parsed. `demo` wires its forced
+frameworks through the same per-framework partials as everything else rather than naming them in the
+whole file: `demo + preact|solid` drops the forced react for the JSX runtime, and a hard-coded react
+import then named a file that was never emitted. `src/templates.test.ts` pins both directions under all
+three presets: each answer's entry module is imported, and `plugin.ts` imports nothing that was not
+emitted. A new answer with a module of its own goes into its `ENTRY_MODULES` table.
 
 Both unit runners alias every `.wasm` import to `scripts/wasm-module-stub.ts`, exactly as they alias
 `.svelte` / `.vue` to the component stub: the emitted `src/plugin.test.ts` imports `plugin.ts`, which now
