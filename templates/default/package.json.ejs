@@ -1,32 +1,32 @@
 {
-  "name": "<%= pluginId %>",
+  "name": <%- JSON.stringify(pluginId) %>,
   "version": "0.0.0",
-  "description": "<%= pluginDescription %>",
+  "description": <%- JSON.stringify(pluginDescription) %>,
   "type": "module",
   "main": "main.js",
 <%- render('targets') -%>
   "keywords": [],
   "license": "MIT",
-  "author": "<%= authorGitHubName %>",
+  "author": <%- JSON.stringify(authorGitHubName) %>,
   "scripts": {
 <% const scriptEntries = Object.entries(_scripts); -%>
 <% scriptEntries.forEach(([key, value], i) => { -%>
-    "<%- key %>": "<%- value %>"<%= i < scriptEntries.length - 1 ? ',' : '' %>
+    <%- JSON.stringify(key) %>: <%- JSON.stringify(value) %><%= i < scriptEntries.length - 1 ? ',' : '' %>
 <% }); -%>
   },
   "overrides": {
 <% _overrides.forEach((override, i) => { -%>
-    "<%- override.packageName %>": "<%- override.spec %>"<%= i < _overrides.length - 1 ? ',' : '' %>
+    <%- JSON.stringify(override.packageName) %>: <%- JSON.stringify(override.spec) %><%= i < _overrides.length - 1 ? ',' : '' %>
 <% }); -%>
   },
   "resolutions": {
 <% _resolutions.forEach((resolution, i) => { -%>
-    "<%- resolution.packageName %>": "<%- resolution.spec %>"<%= i < _resolutions.length - 1 ? ',' : '' %>
+    <%- JSON.stringify(resolution.packageName) %>: <%- JSON.stringify(resolution.spec) %><%= i < _resolutions.length - 1 ? ',' : '' %>
 <% }); -%>
   },
   "devDependencies": {
 <% _dependencies.forEach((dep, i) => { -%>
-    "<%- dep.packageName %>": "<%- dep.version %>"<%= i < _dependencies.length - 1 ? ',' : '' %>
+    <%- JSON.stringify(dep.packageName) %>: <%- JSON.stringify(dep.version) %><%= i < _dependencies.length - 1 ? ',' : '' %>
 <% }); -%>
   }
 }
