@@ -1007,6 +1007,59 @@ describe('buildTemplate', () => {
         }
       }
     );
+
+    // The same defect class as the views above, for every answer that emits a module of its own: a bundler never
+    // Compiles a module nothing imports, so the answer ships files the build silently drops. `standalone` and `demo`
+    // Emitted the i18n module that way, and `standalone` the CodeMirror extensions -- every tier green, because an
+    // Unreached module is not even parsed.
+    const ENTRY_MODULES = [
+      ['internationalization', 'i18next', './i18n/index.ts'],
+      ['internationalization', 'typesafe-i18n', './i18n/index.ts'],
+      ['editorExtensions', 'codemirror', './editor-extensions/sample-state-field.ts'],
+      ['editorExtensions', 'codemirror', './editor-extensions/sample-view-plugin.ts'],
+      ['editorExtensions', 'codemirror', './editor-suggests/sample-editor-suggest.ts'],
+      ['wasmSupport', 'wasm', './wasm/sample-command.ts'],
+      ['uiFramework', 'lit', './views/sample-lit-view.ts'],
+      ['uiFramework', 'preact', './views/sample-preact-view.tsx'],
+      ['uiFramework', 'react', './views/sample-react-view.tsx'],
+      ['uiFramework', 'solid', './views/sample-solid-view.tsx'],
+      ['uiFramework', 'svelte', './views/sample-svelte-view.ts'],
+      ['uiFramework', 'vue', './views/sample-vue-view.ts']
+    ] as const;
+
+    it.each(['standalone', 'enhanced', 'demo'].flatMap((preset) => ENTRY_MODULES.map(([key, value, specifier]) => [preset, key, value, specifier])))(
+      'imports the %s + %s=%s entry module %s from plugin.ts',
+      (preset, key, value, specifier) => {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-entry-modules-'));
+        try {
+          copyTemplates(makeAnswers({ [key]: value, preset }), targetDir, '1.0.0', null);
+          expect(existsSync(join(targetDir, 'src', specifier))).toBe(true);
+          expect(readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8')).toContain(`from '${specifier}';`);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    );
+
+    // The converse: `plugin.ts` imports nothing the answers did not emit. `demo` imported the react view
+    // Unconditionally, while `demo + preact|solid` drops the forced react for the JSX runtime and so never emits it.
+    it.each(['standalone', 'enhanced', 'demo'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework]) => [preset, uiFramework])))(
+      'imports only emitted modules from plugin.ts on %s + %s',
+      (preset, uiFramework) => {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-emitted-imports-'));
+        try {
+          copyTemplates(makeAnswers({ editorExtensions: 'codemirror', internationalization: 'i18next', preset, uiFramework, wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+          const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
+          const specifiers = [...plugin.matchAll(/from '(?<specifier>\.\/[^']+)';/g)].map((match) => match.groups?.['specifier'] ?? '');
+          expect(specifiers.length).toBeGreaterThan(0);
+          for (const specifier of specifiers) {
+            expect(existsSync(join(targetDir, 'src', specifier)), specifier).toBe(true);
+          }
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    );
   });
 
   // An ignore for a package the project never declares is a false-positive entry for nothing, and
