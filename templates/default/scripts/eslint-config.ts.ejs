@@ -85,6 +85,16 @@ export const configs: Linter.Config[] = defineEslintConfigs({
         rules: {
           'import-x/no-default-export': 'off'
         }
+      },
+      {
+        // Every rollup plugin is imported as `<name>Module` on purpose: its types describe the CommonJS
+        // Shape, so `asPluginFactory` unwraps the import and the unwrapped binding takes the plugin's own
+        // Name. Which plugins are imported depends on the answers, so an inline directive per import would
+        // Have to be composed per answer. Named whether or not rollup was chosen, like the patterns above.
+        files: ['scripts/rollup.config.ts'],
+        rules: {
+          'import-x/no-rename-default': 'off'
+        }
       }
     );
   },

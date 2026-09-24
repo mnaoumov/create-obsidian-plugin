@@ -387,6 +387,44 @@ describe('buildTemplate', () => {
         }
       }
     });
+
+    // Its lists are composed from per-framework partials, each ending its item in a comma, and the keys
+    // Were once in the reverse of `perfectionist/sort-objects` order: three lint errors on every
+    // Dev-utils preset that reached it.
+    it('emits a babel config with sorted keys and no trailing commas', () => {
+      const cases = [
+        { expected: 'export const config = {\n  plugins: [],\n  presets: [\n    \'@babel/preset-react\'\n  ]\n};\n', uiFramework: 'react' },
+        {
+          expected: 'export const config = {\n  plugins: [\n    [\'@babel/plugin-transform-react-jsx\', { importSource: \'preact\', runtime: \'automatic\' }]\n  ],\n  presets: []\n};\n',
+          uiFramework: 'preact'
+        }
+      ] as const;
+      for (const { expected, uiFramework } of cases) {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-babel-'));
+        try {
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', uiFramework }), targetDir, '1.0.0', null);
+          expect(readFileSync(join(targetDir, 'scripts/babel.config.ts'), 'utf-8'), uiFramework).toBe(expected);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    });
+
+    // Every rollup plugin is imported as `<name>Module` for `asPluginFactory` to unwrap. A per-import
+    // Directive rendered from inside the import partial only when that partial came first, so the rule is
+    // Exempted for the whole file instead, and no import carries a directive of its own.
+    it('exempts the rollup config from no-rename-default rather than each import', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-rename-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', styling: 'scss', uiFramework: 'react', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+        expect(readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8')).not.toContain('no-rename-default');
+        expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toMatch(
+          /files: \['scripts\/rollup\.config\.ts'\],\n\s+rules: \{\n\s+'import-x\/no-rename-default': 'off'/u
+        );
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
+    });
   });
 
   describe('uiFramework feature', () => {
