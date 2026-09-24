@@ -249,6 +249,17 @@ therefore collected on `TemplateBuilder` and rendered with a `forEach` that know
 `addScript`, `addPackage`, `addLintStagedCommand`, `addSentenceCaseBrand`, `addDepcheckIgnore`. Partials stay for content that
 is a block, not an item.
 
+### The pre-commit hook follows the staged-files commands, not the commit-linting answer
+
+`.husky/pre-commit` plus nano-staged is about staged FILES, and `.husky/commit-msg` plus commitlint is about
+commit MESSAGES. So `conventional-commits` owns only the second. `buildTemplate` adds the first
+(`addStagedFilesHook`, `src/features/git-hooks.ts`) after every answer and demo override has configured, and
+only when `lintStagedPatterns` is non-empty. That means the hook exists exactly when a tool registered a
+command for it, and it can never run an empty `nano-staged-config.ts`. Both hooks share `addHusky` (husky,
+`prepare`, `scripts/prepare.ts`). A project with no linter, formatter, markdown linter and no commit linting
+gets no husky at all. The real plugins beside this repo split the same way: all of them run nano-staged, and
+only some also run commitlint.
+
 ### `.depcheckrc.json` is emitted, measured; `AGENTS.md` is not
 
 Every real plugin carries both. They split because only one is derivable from the answers.

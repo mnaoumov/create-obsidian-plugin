@@ -28,6 +28,7 @@ import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
 import { E2E_TEST_RUNNER_OPTIONS } from './features/e2e-test-runner/index.ts';
 import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts';
 import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
+import { addStagedFilesHook } from './features/git-hooks.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
 import { GITHUB_FUNDING_OPTIONS } from './features/git-hub-funding/index.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
@@ -206,6 +207,12 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
       option.configure(builder, answers);
       builder.addPartial(option.partialName);
     }
+  }
+
+  // Last, because the demo overrides can register staged-files commands too. The pre-commit hook exists
+  // Exactly when something registered a command for it -- whatever the commit-linting answer was.
+  if (builder.lintStagedPatterns.length > 0) {
+    addStagedFilesHook(builder);
   }
 
   return builder;

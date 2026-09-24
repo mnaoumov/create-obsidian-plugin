@@ -652,6 +652,41 @@ describe('buildTemplate', () => {
       expect(files).not.toContain('commitlint.config.ts');
       expect(files).not.toContain('.husky/commit-msg');
     });
+
+    it('keeps the pre-commit hook when commit linting is declined but a linter is chosen', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'none', formatter: 'none', linter: 'eslint', markdownLinter: 'none' }));
+      const files = [...builder.templateFiles];
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(files).toContain('.husky/pre-commit');
+      expect(files).toContain('.nano-staged.mjs');
+      expect(files).toContain('scripts/nano-staged-config.ts');
+      expect(files).toContain('scripts/prepare.ts');
+      expect(files).not.toContain('.husky/commit-msg');
+      expect(depNames).toContain('husky');
+      expect(depNames).toContain('nano-staged');
+      expect(depNames).not.toContain('@commitlint/cli');
+      expect(builder.scripts).toHaveProperty('prepare');
+    });
+
+    it('emits only the commit-msg hook when nothing registers a staged-files command', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'none', linter: 'none', markdownLinter: 'none' }));
+      const files = [...builder.templateFiles];
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(files).toContain('.husky/commit-msg');
+      expect(files).toContain('scripts/prepare.ts');
+      expect(files).not.toContain('.husky/pre-commit');
+      expect(files).not.toContain('scripts/nano-staged-config.ts');
+      expect(depNames).toContain('husky');
+      expect(depNames).not.toContain('nano-staged');
+    });
+
+    it('emits no husky at all when no hook has anything to run', () => {
+      const builder = buildTemplate(makeAnswers({ commitLinting: 'none', formatter: 'none', linter: 'none', markdownLinter: 'none' }));
+      const files = [...builder.templateFiles];
+      expect(files.filter((file) => file.startsWith('.husky/') || file.includes('nano-staged') || file === 'scripts/prepare.ts')).toEqual([]);
+      expect(builder.dependencies.map((d) => d.packageName)).not.toContain('husky');
+      expect(builder.scripts).not.toHaveProperty('prepare');
+    });
   });
 
   describe('demo preset', () => {
