@@ -44,3 +44,11 @@ export class SampleLitElement extends LitElement {
     this.count++;
   };
 }
+
+declare global {
+  // Lit's own pattern for a custom element: it is what lets `createEl('sample-lit-element')` type-check,
+  // And return a `SampleLitElement` whose properties can be set directly.
+  interface HTMLElementTagNameMap {
+    'sample-lit-element': SampleLitElement;
+  }
+}

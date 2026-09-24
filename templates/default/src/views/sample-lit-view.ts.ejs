@@ -21,10 +21,9 @@ export class SampleLitView extends ItemView {
 
   public override onOpen(): Promise<void> {
     const START_COUNT = 10;
-    const el = createEl('sample-lit-element');
-    el.setAttribute('count', String(START_COUNT));
-    el.setAttribute('vaultName', this.app.vault.getName());
-    this.contentEl.append(el);
+    const element = this.contentEl.createEl('sample-lit-element');
+    element.count = START_COUNT;
+    element.vaultName = this.app.vault.getName();
 
     return super.onOpen();
   }
