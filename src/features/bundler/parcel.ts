@@ -10,7 +10,9 @@ export class Parcel extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('parcel')
+      .addDepcheckIgnore('parcel', 'run as a CLI by the build script.')
       .addPackage('@parcel/config-default')
+      .addDepcheckIgnore('@parcel/config-default', 'extended by name in `.parcelrc`.')
       // Only Parcel needs a plugin package, and it needs it twice: its resolver is the only way to mark
       // The modules Obsidian supplies at runtime as external, and its namer the only way to name the
       // Emitted stylesheet. Every other bundler takes a plain `external` list and an output-name option

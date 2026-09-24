@@ -15,6 +15,7 @@ export class Jest extends FeatureOption {
       // `window`, so the suite cannot run in jest's default `node` environment. Jest 30 does not bundle
       // Jsdom, so the environment has to be installed by name.
       .addPackage('jest-environment-jsdom')
+      .addDepcheckIgnore('jest-environment-jsdom', 'named by `testEnvironment` in `jest.config.ts`, never imported.')
       // The runtime `obsidian` module. The npm package is types-only -- `"main": ""` and a tarball of
       // `.d.ts` files -- so without this every test that touches the plugin's own code dies in the
       // Resolver with "Cannot find module 'obsidian'".

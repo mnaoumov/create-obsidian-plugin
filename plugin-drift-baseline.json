@@ -75,10 +75,6 @@
       "pluginCount": 0,
       "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
     },
-    "demo/layout/missing/.depcheckrc.json": {
-      "pluginCount": 29,
-      "why": "Configures depcheck for `update-npm-deps.ps1`, a dependency-sweep script that lives on the maintainer's machine and is not shipped with any plugin. A generated project handed to someone else gains nothing from it. Whether the scaffold should emit one anyway is a decision recorded as a follow-up, not something to settle by copying."
-    },
     "demo/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
       "pluginCount": 29,
       "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
@@ -88,8 +84,8 @@
       "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
     },
     "demo/layout/missing/AGENTS.md": {
-      "pluginCount": 29,
-      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says. Recorded as a follow-up rather than guessed at."
+      "pluginCount": 32,
+      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "demo/layout/missing/scripts/build-compile-typescript.ts": {
       "pluginCount": 29,
@@ -231,10 +227,6 @@
       "pluginCount": 0,
       "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The real plugins, being scss throughout, name their copy after the extension."
     },
-    "enhanced/layout/missing/.depcheckrc.json": {
-      "pluginCount": 29,
-      "why": "Configures depcheck for `update-npm-deps.ps1`, a dependency-sweep script that lives on the maintainer's machine and is not shipped with any plugin. A generated project handed to someone else gains nothing from it. Whether the scaffold should emit one anyway is a decision recorded as a follow-up, not something to settle by copying."
-    },
     "enhanced/layout/missing/.github/ISSUE_TEMPLATE/bug_report.yml": {
       "pluginCount": 29,
       "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
@@ -244,8 +236,8 @@
       "why": "The real plugins' side of the kebab-case rename; see `layout/extra/.github/ISSUE_TEMPLATE/bug-report.yml`. The generator emits the same form under a name the partial system can carry."
     },
     "enhanced/layout/missing/AGENTS.md": {
-      "pluginCount": 29,
-      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says. Recorded as a follow-up rather than guessed at."
+      "pluginCount": 32,
+      "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
     "enhanced/layout/missing/scripts/build-compile-typescript.ts": {
       "pluginCount": 29,

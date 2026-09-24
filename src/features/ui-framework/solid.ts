@@ -30,6 +30,7 @@ export class Solid extends FeatureOption {
       builder
         .addPackage('@babel/core')
         .addPackage('babel-preset-solid')
+        .addDepcheckIgnore('babel-preset-solid', 'named as a string in `scripts/babel.config.ts`, never imported.')
         .addFiles([
           'babel.config.mjs',
           'scripts/babel.config.ts'

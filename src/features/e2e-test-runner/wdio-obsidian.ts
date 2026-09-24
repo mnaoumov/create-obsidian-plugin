@@ -10,6 +10,7 @@ export class WdioObsidian extends FeatureOption {
   public override configure(builder: TemplateBuilder): void {
     builder
       .addPackage('@wdio/cli')
+      .addDepcheckIgnore('@wdio/cli', 'run as the `wdio` CLI by `scripts/test-e2e.ts`.')
       // Declared rather than reached through the wdio dependency tree. The emitted `tsconfig.json`
       // Names both in its `types` array -- that is where the `browser`, `describe`, `it` and `expect`
       // Globals and the `WebdriverIO` namespace come from -- and a config should not point at a

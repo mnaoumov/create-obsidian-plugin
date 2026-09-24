@@ -129,6 +129,26 @@ describe('TemplateBuilder', () => {
     });
   });
 
+  describe('addDepcheckIgnore', () => {
+    it('records the package with its reason', () => {
+      const builder = new TemplateBuilder();
+      builder.addDepcheckIgnore('czg', 'run as a CLI.');
+      expect(builder.depcheckIgnores).toEqual([{ packageName: 'czg', reason: 'run as a CLI.' }]);
+    });
+
+    it('deduplicates by package name, last reason wins', () => {
+      const builder = new TemplateBuilder();
+      builder.addDepcheckIgnore('czg', 'first').addDepcheckIgnore('czg', 'second');
+      expect(builder.depcheckIgnores).toEqual([{ packageName: 'czg', reason: 'second' }]);
+    });
+
+    it('sorts by package name', () => {
+      const builder = new TemplateBuilder();
+      builder.addDepcheckIgnore('husky', 'h').addDepcheckIgnore('@biomejs/biome', 'b').addDepcheckIgnore('czg', 'c');
+      expect(builder.depcheckIgnores.map((entry) => entry.packageName)).toEqual(['@biomejs/biome', 'czg', 'husky']);
+    });
+  });
+
   describe('getters return copies', () => {
     it('templateFiles returns a new Set', () => {
       const builder = new TemplateBuilder();

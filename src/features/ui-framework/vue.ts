@@ -26,6 +26,10 @@ export class Vue extends FeatureOption {
         'src/vue-components/sample-vue-component.vue',
         'src/views/sample-vue-view.ts'
       ]);
+
+    if (answers.bundler === 'parcel') {
+      builder.addDepcheckIgnore('@parcel/transformer-vue', 'resolved by name by `@parcel/config-default` for `.vue`; nothing imports it.');
+    }
   }
 }
 

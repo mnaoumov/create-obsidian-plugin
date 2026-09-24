@@ -1,0 +1,19 @@
+{
+  "comment": [
+    "Read automatically by depcheck (`npx depcheck`), which reports declared dependencies nothing appears to use.",
+    "depcheck cannot see a package that is only invoked as a CLI from a script, named as a string in a config, or",
+    "reached by a compiler option, so each name below is a verified false positive with the reference that proves it.",
+    "Anything depcheck still reports is genuinely unused: remove it, or add it here together with its reason.",
+    "The key is `ignores`, depcheck's CLI-style rc name; `ignoreMatches` is the API-only spelling and is silently",
+    "ignored in this file.",
+    "",
+<% _depcheckIgnores.forEach((entry, i) => { -%>
+    <%- JSON.stringify(`${entry.packageName} - ${entry.reason}`) %><%= i < _depcheckIgnores.length - 1 ? ',' : '' %>
+<% }); -%>
+  ],
+  "ignores": [
+<% _depcheckIgnores.forEach((entry, i) => { -%>
+    <%- JSON.stringify(entry.packageName) %><%= i < _depcheckIgnores.length - 1 ? ',' : '' %>
+<% }); -%>
+  ]
+}

@@ -36,6 +36,7 @@ export class React extends FeatureOption {
       builder
         .addPackage('@babel/core')
         .addPackage('@babel/preset-react')
+        .addDepcheckIgnore('@babel/preset-react', 'named as a string in `scripts/babel.config.ts`, never imported.')
         .addFiles([
           'babel.config.mjs',
           'scripts/babel.config.ts'

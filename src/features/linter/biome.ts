@@ -11,6 +11,7 @@ export class Biome extends FeatureOption {
     builder
       .addLintStagedCommand('*.{ts,tsx,mts}', 'biome check --write --no-errors-on-unmatched')
       .addPackage('@biomejs/biome')
+      .addDepcheckIgnore('@biomejs/biome', 'run as the `biome` CLI by the format and lint scripts, configured by `biome.jsonc`.')
       .addScript('lint')
       .addScript('lint:fix')
       .addFiles([

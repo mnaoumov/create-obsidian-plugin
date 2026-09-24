@@ -13,6 +13,7 @@ export class Css extends FeatureOption {
     if (answers.bundler === 'webpack') {
       builder
         .addPackage('css-loader')
+        .addDepcheckIgnore('css-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
         .addPackage('mini-css-extract-plugin')
         .addPartial('webpack-css-extract');
     }
