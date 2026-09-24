@@ -23,6 +23,11 @@ import {
 export interface CliArgs {
   /** Every answer supplied on the command line or in `--answersFile`, with the flags winning. */
   answers: Partial<Answers>;
+  /**
+   * `--customTemplate=<dir>`: `undefined` when not given, `''` to drop the overlay an existing project
+   * recorded, otherwise the directory as typed.
+   */
+  customTemplate: string | undefined;
   showHelp: boolean;
   useDefaults: boolean;
 }
@@ -39,6 +44,8 @@ export interface CliArgs {
 export const COMPUTED_ANSWER_KEYS: readonly string[] = ['currentYear', 'pluginShortName'];
 
 const ANSWERS_FILE_PREFIX = '--answersFile=';
+
+const CUSTOM_TEMPLATE_PREFIX = '--customTemplate=';
 
 /** The length of the leading `--` a flag name sits behind. */
 const FLAG_PREFIX_LENGTH = 2;
@@ -118,6 +125,9 @@ export function getHelpText(): string {
     '  -h, --help                Show this help.',
     '      --answersFile=<path>  Read answers from a JSON file. Accepts a bare answers object or a',
     '                            `.create-obsidian-plugin.json`. Individual flags override it.',
+    '      --customTemplate=<dir> Layer your own templates over the built-in ones: a directory',
+    '                            mirroring templates/default, plus an overlay.json. Recorded in the',
+    '                            project and re-applied on update; pass it empty to drop it.',
     '',
     'Answers (any of these may be given as --<key>=<value>):'
   ];
@@ -133,6 +143,7 @@ export function getHelpText(): string {
 export function parseCliArgs(argv: readonly string[]): CliArgs {
   const flagAnswers: Partial<Record<StringAnswerKey, string>> = {};
   let answersFilePath: null | string = null;
+  let customTemplate: string | undefined;
   let showHelp = false;
   let useDefaults = false;
 
@@ -152,6 +163,11 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
       continue;
     }
 
+    if (argument.startsWith(CUSTOM_TEMPLATE_PREFIX)) {
+      customTemplate = argument.slice(CUSTOM_TEMPLATE_PREFIX.length);
+      continue;
+    }
+
     const [rawKey, value] = splitFlag(argument);
     const key = toAnswerKey(rawKey);
     assertValidAnswer(key, value);
@@ -164,6 +180,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
 
   return {
     answers,
+    customTemplate,
     showHelp,
     useDefaults
   };

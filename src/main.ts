@@ -15,13 +15,18 @@ import {
   readFileSync,
   writeFileSync
 } from 'node:fs';
-import { join } from 'node:path';
+import {
+  join,
+  resolve as resolvePath
+} from 'node:path';
 import { compare } from 'semver';
 
 import type {
   Answers,
+  GeneratorConfig,
   PackageJson
 } from './answers.ts';
+import type { Overlay } from './overlay.ts';
 
 import {
   formatAnswersJson,
@@ -44,6 +49,10 @@ import {
   getInstallCommand,
   getRunCommand
 } from './features/package-manager/index.ts';
+import {
+  loadOverlay,
+  toRecordedOverlayPath
+} from './overlay.ts';
 import {
   getDefaultAnswers,
   promptAnswers
@@ -104,6 +113,16 @@ function assertManifestAnswersAreListable(answers: Answers): void {
   process.exit(1);
 }
 
+/**
+ * The config to write beside the generated files: the file hashes, the answers and, when one was applied,
+ * where the overlay lives -- which is what makes the next update apply it again.
+ */
+function buildSavedConfig(newConfig: GeneratorConfig, answers: Answers, overlay: null | Overlay, targetDir: string): GeneratorConfig {
+  return overlay
+    ? { ...newConfig, answers, customTemplate: toRecordedOverlayPath(overlay.dir, targetDir) }
+    : { ...newConfig, answers };
+}
+
 async function checkForUpdates(currentVersion: string): Promise<void> {
   const latestVer = await fetchLatestVersion('@mnaoumov/create-obsidian-plugin');
   if (latestVer !== null && compare(currentVersion, latestVer) < 0) {
@@ -156,6 +175,20 @@ function execAsync(command: string, cwd: string): Promise<ExecResult> {
   });
 }
 
+/**
+ * Loads the overlay or stops with the reason, the same stderr-then-exit shape as a rejected flag: an
+ * overlay that does not load is a usage error, and it is found before any question is asked.
+ */
+function loadOverlayOrExit(dir: string, hint = ''): Overlay {
+  try {
+    return loadOverlay(dir);
+  } catch (error: unknown) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}${hint}
+`);
+    process.exit(1);
+  }
+}
+
 async function main(): Promise<void> {
   const packageJsonPath = join(getScriptDir(), '..', 'package.json');
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as PackageJson;
@@ -194,9 +227,9 @@ async function main(): Promise<void> {
   const mode = await detectMode();
 
   if (mode === Mode.Create) {
-    await runCreate(currentVersion, cliArgs.useDefaults, cliArgs.answers);
+    await runCreate(currentVersion, cliArgs.useDefaults, cliArgs.answers, cliArgs.customTemplate);
   } else {
-    await runUpdate(currentVersion, cliArgs.answers);
+    await runUpdate(currentVersion, cliArgs.answers, cliArgs.customTemplate);
   }
 }
 
@@ -209,7 +242,7 @@ async function main(): Promise<void> {
  * The executable-bit on the `sh` form matters: a script the user has to `chmod` before running is a
  * worse hand-off than the command they could already have copied off the screen.
  */
-async function offerAnswersExport(answers: Answers): Promise<void> {
+async function offerAnswersExport(answers: Answers, customTemplate: string | undefined): Promise<void> {
   const shell = getShellForPlatform(process.platform);
   const scriptName = `obsidian-${answers.pluginId}-create${getScriptExtension(shell)}`;
   const answersFileName = `obsidian-${answers.pluginId}-answers.json`;
@@ -233,16 +266,17 @@ async function offerAnswersExport(answers: Answers): Promise<void> {
   while (choice !== 'generate') {
     if (choice === 'script') {
       const scriptPath = join(process.cwd(), scriptName);
-      writeFileSync(scriptPath, formatCreateScript(answers, shell));
+      writeFileSync(scriptPath, formatCreateScript(answers, shell, customTemplate));
       if (shell === 'sh') {
         chmodSync(scriptPath, SCRIPT_MODE);
       }
       log.success(`Wrote ${scriptName}`);
-      note(formatCreateCommand(answers, shell), 'Non-interactive command');
+      note(formatCreateCommand(answers, shell, customTemplate), 'Non-interactive command');
     } else {
       writeFileSync(join(process.cwd(), answersFileName), formatAnswersJson(answers));
       log.success(`Wrote ${answersFileName}`);
-      note(`npm create @mnaoumov/obsidian-plugin -- --yes --answersFile=${answersFileName}`, 'Non-interactive command');
+      const overlayFlag = customTemplate ? ` --customTemplate=${customTemplate}` : '';
+      note(`npm create @mnaoumov/obsidian-plugin -- --yes --answersFile=${answersFileName}${overlayFlag}`, 'Non-interactive command');
     }
 
     choice = await ask();
@@ -252,25 +286,26 @@ async function offerAnswersExport(answers: Answers): Promise<void> {
 // The `minAppVersion` is looked up here, next to the dependency versions, for the same reason they are:
 // `copyTemplates` is synchronous and must not touch the network, so everything fetched is resolved before
 // It runs and handed in.
-async function resolveExternalVersions(answers: Answers): Promise<ResolvedExternalVersions> {
+async function resolveExternalVersions(answers: Answers, overlay: null | Overlay): Promise<ResolvedExternalVersions> {
   const s = spinner();
   s.start('Resolving versions...');
   const [resolvedVersions, minAppVersion] = await Promise.all([
-    resolveVersions(buildTemplate(answers).dependencies),
+    resolveVersions(buildTemplate(answers, overlay).dependencies),
     fetchLatestObsidianVersion()
   ]);
   s.stop('Versions resolved.');
   return { minAppVersion, resolvedVersions };
 }
 
-async function runCreate(currentVersion: string, useDefaults: boolean, suppliedAnswers: Partial<Answers>): Promise<void> {
+async function runCreate(currentVersion: string, useDefaults: boolean, suppliedAnswers: Partial<Answers>, customTemplate: string | undefined): Promise<void> {
+  const overlay = customTemplate ? loadOverlayOrExit(resolvePath(customTemplate)) : null;
   const answers = useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers);
   assertManifestAnswersAreListable(answers);
 
   // Not under `--yes`: that path is what an exported script itself runs, so offering to export from
   // Inside it would be asking a question of a run that exists to ask none.
   if (!useDefaults) {
-    await offerAnswersExport(answers);
+    await offerAnswersExport(answers, customTemplate);
   }
 
   const targetDir = join(process.cwd(), `obsidian-${answers.pluginId}`);
@@ -287,13 +322,13 @@ async function runCreate(currentVersion: string, useDefaults: boolean, suppliedA
     }
   }
 
-  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers);
+  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers, overlay);
 
   const s = spinner();
   s.start('Scaffolding plugin...');
-  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions, minAppVersion);
+  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions, minAppVersion, overlay);
   const configPath = join(targetDir, CONFIG_FILE_NAME);
-  const configWithAnswers = { ...newConfig, answers };
+  const configWithAnswers = buildSavedConfig(newConfig, answers, overlay, targetDir);
   writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
   s.stop('Plugin scaffolded.');
 
@@ -403,7 +438,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
   }
 }
 
-async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answers>): Promise<void> {
+async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answers>, customTemplate: string | undefined): Promise<void> {
   const targetDir = process.cwd();
   const existingConfig = loadConfig(targetDir);
 
@@ -413,6 +448,21 @@ async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answer
   }
 
   log.info(`Current project was generated with v${existingConfig.generatorVersion}`);
+
+  // The recorded overlay is re-applied unless a flag names another one or, given empty, drops it. A recorded
+  // One that is gone is refused rather than skipped: skipping would regenerate every file it overrode from
+  // The built-ins, and each of those still matches its recorded hash, so all of them would be overwritten.
+  let overlay: null | Overlay = null;
+  if (customTemplate !== undefined) {
+    overlay = customTemplate ? loadOverlayOrExit(resolvePath(customTemplate)) : null;
+  } else if (existingConfig.customTemplate) {
+    overlay = loadOverlayOrExit(
+      resolvePath(targetDir, existingConfig.customTemplate),
+      `
+This project records it in ${CONFIG_FILE_NAME}. Pass --customTemplate=<dir> to point at where it is now, or --customTemplate= to stop using it.`
+    );
+    log.info(`Applying the custom template recorded for this project: ${existingConfig.customTemplate}`);
+  }
 
   const configPath = join(targetDir, CONFIG_FILE_NAME);
   const savedConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as SavedConfig;
@@ -443,16 +493,16 @@ async function runUpdate(currentVersion: string, suppliedAnswers: Partial<Answer
   // A project that has already released carries a `manifest.json` its own `npm run version` rewrote, so its
   // Hash no longer matches the recorded one and the updater skips it -- the freshly looked-up
   // `minAppVersion` only ever reaches a manifest nobody has touched.
-  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers);
+  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers, overlay);
 
   const s = spinner();
   s.start('Updating project files...');
-  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions, minAppVersion);
+  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions, minAppVersion, overlay);
   s.stop('Update complete.');
 
   const newConfig = loadConfig(targetDir);
   if (newConfig) {
-    const configWithAnswers = { ...newConfig, answers };
+    const configWithAnswers = buildSavedConfig(newConfig, answers, overlay, targetDir);
     writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
   }
 

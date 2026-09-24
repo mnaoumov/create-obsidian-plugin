@@ -43,6 +43,12 @@ export interface Answers {
 
 export interface GeneratorConfig {
   answers?: Answers;
+  /**
+   * The overlay directory the project was generated with, relative to the project where possible. Recorded
+   * so an update re-applies it: the updater compares each file against the hash it recorded, so an overlay
+   * dropped on the next run would silently revert every file it had overridden.
+   */
+  customTemplate?: string;
   fileHashes: Record<string, string>;
   generatorVersion: string;
 }

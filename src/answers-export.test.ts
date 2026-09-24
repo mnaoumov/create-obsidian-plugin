@@ -167,6 +167,16 @@ describe('round-tripping the exported answers', () => {
       expect(parsed['obsidianConfigFolder']).toBe('');
     });
 
+    // The overlay is not an answer, so it round-trips on its own field -- and a path with a space in it is
+    // The ordinary case on Windows.
+    it(`carries the custom template, for ${shell}`, () => {
+      const answers = getDefaultAnswers({ pluginId: 'my-tool' });
+      const command = formatCreateCommand(answers, shell, '../my templates/100%');
+      const tokens = shell === 'cmd' ? tokenizeCmd(command) : tokenizeSh(command);
+      expect(parseCliArgs(flagsFrom(tokens)).customTemplate).toBe('../my templates/100%');
+      expect(formatCreateCommand(answers, shell)).not.toContain('--customTemplate');
+    });
+
     it(`emits a command the CLI accepts under preset=demo, for ${shell}`, () => {
       const answers = getDefaultAnswers({ pluginId: 'my-tool', preset: 'demo' });
       const parsed = roundTrip(answers, shell);

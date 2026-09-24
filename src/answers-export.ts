@@ -52,10 +52,14 @@ export function formatAnswersJson(answers: Answers): string {
  * `--yes` is included because the flags alone only settle the ANSWERS: without it the run still stops at
  * the post-scaffold install / git / GitHub prompts, so the script would not be non-interactive.
  */
-export function formatCreateCommand(answers: Answers, shell: Shell): string {
+export function formatCreateCommand(answers: Answers, shell: Shell, customTemplate?: string): string {
   const create = CREATE_COMMANDS[answers.packageManager] ?? CREATE_COMMANDS['npm'];
   const head = `${create?.prefix ?? ''}${create?.separator ?? ''} --yes`;
   const flags = getExportableKeys(answers).map((key) => `--${key}=${quote(String(answers[key as keyof Answers]), shell)}`);
+  // The overlay is not an answer, but a recipe without it regenerates a different project.
+  if (customTemplate) {
+    flags.push(`--customTemplate=${quote(customTemplate, shell)}`);
+  }
 
   if (shell === 'cmd') {
     // One long line. `cmd`'s `^` continuation is silently broken by a single trailing space, and a
@@ -67,8 +71,8 @@ export function formatCreateCommand(answers: Answers, shell: Shell): string {
 }
 
 /** A runnable script that regenerates this project non-interactively. */
-export function formatCreateScript(answers: Answers, shell: Shell): string {
-  const command = formatCreateCommand(answers, shell);
+export function formatCreateScript(answers: Answers, shell: Shell, customTemplate?: string): string {
+  const command = formatCreateCommand(answers, shell, customTemplate);
   if (shell === 'cmd') {
     // CRLF, because a batch file with bare LF endings misbehaves on older Windows shells.
     return ['@echo off', command, ''].join('\r\n');

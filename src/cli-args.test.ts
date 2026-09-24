@@ -102,6 +102,14 @@ describe('parsing flags', () => {
     expect(parseCliArgs(['--fundingUrl=']).answers).toStrictEqual({ fundingUrl: '' });
   });
 
+  // Empty is not "absent": on an update it is how a recorded overlay is dropped.
+  it('reads --customTemplate, keeping an empty one distinct from none', () => {
+    expect(parseCliArgs(['--customTemplate=../mine']).customTemplate).toBe('../mine');
+    expect(parseCliArgs(['--customTemplate=']).customTemplate).toBe('');
+    expect(parseCliArgs([]).customTemplate).toBeUndefined();
+    expect(parseCliArgs(['--customTemplate=../mine']).answers).toStrictEqual({});
+  });
+
   it('refuses an unknown answer, naming the ones it takes', () => {
     expect(() => parseCliArgs(['--nonsense=1'])).toThrow(/Unknown answer "nonsense"/);
     expect(() => parseCliArgs(['--nonsense=1'])).toThrow(/packageManager/);

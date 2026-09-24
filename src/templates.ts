@@ -19,6 +19,7 @@ import type {
   GeneratorConfig
 } from './answers.ts';
 import type { FeatureOption } from './feature-option.ts';
+import type { Overlay } from './overlay.ts';
 
 import { CONFIG_FILE_NAME } from './answers.ts';
 import { resolveFeature } from './feature-option.ts';
@@ -166,7 +167,7 @@ const DEMO_OVERRIDES: DemoOverride[] = [
   { answerKey: 'styling', demoValue: 'scss', options: STYLING_OPTIONS }
 ];
 
-export function buildTemplate(answers: Answers): TemplateBuilder {
+export function buildTemplate(answers: Answers, overlay: null | Overlay = null): TemplateBuilder {
   const builder = new TemplateBuilder();
 
   builder
@@ -229,6 +230,12 @@ export function buildTemplate(answers: Answers): TemplateBuilder {
     }
   }
 
+  // After every answer and demo override, so an overlay's partials render after the built-in ones at each
+  // Seam and its badges follow the built-in badges on the README's badge line.
+  if (overlay) {
+    applyOverlay(builder, overlay);
+  }
+
   // Last, because the demo overrides can register staged-files commands too. The pre-commit hook exists
   // Exactly when something registered a command for it -- whatever the commit-linting answer was.
   if (builder.lintStagedPatterns.length > 0) {
@@ -244,15 +251,32 @@ export function copyTemplates(
   currentVersion: string,
   existingConfig: GeneratorConfig | null,
   resolvedVersions: ReadonlyMap<string, string> = new Map(),
-  minAppVersion: string = FALLBACK_MIN_APP_VERSION
+  minAppVersion: string = FALLBACK_MIN_APP_VERSION,
+  overlay: null | Overlay = null
 ): GeneratorConfig {
   const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
+
+  /**
+   * The one place a template path becomes a file: the overlay first, then `templates/default`. Every read
+   * goes through it -- whole files, partials at any depth, and assets -- so an overlay overrides a partial
+   * file exactly as it overrides a whole one.
+   */
+  function findTemplate(relativePath: string): null | string {
+    if (overlay) {
+      const overlayPath = join(overlay.dir, relativePath);
+      if (existsSync(overlayPath)) {
+        return overlayPath;
+      }
+    }
+    const builtInPath = join(templatesDir, relativePath);
+    return existsSync(builtInPath) ? builtInPath : null;
+  }
   const newConfig: GeneratorConfig = {
     fileHashes: {},
     generatorVersion: currentVersion
   };
 
-  const builder = buildTemplate(answers);
+  const builder = buildTemplate(answers, overlay);
   const templateFiles = builder.templateFiles;
   const partials = builder.partials;
   const dependencies = builder.dependencies;
@@ -288,8 +312,8 @@ export function copyTemplates(
         const partialPath = section
           ? `${basePath}@${section}_${partial}.ejs`
           : `${basePath}_${partial}.ejs`;
-        const fullPath = join(templatesDir, partialPath);
-        if (!existsSync(fullPath)) {
+        const fullPath = findTemplate(partialPath);
+        if (fullPath === null) {
           continue;
         }
         currentTemplatePath = partialPath;
@@ -333,24 +357,29 @@ export function copyTemplates(
     const destinationPath = getDestinationPath(registeredPath, answers);
     const fullDestinationPath = join(targetDir, destinationPath);
     const isAsset = ASSET_EXTENSIONS.has(extname(registeredPath));
-    const ejsPath = join(templatesDir, `${registeredPath}.ejs`);
+    const ejsPath = findTemplate(`${registeredPath}.ejs`);
 
     let rendered: Buffer | string;
     if (isAsset) {
       // No `.ejs` suffix: an asset template is the emitted file, byte for byte.
       currentTemplatePath = registeredPath;
-      rendered = readFileSync(join(templatesDir, registeredPath));
-    } else if (existsSync(ejsPath)) {
+      rendered = readFileSync(findTemplate(registeredPath) ?? join(templatesDir, registeredPath));
+    } else if (ejsPath === null) {
+      currentTemplatePath = `${registeredPath}.ejs`;
+      rendered = (templateContext['render'] as (section?: string) => string)();
+    } else {
       currentTemplatePath = `${registeredPath}.ejs`;
       try {
         // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard EJS API.
         rendered = ejs.render(readFileSync(ejsPath, 'utf-8'), templateContext);
-      } catch {
+      } catch (error: unknown) {
+        // A built-in template that is not valid EJS is emitted as written. An overlay's is the user's own
+        // Mistake, and emitting its raw `<%` source into the project would hide it.
+        if (overlay && ejsPath.startsWith(overlay.dir)) {
+          throw new Error(`${ejsPath} failed to render: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+        }
         rendered = readFileSync(ejsPath, 'utf-8');
       }
-    } else {
-      currentTemplatePath = `${registeredPath}.ejs`;
-      rendered = (templateContext['render'] as (section?: string) => string)();
     }
 
     const newHash = sha256(rendered);
@@ -481,6 +510,22 @@ export function sortImportStatements(text: string): string {
   const statements = blocks.map((block) => block.join('\n'));
   statements.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
   return `${statements.join('\n')}\n`;
+}
+
+/**
+ * Registers what an overlay declares. Its templates need no registration: `copyTemplates` finds them by path.
+ */
+function applyOverlay(builder: TemplateBuilder, overlay: Overlay): void {
+  builder.addFiles([...overlay.files]);
+  for (const packageName of overlay.packages) {
+    builder.addPackage(packageName);
+  }
+  for (const badge of overlay.badges) {
+    builder.addBadge(badge);
+  }
+  for (const partial of overlay.partials) {
+    builder.addPartial(partial);
+  }
 }
 
 /**
