@@ -150,6 +150,27 @@ is optional decoration, and each piece was found by a combination that failed wi
   publishes a `jsx-runtime`; plain `solid-js` does not. These two are per-answer and so DO go through
   partials (`jest.config.ts@ts-jest-tsconfig_solid`, `vitest.config.ts_standalone@jsx_solid`,
   `scripts/vitest-config.ts@post-config_solid`).
+- **Stylesheets are stubbed in every runner** (`scripts/stylesheet-stub.ts`), because `src/main.test.ts`
+  imports `src/main.ts`, which imports the stylesheet. Jest parses a `.css` as JavaScript, and on
+  `tailwind` the file `main.ts` names does not exist until the first build, so `npm test` on a fresh
+  clone would fail to resolve it under vitest too.
+
+### The sample unit tests ship; the screenshot and integration harness does not
+
+Beside `src/plugin.test.ts`, `src/features/test-runner/sample-unit-tests.ts` registers the sample tests
+the real plugins carry, and only those with something true to assert: `src/main.test.ts` on every preset
+(the default export Obsidian loads is the plugin class), `src/plugin-settings-component.test.ts` on the
+odu presets (driven through `loadWithPromises()`, the lifecycle Obsidian runs), and
+`src/plugin-settings.test.ts` on `demo` only. `enhanced`'s settings class is one default value, and a
+test of it would only restate the source. There is no settings-tab test: rendering a row reaches `bind`,
+which throws on the test-mocks components unless spied on, and jest under ES modules has no `jest`
+global to spy with. The per-runner difference is only the `vitest` import, which each template takes
+from a `test-imports` section.
+
+The screenshot-capture harness, its images and the desktop / Android integration suites are left out
+on purpose, for the reason `test:integration` already declines to run those projects: they need a
+provisioned Obsidian or emulator, so a fresh project would ship tests nothing can run.
+`plugin-drift-baseline.json` records that per entry.
 
 ### Root configs are thin wrappers
 
@@ -164,7 +185,7 @@ The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole
 
 `scripts/eslint-config.ts` re-states four things the shared config does not carry: `dot-notation` with `allowIndexSignaturePropertyAccess` (see "Where the linters and the compiler disagree"), `depend/ban-dependencies` allowing `moment`, the `sentence-case` brands, and the global ignores that `.gitignore` does not cover. It does not re-state the `no-console` / `no-nodejs-modules` exemption outside `src/`. The shared config scopes every obsidianmd rule to `context.sourceFiles`, so those rules never reach `scripts/`.
 
-It also carries two categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the two `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-unresolved` ignores `data-url:` and the generated tailwind stylesheet. The stylesheet does not exist until the first build, so an inline disable would be wrong both before the build and after it.
+It also carries two categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the three `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-unresolved` ignores `data-url:` and the generated tailwind stylesheet. The stylesheet does not exist until the first build, so an inline disable would be wrong both before the build and after it.
 
 ### A lint directive for the shared config goes in an `_odu` section
 
