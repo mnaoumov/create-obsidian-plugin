@@ -338,6 +338,21 @@ Three things about it are load-bearing.
 
 The exported script is runnable rather than copyable text, which makes quoting per-shell: `sh` gets single quotes with `'\''` for an embedded one, `cmd` gets double quotes with `""` — **and a literal `%` doubled to `%%`, because a batch file expands `%…%` as a variable**. Funding and badge URLs are percent-encoded, so that is a real value, not a hypothetical. `cmd`'s `^` line continuation is silently broken by one trailing space, so the batch form stays on a single line and only the shell form wraps. The tests generate BOTH forms whatever the host runs and parse them back through the real parser; the quoting was additionally executed through actual `cmd.exe` and actual `sh`.
 
+### `--yes` never asks: a question no flag answers stops the run
+
+`--yes` is what an exported script runs, and a script has no TTY, so a `confirm()` reached under it waits
+forever. Two prompts sit outside the answer space. Each has its own flag: `--mode=create|update` answers
+"Existing project detected, update it?" and `--force` answers "Directory already exists, continue?".
+Under `--yes`, reaching either without its flag is a usage error that names the flag (`exitWithUsageError`,
+`src/main.ts`). It does not take the prompt's default. A silent "no" at the directory check exits 0
+having generated nothing, and a silent guess at mode detection may update a project the caller meant to
+leave alone. On update, `--yes` skips "change any settings?" and uses the saved answers with the flags over
+them. It refuses a config that records no answers, because using the defaults there would mean guessing
+the plugin id of a project that already exists. The exporter writes `--yes --mode=create`, so a recipe
+run inside an existing project still creates a new plugin.
+
+A new `confirm()` on a path `--yes` can reach needs the same treatment: a flag, or a refusal.
+
 ### A hand-edited file is skipped on every update, not just the next one
 
 `.create-obsidian-plugin.json` records, per file, the hash of what the generator WROTE. On an update a file

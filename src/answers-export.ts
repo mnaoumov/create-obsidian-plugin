@@ -51,10 +51,13 @@ export function formatAnswersJson(answers: Answers): string {
  *
  * `--yes` is included because the flags alone only settle the ANSWERS: without it the run still stops at
  * the post-scaffold install / git / GitHub prompts, so the script would not be non-interactive.
+ *
+ * `--mode=create` is included because `--yes` refuses to guess whether to update a project it finds in the
+ * current directory, and this command's only intent is to create one.
  */
 export function formatCreateCommand(answers: Answers, shell: Shell, customTemplate?: string): string {
   const create = CREATE_COMMANDS[answers.packageManager] ?? CREATE_COMMANDS['npm'];
-  const head = `${create?.prefix ?? ''}${create?.separator ?? ''} --yes`;
+  const head = `${create?.prefix ?? ''}${create?.separator ?? ''} --yes --mode=create`;
   const flags = getExportableKeys(answers).map((key) => `--${key}=${quote(String(answers[key as keyof Answers]), shell)}`);
   // The overlay is not an answer, but a recipe without it regenerates a different project.
   if (customTemplate) {

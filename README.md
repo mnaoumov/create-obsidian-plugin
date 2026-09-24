@@ -45,7 +45,9 @@ Every question the wizard asks can be answered up front instead, which is what l
 
 | Option | What it does |
 |--------|--------------|
-| `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts |
+| `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts. It never asks anything: a question no flag answers stops the run with an error naming the flag |
+| `--mode=create\|update` | Create a new plugin, or update the project in the current directory, without being asked which. Under `--yes` it is required when the current directory holds a `.create-obsidian-plugin.json` |
+| `--force` | Scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. Under `--yes` it is required when that directory exists |
 | `-h`, `--help` | List every option, including the accepted values for each answer |
 | `--answersFile=<path>` | Read answers from a JSON file |
 | `--customTemplate=<dir>` | Layer your own templates over the built-in ones — see [Your own templates](#your-own-templates) |
@@ -58,7 +60,7 @@ npm create @mnaoumov/obsidian-plugin -- --yes --pluginId=my-tool --packageManage
 pnpm create @mnaoumov/obsidian-plugin --yes --pluginId=my-tool --packageManager=pnpm
 ```
 
-Answers are applied in order, so the most specific wins: built-in defaults, then the answers saved in an existing project, then `--answersFile`, then individual flags. An answer given this way is not asked about again.
+Answers are applied in order, so the most specific wins: built-in defaults, then the answers saved in an existing project, then `--answersFile`, then individual flags. An answer given this way is not asked about again. On an update, `--yes` reuses the project's saved answers with any flags applied over them, instead of asking whether to change them.
 
 The answers file is a JSON object using the same names. It also accepts a whole `.create-obsidian-plugin.json`, so you can point it at an existing project to scaffold another one like it:
 
