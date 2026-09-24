@@ -416,13 +416,13 @@ function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): bo
     && chosen.jsxImportSource !== demo.jsxImportSource;
 }
 
+function importedModule(block: string): string {
+  return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
+}
+
 function isPartialFile(templatePath: string): boolean {
   const fileName = templatePath.split('/').pop() ?? '';
   return fileName.includes('_');
-}
-
-function importedModule(block: string): string {
-  return /(?:from )?'(?<Module>[^']+)';$/.exec(block)?.groups?.['Module'] ?? block;
 }
 
 function logUpdateSummary(updated: string[], created: string[], skipped: string[]): void {
@@ -488,9 +488,14 @@ function sha256(content: Buffer | string): string {
  * are compared by the specifier in their trailing `from '...'`, which is what an import-sorting lint rule
  * asks for within one group. A side-effect import (`import './x.ts';`) has no `from`, and its own text
  * is then the key.
+ *
+ * A run of `//` comment lines directly above an `import` belongs to it and travels with it. Without that,
+ * an `eslint-disable-next-line` written above one import was carried along by the one BEFORE it and
+ * landed on whatever the sort put next -- which is both an unused directive and a live violation on the
+ * statement it left behind.
  */
 function sortImportStatements(text: string): string {
-  const blocks = text.split(/\n(?=import )/).map((block) => block.trim()).filter((block) => block !== '');
+  const blocks = text.split(/\n(?=(?:\/\/[^\n]*\n)*import )/).map((block) => block.trim()).filter((block) => block !== '');
   if (blocks.length === 0) {
     return text;
   }

@@ -1,9 +1,12 @@
 import type { Config } from 'prettier';
 
+const PRINT_WIDTH = 120;
+const TAB_WIDTH = 2;
+
 export const config: Config = {
-  singleQuote: true,
-  trailingComma: 'none',
-  tabWidth: 2,
+  printWidth: PRINT_WIDTH,
   semi: true,
-  printWidth: 120
+  singleQuote: true,
+  tabWidth: TAB_WIDTH,
+  trailingComma: 'none'
 };

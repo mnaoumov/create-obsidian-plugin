@@ -1,4 +1,4 @@
 
-if (prod) {
+if (isProduction) {
   execSync('svelte-check --tsconfig tsconfig.json', { stdio: 'inherit' });
 }

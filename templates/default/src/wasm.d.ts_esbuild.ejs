@@ -1,4 +1,4 @@
-// esbuild has no loader for `.wasm` of its own, and the ESM-integration plugin (`esbuild-plugin-wasm`)
+// Esbuild has no loader for `.wasm` of its own, and the ESM-integration plugin (`esbuild-plugin-wasm`)
 // Cannot be used here: it emits a TOP-LEVEL `await`, which esbuild supports only for the `esm` output
 // Format, and an Obsidian plugin is `cjs`. So the build turns on esbuild's built-in `binary` loader,
 // Which inlines the file as base64 and hands the importing module its bytes.

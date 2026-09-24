@@ -7,4 +7,5 @@ const en = {
   greeting: 'Hello from <%= pluginName %>!'
 } satisfies BaseTranslation;
 
+// eslint-disable-next-line import-x/no-default-export -- typesafe-i18n's generator reads each locale's DEFAULT export.
 export default en;

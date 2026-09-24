@@ -8,6 +8,6 @@
 
   void test('sample command exists', () => {
     const commands = app.commands.listCommands();
-    const sampleCommand = commands.find((cmd) => cmd.id === '<%= pluginId %>:sample');
+    const sampleCommand = commands.find((command) => command.id === '<%= pluginId %>:sample');
     assert.ok(sampleCommand, 'Sample command should be registered');
   });

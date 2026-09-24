@@ -1256,7 +1256,7 @@ describe('copyTemplates', () => {
   it('creates dev.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const devScript = readFileSync(join(targetDir, 'scripts/dev.ts'), 'utf-8');
-    expect(devScript).toContain('process.argv[2] = \'dev\'');
+    expect(devScript).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
     expect(devScript).toContain('import(\'./build.ts\')');
   });
 
@@ -1287,7 +1287,7 @@ describe('copyTemplates', () => {
 
         // Everywhere else `dev` IS `build` in watch mode, so it re-enters build.ts rather than
         // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
-        expect(devScript, label).toContain('process.argv[2] = \'dev\'');
+        expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
         expect(devScript, label).toContain('import(\'./build.ts\')');
         expect(devScript, label).not.toContain(oduDevImport);
       }

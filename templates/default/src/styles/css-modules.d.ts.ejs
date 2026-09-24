@@ -1,4 +1,5 @@
 declare module '*.module.css' {
   const classes: Record<string, string>;
+  // eslint-disable-next-line import-x/no-default-export -- A CSS-modules import is a default import; the declaration has to match.
   export default classes;
 }

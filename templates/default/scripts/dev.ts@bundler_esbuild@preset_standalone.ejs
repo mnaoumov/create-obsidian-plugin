@@ -1,2 +1,3 @@
-process.argv[2] = 'dev';
+const BUILD_MODE_ARGUMENT_INDEX = 2;
+process.argv[BUILD_MODE_ARGUMENT_INDEX] = 'dev';
 await import('./build.ts');
