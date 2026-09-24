@@ -1,19 +1,19 @@
+import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 
 export class Markdownlint extends FeatureOption {
   public constructor() {
     super({ promptHint: 'Lint Markdown files for style and consistency', promptLabel: 'markdownlint', settingValue: 'markdownlint' });
   }
 
-  public override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addLintStagedCommand('*.md', 'markdownlint-cli2 --fix')
-      .addPackage('markdownlint')
       .addPackage('markdownlint-cli2')
       .addDepcheckIgnore('markdownlint-cli2', 'run as a CLI by the `lint:md` scripts, configured by `.markdownlint-cli2.mjs`.')
-      .addPackage('markdownlint-rule-relative-links')
       .addPackage('linkinator')
       .addDepcheckIgnore('linkinator', 'run as a CLI by the `lint:md` scripts.')
       .addScript('lint:md')
@@ -28,5 +28,16 @@ export class Markdownlint extends FeatureOption {
         'scripts/lint-md.ts',
         'scripts/lint-md-fix.ts'
       ]);
+
+    // Split on the preset, the way `scripts/lint-md.ts` itself already is. The obsidian-dev-utils presets
+    // Spread that package's shared config, as every real plugin does, so the rule set and its custom rules
+    // Arrive by `npm update`. The standalone preset writes its own, and only it imports these two.
+    if (isDevUtilsPreset(answers.preset)) {
+      return;
+    }
+
+    builder
+      .addPackage('markdownlint')
+      .addPackage('markdownlint-rule-relative-links');
   }
 }

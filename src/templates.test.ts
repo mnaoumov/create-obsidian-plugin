@@ -596,6 +596,30 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).toContain('scripts/lint-md.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });
+
+    // The odu presets spread obsidian-dev-utils' shared config, so the two packages only the inlined
+    // Standalone config imports would be declared for nothing there.
+    it('declares markdownlint and its relative-links rule only on the standalone preset', () => {
+      for (const preset of ['enhanced', 'demo']) {
+        const packages = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint', preset })).dependencies.map((d) => d.packageName);
+        expect(packages).not.toContain('markdownlint');
+        expect(packages).not.toContain('markdownlint-rule-relative-links');
+      }
+
+      const packages = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint', preset: 'standalone' })).dependencies.map((d) => d.packageName);
+      expect(packages).toContain('markdownlint');
+      expect(packages).toContain('markdownlint-rule-relative-links');
+    });
+  });
+
+  // `obsidianmd/validate-license` in the shared ESLint config fails a LICENSE whose year is not the current
+  // One, so a project without the bump goes red every 1 January.
+  describe('update-license-year workflow', () => {
+    it('is emitted on both odu presets whatever the gitHubActions answer, and not on standalone', () => {
+      expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'enhanced' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
+      expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'demo' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
+      expect([...buildTemplate(makeAnswers({ preset: 'standalone' })).templateFiles]).not.toContain('.github/workflows/update-license-year.yml');
+    });
   });
 
   describe('spellChecker feature', () => {
@@ -1952,6 +1976,16 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8').trim()).toBe('export { configs as default } from \'./scripts/eslint-config.ts\';');
     expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('defineEslintConfigs');
+  });
+
+  it('spreads the shared markdownlint config on a dev-utils preset and inlines one on standalone', () => {
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8')).toContain('...obsidianDevUtilsConfig');
+    rmSync(targetDir, { force: true, recursive: true });
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'standalone' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8');
+    expect(config).toContain('from \'markdownlint-rule-relative-links\'');
+    expect(config).not.toContain('obsidian-dev-utils');
   });
 
   it('inlines the whole config on the standalone preset, which depends on nothing from the ecosystem', () => {

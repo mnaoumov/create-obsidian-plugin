@@ -34,8 +34,11 @@ export class Demo extends FeatureOption {
       .addFiles([
         // Not gated on the gitHubActions answer, and deliberately so: this attests the assets of a
         // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin compared here
-        // Ships this workflow and no other -- they have no ci.yml at all.
+        // Ships this workflow -- they have no ci.yml at all.
         '.github/workflows/attest-release-assets.yml',
+        // Not gated on the answers either: the shared ESLint config's `obsidianmd/validate-license` compares
+        // The LICENSE year with the current one, so without this bump every project turns red on 1 January.
+        '.github/workflows/update-license-year.yml',
         'scripts/build.ts',
         'scripts/build-clean.ts',
         'scripts/build-compile.ts',
