@@ -692,6 +692,28 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).not.toContain('scripts/tailwind.config.ts');
     });
 
+    // The shared ESLint config rejects an unassigned import and a blank line inside one import group, so
+    // The side-effect `build-styles.ts` import carries its directive and sits in the relative group.
+    it('emits the dev-utils esbuild tailwind build and dev imports as one lint-clean relative group', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-tailwind-esbuild-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'enhanced', styling: 'tailwind' }), targetDir, '1.0.0', null);
+        for (const script of ['build', 'dev']) {
+          const text = readFileSync(join(targetDir, `scripts/${script}.ts`), 'utf-8');
+          expect(text, script).toContain([
+            'import { wrapCliTask } from \'obsidian-dev-utils/script-utils/cli-utils\';',
+            '',
+            '// eslint-disable-next-line import-x/no-unassigned-import -- Importing the module RUNS the style build; there is nothing to bind.',
+            'import \'./build-styles.ts\';',
+            'import { customEsbuildPlugins } from \'./esbuild-plugins.ts\';',
+            ''
+          ].join('\n'));
+        }
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
+    });
+
     it('adds css modules files', () => {
       const builder = buildTemplate(makeAnswers({ styling: 'css-modules' }));
       const files = [...builder.templateFiles];
