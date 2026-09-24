@@ -5,6 +5,8 @@ const config: Config = {
   // treats `.ts` as CommonJS unless told otherwise, and then fails to `require` that output.
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
+    // `src/main.ts` imports the stylesheet for its side effect, and jest would parse it as JavaScript.
+    '\\.(css|scss)$': '<rootDir>/scripts/stylesheet-stub.ts',
     // Compiling a single-file component is the bundler's job, not the unit runner's -- and the plugin
     // That does it is only a dependency when the matching bundler was chosen. A unit test that reaches
     // One through the plugin's module graph gets this stub instead, so the graph loads.

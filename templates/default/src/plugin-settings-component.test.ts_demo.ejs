@@ -1,0 +1,49 @@
+import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
+import type { PluginEventMap } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
+
+import { AsyncEvents } from 'obsidian-dev-utils/async-events';
+import { noopAsync } from 'obsidian-dev-utils/function';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+<%- render('test-imports') -%>
+
+import { PluginSettingsComponent } from './plugin-settings-component.ts';
+import {
+  PluginSettings,
+  TypedItem
+} from './plugin-settings.ts';
+
+describe('PluginSettingsComponent', () => {
+  it('takes its defaults from the PluginSettings class', () => {
+    // `strictProxy` throws on any member the component touches, so this also proves that constructing
+    // The component reads nothing from `data.json` or the plugin's events.
+    const component = new PluginSettingsComponent({
+      dataHandler: strictProxy<DataHandler>({}),
+      pluginEventSource: strictProxy<AsyncEvents<PluginEventMap>>({})
+    });
+    expect(component.defaultSettings).toBeInstanceOf(PluginSettings);
+  });
+
+  // `data.json` is JSON, so a `TypedItem` is stored as its name and has to come back as the same instance
+  // On load -- otherwise the dropdown shows nothing selected after a restart. This drives the component
+  // Through the lifecycle Obsidian does: `load()` reads `data.json`, and writes it back normalized.
+  it('loads a typed setting saved by name as the same item, and saves it back by name', async () => {
+    const savedRecords: unknown[] = [];
+    const component = new PluginSettingsComponent({
+      dataHandler: {
+        loadData(): Promise<unknown> {
+          return Promise.resolve({ typedDropdownSetting: TypedItem.Baz.name });
+        },
+        saveData(data: unknown): Promise<void> {
+          savedRecords.push(data);
+          return noopAsync();
+        }
+      },
+      pluginEventSource: new AsyncEvents<PluginEventMap>()
+    });
+
+    await component.loadWithPromises();
+
+    expect(component.settings.typedDropdownSetting).toBe(TypedItem.Baz);
+    expect(savedRecords.at(-1)).toMatchObject({ typedDropdownSetting: TypedItem.Baz.name });
+  });
+});
