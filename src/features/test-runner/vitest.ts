@@ -3,6 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { addSampleUnitTests } from './sample-unit-tests.ts';
 
 export class Vitest extends FeatureOption {
   public constructor() {
@@ -36,8 +37,13 @@ export class Vitest extends FeatureOption {
         // On every preset when the `wasm` answer is chosen, so every vitest config aliases `.wasm` to
         // This stub. `framework-component-stub.ts` is odu-only because only those presets' `plugin.ts`
         // Reaches a single-file component.
-        'scripts/wasm-module-stub.ts'
+        'scripts/wasm-module-stub.ts',
+        // `src/main.test.ts` imports `src/main.ts`, which imports the stylesheet -- and on `tailwind` that
+        // File does not exist until the first build. See the stub's own comment.
+        'scripts/stylesheet-stub.ts'
       ]);
+
+    addSampleUnitTests(builder, answers);
 
     if (!isDevUtilsPreset(answers.preset)) {
       return;

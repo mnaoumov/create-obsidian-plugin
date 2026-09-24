@@ -1,13 +1,15 @@
+import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { addSampleUnitTests } from './sample-unit-tests.ts';
 
 export class Jest extends FeatureOption {
   public constructor() {
     super({ promptHint: 'Feature-rich, widely adopted', promptLabel: 'Jest', settingValue: 'jest' });
   }
 
-  public override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('@types/jest')
       .addPackage('jest')
@@ -26,10 +28,13 @@ export class Jest extends FeatureOption {
       .addFiles([
         'jest.config.ts',
         'scripts/framework-component-stub.ts',
+        'scripts/stylesheet-stub.ts',
         'scripts/wasm-module-stub.ts',
         'src/plugin.test.ts',
         'scripts/test.ts',
         'scripts/test-watch.ts'
       ]);
+
+    addSampleUnitTests(builder, answers);
   }
 }

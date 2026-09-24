@@ -1,0 +1,14 @@
+<%- render('test-imports') -%>
+import { TypedItem } from './plugin-settings.ts';
+
+describe('TypedItem', () => {
+  it('deserializes a saved name back to the same instance', () => {
+    expect(TypedItem.deserialize(TypedItem.Bar.name)).toBe(TypedItem.Bar);
+  });
+
+  // A `data.json` edited by hand, or written by a version of the plugin that had another item, must not
+  // Load as a silently wrong value.
+  it('rejects a name it does not know', () => {
+    expect(() => TypedItem.deserialize('Unknown')).toThrow('Unknown item: Unknown');
+  });
+});
