@@ -425,6 +425,26 @@ describe('buildTemplate', () => {
         rmSync(targetDir, { force: true, recursive: true });
       }
     });
+
+    // `@rollup/plugin-typescript` resolves every import under `require` unless handed a TypeScript whose
+    // `getModeForResolutionAtIndex` knows the module kind, which loaded `@codemirror/state` twice and printed
+    // TS2416 three times on the codemirror sample. The tsconfig's inline source map printed one more warning
+    // On every production build. No tier fails on a build warning, so only this test pins either fix.
+    it('keeps the rollup TypeScript plugin warning-free', () => {
+      for (const preset of ['standalone', 'enhanced'] as const) {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-ts-'));
+        try {
+          copyTemplates(makeAnswers({ bundler: 'rollup', editorExtensions: 'codemirror', preset }), targetDir, '1.0.0', null);
+          const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
+          expect(config, preset).toContain('getModeForResolutionAtIndex(file, index, { module: ModuleKind.Node16 })');
+          expect(config, preset).toContain('typescript: typescriptWithResolutionModes');
+          expect(config, preset).toContain('inlineSourceMap: !isProduction,');
+          expect(config, preset).toContain('inlineSources: !isProduction,');
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    });
   });
 
   describe('uiFramework feature', () => {
