@@ -37,7 +37,7 @@
     },
     "demo/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,
-      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
+      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every dev-utils vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
     },
     "demo/layout/extra/scripts/stylesheet-stub.ts": {
       "pluginCount": 0,
@@ -131,11 +131,11 @@
       "pluginCount": 19,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
-    "demo/odu-modules/missing/scripts/nano-staged-config.ts": {
+    "demo/dev-utils-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 32,
-      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
+      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so a dev-utils preset paired with biome or prettier would get commands for tools it does not have."
     },
-    "demo/odu-modules/partial/scripts/capture-screenshots.ts": {
+    "demo/dev-utils-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 31,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
@@ -165,7 +165,7 @@
     },
     "enhanced/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,
-      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every odu vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
+      "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every dev-utils vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
     },
     "enhanced/layout/extra/scripts/stylesheet-stub.ts": {
       "pluginCount": 0,
@@ -243,11 +243,11 @@
       "pluginCount": 19,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
-    "enhanced/odu-modules/missing/scripts/nano-staged-config.ts": {
+    "enhanced/dev-utils-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 32,
-      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
+      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so a dev-utils preset paired with biome or prettier would get commands for tools it does not have."
     },
-    "enhanced/odu-modules/partial/scripts/capture-screenshots.ts": {
+    "enhanced/dev-utils-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 31,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },

@@ -494,10 +494,10 @@ describe('buildTemplate', () => {
         .toBe('jiti scripts/gate.ts');
     });
 
-    it('both obsidian-dev-utils presets add the shared odu partial', () => {
+    it('both obsidian-dev-utils presets add the shared dev-utils partial', () => {
       for (const preset of ['enhanced', 'demo']) {
         const builder = buildTemplate(makeAnswers({ preset }));
-        expect(builder.partials.has('odu'), preset).toBe(true);
+        expect(builder.partials.has('dev-utils'), preset).toBe(true);
       }
     });
 
@@ -597,7 +597,7 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });
 
-    // The odu presets spread obsidian-dev-utils' shared config, so the two packages only the inlined
+    // The dev-utils presets spread obsidian-dev-utils' shared config, so the two packages only the inlined
     // Standalone config imports would be declared for nothing there.
     it('declares markdownlint and its relative-links rule only on the standalone preset', () => {
       for (const preset of ['enhanced', 'demo']) {
@@ -615,7 +615,7 @@ describe('buildTemplate', () => {
   // `obsidianmd/validate-license` in the shared ESLint config fails a LICENSE whose year is not the current
   // One, so a project without the bump goes red every 1 January.
   describe('update-license-year workflow', () => {
-    it('is emitted on both odu presets whatever the gitHubActions answer, and not on standalone', () => {
+    it('is emitted on both dev-utils presets whatever the gitHubActions answer, and not on standalone', () => {
       expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'enhanced' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
       expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'demo' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
       expect([...buildTemplate(makeAnswers({ preset: 'standalone' })).templateFiles]).not.toContain('.github/workflows/update-license-year.yml');
@@ -1362,7 +1362,7 @@ describe('copyTemplates', () => {
 
   // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING
   // Under `node_modules/@types` reaches the program -- measured: zero packages -- so `standalone` failed
-  // Its own `tsc --noEmit` with twelve TS2591s. The odu config and this generator's own tsconfig both
+  // Its own `tsc --noEmit` with twelve TS2591s. The dev-utils config and this generator's own tsconfig both
   // Already named what they need; standalone was the one that did not.
   it('names the node types in the tsconfig, for both presets', () => {
     for (const preset of ['standalone', 'enhanced', 'demo']) {
@@ -1397,7 +1397,7 @@ describe('copyTemplates', () => {
     expect(build).toContain('from \'node:child_process\'');
   });
 
-  // `lint.ts_odu.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
+  // `lint.ts_dev-utils.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
   // Obsidian-dev-utils ESLint runner whatever the linter answer said: `linter: biome` installed biome,
   // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
   // Keyed on the tool first, exactly as the format scripts already were.
@@ -1589,7 +1589,7 @@ describe('copyTemplates', () => {
   it('dev.ts and build.ts pick the same bundler on every preset', () => {
     const presets = ['demo', 'enhanced', 'standalone'];
     const bundlers = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
-    const oduDevImport = 'obsidian-dev-utils/script-utils/bundlers/esbuild';
+    const devUtilsDevImport = 'obsidian-dev-utils/script-utils/bundlers/esbuild';
 
     for (const preset of presets) {
       for (const bundler of bundlers) {
@@ -1601,7 +1601,7 @@ describe('copyTemplates', () => {
         if (preset !== 'standalone' && bundler === 'esbuild') {
           // The one path that genuinely differs: obsidian-dev-utils' `dev()` also watches node_modules
           // And re-runs build:compile, which its `build()` cannot do and no CLI bundler offers.
-          expect(devScript, label).toContain(`import { dev } from '${oduDevImport}'`);
+          expect(devScript, label).toContain(`import { dev } from '${devUtilsDevImport}'`);
           expect(devScript, label).toContain('dev({ customEsbuildPlugins })');
           continue;
         }
@@ -1610,7 +1610,7 @@ describe('copyTemplates', () => {
         // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
         expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
         expect(devScript, label).toContain('import(\'./build.ts\')');
-        expect(devScript, label).not.toContain(oduDevImport);
+        expect(devScript, label).not.toContain(devUtilsDevImport);
       }
     }
   });
@@ -1772,7 +1772,7 @@ describe('copyTemplates', () => {
     }
   });
 
-  // The odu presets get their alias from `defineObsidianPluginVitestConfig`; standalone has no such
+  // The dev-utils presets get their alias from `defineObsidianPluginVitestConfig`; standalone has no such
   // Config, so it declares both halves itself. Both ARE needed: `vitest-setup` only calls
   // `vi.mock('obsidian')`, and vite has to resolve the specifier before that mock is ever consulted.
   it('points the standalone vitest config at the obsidian mocks', () => {
@@ -2012,7 +2012,7 @@ describe('copyTemplates', () => {
   });
 
   // Vitest's default glob otherwise sweeps up `e2e/`, and `npm test` reports the end-to-end suite as
-  // Failed unit tests. The odu presets escape it through their per-project `include`, jest through
+  // Failed unit tests. The dev-utils presets escape it through their per-project `include`, jest through
   // `roots`; this config had neither.
   it('restricts the standalone vitest config to src, so the e2e suite is not collected', () => {
     copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);

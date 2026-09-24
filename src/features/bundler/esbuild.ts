@@ -12,7 +12,7 @@ export class Esbuild extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder.addPackage('esbuild');
     // The standalone preset writes its own esbuild invocation and registers framework plugins inline.
-    // The odu presets call obsidian-dev-utils' `build()` / `dev()`, which take the extra plugins as an
+    // The dev-utils presets call obsidian-dev-utils' `build()` / `dev()`, which take the extra plugins as an
     // Argument -- so those two need somewhere to state them, and this is it.
     if (isDevUtilsPreset(answers.preset)) {
       builder.addFiles(['scripts/esbuild-plugins.ts']);

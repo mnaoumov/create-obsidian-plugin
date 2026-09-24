@@ -54,6 +54,6 @@ export class Demo extends FeatureOption {
         'src/views/sample-view.ts',
         ...DEMO_VAULT_TEMPLATE_FILES
       ])
-      .addPartial('odu');
+      .addPartial('dev-utils');
   }
 }
