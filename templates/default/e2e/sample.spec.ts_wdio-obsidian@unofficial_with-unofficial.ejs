@@ -7,9 +7,9 @@
   });
 
   it('should register the sample command', async () => {
-    const result = await browser.executeObsidian(({ app }) => {
+    const hasSampleCommand = await browser.executeObsidian(({ app }) => {
       const commands = app.commands.listCommands();
-      return commands.some((cmd) => cmd.id === '<%= pluginId %>:sample');
+      return commands.some((command) => command.id === '<%= pluginId %>:sample');
     });
-    expect(result).toBe(true);
+    expect(hasSampleCommand).toBe(true);
   });
