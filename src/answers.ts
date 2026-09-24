@@ -32,7 +32,6 @@ export interface Answers {
   pluginDescription: string;
   pluginId: string;
   pluginName: string;
-  pluginShortName: string;
   preset: string;
   spellChecker: string;
   styling: string;
@@ -66,3 +65,14 @@ export interface PackageJson {
  * a key it could not write a `settingValue` into.
  */
 export type StringAnswerKey = { [Key in keyof Answers]: Answers[Key] extends string ? Key : never }[keyof Answers];
+
+/**
+ * The PascalCase stem of the plugin's class names (`<Short>Plugin`, `<Short>SettingTab`), derived from the id.
+ *
+ * Derived at render time rather than stored as an answer. It used to be an {@link Answers} field that the
+ * `--yes` path let a caller override and the interactive path recomputed, so one supplied value meant two
+ * different things; a stored copy also went stale whenever `pluginId` was re-answered on an update.
+ */
+export function getPluginShortName(pluginId: string): string {
+  return pluginId.split('-').map((word) => (word[0] ?? '').toUpperCase() + word.slice(1)).join('');
+}

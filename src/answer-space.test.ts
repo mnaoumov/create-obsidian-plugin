@@ -25,7 +25,7 @@ describe('ANSWER_SPACE', () => {
   const EXPECTED_ANSWER_SPACE_SIZE = CHOICE_QUESTION_SPACE_SIZE * PRESENCE_BRANCH_VALUE_COUNT ** PRESENCE_BRANCHES.length;
   const OUT_OF_RANGE_VALUE_INDEX = 99;
   const NON_INTEGER_ORDINAL = 1.5;
-  const FIXED_ANSWER_COUNT = 9;
+  const FIXED_ANSWER_COUNT = 8;
 
   it('has one dimension per choice question, plus the two presence branches', () => {
     expect(ANSWER_SPACE).toHaveLength(DIMENSION_COUNT);

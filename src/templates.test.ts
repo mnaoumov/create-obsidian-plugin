@@ -62,7 +62,6 @@ describe('buildTemplate', () => {
       pluginDescription: 'A test plugin.',
       pluginId: 'test',
       pluginName: 'Test',
-      pluginShortName: 'Test',
       preset: 'enhanced',
       spellChecker: 'cspell',
       styling: 'none',
@@ -869,7 +868,6 @@ describe('copyTemplates', () => {
       pluginDescription: 'A test plugin.',
       pluginId: 'my-tool',
       pluginName: 'My Tool',
-      pluginShortName: 'MyTool',
       preset: 'standalone',
       spellChecker: 'none',
       styling: 'none',
@@ -1099,6 +1097,22 @@ describe('copyTemplates', () => {
       expect(answers, fundingUrl).toMatchObject({ coverageBadge: 'none', fundingPlatform, fundingUrl: migratedUrl, fundingUsername });
       expect(answers, fundingUrl).not.toHaveProperty('gitHubFunding');
     }
+  });
+
+  // It used to be stored, and the update path that keeps the saved answers kept a copy that went stale once
+  // `pluginId` was re-answered -- while the re-prompt path recomputed it.
+  it('drops an old project\'s stored pluginShortName and derives it from pluginId instead', () => {
+    writeFileSync(
+      join(targetDir, '.create-obsidian-plugin.json'),
+      JSON.stringify({ answers: { ...makeAnswers(), pluginShortName: 'Stale' }, fileHashes: {}, generatorVersion: '1.0.0' })
+    );
+    const answers = loadConfig(targetDir)?.answers;
+    expect(answers).not.toHaveProperty('pluginShortName');
+
+    copyTemplates(makeAnswers({ ...answers }), targetDir, '1.0.0', null);
+    const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
+    expect(plugin).toContain('MyToolSettingTab');
+    expect(plugin).not.toContain('Stale');
   });
 
   it('creates README with plugin name', () => {

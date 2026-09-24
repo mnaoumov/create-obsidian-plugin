@@ -114,8 +114,7 @@ const FIXED_ANSWERS = {
   fundingUsername: 'testuser',
   pluginDescription: 'A generated plugin.',
   pluginId: 'my-tool',
-  pluginName: 'My Tool',
-  pluginShortName: 'MyTool'
+  pluginName: 'My Tool'
 } as const;
 
 /**

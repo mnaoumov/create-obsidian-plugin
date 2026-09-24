@@ -21,7 +21,10 @@ import type {
 import type { FeatureOption } from './feature-option.ts';
 import type { Overlay } from './overlay.ts';
 
-import { CONFIG_FILE_NAME } from './answers.ts';
+import {
+  CONFIG_FILE_NAME,
+  getPluginShortName
+} from './answers.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
@@ -300,6 +303,7 @@ export function copyTemplates(
     _resolutions: Object.entries(buildResolutions(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _scripts: builder.scripts,
     _sentenceCaseBrands: builder.sentenceCaseBrands,
+    pluginShortName: getPluginShortName(answers.pluginId),
     render(options?: RenderOptions | string): string {
       const { indentLevel, section } = typeof options === 'string'
         ? { indentLevel: 0, section: options }
@@ -626,6 +630,8 @@ function migrateAnswers(raw: Record<string, unknown>): void {
   answers['fundingUsername'] ??= answers['authorGitHubName'];
   // Every project generated before the badge was an answer had none.
   answers['coverageBadge'] ??= 'none';
+  // Once a stored answer, now derived from `pluginId` at render time; a stale copy must not reach the context.
+  delete answers['pluginShortName'];
 }
 
 /**
