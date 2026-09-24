@@ -364,7 +364,8 @@ global by construction. So a generated project demonstrates exactly ONE JSX runt
 
 `FeatureOption.jsxImportSource` records which options claim one — `react`, `preact`, `solid` — and
 `buildTemplate` skips a demo override that claims a different one from the chosen answer. **The explicit
-answer wins**, which is the same call the demo + biome linter case makes. `svelte` and `vue` compile their
+answer wins**, which is the same call the demo + biome linter case makes: that override is `exclusive`, so
+eslint is forced in only when no linter was answered, because `npm run lint` runs one tool. `svelte` and `vue` compile their
 own single-file components and `lit` uses tagged templates, so none of them claims a runtime and all three
 stay forced beside anything. Note this changes nothing a user can reach: `src/prompts.ts` skips the
 `uiFramework` question for `preset: demo` and pins it to `none`, so the demo vault still gets react,
@@ -724,6 +725,7 @@ anything that needs rendering is EJS.
 
 - A template on disk is a partial when the tail after the LAST `_` in its basename (minus `.ejs`) is a partial name. Partial names are kebab-case, which `addPartial` enforces (`PARTIAL_NAME_PATTERN`), so a real filename keeps its underscores: `bug_report.yml.ejs` ends in `report.yml` and is a template of its own. `isPartialTemplatePath` (`src/templates.ts`) is the one classifier, and only on-disk paths are classified. A registered path is the emitted file's path and is never a partial. Reading any `_` as the marker used to skip `bug_report.yml` and `feature_request.yml` silently.
 - `render(section)` auto-discovers partials by convention: `{basePath}_{section}_{partial}.ejs` — always use a section name
+- A nested `render(section)` resolves against the first-level partial it sits under: each partial of a registered file's loop is its own base, and a deeper partial (`scripts/build.ts@bundler_esbuild@preset_standalone`) keeps its first-level ancestor's (`scripts/build.ts@bundler_esbuild`). The base used to be the loop's FIRST partial, held for every later one, so a later partial's sections rendered nothing. The plan tier's `unreachable-render-section` checks each call site at that base, which is what found `plugin.ts_enhanced`'s dead `import` seam.
 - `buildTemplate()` auto-adds each feature option's `partialName` as a partial after `configure()`
 - Virtual templates: if no file exists on disk, `render()` composes from partials
 

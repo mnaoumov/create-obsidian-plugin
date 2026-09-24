@@ -1709,12 +1709,11 @@ describe('copyTemplates', () => {
   // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
   // Keyed on the tool first, exactly as the format scripts already were.
   //
-  // The demo rows are the subtle ones and are pinned deliberately. `DEMO_OVERRIDES` forces the eslint
-  // Partial on regardless of the answer, so demo + biome contributes BOTH tool partials; the biome one
-  // Wins because it is inserted first and `render` fixes `renderRoot` on the first match, which leaves
-  // The eslint branch resolving its nested `render('preset')` against the wrong base and emitting
-  // Nothing. That is the right answer -- the explicit answer beats the demo default -- but it follows
-  // From insertion order, so it is asserted rather than left to be rediscovered.
+  // The demo rows are the subtle ones. `DEMO_OVERRIDES` forces eslint in when no linter was answered, and
+  // Skips it when another one was (`exclusive`), because `npm run lint` runs one tool. It used to force
+  // Eslint beside biome too, and demo + biome came out right only because `render` held the loop's first
+  // Partial as the root, so the eslint branch's nested `render('preset')` looked under biome's base and
+  // Emitted nothing. The next test pins that no eslint is left behind for that answer.
   it('runs the linter that was actually chosen, on every preset', () => {
     const expected = [
       ['standalone', 'eslint', 'eslint .'],
@@ -1734,6 +1733,14 @@ describe('copyTemplates', () => {
       // Both import blocks and fail to compile.
       expect(lint.match(/^import process/gm)?.length ?? 0, `${String(preset)} + ${String(linter)}`).toBe(1);
     }
+  });
+
+  it('forces no eslint into a demo project that answered another linter', () => {
+    const builder = buildTemplate(makeAnswers({ linter: 'biome', preset: 'demo' }));
+    expect(builder.partials.has('eslint')).toBe(false);
+    expect(builder.templateFiles.has('eslint.config.mts')).toBe(false);
+    expect(builder.dependencies.map((dependency) => dependency.packageName)).not.toContain('eslint');
+    expect(builder.lintStagedPatterns.flatMap((pattern) => pattern.commands)).not.toContain('eslint --fix');
   });
 
   // The rendered half of "drops a forced UI framework that would fight the chosen one". `JSON.parse`

@@ -161,6 +161,18 @@ describe('loadTemplateInventory', () => {
   it('finds no byte-empty template, which would render as nothing for every answer', () => {
     expect([...inventory.emptyTemplates]).toEqual([]);
   });
+
+  // The bases `render()` resolves against: a first-level partial is its own, and a deeper one takes its
+  // First-level ancestor's, so `render('options')` inside the standalone esbuild branch reads
+  // `build.ts@bundler_esbuild@options_*`. `src/plugin.ts_demo@import` is asked for only from inside a
+  // `sortImports` template literal, as `${render('import')}`, so it also pins that form being collected.
+  it('records each render site against the base render() resolves it against', () => {
+    const sites = new Set(inventory.renderSites.map((site) => `${site.basePath}@${site.section}`));
+    expect(sites).toContain('scripts/lint.ts@tool');
+    expect(sites).toContain('scripts/lint.ts@tool_eslint@preset');
+    expect(sites).toContain('scripts/build.ts@bundler_esbuild@options');
+    expect(sites).toContain('src/plugin.ts_demo@import');
+  });
 });
 
 describe('checkPlan', () => {
@@ -309,7 +321,18 @@ describe('checkUsage', () => {
     });
     const violations = checkUsage(usage, inventory);
     expect(violations.map((violation) => violation.kind)).toEqual(['unreachable-render-section']);
-    expect(violations[0]?.detail).toContain('No partial file answers it at all');
+    expect(violations[0]?.detail).toContain('No partial file answers it under "manifest.json"');
+  });
+
+  it('flags a render section answered only under another base', () => {
+    const usage = usageOf(new TemplateBuilder().addFiles(['manifest.json', 'package.json']).addPartial('desktop-only'));
+    const inventory = makeInventory({
+      directTemplates: new Set(['manifest.json', 'package.json']),
+      partials: [parsePartialPath('package.json@platform_desktop-only.ejs')],
+      renderSites: [{ basePath: 'manifest.json', section: 'platform' }]
+    });
+    const violations = checkUsage(usage, inventory);
+    expect(violations.map((violation) => violation.subject)).toEqual(['manifest.json@platform']);
   });
 
   it('accepts a render section a contributed partial answers', () => {
