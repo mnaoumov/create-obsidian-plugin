@@ -75,10 +75,6 @@
       "pluginCount": 32,
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
     },
-    "demo/layout/missing/scripts/build-compile-typescript.ts": {
-      "pluginCount": 29,
-      "why": "The real plugins' `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the real plugins, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
-    },
     "demo/layout/partial/CHANGELOG.md": {
       "pluginCount": 28,
       "why": "Written by the release flow at the first `npm run version`, not by the scaffold. A generated project has no releases, and an empty changelog is not a smaller version of a real one."
@@ -135,10 +131,6 @@
       "pluginCount": 19,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
-    "demo/odu-modules/missing/scripts/build-compile-typescript.ts": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the real plugins' duplicate of `build-compile.ts`."
-    },
     "demo/odu-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 29,
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
@@ -146,10 +138,6 @@
     "demo/odu-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 31,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
-    },
-    "demo/scripts/missing/build:compile:typescript": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the real plugins' duplicate of `build-compile.ts`."
     },
     "demo/scripts/partial/capture:screenshots": {
       "pluginCount": 31,
@@ -194,10 +182,6 @@
     "enhanced/layout/missing/AGENTS.md": {
       "pluginCount": 32,
       "why": "Instructions to AI coding tools about a codebase that does not exist yet. Every useful line in a real plugin AGENTS.md is about that plugin's own architecture and decisions; a scaffolded one could only restate what the README already says, and a maintained file is wrong about the codebase from the moment it exists with nothing written. A file that is absent is honestly absent; a stub is confidently empty. Decided: the scaffold emits no AGENTS.md. A prompt to write one, if wanted, belongs in the README's contributing section or the generator's closing output, neither of which pretends to be maintained."
-    },
-    "enhanced/layout/missing/scripts/build-compile-typescript.ts": {
-      "pluginCount": 29,
-      "why": "The real plugins' `build-compile.ts` and `build-compile-typescript.ts` are byte-identical wrappers of the same `buildCompileTypeScript`. This is duplication in the real plugins, not a gap in the generator, and copying it would propagate the duplication into every new plugin."
     },
     "enhanced/layout/partial/CHANGELOG.md": {
       "pluginCount": 28,
@@ -259,10 +243,6 @@
       "pluginCount": 19,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
-    "enhanced/odu-modules/missing/scripts/build-compile-typescript.ts": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the real plugins' duplicate of `build-compile.ts`."
-    },
     "enhanced/odu-modules/missing/scripts/nano-staged-config.ts": {
       "pluginCount": 29,
       "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so an odu preset paired with biome or prettier would get commands for tools it does not have."
@@ -270,10 +250,6 @@
     "enhanced/odu-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 31,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
-    },
-    "enhanced/scripts/missing/build:compile:typescript": {
-      "pluginCount": 29,
-      "why": "See `layout/missing/scripts/build-compile-typescript.ts` -- the script for the real plugins' duplicate of `build-compile.ts`."
     },
     "enhanced/scripts/partial/capture:screenshots": {
       "pluginCount": 31,
