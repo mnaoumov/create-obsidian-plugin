@@ -708,7 +708,10 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
    configuration", and every existence check on it passes. The plan tier catches it before rendering
    (`empty-emitted-file`); the render tier catches it in the bytes (`empty-file`).
 2. **A test runner that collects nothing exits 0.** Jest and vitest both do, so the gate tier reads the
-   collected test count out of the runner's summary and treats zero as a failure.
+   collected test count out of the runner's summary and treats zero as a failure. It reads the `Tests`
+   totals line with the color escapes stripped: both runners color it, and the escapes sit between
+   the label and the count, which made every passing suite read as zero. The totals line is also the
+   one vitest prints under its `minimal` reporter, which it picks by itself inside an AI coding session.
 3. **A bundler that misnames the stylesheet exits 0.** Obsidian reads `styles.css` and nothing else, and
    three of the six bundler paths named it something else — so the gate tier's `styles` step checks the
    emitted artifact rather than the build's exit code. See "Every bundler has to be told to name the
