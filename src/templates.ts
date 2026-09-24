@@ -157,6 +157,12 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
 interface DemoOverride {
   answerKey: keyof Answers;
   demoValue: string;
+  /**
+   * The question names the ONE tool a script runs, so the demo value is forced only when the answer was
+   * `none`. `npm run lint` runs one linter: forcing eslint in beside `biome` composed both runners into
+   * `scripts/lint.ts`, so the explicit answer wins, as it does for the JSX runtime.
+   */
+  exclusive?: true;
   options: readonly FeatureOption[];
 }
 
@@ -165,7 +171,7 @@ const DEMO_OVERRIDES: DemoOverride[] = [
   { answerKey: 'uiFramework', demoValue: 'svelte', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'uiFramework', demoValue: 'vue', options: UI_FRAMEWORK_OPTIONS },
   { answerKey: 'editorExtensions', demoValue: 'codemirror', options: EDITOR_EXTENSIONS_OPTIONS },
-  { answerKey: 'linter', demoValue: 'eslint', options: LINTER_OPTIONS },
+  { answerKey: 'linter', demoValue: 'eslint', exclusive: true, options: LINTER_OPTIONS },
   { answerKey: 'markdownLinter', demoValue: 'markdownlint', options: MARKDOWN_LINTER_OPTIONS },
   { answerKey: 'spellChecker', demoValue: 'cspell', options: SPELL_CHECKER_OPTIONS },
   { answerKey: 'styling', demoValue: 'scss', options: STYLING_OPTIONS }
@@ -220,7 +226,7 @@ export function buildTemplate(answers: Answers, overlay: null | Overlay = null):
   if (answers.preset === 'demo') {
     for (const override of DEMO_OVERRIDES) {
       const chosenValue = String(answers[override.answerKey]);
-      if (chosenValue === override.demoValue) {
+      if (chosenValue === override.demoValue || (override.exclusive && chosenValue !== 'none')) {
         continue;
       }
 
@@ -326,9 +332,10 @@ export function copyTemplates(
           continue;
         }
         currentTemplatePath = partialPath;
-        if (!renderRoot) {
-          renderRoot = partialPath;
-        }
+        // Each first-level partial is the root its own nested sections resolve against, and a deeper one
+        // Keeps its first-level ancestor's. Holding the loop's FIRST partial for every later one made a
+        // Later partial's `render('<section>')` look under the wrong base and render nothing.
+        renderRoot = previousRenderRoot || partialPath;
         // eslint-disable-next-line import-x/no-named-as-default-member -- This is the standard EJS API.
         let rendered = ejs.render(readFileSync(fullPath, 'utf-8'), templateContext);
         if (indentLevel > 0) {
@@ -562,7 +569,7 @@ function applyOverlay(builder: TemplateBuilder, overlay: Overlay): void {
  * components compiled against the wrong runtime -- TS2345, `Element` is not assignable.
  *
  * So the explicit answer wins and the override is skipped, which is the same call the demo + biome linter
- * case already makes (see `src/templates.test.ts`). Only the three JSX frameworks declare a
+ * case makes through `DemoOverride.exclusive`. Only the three JSX frameworks declare a
  * `jsxImportSource`: `svelte` and `vue` compile their own single-file components and `lit` uses tagged
  * templates, so all three stay forced beside anything.
  */

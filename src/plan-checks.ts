@@ -115,8 +115,11 @@ const EJS_SUFFIX = '.ejs';
 /** The `addScript` default command shape, whose tail is the `scripts/<name>.ts` the script needs. */
 const JITI_SCRIPT_PREFIX = 'jiti scripts/';
 
-/** Matches the `<%- render(...) %>` form only, so `render(null, this.contentEl)` in emitted code is not one. */
-const RENDER_SITE_PATTERN = /<%[-=]?\s*render\(\s*(?:'(?<Section>[^']*)'|\{(?<Options>[^}]*)\})/g;
+/**
+ * Matches `<%- render(...) %>` and the `${render(...)}` a `sortImports` template literal holds, so
+ * `render(null, this.contentEl)` in emitted code is not one.
+ */
+const RENDER_SITE_PATTERN = /(?:<%[-=]?|\$\{)\s*render\(\s*(?:'(?<Section>[^']*)'|\{(?<Options>[^}]*)\})/g;
 
 const SECTION_OPTION_PATTERN = /section\s*:\s*'(?<Section>[^']*)'/;
 
@@ -306,7 +309,7 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
     }
 
     for (const section of collectRenderSections(body)) {
-      renderSites.push({ basePath: withoutSuffix, section });
+      renderSites.push({ basePath: getRenderBase(withoutSuffix), section });
     }
   }
 
@@ -393,14 +396,12 @@ function checkDestinations(emitted: readonly string[], answers: Answers): PlanVi
 }
 
 /**
- * Checks each `render(section)` name against the partials that answer it, ignoring which file asks.
+ * Checks each `render(section)` call site against the partials that answer it AT THE BASE IT RESOLVES
+ * AGAINST.
  *
- * Deliberately base-agnostic. `render()` resolves against `renderRoot`, which is set to the FIRST
- * matching partial of the enclosing composition and then held for every later partial in that same loop
- * -- so the base a nested `render` resolves against depends on partial insertion order, not on the file
- * the call sits in. Modelling that here would trade a real check for a source of false positives; a
- * section name that no reachable partial anywhere answers is dead whatever the base turns out to be, and
- * `orphan-partial` covers the per-file half.
+ * A section name answered somewhere else is no answer: `render()` looks only under `<base>@<section>_*`,
+ * and a call site with nothing there renders `''` for every answer, with no error. That is how
+ * `render('lint-wasm-rename')` went dark whenever wasm's import partial was not the first in its loop.
  */
 function checkRenderSites(usage: TemplateUsage, inventory: TemplateInventory): PlanViolation[] {
   const violations: PlanViolation[] = [];
@@ -411,24 +412,26 @@ function checkRenderSites(usage: TemplateUsage, inventory: TemplateInventory): P
     if (partial.section === null) {
       continue;
     }
-    declared.add(partial.section);
+    const key = getRenderSiteKey(partial.basePath, partial.section);
+    declared.add(key);
     if (usage.partialNames.has(partial.partialName)) {
-      reachable.add(partial.section);
+      reachable.add(key);
     }
   }
 
   const reported = new Set<string>();
   for (const site of inventory.renderSites) {
-    if (reachable.has(site.section) || reported.has(site.section)) {
+    const key = getRenderSiteKey(site.basePath, site.section);
+    if (reachable.has(key) || reported.has(key)) {
       continue;
     }
-    reported.add(site.section);
+    reported.add(key);
     violations.push({
-      detail: declared.has(site.section)
-        ? `Every partial answering it is unreachable, so it renders as nothing for every answer. Asked for by "${site.basePath}".`
-        : `No partial file answers it at all, so it renders as nothing for every answer. Asked for by "${site.basePath}".`,
+      detail: declared.has(key)
+        ? `Every partial answering it under "${site.basePath}" is unreachable, so it renders as nothing for every answer.`
+        : `No partial file answers it under "${site.basePath}", so it renders as nothing for every answer.`,
       kind: 'unreachable-render-section',
-      subject: site.section
+      subject: `${site.basePath}@${site.section}`
     });
   }
 
@@ -492,6 +495,25 @@ function findEmptyReason(registeredPath: string, partials: ReadonlySet<string>, 
   }
 
   return `No contributed partial matches. On disk: ${[...candidates].sort((a, b) => a.localeCompare(b)).join(', ')}.`;
+}
+
+/**
+ * The base a `render(section)` written in this template resolves against, mirroring `render()`.
+ *
+ * A direct template is its own base, and so is a first-level partial. A deeper partial -- one whose base
+ * is itself a partial, like `scripts/build.ts@bundler_esbuild@preset_standalone` -- resolves against its
+ * first-level ancestor, `scripts/build.ts@bundler_esbuild`.
+ */
+function getRenderBase(templatePath: string): string {
+  if (!isPartialTemplatePath(templatePath)) {
+    return templatePath;
+  }
+  const { basePath } = parsePartialPath(`${templatePath}${EJS_SUFFIX}`);
+  return isPartialTemplatePath(basePath) ? getRenderBase(basePath) : templatePath;
+}
+
+function getRenderSiteKey(basePath: string, section: string): string {
+  return `${basePath}@${section}`;
 }
 
 function walkTemplates(templatesDir: string, relativeDir: string): string[] {
