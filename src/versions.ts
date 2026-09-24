@@ -222,10 +222,12 @@ const DESKTOP_RELEASES_JSON_URL = 'https://raw.githubusercontent.com/obsidianmd/
 /**
  * The `minAppVersion` used when the lookup below fails, which is the offline path.
  *
- * `0.0.0` is the honest answer there: it claims no minimum rather than inventing one, and the project's
- * first `npm run version` overwrites it with the real latest.
+ * `1.13.0` is the lowest version the scaffolded code runs on: the `standalone` settings tab is built from
+ * `getSettingDefinitions()` alone, which that release introduced. Claiming less would install the plugin where
+ * its settings tab renders empty; claiming more would invent a number. The project's first `npm run version`
+ * overwrites it with the real latest.
  */
-export const FALLBACK_MIN_APP_VERSION = '0.0.0';
+export const FALLBACK_MIN_APP_VERSION = '1.13.0';
 
 const FALLBACK_VERSION = 'latest';
 const JSON_INDENT_SPACES = 2;
@@ -346,8 +348,8 @@ export function buildResolutions(dependencies: readonly Dependency[]): Record<st
 /**
  * The latest public desktop Obsidian version, for the generated `manifest.json`'s `minAppVersion`.
  *
- * Falls back to a version that claims no minimum when the lookup fails, so generating offline still
- * produces a valid manifest.
+ * Falls back to the lowest version the scaffolded code runs on when the lookup fails, so generating
+ * offline still produces a valid manifest.
  */
 export async function fetchLatestObsidianVersion(): Promise<string> {
   try {
