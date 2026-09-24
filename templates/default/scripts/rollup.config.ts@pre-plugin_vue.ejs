@@ -1,1 +1,13 @@
     vue(),
+    // `rollup-plugin-vue` passes a `<script lang="ts">` block on as a virtual module (`*.vue?vue&type=script…lang.ts`)
+    // And compiles none of it, and the `typescript` plugin below only compiles files in the tsconfig
+    // Program, which a virtual module never is. This pass strips the types from exactly those modules. It
+    // Reads no babel config file, so a JSX preset another framework configures cannot parse them first.
+    babel({
+      babelHelpers: 'bundled',
+      babelrc: false,
+      configFile: false,
+      extensions: ['.ts'],
+      include: [/\.vue\?vue&type=script/u],
+      presets: ['@babel/preset-typescript']
+    }),

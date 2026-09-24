@@ -358,6 +358,32 @@ describe('buildTemplate', () => {
         rmSync(targetDir, { force: true, recursive: true });
       }
     });
+
+    // `rollup-plugin-vue` passes `<script lang="ts">` on as a virtual module and compiles none of it, and
+    // `@rollup/plugin-typescript` never sees a module outside the tsconfig program -- so every rollup + vue
+    // Build died parsing the TypeScript, or, on `demo`, handed it to the react babel pass instead. Every
+    // Preset, because `demo` reaches vue through its override rather than through the answer.
+    it('strips the types from vue script blocks on rollup with a babel TypeScript pass', () => {
+      for (const preset of ['standalone', 'enhanced', 'demo'] as const) {
+        const answers = makeAnswers({ bundler: 'rollup', preset, uiFramework: preset === 'demo' ? 'none' : 'vue' });
+        const packages = buildTemplate(answers).dependencies.map((d) => d.packageName);
+        expect(packages, preset).toContain('@babel/preset-typescript');
+        expect(packages, preset).toContain('@rollup/plugin-babel');
+
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-vue-'));
+        try {
+          copyTemplates(answers, targetDir, '1.0.0', null);
+          const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
+          const vueIndex = config.indexOf('vue(),');
+          const tsPassIndex = config.indexOf('presets: [\'@babel/preset-typescript\']');
+          expect(vueIndex, preset).toBeGreaterThan(-1);
+          expect(tsPassIndex, preset).toBeGreaterThan(vueIndex);
+          expect(config.indexOf('typescript({'), preset).toBeGreaterThan(tsPassIndex);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    });
   });
 
   describe('uiFramework feature', () => {
@@ -741,6 +767,21 @@ describe('buildTemplate', () => {
         // Neither owns a JSX pragma, so no answer can displace them.
         expect(builder.partials.has('svelte'), `demo + ${uiFramework}`).toBe(true);
         expect(builder.partials.has('vue'), `demo + ${uiFramework}`).toBe(true);
+      }
+    });
+
+    // A forced framework whose view nothing registers is dead code the bundler never compiles -- which
+    // Is how the demo preset advertised Vue while rollup could not build it.
+    it('registers a view for every framework it forces in', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-demo-views-'));
+      try {
+        copyTemplates(makeAnswers({ preset: 'demo' }), targetDir, '1.0.0', null);
+        const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
+        for (const view of ['SampleReactView', 'SampleSvelteView', 'SampleVueView']) {
+          expect(plugin, view).toContain(`(leaf) => new ${view}(leaf)`);
+        }
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
       }
     });
   });
