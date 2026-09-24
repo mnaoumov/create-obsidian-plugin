@@ -164,6 +164,14 @@ The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole
 
 `scripts/eslint-config.ts` re-states four things the shared config does not carry: `dot-notation` with `allowIndexSignaturePropertyAccess` (see "Where the linters and the compiler disagree"), `depend/ban-dependencies` allowing `moment`, the `sentence-case` brands, and the global ignores that `.gitignore` does not cover. It does not re-state the `no-console` / `no-nodejs-modules` exemption outside `src/`. The shared config scopes every obsidianmd rule to `context.sourceFiles`, so those rules never reach `scripts/`.
 
+It also carries two categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the two `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-unresolved` ignores `data-url:` and the generated tailwind stylesheet. The stylesheet does not exist until the first build, so an inline disable would be wrong both before the build and after it.
+
+### A lint directive for the shared config goes in an `_odu` section
+
+Most templates are shared by all three presets, but only the odu presets load import-x, unicorn, perfectionist and the other plugins the shared config registers. On `standalone`, a directive naming one of those rules is `Definition for rule ... was not found`, which is an error. A directive for a core rule that only the shared config enables, such as `no-void`, is an unused directive there, which is also an error. So such a directive is written as `<%- render('lint-<what>') -%>` and lives in `<template>@lint-<what>_odu.ejs`. The `odu` partial is carried by both odu presets and by nothing else. Inside a JavaScript template literal (the `sortImports` blocks, rollup's plugin list) the same section is `${render('lint-<what>')}`.
+
+Two options come before adding a section: change the code so that neither config complains, or exempt a whole category in `scripts/eslint-config.ts`. The wasm sample's command callback became `async` for the first reason, and i18next's `init` / `t` became named imports for the same reason. A foreign member name (`outDir`, `rootDir`, `emptyOutDir`) stays an inline disable, which is what obsidian-dev-utils' own source does for `unicorn/name-replacements`. The render tier's `foreign-lint-directive` check catches a directive written straight into a shared template.
+
 ### addScript single-arg convention
 
 `addScript(name)` defaults to `jiti scripts/{name.replaceAll(':', '-')}.ts`. Each npm script maps 1:1 to a script file. Only pass a second arg for non-standard commands.
@@ -589,6 +597,10 @@ is TS1308 and a hard bundler parse error. `empty-block` — a wrapper that rende
 emits `if (prod) { }` on every answer contributing nothing, which the emitted ESLint config rejects with
 `no-empty`. `duplicate-declaration` — the per-answer-partial trap above. None of the three is a syntax
 error, so the parse pass sees nothing; all three are cheap enough to run over all 265 cases.
+
+A fourth, `foreign-lint-directive`, is about which preset a line reaches. On a `standalone` + ESLint case,
+it fails any inline directive naming a rule that only obsidian-dev-utils' shared config turns on. See
+"A lint directive for the shared config goes in an `_odu` section".
 
 Three rules that are easy to get wrong and were:
 
