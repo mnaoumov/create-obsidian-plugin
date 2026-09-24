@@ -507,6 +507,19 @@ guaranteed. `dev.ts` used to gate the import and the argument on the `esbuild` p
 all. A partial keyed on the answer its own branch already guarantees is a tautology in the good case
 and a silent hole in the bad one.
 
+### On rollup, a Vue SFC's TypeScript is stripped by a babel pass of its own
+
+`rollup-plugin-vue` hands a `<script lang="ts">` block on as a virtual module (`…vue?vue&type=script…lang.ts`)
+and compiles none of it, and `@rollup/plugin-typescript` compiles only files in the tsconfig program, which a
+virtual module never is. So the vue answer on rollup adds a babel pass right after `vue()` carrying only
+`@babel/preset-typescript`, scoped to those modules, with `configFile: false` so a JSX preset another
+framework configures cannot reach them first. On `demo` it was exactly that react pass that died on the
+TypeScript; on `enhanced` rollup's own parser did.
+
+It stayed hidden because nothing imported the component: `plugin.ts_demo.ejs` registered only the react and
+svelte views, and a bundler never compiles a module nothing reaches, so `demo` + rollup built green while
+claiming Vue. A forced framework needs its view registered, which `src/templates.test.ts` now asserts.
+
 ### addFiles uses array syntax, no .ejs suffix
 
 `addFiles(['file1', 'file2'])` — registered paths never include `.ejs`. Resolution happens at template level: check `{path}.ejs` on disk, or auto-render from partials.
