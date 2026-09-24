@@ -710,6 +710,26 @@ describe('buildTemplate', () => {
       expect(files).toContain('src/i18n/locales/en.json');
     });
 
+    // `src/i18n/index.ts` imports the locale as JSON, which rollup alone cannot parse without a plugin.
+    it('gives rollup a JSON plugin for i18next, and no other bundler one', () => {
+      for (const bundler of ['esbuild', 'parcel', 'rollup', 'vite', 'webpack']) {
+        const builder = buildTemplate(makeAnswers({ bundler, internationalization: 'i18next' }));
+        const depNames = builder.dependencies.map((d) => d.packageName);
+        expect(depNames.includes('@rollup/plugin-json'), bundler).toBe(bundler === 'rollup');
+      }
+
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-json-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'rollup', internationalization: 'i18next' }), targetDir, '1.0.0', null);
+        const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
+        expect(config).toContain('import jsonModule from \'@rollup/plugin-json\';');
+        expect(config).toContain('const json = asPluginFactory(jsonModule);');
+        expect(config).toContain('    json(),');
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
+    });
+
     it('adds typesafe-i18n files and dependency', () => {
       const builder = buildTemplate(makeAnswers({ internationalization: 'typesafe-i18n' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
