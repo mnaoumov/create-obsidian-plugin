@@ -6,6 +6,7 @@ import {
   statSync
 } from 'node:fs';
 import { join } from 'node:path';
+import { stripVTControlCharacters } from 'node:util';
 
 import type { Answers } from './answers.ts';
 
@@ -120,13 +121,33 @@ const STYLESHEET_IMPORT_PATTERN = /^import '[^']+\.(?:css|less|sass|scss)';/m;
 const SCRIPT_FILE_PATTERN = /\.[cm]?js$/;
 
 /**
- * Matches the collected test count in either runner's summary.
+ * Matches the `Tests` totals line of either runner's summary, and not its `Test Files` / `Test Suites` line.
  *
  * vitest prints `Tests  3 passed (3)`; jest prints `Tests:  3 passed, 3 total`. The count is the point:
  * BOTH runners exit 0 when they collect nothing at all, so a green exit code proves only that nothing
  * crashed. A suite whose file-name suffix matches no declared project reports exactly this way.
+ *
+ * The totals line is what BOTH vitest reporters print. Vitest picks its `minimal` reporter when it runs
+ * under an AI coding session, and that one prints no per-file line for a passing file, so a parse of
+ * anything but the totals would read differently depending on who ran the gate.
  */
-const TEST_COUNT_PATTERN = /Tests:?\s+(?<Passed>\d+) passed/;
+const TESTS_LINE_PATTERN = /^\s*Tests:?\s(?<Totals>.*)$/m;
+
+/** Matches the passed count within the totals, which may follow a failed or skipped count. */
+const PASSED_COUNT_PATTERN = /(?<Passed>\d+) passed/;
+
+/**
+ * Reads how many tests passed out of a test runner's output, or 0 when no count can be found.
+ *
+ * Both runners color their summary, and the escapes sit between the label and the count
+ * (`ESC[2m      Tests ESC[22m ESC[1mESC[32m1 passed`), so they are stripped before anything is matched.
+ * A count that cannot be found reads as 0, which fails the step: when a runner changes its format again,
+ * the gate goes red rather than quietly passing a suite nothing is known to have run.
+ */
+export function readCollectedTestCount(output: string): number {
+  const totals = TESTS_LINE_PATTERN.exec(stripVTControlCharacters(output))?.groups?.['Totals'] ?? '';
+  return Number(PASSED_COUNT_PATTERN.exec(totals)?.groups?.['Passed'] ?? '0');
+}
 
 /**
  * Installs a generated project and runs every gate its answers actually emit.
@@ -367,7 +388,7 @@ function checkTests(targetDir: string, answers: Answers, scripts: Readonly<Recor
     return [{ detail: result.output, kind: 'step-failed', step: 'test' }];
   }
 
-  const collected = Number(TEST_COUNT_PATTERN.exec(result.output)?.groups?.['Passed'] ?? '0');
+  const collected = readCollectedTestCount(result.output);
   if (collected === 0) {
     return [{
       detail: `The test script exited 0 but no collected test count could be read from its output, so nothing is known to have run.\n${result.output}`,
