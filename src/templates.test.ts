@@ -593,7 +593,6 @@ describe('buildTemplate', () => {
         const builder = buildTemplate(makeAnswers({ preset }));
         expect(builder.scripts['gate'], preset).toBe('jiti scripts/gate.ts');
         expect([...builder.templateFiles], preset).toContain('scripts/gate.ts');
-        expect(builder.partials.has('has-gate'), preset).toBe(true);
       }
 
       // `gate` is imported from obsidian-dev-utils, which standalone may not depend on.
@@ -602,27 +601,24 @@ describe('buildTemplate', () => {
       expect([...standalone.templateFiles]).not.toContain('scripts/gate.ts');
     });
 
-    it('omits the branch gate when an answer leaves out a script gate() requires', () => {
-      // `gate()` runs these through `npmRun`, which throws on a script the project does not define, so a
-      // Gate emitted here would die on its first step.
+    it('emits the branch gate whichever of its optional tools were answered none', () => {
+      // `gate()` requires only `build` and skips every other check the project defines no script for, so a
+      // Gate emitted without them still passes.
       const noneAnswers: Partial<Answers>[] = [
         { formatter: 'none' },
         { spellChecker: 'none' },
         { markdownLinter: 'none' },
-        { linter: 'none' }
+        { linter: 'none' },
+        { formatter: 'none', linter: 'none', markdownLinter: 'none', spellChecker: 'none' }
       ];
-      for (const overrides of noneAnswers) {
-        const builder = buildTemplate(makeAnswers({ preset: 'enhanced', ...overrides }));
-        const label = JSON.stringify(overrides);
-        expect(builder.scripts['gate'], label).toBeUndefined();
-        expect([...builder.templateFiles], label).not.toContain('scripts/gate.ts');
+      for (const preset of ['enhanced', 'demo']) {
+        for (const overrides of noneAnswers) {
+          const builder = buildTemplate(makeAnswers({ preset, ...overrides }));
+          const label = `${preset} ${JSON.stringify(overrides)}`;
+          expect(builder.scripts['gate'], label).toBe('jiti scripts/gate.ts');
+          expect([...builder.templateFiles], label).toContain('scripts/gate.ts');
+        }
       }
-
-      // `demo` forces the linter, markdown linter and spell checker back in, so only the formatter can
-      // Take the gate away there. The check reads the registered scripts, not the answers, for this.
-      expect(buildTemplate(makeAnswers({ formatter: 'none', preset: 'demo' })).scripts['gate']).toBeUndefined();
-      expect(buildTemplate(makeAnswers({ linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none' })).scripts['gate'])
-        .toBe('jiti scripts/gate.ts');
     });
 
     it('both obsidian-dev-utils presets add the shared dev-utils partial', () => {

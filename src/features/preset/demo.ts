@@ -30,6 +30,9 @@ export class Demo extends FeatureOption {
       .addScript('find-overexposed')
       .addScript('find-overexposed:fix')
       .addScript('version')
+      // The release preflight's checks, reachable before committing. obsidian-dev-utils' `gate()` requires only
+      // `build`, which this preset always registers, and skips every other check the project has no script for.
+      .addScript('gate')
       .addFiles([
         // Not gated on the gitHubActions answer, and deliberately so: this attests the assets of a
         // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin compared here
@@ -44,6 +47,7 @@ export class Demo extends FeatureOption {
         'scripts/find-overexposed.ts',
         'scripts/find-overexposed-fix.ts',
         'scripts/dev.ts',
+        'scripts/gate.ts',
         'scripts/version.ts',
         'src/modals/sample-form-modal.ts',
         'src/modals/sample-suggest-modal.ts',
