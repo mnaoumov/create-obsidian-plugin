@@ -61,6 +61,7 @@ import {
   loadOverlay,
   toRecordedOverlayPath
 } from './overlay.ts';
+import { createProjectFormatter } from './project-formatter.ts';
 import {
   getDefaultAnswers,
   makePluginName,
@@ -70,7 +71,8 @@ import {
   buildTemplate,
   copyTemplates,
   getScriptDir,
-  loadConfig
+  loadConfig,
+  recordHashesOnDisk
 } from './templates.ts';
 import {
   fetchLatestObsidianVersion,
@@ -468,6 +470,11 @@ async function runInitialFormat(targetDir: string, answers: Answers, isInstalled
   s.start('Formatting...');
   try {
     await execAsync(getRunCommand(answers.packageManager, 'format'), targetDir);
+    // Recorded before the initial commit, so the files the format just rewrote count as the generator's on
+    // The next update instead of as hand edits.
+    const configPath = join(targetDir, CONFIG_FILE_NAME);
+    const config = JSON.parse(readFileSync(configPath, 'utf-8')) as GeneratorConfig;
+    writeFileSync(configPath, `${JSON.stringify(recordHashesOnDisk(targetDir, config), null, JSON_INDENT_SPACES)}\n`);
     s.stop('Formatted.');
     return true;
   } catch {
@@ -621,9 +628,14 @@ Run without --yes to answer them again.`);
   // `minAppVersion` only ever reaches a manifest nobody has touched.
   const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers, overlay);
 
+  const projectFormatter = createProjectFormatter(targetDir, answers.formatter);
+  if (projectFormatter === null && needsInitialFormat(answers.formatter)) {
+    log.warn(`${answers.formatter} is not installed, so the update cannot tell the files it formatted from hand edits and skips them. Install the dependencies and update again to have them updated.`);
+  }
+
   const s = spinner();
   s.start('Updating project files...');
-  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions, minAppVersion, overlay);
+  copyTemplates(answers, targetDir, currentVersion, existingConfig, resolvedVersions, minAppVersion, overlay, projectFormatter);
   s.stop('Update complete.');
 
   const newConfig = loadConfig(targetDir);
