@@ -45,7 +45,7 @@ Every question the wizard asks can be answered up front instead, which is what l
 
 | Option | What it does |
 |--------|--------------|
-| `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts. It never asks anything: a question no flag answers stops the run with an error naming the flag |
+| `-y`, `--yes` | Take the default for every unanswered question, and skip the post-scaffold prompts, so nothing is installed, formatted or committed. The closing `Next steps` line lists what is left, including `format` on prettier and biome, which the project's own `format:check` fails until it has run once. It never asks anything: a question no flag answers stops the run with an error naming the flag |
 | `--mode=create\|update` | Create a new plugin, or update the project in the current directory, without being asked which. Under `--yes` it is required when the current directory holds a `.create-obsidian-plugin.json` |
 | `--force` | Scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. Under `--yes` it is required when that directory exists |
 | `-h`, `--help` | List every option, including the accepted values for each answer |

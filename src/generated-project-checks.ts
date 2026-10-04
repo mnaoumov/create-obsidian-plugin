@@ -11,6 +11,7 @@ import { stripVTControlCharacters } from 'node:util';
 
 import type { Answers } from './answers.ts';
 
+import { needsInitialFormat } from './features/formatter/index.ts';
 import { getInstallCommand } from './features/package-manager/index.ts';
 
 export interface CommandResult {
@@ -425,10 +426,10 @@ function checkFormat(targetDir: string, answers: Answers, scripts: Readonly<Reco
     return [];
   }
 
-  // The templates are authored in dprint's style, so only prettier and biome need the formatting pass that
-  // `runInitialFormat` gives an installed project. Formatting first under dprint too hid a template it
-  // Rejects -- and a `--yes` project, which nothing formats, failed its own `format:check` on day one.
-  if (answers.formatter !== 'dprint' && Object.hasOwn(scripts, 'format')) {
+  // Only the formatters `needsInitialFormat` names get the formatting pass: an interactive run gives it to
+  // An installed project, and a `--yes` run's `Next steps` tell the user to run it. Formatting first under
+  // Dprint too hid a template it rejects -- and a `--yes` project failed its own `format:check` on day one.
+  if (needsInitialFormat(answers.formatter) && Object.hasOwn(scripts, 'format')) {
     const format = run(runScriptCommand(answers, 'format'), targetDir);
     if (!format.ok) {
       return [{ detail: format.output, kind: 'step-failed', step: 'format' }];
