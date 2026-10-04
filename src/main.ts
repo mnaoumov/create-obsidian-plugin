@@ -52,6 +52,7 @@ import {
   makeUnlistedPluginIdValidator,
   validatePluginIdIsUnlisted
 } from './directory-registry.ts';
+import { needsInitialFormat } from './features/formatter/index.ts';
 import {
   getInstallCommand,
   getRunCommand
@@ -433,15 +434,18 @@ Pass --force to scaffold into it anyway.`);
   writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
   s.stop('Plugin scaffolded.');
 
-  if (!useDefaults) {
-    await runPostScaffold(targetDir, answers);
-  }
+  // `--yes` installs nothing and so formats nothing, which leaves a prettier or biome project failing its own
+  // `format:check` until `format` runs once. It stays out of the install on purpose -- a script may want to
+  // Own that -- so the `format` it skipped is named in the steps instead.
+  const isFormatted = useDefaults ? false : await runPostScaffold(targetDir, answers);
 
   const pm = answers.packageManager;
   const dirName = `obsidian-${answers.pluginId}`;
   const needsInstall = !existsSync(join(targetDir, 'node_modules'));
+  const needsFormat = needsInitialFormat(answers.formatter) && !isFormatted;
   const steps = [
     ...(needsInstall ? [getInstallCommand(pm)] : []),
+    ...(needsFormat ? [getRunCommand(pm, 'format')] : []),
     getRunCommand(pm, 'dev')
   ];
 
@@ -455,9 +459,9 @@ Pass --force to scaffold into it anyway.`);
 // `{}` whatever the settings say -- so a project that picked either of those would be committed
 // Already failing its own `format:check`. Formatting once here settles that, in the tool's own style,
 // Before the initial commit is taken.
-async function runInitialFormat(targetDir: string, answers: Answers, isInstalled: boolean): Promise<void> {
+async function runInitialFormat(targetDir: string, answers: Answers, isInstalled: boolean): Promise<boolean> {
   if (!isInstalled || answers.formatter === 'none') {
-    return;
+    return false;
   }
 
   const s = spinner();
@@ -465,12 +469,14 @@ async function runInitialFormat(targetDir: string, answers: Answers, isInstalled
   try {
     await execAsync(getRunCommand(answers.packageManager, 'format'), targetDir);
     s.stop('Formatted.');
+    return true;
   } catch {
     s.stop('Failed to format. Run `format` manually.');
+    return false;
   }
 }
 
-async function runPostScaffold(targetDir: string, answers: Answers): Promise<void> {
+async function runPostScaffold(targetDir: string, answers: Answers): Promise<boolean> {
   const pm = answers.packageManager;
   const installCmd = getInstallCommand(pm);
 
@@ -497,7 +503,7 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
     }
   }
 
-  await runInitialFormat(targetDir, answers, isInstalled);
+  const isFormatted = await runInitialFormat(targetDir, answers, isInstalled);
 
   const shouldGitInit = await confirm({
     initialValue: true,
@@ -537,6 +543,8 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<voi
       s.stop('Failed to create GitHub repo. Make sure `gh` CLI is installed and authenticated.');
     }
   }
+
+  return isFormatted;
 }
 
 async function runUpdate(currentVersion: string, cliArgs: CliArgs): Promise<void> {
