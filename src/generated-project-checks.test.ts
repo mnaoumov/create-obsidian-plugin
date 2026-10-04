@@ -5,6 +5,7 @@ import {
 } from 'vitest';
 
 import {
+  findStalePins,
   findUnbundledRequires,
   findUnshippedFiles,
   readCollectedTestCount
@@ -52,6 +53,28 @@ describe('readCollectedTestCount', () => {
     expect(readCollectedTestCount('No test files found, exiting with code 0\n')).toBe(0);
     expect(readCollectedTestCount('No tests found, exiting with code 0\n')).toBe(0);
     expect(readCollectedTestCount('      Tests  2 skipped (2)\n')).toBe(0);
+  });
+});
+
+describe('findStalePins', () => {
+  const PINS = JSON.stringify({
+    comment: ['Release conditions.'],
+    held: { check: 'print held', expect: '^1.0.0', section: 'devDependencies', why: 'still needed' },
+    manual: { check: null, manualCheck: 'look by hand', section: 'devDependencies', why: 'no check' },
+    moved: { check: 'print moved', expect: '^16.0.0', section: 'devDependencies', why: 'the peer moved' }
+  });
+  const OUTPUTS: Record<string, string> = { 'print held': '^1.0.0', 'print moved': '^17.3.0' };
+
+  it('reports a pin whose check no longer prints what it expects, and only that one', () => {
+    expect(findStalePins(PINS, (command) => ({ ok: true, output: OUTPUTS[command] ?? '' }))).toEqual([
+      'moved: the check printed "^17.3.0", the pin expects "^16.0.0"'
+    ]);
+  });
+
+  it('reports a check that cannot run, since it would never retire its pin', () => {
+    expect(findStalePins(PINS, (command) => command === 'print held' ? { ok: false, output: 'Cannot find module' } : { ok: true, output: '^16.0.0' })).toEqual([
+      'held: the check failed to run: Cannot find module'
+    ]);
   });
 });
 

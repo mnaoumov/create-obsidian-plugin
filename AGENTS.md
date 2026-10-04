@@ -880,6 +880,22 @@ Three rules that are easy to get wrong and were:
   a typo'd or dead package name looks ordinary until `npm install`. `npm run verify:answer-space --
   --check-registry` is the pass that catches it, and it is worth running before any release.
 
+### A packed-tarball smoke is the release blocker, and it re-runs every pin's check
+
+Every tier above runs the generator from source and none of them is in the repo's own `npm test`, so the
+repo was green while a fresh `--yes` scaffold failed `npm install` on ERESOLVE. A pin's `check` existed
+for exactly that case, and nothing ever ran it: `pinned-versions.json` was written for a person's
+dependency sweep. `npm run verify:tarball` (`scripts/verify-tarball.ts`, also `prepublishOnly`) packs the
+repo, installs the tarball, runs `dist/main.js --yes --pluginId=smoke-test`, then in the output runs
+`npm install`, every pin check (`findStalePins`), `npm run build` and the project's own `npm run gate`.
+The gate tier carries the same pin re-check as its `pins` step, under npm only.
+
+Its first run found two more defects that every tier had passed. The gate tier ran `format` before
+`format:check`, which hid an empty `customEsbuildPlugins` list that dprint rejects, and a `--yes` project is
+never formatted. So that pre-format now runs only for prettier and biome, the two that cannot match the
+templates' style. And no tier runs `lint:md`, which let the funding `<a>` reach the README with no
+`MD033` disable around it.
+
 ### A fourth check asks whether the output looks like a real plugin
 
 The three tiers above all ask the same question — is the output valid? — over as much of the answer space
