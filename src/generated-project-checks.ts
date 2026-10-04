@@ -13,6 +13,11 @@ import type { Answers } from './answers.ts';
 
 import { getInstallCommand } from './features/package-manager/index.ts';
 
+export interface CommandResult {
+  ok: boolean;
+  output: string;
+}
+
 /** What one project's gate came to, and how long each step took. */
 export interface GateResult {
   durationMs: number;
@@ -32,6 +37,7 @@ export type GateStep =
   | 'format'
   | 'install'
   | 'lint'
+  | 'pins'
   | 'release-files'
   | 'spellcheck'
   | 'styles'
@@ -57,23 +63,27 @@ export interface GateViolation {
  * stylesheet under a name Obsidian does not read; the bundler ran, reported success, and left the
  * WebAssembly module in a separate file that an Obsidian release does not ship; the bundler ran, reported
  * success, and wrote something else beside the bundle that the release leaves behind.
+ *
+ * `stale-pin` is a pin in `pinned-versions.json` whose own check no longer prints what it expects, which
+ * nothing fails on until the pin breaks an install.
  */
 export type GateViolationKind =
   | 'no-tests-collected'
   | 'split-bundle'
+  | 'stale-pin'
   | 'step-failed'
   | 'unbundled-dependency'
   | 'unbundled-wasm-module'
   | 'unreadable-stylesheet'
   | 'unshipped-file';
 
-interface CommandResult {
-  ok: boolean;
-  output: string;
-}
-
 interface PackageJsonScripts {
   scripts?: Record<string, string>;
+}
+
+interface PinEntry {
+  check?: null | string;
+  expect?: null | string;
 }
 
 /**
@@ -169,6 +179,38 @@ const TESTS_LINE_PATTERN = /^\s*Tests:?\s(?<Totals>.*)$/m;
 const PASSED_COUNT_PATTERN = /(?<Passed>\d+) passed/;
 
 /**
+ * Lists the pins in a `pinned-versions.json` whose condition no longer holds.
+ *
+ * Each entry with a `check` names a command whose trimmed stdout equals `expect` exactly while the pin is
+ * still needed, so any other output means the pin has gone stale: follow it to the new range, or drop it.
+ * A check that cannot run is reported too, because a check nobody can run never retires its pin.
+ *
+ * @param pinnedVersionsJson - The file's text.
+ * @param runCheck - Runs one check command and returns its result.
+ * @returns One line per stale or unrunnable pin.
+ */
+export function findStalePins(pinnedVersionsJson: string, runCheck: (command: string) => CommandResult): string[] {
+  const pins = JSON.parse(pinnedVersionsJson) as Record<string, unknown>;
+  const stale: string[] = [];
+  for (const [packageName, value] of Object.entries(pins)) {
+    if (typeof value !== 'object' || value === null) {
+      continue;
+    }
+    const pin = value as PinEntry;
+    if (!pin.check || pin.expect === null || pin.expect === undefined) {
+      continue;
+    }
+    const result = runCheck(pin.check);
+    if (!result.ok) {
+      stale.push(`${packageName}: the check failed to run: ${result.output}`);
+    } else if (result.output !== pin.expect) {
+      stale.push(`${packageName}: the check printed "${result.output}", the pin expects "${pin.expect}"`);
+    }
+  }
+  return stale;
+}
+
+/**
  * Names the modules a bundle `require()`s that neither Obsidian nor Node supplies at runtime.
  *
  * An Obsidian plugin is installed as `main.js` alone, with no `node_modules` beside it, so every package
@@ -244,6 +286,7 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   passed.push('install');
 
   violations.push(...checkAudit(targetDir, answers, skipped, passed));
+  violations.push(...checkPins(targetDir, answers, skipped, passed));
 
   const compile = run(`${execCommand(answers.packageManager)} tsc --noEmit`, targetDir);
   if (compile.ok) {
@@ -382,7 +425,10 @@ function checkFormat(targetDir: string, answers: Answers, scripts: Readonly<Reco
     return [];
   }
 
-  if (Object.hasOwn(scripts, 'format')) {
+  // The templates are authored in dprint's style, so only prettier and biome need the formatting pass that
+  // `runInitialFormat` gives an installed project. Formatting first under dprint too hid a template it
+  // Rejects -- and a `--yes` project, which nothing formats, failed its own `format:check` on day one.
+  if (answers.formatter !== 'dprint' && Object.hasOwn(scripts, 'format')) {
     const format = run(runScriptCommand(answers, 'format'), targetDir);
     if (!format.ok) {
       return [{ detail: format.output, kind: 'step-failed', step: 'format' }];
@@ -390,6 +436,33 @@ function checkFormat(targetDir: string, answers: Answers, scripts: Readonly<Reco
   }
 
   return runScriptStep('format', 'format:check', targetDir, answers, scripts, passed, skipped);
+}
+
+/**
+ * Re-runs every check in the emitted `pinned-versions.json` against the installed tree.
+ *
+ * Nothing else ever runs them: the file exists for a person's dependency sweep, so a pin whose condition had
+ * already gone stayed in the generator, and the first sign was an `npm install` failing on ERESOLVE in every
+ * fresh project. Only under npm, for the reason {@link checkAudit} gives, and because pnpm does not hoist the
+ * nested packages several checks read off disk.
+ */
+function checkPins(targetDir: string, answers: Answers, skipped: GateStep[], passed: GateStep[]): GateViolation[] {
+  const pinsPath = join(targetDir, 'pinned-versions.json');
+  if (answers.packageManager !== 'npm' || !existsSync(pinsPath)) {
+    skipped.push('pins');
+    return [];
+  }
+
+  const stale = findStalePins(readFileSync(pinsPath, 'utf-8'), (command) => {
+    const result = run(command, targetDir);
+    return { ok: result.ok, output: result.output.trim() };
+  });
+  if (stale.length === 0) {
+    passed.push('pins');
+    return [];
+  }
+
+  return [{ detail: stale.join('\n'), kind: 'stale-pin', step: 'pins' }];
 }
 
 /**

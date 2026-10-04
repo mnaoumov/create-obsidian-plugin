@@ -70,6 +70,12 @@ real plugin. It is the only one that reads anything outside this repo:
 npm run verify:plugin-drift    # ~2s: the two obsidian-dev-utils presets against the real plugins
 ```
 
+The last one runs what `npm publish` would ship rather than the source, and `prepublishOnly` runs it:
+
+```bash
+npm run verify:tarball         # a few minutes: packs, scaffolds the --yes defaults, then install, pins, build and gate
+```
+
 Worth knowing:
 
 - **Run `npm run verify:answer-space -- --check-registry` before a release.** It asks the registry about
