@@ -421,6 +421,19 @@ the previous run never emitted: a template new in this generator version, or an 
 Comparing only against a recorded hash let the update overwrite it under "Updated". It is skipped with the same
 warning and no hash is recorded for it, so it stays skipped on later updates by the same two exits.
 
+**A file the project's formatter rewrote is the generator's, not the user's.** The hashes are recorded
+before anything is installed, and prettier or biome then rewrites dozens of files: 44 under prettier and
+17 under biome on a `--yes` scaffold, measured. Each of those matched neither hash, so every update skipped
+all of them, even with no template change at all. Two things close it. `runInitialFormat` re-hashes the
+recorded files from disk (`recordHashesOnDisk`) straight after its format and before the initial commit.
+On update, `createProjectFormatter` (`src/project-formatter.ts`) runs the installed formatter's CLI. A file
+equal to the new render as that formatter writes it (stdin mode, per file) is up to date. What the update
+writes is formatted in place with explicit paths, which both formatters still filter through their ignore
+settings, and it is recorded as formatted, so `format:check` stays green. One case stays skipped: a `--yes`
+project formatted by hand whose template then changed. The formatted OLD render cannot be rebuilt from a
+hash, so the user deletes the file to take the new version, as for any skip. With the formatter chosen but
+not installed, the update warns that it cannot tell the formatter's work from hand edits.
+
 ### A user's own templates are an overlay searched ahead of `templates/default`
 
 `--customTemplate=<dir>` (`src/overlay.ts`) is for what the answers cannot say. The directory mirrors

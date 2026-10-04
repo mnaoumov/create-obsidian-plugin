@@ -20,6 +20,7 @@ import type {
 } from './answers.ts';
 import type { FeatureOption } from './feature-option.ts';
 import type { Overlay } from './overlay.ts';
+import type { ProjectFormatter } from './project-formatter.ts';
 
 import {
   CONFIG_FILE_NAME,
@@ -261,7 +262,8 @@ export function copyTemplates(
   existingConfig: GeneratorConfig | null,
   resolvedVersions: ReadonlyMap<string, string> = new Map(),
   minAppVersion: string = FALLBACK_MIN_APP_VERSION,
-  overlay: null | Overlay = null
+  overlay: null | Overlay = null,
+  projectFormatter?: null | ProjectFormatter
 ): GeneratorConfig {
   const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
 
@@ -364,6 +366,7 @@ export function copyTemplates(
   const skipped: string[] = [];
   const updated: string[] = [];
   const created: string[] = [];
+  const written: string[] = [];
 
   for (const registeredPath of templateFiles) {
     const destinationPath = getDestinationPath(registeredPath, answers);
@@ -401,8 +404,8 @@ export function copyTemplates(
       const currentHash = sha256(currentContent);
       const originalHash = existingConfig.fileHashes[destinationPath];
 
-      if (currentHash === newHash) {
-        newConfig.fileHashes[destinationPath] = newHash;
+      if (matchesRender(currentHash, newHash, projectFormatter, destinationPath, rendered)) {
+        newConfig.fileHashes[destinationPath] = currentHash;
         continue;
       }
 
@@ -436,7 +439,10 @@ export function copyTemplates(
     }
 
     writeFileSync(fullDestinationPath, rendered);
+    written.push(destinationPath);
   }
+
+  formatWrittenFiles(projectFormatter, targetDir, written, newConfig);
 
   const configPath = join(targetDir, CONFIG_FILE_NAME);
   writeFileSync(configPath, `${JSON.stringify(newConfig, null, JSON_INDENT_SPACES)}\n`);
@@ -490,6 +496,22 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   const raw = parsed as Record<string, unknown>;
   migrateAnswers(raw);
   return parsed as GeneratorConfig;
+}
+
+/**
+ * The config with every recorded file re-hashed from disk, for right after the generator's own initial format.
+ *
+ * That format runs after the hashes were recorded, so without this every file it rewrote would read as
+ * hand-edited on the next update. Only safe while nobody else has touched the files, which is why it is
+ * called straight after the format and before the initial commit -- never on an update.
+ */
+export function recordHashesOnDisk(targetDir: string, config: GeneratorConfig): GeneratorConfig {
+  const fileHashes: Record<string, string> = {};
+  for (const [destinationPath, hash] of Object.entries(config.fileHashes)) {
+    const fullPath = join(targetDir, destinationPath);
+    fileHashes[destinationPath] = existsSync(fullPath) ? sha256(readFileSync(fullPath)) : hash;
+  }
+  return { ...config, fileHashes };
 }
 
 /**
@@ -581,6 +603,21 @@ function conflictsOverJsxRuntime(chosen: FeatureOption, demo: FeatureOption): bo
  * `fundingUrl` overrides the stored answer, so the manifest, the README and `FUNDING.yml` cannot disagree.
  * The stored answer is only ever what is shown for `custom`, the one platform with no handle.
  */
+/**
+ * Formats what an update wrote the way the project's `format` would, and records it as formatted, so the update
+ * leaves `format:check` green and the next update reads these files as the generator's.
+ */
+function formatWrittenFiles(projectFormatter: null | ProjectFormatter | undefined, targetDir: string, written: readonly string[], config: GeneratorConfig): void {
+  const textFiles = written.filter((destinationPath) => !ASSET_EXTENSIONS.has(extname(destinationPath)));
+  if (!projectFormatter || textFiles.length === 0) {
+    return;
+  }
+  projectFormatter.formatFiles(textFiles);
+  for (const destinationPath of textFiles) {
+    config.fileHashes[destinationPath] = sha256(readFileSync(join(targetDir, destinationPath)));
+  }
+}
+
 function getFundingTemplateContext(answers: Answers): Record<string, string> {
   const funding = resolveFunding(answers);
   return {
@@ -632,6 +669,22 @@ function logUpdateSummary(updated: string[], created: string[], skipped: string[
   if (updated.length === 0 && created.length === 0) {
     log.info('Everything is already up to date.');
   }
+}
+
+/**
+ * Whether the file on disk is the render -- as rendered, or as the project's formatter writes it. Without the
+ * second, every file prettier or biome rewrote matched neither the recorded hash nor the render, and was
+ * skipped as hand-edited on every update.
+ */
+function matchesRender(currentHash: string, newHash: string, projectFormatter: null | ProjectFormatter | undefined, destinationPath: string, rendered: Buffer | string): boolean {
+  if (currentHash === newHash) {
+    return true;
+  }
+  if (!projectFormatter || typeof rendered !== 'string') {
+    return false;
+  }
+  const formatted = projectFormatter.formatContent(destinationPath, rendered);
+  return formatted !== null && sha256(formatted) === currentHash;
 }
 
 function migrateAnswers(raw: Record<string, unknown>): void {
