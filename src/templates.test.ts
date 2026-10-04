@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   existsSync,
   mkdtempSync,
@@ -17,7 +18,11 @@ import {
   it
 } from 'vitest';
 
-import type { Answers } from './answers.ts';
+import type {
+  Answers,
+  GeneratorConfig
+} from './answers.ts';
+import type { ProjectFormatter } from './project-formatter.ts';
 
 import {
   ANSWER_SPACE,
@@ -29,6 +34,7 @@ import {
   getScriptDir,
   isPartialTemplatePath,
   loadConfig,
+  recordHashesOnDisk,
   sortImportStatements
 } from './templates.ts';
 
@@ -1330,6 +1336,77 @@ describe('copyTemplates', () => {
     config = copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.3', config);
     expect(readFileSync(join(targetDir, 'scripts', 'commit.ts'), 'utf-8')).not.toBe(own);
     expect(config.fileHashes).toHaveProperty('scripts/commit.ts');
+  });
+
+  describe('a formatter that rewrites the templates', () => {
+    const FORMATTED_MARK = '/* formatted */\n';
+
+    function sha256(content: string): string {
+      return createHash('sha256').update(content).digest('hex');
+    }
+
+    function format(content: string): string {
+      return content.endsWith(FORMATTED_MARK) ? content : `${content}${FORMATTED_MARK}`;
+    }
+
+    // Stands in for prettier or biome: idempotent, and the same rewrite whether given content or a file.
+    function makeFormatter(): ProjectFormatter {
+      return {
+        formatContent: (_destinationPath: string, content: string): string => format(content),
+        formatFiles(destinationPaths: readonly string[]): void {
+          for (const destinationPath of destinationPaths) {
+            const fullPath = join(targetDir, destinationPath);
+            writeFileSync(fullPath, format(readFileSync(fullPath, 'utf-8')));
+          }
+        }
+      };
+    }
+
+    function formatAll(config: GeneratorConfig): void {
+      makeFormatter().formatFiles(Object.keys(config.fileHashes).filter((path) => !path.endsWith('.wasm')));
+    }
+
+    // The `--yes` path: the hashes are recorded before anything is installed, and the user runs `format` by
+    // Hand afterwards. Every file it rewrote used to match neither hash and was skipped on every update.
+    it('reads a file the formatter rewrote as the generator\'s, on every later update', () => {
+      let config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+      formatAll(config);
+      const formattedReadme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+
+      for (const version of ['1.0.1', '1.0.2']) {
+        config = copyTemplates(makeAnswers(), targetDir, version, config, new Map(), undefined, null, makeFormatter());
+        expect(readFileSync(join(targetDir, 'README.md'), 'utf-8'), version).toBe(formattedReadme);
+        expect(config.fileHashes['README.md'], version).toBe(sha256(formattedReadme));
+      }
+
+      config = copyTemplates(makeAnswers({ pluginDescription: 'Another test plugin.' }), targetDir, '1.0.3', config, new Map(), undefined, null, makeFormatter());
+      const manifest = readFileSync(join(targetDir, 'manifest.json'), 'utf-8');
+      expect(manifest).toContain('Another test plugin.');
+      // Written the way the project's own `format` would, so `format:check` stays green after an update.
+      expect(manifest.endsWith(FORMATTED_MARK)).toBe(true);
+      expect(config.fileHashes['manifest.json']).toBe(sha256(manifest));
+    });
+
+    it('still skips a hand edit to a formatted file', () => {
+      const config = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+      formatAll(config);
+      const edited = 'My own README.\n';
+      writeFileSync(join(targetDir, 'README.md'), edited);
+      copyTemplates(makeAnswers(), targetDir, '1.0.1', config, new Map(), undefined, null, makeFormatter());
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toBe(edited);
+    });
+
+    // The interactive create formats after recording the hashes. Re-hashing straight after that format is what
+    // Lets the first update overwrite a file whose template changed, with no formatter to compare against.
+    it('lets an update overwrite a formatted file once its hashes are re-recorded from disk', () => {
+      const generated = copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
+      formatAll(generated);
+      const config = recordHashesOnDisk(targetDir, generated);
+      expect(config.fileHashes['manifest.json']).toBe(sha256(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')));
+
+      copyTemplates(makeAnswers({ pluginDescription: 'Another test plugin.' }), targetDir, '1.0.1', config);
+      expect(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')).toContain('Another test plugin.');
+    });
   });
 
   it('adopts an unrecorded file whose content already matches the render', () => {
