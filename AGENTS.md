@@ -64,6 +64,15 @@ settings say. So a project that picked either would be committed already failing
 the initial commit, which settles it in that tool's own style. Do not try to make the templates satisfy
 all three.
 
+**`--yes` installs nothing, so it formats nothing, and its `Next steps` say so.** Measured: a `--yes`
+scaffold on prettier fails `format:check` on 44 files and one on biome on 17. `--yes` stays out of the
+install on purpose — it is what exported scripts and CI run, and the README promises it skips the
+post-scaffold steps — so the closing `Next steps` line puts `<pm> run format` between the install and
+`dev` whenever `needsInitialFormat` (`src/features/formatter/index.ts`) names the formatter and the format
+did not run. The gate tier's `checkFormat` reads the same predicate, so the format it runs before
+`format:check` is exactly the step the user is told to run. dprint is not in it: the templates already
+pass its check, and formatting first under dprint is what hid a template it rejected.
+
 Their configs still carry the project's excludes, because a formatter that actually runs will otherwise
 rewrite `demo-vault/` — including `.obsidian/community-plugins.json`, which the demo-vault coverage
 suite compares exactly. `.prettierignore` and `biome.json`'s `files.includes` mirror what `dprint.json`
