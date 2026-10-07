@@ -41,7 +41,8 @@ async function main(): Promise<void> {
   try {
     run('npm run build', repoDir);
 
-    const packOutput = capture(`npm pack --json --pack-destination "${root}"`, repoDir);
+    // `--ignore-scripts`: `prepare` runs husky, which prints to stdout under `HUSKY=0` and breaks the JSON.
+    const packOutput = capture(`npm pack --json --ignore-scripts --pack-destination "${root}"`, repoDir);
     const [pack] = JSON.parse(packOutput) as PackResult[];
     if (!pack) {
       throw new Error(`npm pack reported nothing:\n${packOutput}`);
