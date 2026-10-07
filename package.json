@@ -1,6 +1,6 @@
 {
   "name": "@mnaoumov/create-obsidian-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Create Obsidian plugin from modern templates.",
   "homepage": "https://github.com/mnaoumov/create-obsidian-plugin#readme",
   "bugs": "https://github.com/mnaoumov/create-obsidian-plugin/issues",
