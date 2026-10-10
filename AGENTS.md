@@ -918,6 +918,24 @@ never formatted. So that pre-format now runs only for prettier and biome, the tw
 templates' style. And no tier runs `lint:md`, which let the funding `<a>` reach the README with no
 `MD033` disable around it.
 
+### A link into obsidian-dev-utils' source is checked against its git tree, before every publish
+
+The stylesheet templates cite obsidian-dev-utils source files for the user to read. That library renamed every file
+to kebab-case in `77c2bac1`, and `src/CssClass.ts` stayed in the templates as a 404 emitted into every generated
+plugin for seven months, with every tier green. `npm run verify:upstream-links` (`src/upstream-links.ts`) finds
+every literal `blob` / `raw` / `tree` link into that repository in this repo's tracked files, test files excepted,
+and resolves each against `git ls-tree` of the link's ref in a checkout: `origin/<ref>` first, then `<ref>`.
+
+It reads a checkout, not the network and not the published package. The package ships `dist/` and no `src/`, so it
+cannot answer. The checkout is the sibling `../obsidian-dev-utils` by default, `--odu-dir` or
+`OBSIDIAN_DEV_UTILS_DIR` otherwise. It is only as fresh as its last fetch, so a dead-link report on a stale checkout
+says to fetch first. A missing checkout fails rather than skips, and so does a scan that finds no link at all.
+`prepublishOnly` runs it before `verify:tarball`, and `publish-npm.yml` checks the library out into
+`.upstream/obsidian-dev-utils` for it, outside the tarball's `files`.
+
+Links to other sites are not checked by any tier. Probing them needs the network, which is why `lint:md` is left to
+the generated project.
+
 ### A fourth check asks whether the output looks like a real plugin
 
 The three tiers above all ask the same question — is the output valid? — over as much of the answer space

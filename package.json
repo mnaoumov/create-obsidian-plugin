@@ -32,7 +32,7 @@
     "lint": "jiti scripts/lint.ts",
     "lint:fix": "jiti scripts/lint-fix.ts",
     "prepare": "jiti scripts/prepare.ts",
-    "prepublishOnly": "npm run verify:tarball",
+    "prepublishOnly": "npm run verify:upstream-links && npm run verify:tarball",
     "render:case": "jiti scripts/render-one-case.ts",
     "spellcheck": "jiti scripts/spellcheck.ts",
     "test": "jiti scripts/test.ts",
@@ -40,7 +40,8 @@
     "verify:plugin-drift": "jiti scripts/verify-plugin-drift.ts",
     "verify:projects": "jiti scripts/verify-generated-projects.ts",
     "verify:rendering": "jiti scripts/verify-rendering.ts",
-    "verify:tarball": "jiti scripts/verify-tarball.ts"
+    "verify:tarball": "jiti scripts/verify-tarball.ts",
+    "verify:upstream-links": "jiti scripts/verify-upstream-links.ts"
   },
   "overrides": {
     "eslint": "$eslint",
