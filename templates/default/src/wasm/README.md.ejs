@@ -16,7 +16,7 @@ WebAssembly is how you use code written in Rust, C, Go or AssemblyScript from a 
 
 ## Replacing it with your own
 
-1. Build a `.wasm` and put it in this folder. With Rust: install [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/), `wasm-pack new my-wasm`, `wasm-pack build --target web`. With [AssemblyScript](https://www.assemblyscript.org/): `npm install assemblyscript`, then `npx asc assembly/index.ts --outFile src/wasm/module.wasm`.
+1. Build a `.wasm` and put it in this folder. With Rust: install [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://wasm-bindgen.github.io/wasm-pack/installer/), `wasm-pack new my-wasm`, `wasm-pack build --target web`. With [AssemblyScript](https://www.assemblyscript.org/): `npm install assemblyscript`, then `npx asc assembly/index.ts --outFile src/wasm/module.wasm`.
 2. Point `answer.ts` at it and name your own exports. `src/wasm.d.ts` declares what a `.wasm` import yields under this project's bundler — that differs between bundlers, which is why the file is generated rather than copied.
 3. Keep something in `src/` calling into it, for the tree-shaking reason above.
 
