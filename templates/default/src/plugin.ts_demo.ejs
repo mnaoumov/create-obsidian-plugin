@@ -1,3 +1,4 @@
+import type { MaybeReturn } from '@mnaoumov/typescript-lib/type';
 import type {
   Editor,
   MarkdownPostProcessorContext,
@@ -5,27 +6,26 @@ import type {
   ObsidianProtocolData,
   TAbstractFile
 } from 'obsidian';
-import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
+import { OpenDemoVaultCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-demo-vault-command-handler';
+import { PluginSettingsTabComponent } from '@mnaoumov/obsidian-lib/components/plugin-settings-tab-component';
+import { PluginDataHandler } from '@mnaoumov/obsidian-lib/data-handler';
+import { alert } from '@mnaoumov/obsidian-lib/modals/alert';
+import { confirm } from '@mnaoumov/obsidian-lib/modals/confirm';
+import { prompt } from '@mnaoumov/obsidian-lib/modals/prompt';
+import { selectItem } from '@mnaoumov/obsidian-lib/modals/select-item';
+import { PluginBase } from '@mnaoumov/obsidian-lib/plugin/plugin';
+import { PluginEventSourceImpl } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
+import {
+  convertAsyncToSync,
+  invokeAsyncSafely
+} from '@mnaoumov/typescript-lib/async';
+import { getDebugger } from '@mnaoumov/typescript-lib/debug';
 import {
   MarkdownView,
   Menu,
   Notice
 } from 'obsidian';
-import {
-  convertAsyncToSync,
-  invokeAsyncSafely
-} from 'obsidian-dev-utils/async';
-import { getDebugger } from 'obsidian-dev-utils/debug';
-import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
-import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
-import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
-import { alert } from 'obsidian-dev-utils/obsidian/modals/alert';
-import { confirm } from 'obsidian-dev-utils/obsidian/modals/confirm';
-import { prompt } from 'obsidian-dev-utils/obsidian/modals/prompt';
-import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
-import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
-import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
 <%# Sorted as one group, not written in order: the `import` section is composed from the per-answer -%>
 <%# partials, whose order is the order the questions are registered. See `sortImports` in -%>

@@ -4,7 +4,7 @@ import { FeatureOption } from '../../feature-option.ts';
 
 export class Standalone extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Standalone plugin without obsidian-dev-utils dependency', promptLabel: 'Standalone', settingValue: 'standalone' });
+    super({ promptHint: 'Standalone plugin without the @mnaoumov library dependencies', promptLabel: 'Standalone', settingValue: 'standalone' });
   }
 
   public override configure(builder: TemplateBuilder): void {

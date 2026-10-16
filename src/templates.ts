@@ -353,7 +353,7 @@ export function copyTemplates(
      *
      * A section that contributes imports emits them in PARTIAL order, which is the order the answers were
      * registered in {@link FEATURE_REGISTRIES} -- and that has nothing to do with the order an
-     * import-sorting lint rule wants. The obsidian-dev-utils presets now adopt that package's shared
+     * import-sorting lint rule wants. The toolkit presets now adopt obsidian-dev-toolkit's shared
      * ESLint config, which sorts imports as an ERROR, so `uiFramework=lit editorExtensions=codemirror`
      * emitted a `src/plugin.ts` that was red the moment it was generated. The sorting cannot be pushed
      * into the partials: each one knows only itself, and which others are beside it is the answer set.

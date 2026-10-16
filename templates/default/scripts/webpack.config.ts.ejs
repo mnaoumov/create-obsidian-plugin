@@ -90,7 +90,7 @@ export const config: Configuration = {
     minimizer: [new TerserPlugin({ extractComments: false })]
   },
   output: {
-    // An Obsidian release ships `main.js` and nothing beside it, so a dynamic import -- obsidian-dev-utils
+    // An Obsidian release ships `main.js` and nothing beside it, so a dynamic import -- obsidian-lib
     // Has several -- must not become a sibling chunk that `main.js` then loads by name at runtime. This is
     // Webpack's twin of rollup's `inlineDynamicImports`.
     asyncChunks: false,

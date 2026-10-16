@@ -9,7 +9,7 @@
  * than that: it can never be changed once the plugin is published, which makes it the single most
  * expensive answer here to get wrong. Checking at the prompt is the only place the cost is zero.
  *
- * **These constraints are stated twice on purpose.** `obsidian-dev-utils` carries the same set as four
+ * **These constraints are stated twice on purpose.** `@mnaoumov/obsidian-dev-toolkit` carries the same set as four
  * ESLint rules over a repo's `manifest.json` (`manifest-id`, `manifest-name`, `manifest-description`,
  * `manifest-schema`), which is what catches an already-generated project. This generator must not depend
  * on any obsidian ecosystem package (see `AGENTS.md`), and these run at CLI runtime rather than at lint

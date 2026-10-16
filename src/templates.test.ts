@@ -179,7 +179,7 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('typescript-eslint');
     });
 
-    // The obsidian-dev-utils presets get the shared config, which brings its own plugins, so the three
+    // The toolkit presets get the shared config, which brings its own plugins, so the three
     // Packages only the inlined config imported would be declared and imported by nothing. `eslint` stays
     // Because the binary runs, and `typescript-eslint` because the `typescript` pin's `check` command
     // Reads its `package.json` for the peer range -- `checkRequires` silently downgrades that pin to a
@@ -263,7 +263,7 @@ describe('buildTemplate', () => {
       expect(builder.scripts['test']).toBeUndefined();
     });
 
-    // The runtime `obsidian` module. Standalone gets it too: its premise is "no obsidian-dev-utils", and
+    // The runtime `obsidian` module. Standalone gets it too: its premise is "no @mnaoumov packages", and
     // `obsidian-test-mocks` pulls none of that in -- without it a standalone project can never unit-test
     // Code that imports `obsidian`. It is tied to the runner rather than to the preset, so a project that
     // Picked no runner carries no testing dependency at all.
@@ -370,7 +370,7 @@ describe('buildTemplate', () => {
     });
 
     // Parcel's default bundler makes every `import()` a bundle root of its own and has no option to inline
-    // One, so on the dev-utils presets obsidian-dev-utils' `await import(...)` of its desktop-only modules
+    // One, so on the dev-utils presets obsidian-lib's `await import(...)` of its desktop-only modules
     // Shipped as a sibling chunk no release carries. The transformer rewrites a literal `import()` into a
     // `require()` inside an async arrow -- NOT `Promise.resolve().then(() => require())`, which Parcel
     // Recognizes as a dynamic import and splits all the same.
@@ -582,26 +582,27 @@ describe('buildTemplate', () => {
   });
 
   describe('preset feature', () => {
-    it('standalone does not include obsidian-dev-utils', () => {
+    it('standalone includes none of the @mnaoumov packages', () => {
       const builder = buildTemplate(makeAnswers({ preset: 'standalone' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames.filter((name) => name.startsWith('@mnaoumov/') || name === 'obsidian-dev-utils')).toEqual([]);
+    });
+
+    it('enhanced includes the runtime library and both toolkits, and not obsidian-dev-utils', () => {
+      const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toEqual(expect.arrayContaining(['@mnaoumov/obsidian-lib', '@mnaoumov/obsidian-dev-toolkit', '@mnaoumov/typescript-dev-toolkit']));
       expect(depNames).not.toContain('obsidian-dev-utils');
     });
 
-    it('enhanced includes obsidian-dev-utils', () => {
-      const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
-      const depNames = builder.dependencies.map((d) => d.packageName);
-      expect(depNames).toContain('obsidian-dev-utils');
-    });
-
-    it('emits the branch gate on both obsidian-dev-utils presets and not on standalone', () => {
+    it('emits the branch gate on both toolkit presets and not on standalone', () => {
       for (const preset of ['enhanced', 'demo']) {
         const builder = buildTemplate(makeAnswers({ preset }));
         expect(builder.scripts['gate'], preset).toBe('jiti scripts/gate.ts');
         expect([...builder.templateFiles], preset).toContain('scripts/gate.ts');
       }
 
-      // `gate` is imported from obsidian-dev-utils, which standalone may not depend on.
+      // `gate` is imported from typescript-dev-toolkit, which standalone may not depend on.
       const standalone = buildTemplate(makeAnswers({ preset: 'standalone' }));
       expect(standalone.scripts['gate']).toBeUndefined();
       expect([...standalone.templateFiles]).not.toContain('scripts/gate.ts');
@@ -627,14 +628,14 @@ describe('buildTemplate', () => {
       }
     });
 
-    it('both obsidian-dev-utils presets add the shared dev-utils partial', () => {
+    it('both toolkit presets add the shared dev-utils partial', () => {
       for (const preset of ['enhanced', 'demo']) {
         const builder = buildTemplate(makeAnswers({ preset }));
         expect(builder.partials.has('dev-utils'), preset).toBe(true);
       }
     });
 
-    it('keeps the two obsidian-dev-utils presets mutually exclusive', () => {
+    it('keeps the two toolkit presets mutually exclusive', () => {
       // A file with both an `_enhanced` and a `_demo` whole-file partial is composed by concatenating
       // Every match, so a `demo` build that also carried `enhanced` emitted `src/plugin.ts` twice over.
       const demoPartials = buildTemplate(makeAnswers({ preset: 'demo' })).partials;
@@ -723,14 +724,14 @@ describe('buildTemplate', () => {
       expect(builder.scripts['lint:md']).toBe('jiti scripts/lint-md.ts');
       expect(builder.scripts['lint:md:fix']).toBe('jiti scripts/lint-md-fix.ts');
       // `markdownlint-cli2` discovers no config named `.mts`; the `.mjs` wrapper plus a `scripts/` config
-      // Is the shape both it and the obsidian-dev-utils runner read.
+      // Is the shape both it and the toolkit runner read.
       expect([...builder.templateFiles]).toContain('.markdownlint-cli2.mjs');
       expect([...builder.templateFiles]).toContain('scripts/markdownlint-cli2-config.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md.ts');
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });
 
-    // The dev-utils presets spread obsidian-dev-utils' shared config, so the two packages only the inlined
+    // The dev-utils presets spread obsidian-dev-toolkit's shared config, so the two packages only the inlined
     // Standalone config imports would be declared for nothing there.
     it('declares markdownlint and its relative-links rule only on the standalone preset', () => {
       for (const preset of ['enhanced', 'demo']) {
@@ -801,7 +802,7 @@ describe('buildTemplate', () => {
         for (const script of ['build', 'dev']) {
           const text = readFileSync(join(targetDir, `scripts/${script}.ts`), 'utf-8');
           expect(text, script).toContain([
-            'import { wrapCliTask } from \'obsidian-dev-utils/script-utils/cli-utils\';',
+            'import { wrapCliTask } from \'@mnaoumov/typescript-dev-toolkit/cli-utils\';',
             '',
             '// eslint-disable-next-line import-x/no-unassigned-import -- Importing the module RUNS the style build; there is nothing to bind.',
             'import \'./build-styles.ts\';',
@@ -1611,7 +1612,7 @@ describe('copyTemplates', () => {
     ]);
   });
 
-  it('links the demo vault from the README for the obsidian-dev-utils presets', () => {
+  it('links the demo vault from the README for the toolkit presets', () => {
     for (const preset of ['enhanced', 'demo']) {
       rmSync(targetDir, { force: true, recursive: true });
       copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
@@ -1675,7 +1676,7 @@ describe('copyTemplates', () => {
   it('omits the Demo vault section and the vault for the standalone preset', () => {
     copyTemplates(makeAnswers({ preset: 'standalone' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    // `standalone` has no obsidian-dev-utils release flow, so nothing would archive the vault into a
+    // `standalone` has no toolkit release flow, so nothing would archive the vault into a
     // Release -- and the skeleton omits a section rather than linking a file that does not exist.
     expect(readme).not.toContain('## Demo vault');
     expect(existsSync(join(targetDir, 'demo-vault'))).toBe(false);
@@ -1688,7 +1689,7 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, 'CHANGELOG.md'))).toBe(false);
   });
 
-  it('scaffolds a demo vault for the obsidian-dev-utils presets', () => {
+  it('scaffolds a demo vault for the toolkit presets', () => {
     copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
 
     for (const relativePath of ['00 Start.md', '01 Sample commands.md', '02 Settings.md', 'README.md']) {
@@ -1747,14 +1748,14 @@ describe('copyTemplates', () => {
     expect(communityPlugins).toStrictEqual(['demo-vault-helper', 'my-tool']);
 
     const appJson = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/app.json'), 'utf-8')) as Record<string, unknown>;
-    // These four are injected into the ARCHIVED vault by obsidian-dev-utils; a committed copy is a second
+    // These four are injected into the ARCHIVED vault by obsidian-dev-toolkit; a committed copy is a second
     // Source of truth that nothing reconciles, and the coverage suite fails a vault that carries one.
     for (const injectedSetting of ['defaultViewMode', 'livePreview', 'newLinkFormat', 'useMarkdownLinks']) {
       expect(appJson, injectedSetting).not.toHaveProperty(injectedSetting);
     }
   });
 
-  it('wires both demo-vault suites only for an obsidian-dev-utils preset running vitest', () => {
+  it('wires both demo-vault suites only for an toolkit preset running vitest', () => {
     const suiteFiles = ['src/demo-vault.no-app.integration.test.ts', 'src/demo-vault-buttons.demo-vault.integration.test.ts'];
 
     copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'vitest' }), targetDir, '1.0.0', null);
@@ -1860,11 +1861,11 @@ describe('copyTemplates', () => {
     const expected = [
       ['standalone', 'eslint', 'eslint .'],
       ['standalone', 'biome', 'biome lint .'],
-      ['enhanced', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['enhanced', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
       ['enhanced', 'biome', 'biome lint .'],
-      ['demo', 'eslint', 'obsidian-dev-utils/script-utils/linters/eslint'],
+      ['demo', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
       ['demo', 'biome', 'biome lint .'],
-      ['demo', 'none', 'obsidian-dev-utils/script-utils/linters/eslint']
+      ['demo', 'none', '@mnaoumov/obsidian-dev-toolkit/linters/eslint']
     ];
 
     for (const [preset, linter, marker] of expected) {
@@ -2040,12 +2041,12 @@ describe('copyTemplates', () => {
   // The defect this guards is silent by construction: both scripts compile, both run a real bundler,
   // And no verification tier executes `dev` -- a watch task does not terminate -- so the two disagreeing
   // About what builds the plugin looked exactly like them agreeing. `build.ts` was keyed on the bundler
-  // While `dev.ts` was still keyed on the preset, which left every obsidian-dev-utils preset watching
+  // While `dev.ts` was still keyed on the preset, which left every toolkit preset watching
   // With esbuild whatever was answered, its chosen bundler's config emitted, installed and unread.
   it('dev.ts and build.ts pick the same bundler on every preset', () => {
     const presets = ['demo', 'enhanced', 'standalone'];
     const bundlers = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
-    const devUtilsDevImport = 'obsidian-dev-utils/script-utils/bundlers/esbuild';
+    const devUtilsDevImport = '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild';
 
     for (const preset of presets) {
       for (const bundler of bundlers) {
@@ -2055,7 +2056,7 @@ describe('copyTemplates', () => {
         const label = `${preset} + ${bundler}`;
 
         if (preset !== 'standalone' && bundler === 'esbuild') {
-          // The one path that genuinely differs: obsidian-dev-utils' `dev()` also watches node_modules
+          // The one path that genuinely differs: obsidian-dev-toolkit's `dev()` also watches node_modules
           // And re-runs build:compile, which its `build()` cannot do and no CLI bundler offers.
           expect(devScript, label).toContain(`import { dev } from '${devUtilsDevImport}'`);
           expect(devScript, label).toContain('dev({ customEsbuildPlugins })');
@@ -2130,7 +2131,7 @@ describe('copyTemplates', () => {
   });
 
   it('emits dprint.json wherever the dprint runner is what actually runs', () => {
-    // Without it the obsidian-dev-utils runner silently falls back to the copy bundled in the library,
+    // Without it the toolkit runner silently falls back to the copy bundled in the library,
     // Which carries none of this project's own excludes -- notably `demo-vault`.
     for (const preset of ['standalone', 'enhanced', 'demo']) {
       rmSync(targetDir, { force: true, recursive: true });
@@ -2492,12 +2493,12 @@ describe('copyTemplates', () => {
 
   it('spreads the shared markdownlint config on a dev-utils preset and inlines one on standalone', () => {
     copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'enhanced' }), targetDir, '1.0.0', null);
-    expect(readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8')).toContain('...obsidianDevUtilsConfig');
+    expect(readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8')).toContain('...obsidianMarkdownlintCli2Config');
     rmSync(targetDir, { force: true, recursive: true });
     copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'standalone' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8');
     expect(config).toContain('from \'markdownlint-rule-relative-links\'');
-    expect(config).not.toContain('obsidian-dev-utils');
+    expect(config).not.toContain('@mnaoumov/');
   });
 
   it('inlines the whole config on the standalone preset, which depends on nothing from the ecosystem', () => {
@@ -2505,7 +2506,7 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, 'scripts/eslint-config.ts'))).toBe(false);
     const config = readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8');
     expect(config).toContain('from \'typescript-eslint\'');
-    expect(config).not.toContain('from \'obsidian-dev-utils');
+    expect(config).not.toContain('from \'@mnaoumov/');
   });
 
   // The per-plugin brands are the whole of what a real plugin's wrapper overrides, so they have to

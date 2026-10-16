@@ -95,15 +95,15 @@ describe('buildOverrides', () => {
     expect(overrides).toStrictEqual({ typescript: '$typescript' });
   });
 
-  it('forces a literal spec for an advisory reached only through obsidian-dev-utils', () => {
+  it('forces a literal spec for an advisory reached only through obsidian-integration-testing', () => {
     // These two are never declared by the project, so there is no spec for `$<name>` to reuse -- which is
     // Exactly why they cannot live in the pin table.
-    const overrides = buildOverrides([new Dependency('typescript'), new Dependency('obsidian-dev-utils')]);
+    const overrides = buildOverrides([new Dependency('typescript'), new Dependency('obsidian-integration-testing')]);
     expect(overrides['@puppeteer/browsers']).toBe('^3.2.1');
     expect(overrides['deepmerge-ts']).toBe('^8.0.2');
   });
 
-  it('leaves a project without obsidian-dev-utils free of advisory overrides', () => {
+  it('leaves a project without obsidian-integration-testing free of advisory overrides', () => {
     // The standalone preset never reaches webdriverio, so it audits clean on its own; overriding a package
     // Absent from its tree would pull one in.
     const overrides = buildOverrides([new Dependency('typescript')]);
@@ -114,7 +114,7 @@ describe('buildOverrides', () => {
   // Yarn ignores `overrides` outright, so a yarn project got no forcing at all and `@codemirror/view`
   // Brought a second `@codemirror/state` -- two copies of a CodeMirror facet, which do not interoperate.
   it('states the same forcing as literal resolutions, which is what yarn and pnpm read', () => {
-    const dependencies = [new Dependency('@codemirror/state'), new Dependency('obsidian-dev-utils')];
+    const dependencies = [new Dependency('@codemirror/state'), new Dependency('obsidian-integration-testing')];
     const resolutions = buildResolutions(dependencies);
     expect(resolutions['@codemirror/state']).toBe('6.5.0');
     expect(resolutions['deepmerge-ts']).toBe('^8.0.2');
@@ -152,7 +152,7 @@ describe('buildPinnedVersionsJson', () => {
   it('documents every advisory override it emits', () => {
     // An override and its justification correspond one to one, so an override that outlives
     // The advisory is visible rather than permanent.
-    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('obsidian-dev-utils')])) as ParsedPinnedVersions;
+    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('obsidian-integration-testing')])) as ParsedPinnedVersions;
     for (const packageName of ['@puppeteer/browsers', 'deepmerge-ts']) {
       const pin = parsed.pins[packageName];
       expect(pin?.section, packageName).toBe('overrides');

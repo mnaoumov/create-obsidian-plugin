@@ -20,7 +20,7 @@ export class Markdownlint extends FeatureOption {
       .addScript('lint:md:fix')
       .addFiles([
         // `markdownlint-cli2` only discovers a config named `.markdownlint-cli2.{jsonc,yaml,cjs,mjs}`, and
-        // So does obsidian-dev-utils' runner -- which copies its own `.mjs` in when it finds none, pointing
+        // So does the toolkit's runner -- which copies its own `.mjs` in when it finds none, pointing
         // At a `scripts/markdownlint-cli2-config.ts` that then has to exist. Hence this shape rather than a
         // Single `.mts` that nothing reads.
         '.markdownlint-cli2.mjs',
@@ -32,7 +32,7 @@ export class Markdownlint extends FeatureOption {
         'linkinator.config.json'
       ]);
 
-    // Split on the preset, the way `scripts/lint-md.ts` itself already is. The obsidian-dev-utils presets
+    // Split on the preset, the way `scripts/lint-md.ts` itself already is. The toolkit presets
     // Spread that package's shared config, as every real plugin does, so the rule set and its custom rules
     // Arrive by `npm update`. The standalone preset writes its own, and only it imports these two.
     if (isDevUtilsPreset(answers.preset)) {

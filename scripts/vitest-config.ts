@@ -5,7 +5,7 @@ export const vitestConfig = defineConfig({
     include: ['src/**/*.test.ts'],
     server: {
       deps: {
-        inline: ['@obsidian-typings', 'obsidian-dev-utils']
+        inline: ['@obsidian-typings']
       }
     },
     // Many cases render several whole projects synchronously. On an idle machine the slowest takes about 1 s,

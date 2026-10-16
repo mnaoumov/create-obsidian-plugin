@@ -534,8 +534,13 @@ function exportedNames(statement: Statement): string[] {
   return [];
 }
 
+const TOOLKIT_SPECIFIER_PREFIXES = ['@mnaoumov/', 'obsidian-dev-utils'];
+
 /**
- * Which `obsidian-dev-utils` module each `scripts/*.ts` wraps, and what it takes from it.
+ * Which toolkit module each `scripts/*.ts` wraps, and what it takes from it.
+ *
+ * Both generations count: the `@mnaoumov` packages and the `obsidian-dev-utils` they replace, because the real
+ * plugins compared here move from one to the other one repo at a time.
  *
  * The named imports are part of the trait rather than just the specifier, because the whole point of
  * the two-tier script strategy is that each script is a thin wrapper around one named function -- so
@@ -560,7 +565,7 @@ function extractDevUtilsModules(projectDir: string, files: readonly string[]): M
       if (!isImportDeclaration(statement) || !isStringLiteral(statement.moduleSpecifier)) {
         continue;
       }
-      if (!statement.moduleSpecifier.text.startsWith('obsidian-dev-utils')) {
+      if (!TOOLKIT_SPECIFIER_PREFIXES.some((prefix) => statement.moduleSpecifier.text.startsWith(prefix))) {
         continue;
       }
       const names = importedNames(statement);
@@ -580,7 +585,7 @@ function extractDevUtilsModules(projectDir: string, files: readonly string[]): M
  *
  * What a reader checks by eye when asking whether a generated project looks like a real one: which of
  * the files exist, what each one's exported class extends, and what each module exports. The base class
- * is the substance -- obsidian-dev-utils' `PluginBase` rather than Obsidian's own `Plugin` is the
+ * is the substance -- obsidian-lib's `PluginBase` rather than Obsidian's own `Plugin` is the
  * single clearest marker that a project is on a dev-utils preset at all.
  */
 function extractPluginShape(projectDir: string): Map<string, string> {

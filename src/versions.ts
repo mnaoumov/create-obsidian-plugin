@@ -143,7 +143,7 @@ export interface AdvisoryOverride {
    * declares ANY of them, and omitted entirely when it declares none.
    *
    * A list, not one name: the same wdio subtree is reachable two independent ways -- through
-   * `obsidian-dev-utils` -> `obsidian-integration-testing`, and through the `wdio-obsidian` end-to-end
+   * `obsidian-integration-testing`, which the toolkit presets declare, and through the `wdio-obsidian` end-to-end
    * answer's own `wdio-obsidian-service`. Naming only the first left every `standalone` + wdio project
    * with no overrides at all and a permanently red `npm audit`.
    */
@@ -163,7 +163,7 @@ export interface MissingPackage {
 /**
  * Overrides that clear an advisory reached only transitively, keyed by package name.
  *
- * All three hang off webdriverio, which a project reaches either through `obsidian-dev-utils` ->
+ * All three hang off webdriverio, which a project reaches either through
  * `obsidian-integration-testing` or through the `wdio-obsidian` end-to-end answer's own
  * `wdio-obsidian-service`. A project with neither -- `standalone` on any other e2e answer -- gets none of
  * them, and audits clean without.
@@ -173,7 +173,7 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@wdio/utils/package.json\',\'utf8\')).dependencies[\'@puppeteer/browsers\'])"',
     expect: '^2.2.0',
     manualCheck: 'The check reads @wdio/utils\'s own declared range, not a version, because that range is what makes the override necessary. When it moves to ^3 or later, @wdio/utils no longer pulls extract-zip in and both this override and this entry can go.',
-    requires: ['obsidian-dev-utils', 'wdio-obsidian-service'],
+    requires: ['obsidian-integration-testing', 'wdio-obsidian-service'],
     spec: '^3.2.1',
     why: 'Clears GHSA-jmr9-qjv8-65gv (extract-zip unvalidated symlink path traversal). extract-zip is vulnerable at every published version, so there is nothing to override it to, and the direct dependency cannot be bumped either: even the newest webdriverio reaches extract-zip through @wdio/utils -> @puppeteer/browsers ^2.x. @puppeteer/browsers@3 replaced extract-zip with modern-tar, so forcing 3.x on @wdio/utils, the only consumer left on 2.x, removes the subtree. @wdio/utils imports only install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, computeExecutablePath and the InstallOptions type, all still exported by 3.x, and both packages are ESM-only. Never take the `npm audit fix --force` remedy: it downgrades obsidian-integration-testing to 1.1.2.'
   },
@@ -181,7 +181,7 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@wdio/utils/package.json\',\'utf8\')).dependencies[\'deepmerge-ts\'])"',
     expect: '^7.0.3',
     manualCheck: 'The check reads the range @wdio/utils declares, which is what forces the override. When it moves to ^8 or later the override and this entry can go. Before lifting it, re-run the deepmergeCustom probe: @wdio/config passes a `mergeArrays` handler that reads `meta.key`, and that is the API 8.0.0 renamed.',
-    requires: ['obsidian-dev-utils', 'wdio-obsidian-service'],
+    requires: ['obsidian-integration-testing', 'wdio-obsidian-service'],
     spec: '^8.0.2',
     why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. Every wdio package still declares ^7.0.3, including the newest, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
   },
@@ -195,7 +195,7 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
   }
 };
 
-// The same source `obsidian-dev-utils/script-utils/version` reads when it stamps `minAppVersion` on a
+// The same source `@mnaoumov/obsidian-dev-toolkit/version` reads when it stamps `minAppVersion` on a
 // Release, so the scaffold and the project's first `npm run version` agree on where the number comes from.
 const DESKTOP_RELEASES_JSON_URL = 'https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/desktop-releases.json';
 /**

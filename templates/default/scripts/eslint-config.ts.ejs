@@ -1,10 +1,10 @@
 import type { Linter } from 'eslint';
 
+import { defineEslintConfigs } from '@mnaoumov/obsidian-dev-toolkit/linters/eslint-config';
 import {
   defineConfig,
   globalIgnores
 } from 'eslint/config';
-import { defineEslintConfigs } from 'obsidian-dev-utils/script-utils/linters/eslint-config';
 
 export const configs: Linter.Config[] = defineEslintConfigs({
   customConfigs(context) {
@@ -99,7 +99,7 @@ export const configs: Linter.Config[] = defineEslintConfigs({
     );
   },
   editContext(context) {
-    // The shared config's root-config list is the three a plugin built on `obsidian-dev-utils` always has
+    // The shared config's root-config list is the three a plugin built on the toolkit always has
     // (`commitlint.config.ts`, `eslint.config.mts`, `vitest.config.ts`). This project may also have a root
     // Wrapper for another runner, and a root `*.ts` that ESLint reaches but no config object matches is a
     // File linted with nothing. Named unconditionally: a glob matching no emitted file costs nothing, and

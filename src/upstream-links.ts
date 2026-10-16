@@ -1,17 +1,17 @@
 /**
- * Finds the links this repo cites into obsidian-dev-utils' source tree, and which of them name nothing.
+ * Finds the links this repo cites into obsidian-lib's source tree, and which of them name nothing.
  *
- * The defect class is an upstream rename that silently breaks a downstream link. obsidian-dev-utils renamed
- * every file to kebab-case in `77c2bac1`, and the stylesheet templates went on citing `src/CssClass.ts` for
+ * The defect class is an upstream rename that silently breaks a downstream link. obsidian-dev-utils, which the
+ * templates cited before obsidian-lib replaced it, renamed every file to kebab-case in `77c2bac1`, and the stylesheet templates went on citing `src/CssClass.ts` for
  * seven months, emitting a 404 into every generated plugin. A link cannot be checked against the published
  * package -- it ships `dist/` and no `src/` -- so it is resolved against the git tree of a checkout, which
  * is also what keeps the check off the network.
  */
 
 /** The repository the links point into. */
-export const UPSTREAM_REPOSITORY_URL = 'https://github.com/mnaoumov/obsidian-dev-utils';
+export const UPSTREAM_REPOSITORY_URL = 'https://github.com/mnaoumov/obsidian-lib';
 
-/** One cited location in obsidian-dev-utils. */
+/** One cited location in obsidian-lib. */
 export interface UpstreamLink {
   /** The file of this repo that cites it, relative to the repo root. */
   file: string;
@@ -31,7 +31,7 @@ export interface UpstreamLink {
  * delimiter, a quote, a query or a fragment. `<` and `$` stop it as well, so that a templated tail (`<%= %>`,
  * `${}`) is left out rather than checked half-rendered.
  */
-const LINK_PATTERN = /https:\/\/github\.com\/mnaoumov\/obsidian-dev-utils\/(?<kind>blob|raw|tree)\/(?<ref>[^/\s]+)\/(?<path>[^\s)\]"'`<>#?${}]+)/g;
+const LINK_PATTERN = /https:\/\/github\.com\/mnaoumov\/obsidian-lib\/(?<kind>blob|raw|tree)\/(?<ref>[^/\s]+)\/(?<path>[^\s)\]"'`<>#?${}]+)/g;
 
 /** Sentence punctuation that ends a prose line, never a path. */
 const TRAILING_PUNCTUATION = /[.,;:!]+$/;
@@ -80,7 +80,7 @@ export function findDeadUpstreamLinks(links: readonly UpstreamLink[], filesAt: (
   return dead;
 }
 
-/** Every link into obsidian-dev-utils' source tree that `text` cites, a templated one excepted. */
+/** Every link into obsidian-lib's source tree that `text` cites, a templated one excepted. */
 export function findUpstreamLinks(file: string, text: string): UpstreamLink[] {
   const links: UpstreamLink[] = [];
   const lines = text.split('\n');

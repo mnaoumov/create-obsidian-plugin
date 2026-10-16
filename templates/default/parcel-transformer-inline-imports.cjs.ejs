@@ -6,7 +6,7 @@
  * new bundle root unconditionally, and has no option to inline one. The other bundlers each do:
  * rollup's `inlineDynamicImports`, vite's `rollupOptions.output.inlineDynamicImports`, webpack's
  * `asyncChunks: false`. This transformer is that option for Parcel, for the same reason
- * `parcel-resolver-obsidian.cjs` is its `external` list. obsidian-dev-utils is what needs it: it
+ * `parcel-resolver-obsidian.cjs` is its `external` list. obsidian-lib is what needs it: it
  * reaches its desktop-only modules through `await import(...)`.
  *
  * It runs before Parcel's own JavaScript transformer and rewrites `import('<literal>')` into a

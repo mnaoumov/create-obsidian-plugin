@@ -19,17 +19,17 @@ import {
 } from '../src/upstream-links.ts';
 
 /** Where CI puts its checkout, since a runner has no sibling directory to find one in. */
-const ODU_DIR_ENV = 'OBSIDIAN_DEV_UTILS_DIR';
+const LIB_DIR_ENV = 'OBSIDIAN_LIB_DIR';
 
 const MAX_GIT_OUTPUT = 64 * 1024 * 1024;
 
 main();
 
-function listFilesAt(oduDir: string, ref: string): ReadonlySet<string> | undefined {
+function listFilesAt(libDir: string, ref: string): ReadonlySet<string> | undefined {
   // The remote-tracking branch first: it is as fresh as the checkout's last fetch, where a local branch is
   // As fresh as its last pull. Nothing here fetches, so the answer is only ever as current as the checkout.
   for (const rev of [`origin/${ref}`, ref]) {
-    const result = spawnSync('git', ['ls-tree', '-r', '--name-only', rev], { cwd: oduDir, encoding: 'utf-8', maxBuffer: MAX_GIT_OUTPUT });
+    const result = spawnSync('git', ['ls-tree', '-r', '--name-only', rev], { cwd: libDir, encoding: 'utf-8', maxBuffer: MAX_GIT_OUTPUT });
     if (result.status === 0) {
       return new Set(result.stdout.split('\n').map((line) => line.trim()).filter((line) => line !== ''));
     }
@@ -53,12 +53,12 @@ function listOwnFiles(repoRoot: string): string[] {
 
 function main(): void {
   const repoRoot = join(getScriptDir(), '..');
-  const oduDir = parseOduDir(process.argv.slice(2), repoRoot);
+  const libDir = parseLibDir(process.argv.slice(2), repoRoot);
 
-  if (!existsSync(join(oduDir, '.git'))) {
+  if (!existsSync(join(libDir, '.git'))) {
     // Not a pass. A check with nothing to check against is exactly how a dead link survived seven months.
-    process.stderr.write(`No obsidian-dev-utils checkout at ${oduDir}.\n`);
-    process.stderr.write(`Clone https://github.com/mnaoumov/obsidian-dev-utils there, or point --odu-dir or ${ODU_DIR_ENV} at one.\n`);
+    process.stderr.write(`No obsidian-lib checkout at ${libDir}.\n`);
+    process.stderr.write(`Clone https://github.com/mnaoumov/obsidian-lib there, or point --lib-dir or ${LIB_DIR_ENV} at one.\n`);
     process.exit(1);
   }
 
@@ -73,19 +73,19 @@ function main(): void {
 
   if (links.length === 0) {
     // The stylesheet templates cite two, so finding none means the extraction broke, not that all is well.
-    process.stderr.write('Found no links into obsidian-dev-utils at all, which means the scan is broken.\n');
+    process.stderr.write('Found no links into obsidian-lib at all, which means the scan is broken.\n');
     process.exit(1);
   }
 
   const filesByRef = new Map<string, ReadonlySet<string> | undefined>();
   const dead = findDeadUpstreamLinks(links, (ref) => {
     if (!filesByRef.has(ref)) {
-      filesByRef.set(ref, listFilesAt(oduDir, ref));
+      filesByRef.set(ref, listFilesAt(libDir, ref));
     }
     return filesByRef.get(ref);
   });
 
-  process.stdout.write(`Checked ${String(links.length)} obsidian-dev-utils link(s) against ${oduDir}\n`);
+  process.stdout.write(`Checked ${String(links.length)} obsidian-lib link(s) against ${libDir}\n`);
   if (dead.length === 0) {
     return;
   }
@@ -98,23 +98,23 @@ function main(): void {
   process.exit(1);
 }
 
-function parseOduDir(argv: readonly string[], repoRoot: string): string {
+function parseLibDir(argv: readonly string[], repoRoot: string): string {
   // The default is the sibling checkout, which is where it sits in the workspace this repo lives in.
-  let oduDir = process.env[ODU_DIR_ENV] ?? join(dirname(resolve(repoRoot)), 'obsidian-dev-utils');
+  let libDir = process.env[LIB_DIR_ENV] ?? join(dirname(resolve(repoRoot)), 'obsidian-lib');
 
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index];
-    if (argument === '--odu-dir') {
+    if (argument === '--lib-dir') {
       index++;
       const value = argv[index];
       if (value === undefined) {
-        throw new Error('--odu-dir needs a directory.');
+        throw new Error('--lib-dir needs a directory.');
       }
-      oduDir = value;
+      libDir = value;
     } else {
-      throw new Error(`Unknown argument ${String(argument)}. Accepts --odu-dir <dir>.`);
+      throw new Error(`Unknown argument ${String(argument)}. Accepts --lib-dir <dir>.`);
     }
   }
 
-  return resolve(oduDir);
+  return resolve(libDir);
 }
