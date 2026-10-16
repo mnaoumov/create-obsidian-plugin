@@ -77,7 +77,9 @@ const CUSTOM_TEMPLATE_PREFIX = '--customTemplate=';
 
 const MODE_PREFIX = '--mode=';
 
-const MODES: readonly string[] = [Mode.Create, Mode.Update];
+const MODES: readonly Mode[] = [Mode.Create, Mode.Update];
+
+const MODE_BY_VALUE = new Map<string, Mode>(MODES.map((mode) => [mode, mode]));
 
 /** The length of the leading `--` a flag name sits behind. */
 const FLAG_PREFIX_LENGTH = 2;
@@ -410,8 +412,9 @@ function splitFlag(argument: string): [string, string] {
 }
 
 function toMode(value: string): Mode {
-  if (!MODES.includes(value)) {
+  const mode = MODE_BY_VALUE.get(value);
+  if (mode === undefined) {
     throw new Error(`"${value}" is not a mode. It accepts: ${MODES.join(', ')}.`);
   }
-  return value as Mode;
+  return mode;
 }
