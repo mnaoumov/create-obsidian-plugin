@@ -2165,8 +2165,8 @@ describe('copyTemplates', () => {
   it('keeps dprint from rewriting the double-quoted JSX attributes the shared ESLint config requires', () => {
     // `quoteStyle: alwaysSingle` reaches JSX attributes too, so dprint rewrote the samples' `type="button"`
     // To `type='button'`, while `@stylistic/jsx-quotes` in the shared config demands the double quotes back.
-    // The dev-utils presets extend the toolkit's config, so they add the override only for a JSX framework
-    // And stay byte for byte the real plugins' file otherwise.
+    // `standalone` inlines the option. The dev-utils presets extend the toolkit's config, which sets it from
+    // 2.1.0, so they must not restate it and stay byte for byte the real plugins' file.
     for (const preset of ['standalone', 'enhanced', 'demo']) {
       for (const uiFramework of ['none', 'react', 'preact', 'solid', 'svelte']) {
         if (preset === 'demo' && uiFramework !== 'none') {
@@ -2175,8 +2175,7 @@ describe('copyTemplates', () => {
         rmSync(targetDir, { force: true, recursive: true });
         copyTemplates(makeAnswers({ formatter: 'dprint', preset, uiFramework }), targetDir, '1.0.0', null);
         const config = JSON.parse(readFileSync(join(targetDir, 'dprint.json'), 'utf-8')) as DprintConfig;
-        const isJsx = preset === 'demo' || ['preact', 'react', 'solid'].includes(uiFramework);
-        const expected = preset === 'standalone' || isJsx ? 'preferDouble' : undefined;
+        const expected = preset === 'standalone' ? 'preferDouble' : undefined;
         expect(config.typescript?.['jsx.quoteStyle'], `${preset}/${uiFramework}`).toBe(expected);
       }
     }

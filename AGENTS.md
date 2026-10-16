@@ -67,9 +67,8 @@ all three.
 **dprint is told to keep JSX attributes double-quoted (`jsx.quoteStyle: preferDouble`).** Its
 `quoteStyle: alwaysSingle` reaches JSX attributes too, and the shared ESLint config's `@stylistic/jsx-quotes`
 demands double quotes there, so on a dev-utils preset the two tools rewrote each other's `type="button"`.
-`standalone` inlines the option. The dev-utils presets extend obsidian-dev-toolkit's `dprint.json`, so they
-add it through the `jsx-quotes` partial that react, preact and solid contribute, which leaves a project
-without JSX byte for byte the real plugins' file.
+`standalone` inlines the option. The dev-utils presets extend obsidian-dev-toolkit's `dprint.json`, which
+sets it from 2.1.0, so their `dprint.json` does not restate it and stays byte for byte the real plugins' file.
 
 **`--yes` installs nothing, so it formats nothing, and its `Next steps` say so.** Measured: a `--yes`
 scaffold on prettier fails `format:check` on 44 files and one on biome on 17. `--yes` stays out of the
