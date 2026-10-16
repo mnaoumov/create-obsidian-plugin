@@ -290,7 +290,8 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       defaultValue: () => d.apiSubset ?? defaultTooling.apiSubset,
       key: 'apiSubset',
       prompt: (saved): Promise<string> => promptApiSubset(saved),
-      skip: (answers) => !(isCustomize(answers) && answers.get('preset') === 'all-in-one')
+      // The docs showcase IS the All-in-one Framework project, so it takes the same question.
+      skip: (answers) => !(isCustomize(answers) && ['all-in-one', 'docs-showcase'].includes(answers.get('preset') ?? ''))
     },
     {
       defaultValue: () => d.packageManager ?? 'npm',

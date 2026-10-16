@@ -1,0 +1,14 @@
+import { buildCompileTypeScript } from '@mnaoumov/typescript-dev-toolkit/build';
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import process from 'node:process';
+
+await wrapCliTask(async () => {
+  await buildCompileTypeScript();
+  // `src/docs` holds the Obsidian developer docs' code blocks as the docs show them, so the project's strict
+  // `tsconfig.json` leaves the folder out, and the folder's own `tsconfig.json` checks it under the official sample
+  // plugin's compiler options.
+  const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc');
+  execFileSync(process.execPath, [tscPath, '--project', 'src/docs/tsconfig.json'], { stdio: 'inherit' });
+});

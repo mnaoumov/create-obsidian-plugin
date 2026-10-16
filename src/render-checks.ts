@@ -44,6 +44,7 @@ import { parse as parseYaml } from 'yaml';
 import type { Answers } from './answers.ts';
 
 import { describeCase } from './answer-space.ts';
+import { DOCS_SHOWCASE_PRESET } from './features/preset/docs-showcase.ts';
 import {
   ASSET_EXTENSIONS,
   buildTemplate,
@@ -153,6 +154,12 @@ const SCOPED_PACKAGE_SEGMENTS = 2;
  */
 const SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/;
 
+/** The docs showcase's folder, whose modules are upstream's code blocks. */
+const DOCS_SHOWCASE_PREFIX = 'src/docs/';
+
+/** The showcase files that are this generator's own, and so are checked like any other emitted file. */
+const DOCS_SHOWCASE_HOST_FILES: ReadonlySet<string> = new Set(['src/docs/entry.d.ts', 'src/docs/entry.js', 'src/docs/host.ts', 'src/docs/tsconfig.json']);
+
 /** The committed demo vault, whose scripts take their modules from `CodeScript Toolkit` rather than `node_modules`. */
 const DEMO_VAULT_PREFIX = 'demo-vault/';
 
@@ -175,6 +182,12 @@ export function checkRenderedProject(targetDir: string, answers: Answers): Rende
   const violations: RenderViolation[] = [];
 
   for (const relativePath of walk(targetDir, '')) {
+    // The docs showcase is upstream's code blocks, written as the sync left them rather than composed from
+    // Partials, so the composition checks have nothing to say about it: an empty `if (secret) { }` there is the
+    // Docs' own. `npm run sync:docs-showcase` type-checks it instead, and `--check` holds it to the pinned commit.
+    if (answers.preset === DOCS_SHOWCASE_PRESET && relativePath.startsWith(DOCS_SHOWCASE_PREFIX) && !DOCS_SHOWCASE_HOST_FILES.has(relativePath)) {
+      continue;
+    }
     violations.push(...checkFile(targetDir, relativePath));
   }
 

@@ -1,0 +1,3585 @@
+{
+  "commit": "c56c7e770ba25dd0ea392aacf4588f9425970d36",
+  "entries": [
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Reviews and scanning",
+        "Why are my test or development files being included in the scan?"
+      ],
+      "id": "community-directory-frequently-asked-questions-01",
+      "kind": "not-runnable",
+      "lang": "",
+      "line": 76,
+      "name": "Frequently asked questions > Reviews and scanning > Why are my test or development files being included in the scan?",
+      "page": "Community directory/Frequently asked questions",
+      "reason": "a block with no language: plain text, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/communicating-with-editor-extensions/01-intro.ts",
+      "headings": [],
+      "id": "plugins-editor-communicating-with-editor-extensions-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 5,
+      "name": "Communicating with editor extensions",
+      "page": "Plugins/Editor/Communicating with editor extensions",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "23:15 TS2339: Property 'addPointerToSelection' does not exist on type 'ExamplePlugin'."
+      ],
+      "file": "plugins/editor/communicating-with-editor-extensions/02-view-plugin.ts",
+      "headings": [
+        "View plugin"
+      ],
+      "id": "plugins-editor-communicating-with-editor-extensions-02",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 16,
+      "name": "Communicating with editor extensions > View plugin",
+      "page": "Plugins/Editor/Communicating with editor extensions",
+      "reason": "`TS2339: Property 'addPointerToSelection' does not exist on type 'ExamplePlugin'.`, at line 11 of the block (line 27 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/communicating-with-editor-extensions/03-state-field.ts",
+      "headings": [
+        "State field"
+      ],
+      "id": "plugins-editor-communicating-with-editor-extensions-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 37,
+      "name": "Communicating with editor extensions > State field",
+      "page": "Plugins/Editor/Communicating with editor extensions",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/decorations/01-widgets.ts",
+      "headings": [
+        "Providing decorations",
+        "Widgets"
+      ],
+      "id": "plugins-editor-decorations-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 60,
+      "name": "Decorations > Providing decorations > Widgets",
+      "page": "Plugins/Editor/Decorations",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/decorations/02-widgets.ts",
+      "headings": [
+        "Providing decorations",
+        "Widgets"
+      ],
+      "id": "plugins-editor-decorations-02",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 76,
+      "name": "Decorations > Providing decorations > Widgets (2)",
+      "page": "Plugins/Editor/Decorations",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Providing decorations",
+        "State fields"
+      ],
+      "id": "plugins-editor-decorations-03",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 89,
+      "name": "Decorations > Providing decorations > State fields",
+      "page": "Plugins/Editor/Decorations",
+      "reason": "a fragment of an object literal: members shown out of the object they belong to",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/decorations/04-state-fields.ts",
+      "headings": [
+        "Providing decorations",
+        "State fields"
+      ],
+      "id": "plugins-editor-decorations-04",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 95,
+      "name": "Decorations > Providing decorations > State fields (2)",
+      "page": "Plugins/Editor/Decorations",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/decorations/05-view-plugins.ts",
+      "headings": [
+        "Providing decorations",
+        "View plugins"
+      ],
+      "id": "plugins-editor-decorations-05",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 154,
+      "name": "Decorations > Providing decorations > View plugins",
+      "page": "Plugins/Editor/Decorations",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "19:50 TS2304: Cannot find name 'exampleField'."
+      ],
+      "file": "plugins/editor/editor-extensions/01-registering-editor-extensions.ts",
+      "headings": [
+        "Registering editor extensions"
+      ],
+      "id": "plugins-editor-editor-extensions-01",
+      "kind": "members",
+      "lang": "ts",
+      "line": 24,
+      "name": "Editor extensions > Registering editor extensions",
+      "page": "Plugins/Editor/Editor extensions",
+      "reason": "`TS2304: Cannot find name 'exampleField'.`, at line 2 of the block (line 26 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/editor/01-intro.ts",
+      "headings": [],
+      "id": "plugins-editor-editor-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 7,
+      "name": "Editor",
+      "page": "Plugins/Editor/Editor",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "17:11 TS2349: This expression is not callable."
+      ],
+      "file": "plugins/editor/editor/02-insert-text-at-cursor-position.ts",
+      "headings": [
+        "Insert text at cursor position"
+      ],
+      "id": "plugins-editor-editor-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 27,
+      "name": "Editor > Insert text at cursor position",
+      "page": "Plugins/Editor/Editor",
+      "reason": "`TS2349: This expression is not callable.`, at line 10 of the block (line 37 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/editor/03-replace-current-selection.ts",
+      "headings": [
+        "Replace current selection"
+      ],
+      "id": "plugins-editor-editor-03",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 54,
+      "name": "Editor > Replace current selection",
+      "page": "Plugins/Editor/Editor",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/markdown-post-processing/01-intro.ts",
+      "headings": [],
+      "id": "plugins-editor-markdown-post-processing-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 5,
+      "name": "Markdown post processing",
+      "page": "Plugins/Editor/Markdown post processing",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Post-process Markdown code blocks"
+      ],
+      "id": "plugins-editor-markdown-post-processing-02",
+      "kind": "not-runnable",
+      "lang": "md",
+      "line": 37,
+      "name": "Markdown post processing > Post-process Markdown code blocks",
+      "page": "Plugins/Editor/Markdown post processing",
+      "reason": "Markdown, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Post-process Markdown code blocks"
+      ],
+      "id": "plugins-editor-markdown-post-processing-03",
+      "kind": "not-runnable",
+      "lang": "mermaid",
+      "line": 46,
+      "name": "Markdown post processing > Post-process Markdown code blocks (2)",
+      "page": "Plugins/Editor/Markdown post processing",
+      "reason": "a Mermaid diagram, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "19:22 TS2532: Object is possibly 'undefined'."
+      ],
+      "file": "plugins/editor/markdown-post-processing/04-post-process-markdown-code-blocks.ts",
+      "headings": [
+        "Post-process Markdown code blocks"
+      ],
+      "id": "plugins-editor-markdown-post-processing-04",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 53,
+      "name": "Markdown post processing > Post-process Markdown code blocks (3)",
+      "page": "Plugins/Editor/Markdown post processing",
+      "reason": "`TS2532: Object is possibly 'undefined'.`, at line 12 of the block (line 65 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/state-fields/01-defining-state-effects.ts",
+      "headings": [
+        "Defining state effects"
+      ],
+      "id": "plugins-editor-state-fields-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 20,
+      "name": "State fields > Defining state effects",
+      "page": "Plugins/Editor/State fields",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/state-fields/02-defining-a-state-field.ts",
+      "headings": [
+        "Defining a state field"
+      ],
+      "id": "plugins-editor-state-fields-02",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 34,
+      "name": "State fields > Defining a state field",
+      "page": "Plugins/Editor/State fields",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "14:30 TS2304: Cannot find name 'num'."
+      ],
+      "file": "plugins/editor/state-fields/03-dispatching-state-effects.ts",
+      "headings": [
+        "Dispatching state effects"
+      ],
+      "id": "plugins-editor-state-fields-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 65,
+      "name": "State fields > Dispatching state effects",
+      "page": "Plugins/Editor/State fields",
+      "reason": "`TS2304: Cannot find name 'num'.`, at line 2 of the block (line 67 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/state-fields/04-dispatching-state-effects.ts",
+      "headings": [
+        "Dispatching state effects"
+      ],
+      "id": "plugins-editor-state-fields-04",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 73,
+      "name": "State fields > Dispatching state effects (2)",
+      "page": "Plugins/Editor/State fields",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/state-management/01-state-changes.ts",
+      "headings": [
+        "State changes"
+      ],
+      "id": "plugins-editor-state-management-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 10,
+      "name": "State management > State changes",
+      "page": "Plugins/Editor/State management",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/state-management/02-state-changes.ts",
+      "headings": [
+        "State changes"
+      ],
+      "id": "plugins-editor-state-management-02",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 28,
+      "name": "State management > State changes (2)",
+      "page": "Plugins/Editor/State management",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "14:17 TS2552: Cannot find name 'selectionStart'. Did you mean 'onselectstart'?",
+        "15:17 TS2552: Cannot find name 'selectionEnd'. Did you mean 'Selection'?"
+      ],
+      "file": "plugins/editor/state-management/03-transactions.ts",
+      "headings": [
+        "Transactions"
+      ],
+      "id": "plugins-editor-state-management-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 51,
+      "name": "State management > Transactions",
+      "page": "Plugins/Editor/State management",
+      "reason": "`TS2552: Cannot find name 'selectionStart'. Did you mean 'onselectstart'?`, at line 3 of the block (line 54 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/editor/view-plugins/01-creating-a-view-plugin.ts",
+      "headings": [
+        "Creating a view plugin"
+      ],
+      "id": "plugins-editor-view-plugins-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 19,
+      "name": "View plugins > Creating a view plugin",
+      "page": "Plugins/Editor/View plugins",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/events/01-intro.ts",
+      "headings": [],
+      "id": "plugins-events-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 5,
+      "name": "Events",
+      "page": "Plugins/Events",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "11:3 TS2564: Property 'statusBar' has no initializer and is not definitely assigned in the constructor.",
+        "24:28 TS2349: This expression is not callable."
+      ],
+      "file": "plugins/events/02-timing-events.ts",
+      "headings": [
+        "Timing events"
+      ],
+      "id": "plugins-events-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 23,
+      "name": "Events > Timing events",
+      "page": "Plugins/Events",
+      "reason": "`TS2564: Property 'statusBar' has no initializer and is not definitely assigned in the constructor.`, at line 4 of the block (line 27 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/anatomy-of-a-plugin/01-intro.ts",
+      "headings": [],
+      "id": "plugins-getting-started-anatomy-of-a-plugin-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 3,
+      "name": "Anatomy of a plugin",
+      "page": "Plugins/Getting started/Anatomy of a plugin",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/anatomy-of-a-plugin/02-plugin-lifecycle.ts",
+      "headings": [
+        "Plugin lifecycle"
+      ],
+      "id": "plugins-getting-started-anatomy-of-a-plugin-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 29,
+      "name": "Anatomy of a plugin > Plugin lifecycle",
+      "page": "Plugins/Getting started/Anatomy of a plugin",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 1: Download the sample plugin"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-01",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 35,
+      "name": "Build a plugin > Step 1: Download the sample plugin",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 1: Download the sample plugin"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-02",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 43,
+      "name": "Build a plugin > Step 1: Download the sample plugin (2)",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 2: Build the plugin"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-03",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 58,
+      "name": "Build a plugin > Step 2: Build the plugin",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 2: Build the plugin"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-04",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 64,
+      "name": "Build a plugin > Step 2: Build the plugin (2)",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 2: Build the plugin"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-05",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 70,
+      "name": "Build a plugin > Step 2: Build the plugin (3)",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/build-a-plugin/06-step-5-update-the-source-code.ts",
+      "headings": [
+        "Step 5: Update the source code"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-06",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 109,
+      "name": "Build a plugin > Step 5: Update the source code",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/build-a-plugin/07-step-5-update-the-source-code.ts",
+      "headings": [
+        "Step 5: Update the source code"
+      ],
+      "id": "plugins-getting-started-build-a-plugin-07",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 115,
+      "name": "Build a plugin > Step 5: Update the source code (2)",
+      "page": "Plugins/Getting started/Build a plugin",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "11:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
+      ],
+      "file": "plugins/getting-started/mobile-development/01-emulate-mobile-device-on-desktop.ts",
+      "headings": [
+        "Emulate mobile device on desktop"
+      ],
+      "id": "plugins-getting-started-mobile-development-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 11,
+      "name": "Mobile development > Emulate mobile device on desktop",
+      "page": "Plugins/Getting started/Mobile development",
+      "reason": "`TS2339: Property 'emulateMobile' does not exist on type 'App'.`, at line 1 of the block (line 12 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
+      ],
+      "file": "plugins/getting-started/mobile-development/02-emulate-mobile-device-on-desktop.ts",
+      "headings": [
+        "Emulate mobile device on desktop"
+      ],
+      "id": "plugins-getting-started-mobile-development-02",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 17,
+      "name": "Mobile development > Emulate mobile device on desktop (2)",
+      "page": "Plugins/Getting started/Mobile development",
+      "reason": "`TS2339: Property 'emulateMobile' does not exist on type 'App'.`, at line 1 of the block (line 18 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/mobile-development/03-platform-specific-features.ts",
+      "headings": [
+        "Platform-specific features"
+      ],
+      "id": "plugins-getting-started-mobile-development-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 44,
+      "name": "Mobile development > Platform-specific features",
+      "page": "Plugins/Getting started/Mobile development",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-01",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 13,
+      "name": "Use React in your plugin > Configure your plugin",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-02",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 19,
+      "name": "Use React in your plugin > Configure your plugin (2)",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/getting-started/use-react-in-your-plugin/03-configure-your-plugin.ts",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-03",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 25,
+      "name": "Use React in your plugin > Configure your plugin (3)",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create a React component"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-04",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 37,
+      "name": "Use React in your plugin > Create a React component",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Mount the React component"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-05",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 47,
+      "name": "Use React in your plugin > Mount the React component",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create an App context"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-06",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 97,
+      "name": "Use React in your plugin > Create an App context",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create an App context"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-07",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 106,
+      "name": "Use React in your plugin > Create an App context (2)",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create an App context"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-08",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 117,
+      "name": "Use React in your plugin > Create an App context (3)",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create an App context"
+      ],
+      "id": "plugins-getting-started-use-react-in-your-plugin-09",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 128,
+      "name": "Use React in your plugin > Create an App context (4)",
+      "page": "Plugins/Getting started/Use React in your plugin",
+      "reason": "JSX for React, which this preset does not install",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-01",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 19,
+      "name": "Use Svelte in your plugin > Configure your plugin",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-02",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 32,
+      "name": "Use Svelte in your plugin > Configure your plugin (2)",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-03",
+      "kind": "not-runnable",
+      "lang": "js",
+      "line": 48,
+      "name": "Use Svelte in your plugin > Configure your plugin (3)",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "JavaScript for the build script (`esbuild.config.mjs`), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-04",
+      "kind": "not-runnable",
+      "lang": "js",
+      "line": 55,
+      "name": "Use Svelte in your plugin > Configure your plugin (4)",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "JavaScript for the build script (`esbuild.config.mjs`), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Configure your plugin"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-05",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 69,
+      "name": "Use Svelte in your plugin > Configure your plugin (5)",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Create a Svelte component"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-06",
+      "kind": "not-runnable",
+      "lang": "tsx",
+      "line": 83,
+      "name": "Use Svelte in your plugin > Create a Svelte component",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "a Svelte component, which this preset does not compile",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "9:21 TS2307: Cannot find module './Counter.svelte' or its corresponding type declarations.",
+        "10:32 TS2307: Cannot find module 'svelte' or its corresponding type declarations."
+      ],
+      "file": "plugins/getting-started/use-svelte-in-your-plugin/07-mount-the-svelte-component.ts",
+      "headings": [
+        "Mount the Svelte component"
+      ],
+      "id": "plugins-getting-started-use-svelte-in-your-plugin-07",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 115,
+      "name": "Use Svelte in your plugin > Mount the Svelte component",
+      "page": "Plugins/Getting started/Use Svelte in your plugin",
+      "reason": "`TS2307: Cannot find module './Counter.svelte' or its corresponding type declarations.`, at line 2 of the block (line 117 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/build-a-bases-view/01-step-1-sample-plugin-setup.ts",
+      "headings": [
+        "Step 1: Sample plugin setup"
+      ],
+      "id": "plugins-guides-build-a-bases-view-01",
+      "kind": "plugin-class",
+      "lang": "typescript",
+      "line": 37,
+      "name": "Build a Bases view > Step 1: Sample plugin setup",
+      "page": "Plugins/Guides/Build a Bases view",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/build-a-bases-view/02-step-2-create-and-register-the-bases-vie.ts",
+      "headings": [
+        "Step 2: Create and register the Bases view"
+      ],
+      "id": "plugins-guides-build-a-bases-view-02",
+      "kind": "plugin-class",
+      "lang": "typescript",
+      "line": 48,
+      "name": "Build a Bases view > Step 2: Create and register the Bases view",
+      "page": "Plugins/Guides/Build a Bases view",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "17:7 TS2322: Type '(controller: QueryController, containerEl: HTMLElement) => void' is not assignable to type 'BasesViewFactory'."
+      ],
+      "file": "plugins/guides/build-a-bases-view/03-step-3-add-configuration.ts",
+      "headings": [
+        "Step 3: Add configuration"
+      ],
+      "id": "plugins-guides-build-a-bases-view-03",
+      "kind": "plugin-class",
+      "lang": "typescript",
+      "line": 91,
+      "name": "Build a Bases view > Step 3: Add configuration",
+      "page": "Plugins/Guides/Build a Bases view",
+      "reason": "`TS2322: Type '(controller: QueryController, containerEl: HTMLElement) => void' is not assignable to type 'BasesViewFactory'.`, at line 7 of the block (line 98 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:14 TS2515: Non-abstract class 'MyBasesView' does not implement inherited abstract member type from class 'BasesView'.",
+        "13:3 TS2564: Property 'hoverPopover' has no initializer and is not definitely assigned in the constructor.",
+        "25:10 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
+        "34:28 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
+        "40:57 TS7006: Parameter 'el' implicitly has an 'any' type.",
+        "68:36 TS7006: Parameter 'evt' implicitly has an 'any' type.",
+        "76:53 TS7006: Parameter 'evt' implicitly has an 'any' type."
+      ],
+      "file": "plugins/guides/build-a-bases-view/04-step-4-display-list-items.ts",
+      "headings": [
+        "Step 4: Display list items"
+      ],
+      "id": "plugins-guides-build-a-bases-view-04",
+      "kind": "declarations",
+      "lang": "typescript",
+      "line": 125,
+      "name": "Build a Bases view > Step 4: Display list items",
+      "page": "Plugins/Guides/Build a Bases view",
+      "reason": "`TS2515: Non-abstract class 'MyBasesView' does not implement inherited abstract member type from class 'BasesView'.`, at line 2 of the block (line 127 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Accessing `leaf.view`"
+      ],
+      "id": "plugins-guides-defer-views-01",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 14,
+      "name": "Defer views > Accessing leaf.view",
+      "page": "Plugins/Guides/Defer views",
+      "reason": "does not parse as TypeScript: Declaration or statement expected. (line 5 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Accessing `leaf.view`"
+      ],
+      "id": "plugins-guides-defer-views-02",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 31,
+      "name": "Defer views > Accessing leaf.view (2)",
+      "page": "Plugins/Guides/Defer views",
+      "reason": "does not parse as TypeScript: Declaration or statement expected. (line 6 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "15:31 TS2304: Cannot find name 'MyCustomView'."
+      ],
+      "file": "plugins/guides/defer-views/03-accessing-your-customview-anywhere-in-th.ts",
+      "headings": [
+        "Accessing your `CustomView` anywhere in the workspace"
+      ],
+      "id": "plugins-guides-defer-views-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 56,
+      "name": "Defer views > Accessing your CustomView anywhere in the workspace",
+      "page": "Plugins/Guides/Defer views",
+      "reason": "`TS2304: Cannot find name 'MyCustomView'.`, at line 4 of the block (line 60 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/defer-views/04-accessing-your-customview-without-reveal.ts",
+      "headings": [
+        "Accessing your `CustomView` without reveal (Advanced)"
+      ],
+      "id": "plugins-guides-defer-views-04",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 74,
+      "name": "Defer views > Accessing your CustomView without reveal (Advanced)",
+      "page": "Plugins/Guides/Defer views",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/01-overview.ts",
+      "headings": [
+        "Overview"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 23,
+      "name": "Manage plugin lifecycle > Overview",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/02-overview.ts",
+      "headings": [
+        "Overview"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 40,
+      "name": "Manage plugin lifecycle > Overview (2)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/03-automatic-resource-management-with-compo.ts",
+      "headings": [
+        "Automatic Resource Management with `Component`"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-03",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 65,
+      "name": "Manage plugin lifecycle > Automatic Resource Management with Component",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/04-registerevent-eventref.ts",
+      "headings": [
+        "Automatic Resource Management with `Component`",
+        "`registerEvent(eventRef)`"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-04",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 86,
+      "name": "Manage plugin lifecycle > Automatic Resource Management with Component > registerEvent(eventRef)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/05-registerinterval-id.ts",
+      "headings": [
+        "Automatic Resource Management with `Component`",
+        "`registerInterval(id)`"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 98,
+      "name": "Manage plugin lifecycle > Automatic Resource Management with Component > registerInterval(id)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/06-registerdomevent-el-event-handler.ts",
+      "headings": [
+        "Automatic Resource Management with `Component`",
+        "`registerDomEvent(el, event, handler)`"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-06",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 109,
+      "name": "Manage plugin lifecycle > Automatic Resource Management with Component > registerDomEvent(el, event, handler)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.",
+        "17:36 TS2304: Cannot find name 'onButtonClick'."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/07-understanding-the-lifecycle-of-objects.ts",
+      "headings": [
+        "Understanding The Lifecycle of Objects"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-07",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 128,
+      "name": "Manage plugin lifecycle > Understanding The Lifecycle of Objects",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.`, at line 1 of the block (line 129 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/manage-plugin-lifecycle/08-understanding-the-lifecycle-of-objects.ts",
+      "headings": [
+        "Understanding The Lifecycle of Objects"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-08",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 160,
+      "name": "Manage plugin lifecycle > Understanding The Lifecycle of Objects (2)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "14:71 TS2304: Cannot find name 'COMPONENT'."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/09-passing-components-to-other-apis.ts",
+      "headings": [
+        "Passing Components to Other APIs"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-09",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 225,
+      "name": "Manage plugin lifecycle > Passing Components to Other APIs",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2304: Cannot find name 'COMPONENT'.`, at line 1 of the block (line 226 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/10-common-pitfall-orphaned-components.ts",
+      "headings": [
+        "Passing Components to Other APIs",
+        "Common Pitfall: Orphaned Components"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-10",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 235,
+      "name": "Manage plugin lifecycle > Passing Components to Other APIs > Common Pitfall: Orphaned Components",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.`, at line 3 of the block (line 238 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/11-solution-add-or-use-an-existing-componen.ts",
+      "headings": [
+        "Passing Components to Other APIs",
+        "Solution: Add or use an existing component"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-11",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 254,
+      "name": "Manage plugin lifecycle > Passing Components to Other APIs > Solution: Add or use an existing component",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.`, at line 3 of the block (line 257 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "9:25 TS2307: Cannot find module 'some-library' or its corresponding type declarations."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/12-creating-your-own-components.ts",
+      "headings": [
+        "Creating Your Own Components"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-12",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 273,
+      "name": "Manage plugin lifecycle > Creating Your Own Components",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2307: Cannot find module 'some-library' or its corresponding type declarations.`, at line 2 of the block (line 275 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "14:34 TS2304: Cannot find name 'PLuginManifest'.",
+        "15:3 TS2554: Expected 2 arguments, but got 0."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/13-creating-your-own-components.ts",
+      "headings": [
+        "Creating Your Own Components"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-13",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 317,
+      "name": "Manage plugin lifecycle > Creating Your Own Components (2)",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2304: Cannot find name 'PLuginManifest'.`, at line 4 of the block (line 321 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "28:8 TS2339: Property 'removeChild' does not exist on type 'MyModal'."
+      ],
+      "file": "plugins/guides/manage-plugin-lifecycle/14-componentized-modal-example.ts",
+      "headings": [
+        "Creating Your Own Components",
+        "Componentized Modal Example"
+      ],
+      "id": "plugins-guides-manage-plugin-lifecycle-14",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 349,
+      "name": "Manage plugin lifecycle > Creating Your Own Components > Componentized Modal Example",
+      "page": "Plugins/Guides/Manage plugin lifecycle",
+      "reason": "`TS2339: Property 'removeChild' does not exist on type 'MyModal'.`, at line 19 of the block (line 368 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "33:19 TS2571: Object is of type 'unknown'.",
+        "35:11 TS2571: Object is of type 'unknown'.",
+        "44:19 TS2571: Object is of type 'unknown'.",
+        "46:11 TS2571: Object is of type 'unknown'.",
+        "54:19 TS2571: Object is of type 'unknown'.",
+        "58:11 TS2571: Object is of type 'unknown'.",
+        "68:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+      ],
+      "file": "plugins/guides/migrate-to-declarative-settings/01-the-starting-point.ts",
+      "headings": [
+        "The starting point"
+      ],
+      "id": "plugins-guides-migrate-to-declarative-settings-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 33,
+      "name": "Migrate to declarative settings > The starting point",
+      "page": "Plugins/Guides/Migrate to declarative settings",
+      "reason": "`TS2571: Object is of type 'unknown'.`, at line 26 of the block (line 59 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "25:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "60:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
+        "60:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+      ],
+      "file": "plugins/guides/migrate-to-declarative-settings/02-after.ts",
+      "headings": [
+        "Migrate the tab",
+        "Path A: clean 1.13-only migration",
+        "After"
+      ],
+      "id": "plugins-guides-migrate-to-declarative-settings-02",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 118,
+      "name": "Migrate to declarative settings > Migrate the tab > Path A: clean 1.13-only migration > After",
+      "page": "Plugins/Guides/Migrate to declarative settings",
+      "reason": "`TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.`, at line 18 of the block (line 136 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "27:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "66:19 TS2571: Object is of type 'unknown'.",
+        "68:11 TS2571: Object is of type 'unknown'.",
+        "80:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
+        "80:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+      ],
+      "file": "plugins/guides/migrate-to-declarative-settings/03-path-b-dual-support.ts",
+      "headings": [
+        "Migrate the tab",
+        "Path B: dual support"
+      ],
+      "id": "plugins-guides-migrate-to-declarative-settings-03",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 181,
+      "name": "Migrate to declarative settings > Migrate the tab > Path B: dual support",
+      "page": "Plugins/Guides/Migrate to declarative settings",
+      "reason": "`TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.`, at line 20 of the block (line 201 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:5 TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.",
+        "12:6 TS2337: Super calls are not permitted outside constructors or in nested functions inside constructors.",
+        "28:35 TS2345: Argument of type 'typeof MyPlugin' is not assignable to parameter of type 'new (...args: any[]) => Plugin'."
+      ],
+      "file": "plugins/guides/optimize-plugin-load-time/01-option-a-check-if-the-layout-is-ready.ts",
+      "headings": [
+        "Pitfalls",
+        "Listening to `vault.on('create')`",
+        "Option A. Check if the layout is ready"
+      ],
+      "id": "plugins-guides-optimize-plugin-load-time-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 36,
+      "name": "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option A. Check if the layout is ready",
+      "page": "Plugins/Guides/Optimize plugin load time",
+      "reason": "`TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.`, at line 2 of the block (line 38 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:5 TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.",
+        "12:6 TS2337: Super calls are not permitted outside constructors or in nested functions inside constructors.",
+        "26:35 TS2345: Argument of type 'typeof MyPlugin' is not assignable to parameter of type 'new (...args: any[]) => Plugin'."
+      ],
+      "file": "plugins/guides/optimize-plugin-load-time/02-option-b-register-the-handler-once-the-l.ts",
+      "headings": [
+        "Pitfalls",
+        "Listening to `vault.on('create')`",
+        "Option B. Register the handler once the layout is ready"
+      ],
+      "id": "plugins-guides-optimize-plugin-load-time-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 55,
+      "name": "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option B. Register the handler once the layout is ready",
+      "page": "Plugins/Guides/Optimize plugin load time",
+      "reason": "`TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.`, at line 2 of the block (line 57 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+      ],
+      "file": "plugins/guides/store-secrets/01-step-1-update-your-settings-interface.ts",
+      "headings": [
+        "Step 1: Update your settings interface"
+      ],
+      "id": "plugins-guides-store-secrets-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 38,
+      "name": "Store secrets > Step 1: Update your settings interface",
+      "page": "Plugins/Guides/Store secrets",
+      "reason": "`TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 2 of the block (line 40 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+      ],
+      "file": "plugins/guides/store-secrets/02-step-2-add-the-secretcomponent-to-your-s.ts",
+      "headings": [
+        "Step 2: Add the SecretComponent to your settings tab"
+      ],
+      "id": "plugins-guides-store-secrets-02",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 51,
+      "name": "Store secrets > Step 2: Add the SecretComponent to your settings tab",
+      "page": "Plugins/Guides/Store secrets",
+      "reason": "`TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 2 of the block (line 53 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/guides/store-secrets/03-step-3-retrieve-the-secret-value.ts",
+      "headings": [
+        "Step 3: Retrieve the secret value"
+      ],
+      "id": "plugins-guides-store-secrets-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 89,
+      "name": "Store secrets > Step 3: Retrieve the secret value",
+      "page": "Plugins/Guides/Store secrets",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+      ],
+      "file": "plugins/guides/store-secrets/04-complete-example.ts",
+      "headings": [
+        "Complete example"
+      ],
+      "id": "plugins-guides-store-secrets-04",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 102,
+      "name": "Store secrets > Complete example",
+      "page": "Plugins/Guides/Store secrets",
+      "reason": "`TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 2 of the block (line 104 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-guides-support-pop-out-windows-01",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 14,
+      "name": "Support pop-out windows",
+      "page": "Plugins/Guides/Support pop-out windows",
+      "reason": "does not parse as TypeScript: Expression expected. (line 1 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-guides-support-pop-out-windows-02",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 42,
+      "name": "Support pop-out windows (2)",
+      "page": "Plugins/Guides/Support pop-out windows",
+      "reason": "does not parse as TypeScript: Expression expected. (line 1 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/01-use-setheading-instead-of-a-h1-h2.ts",
+      "headings": [
+        "UI text",
+        "Use `setHeading` instead of a `<h1>`, `<h2>`"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 73,
+      "name": "Plugin guidelines > UI text > Use setHeading instead of a <h1>, <h2>",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "12:3 TS18047: 'containerElement' is possibly 'null'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/02-avoid-innerhtml-outerhtml-and-insertadja.ts",
+      "headings": [
+        "Security",
+        "Avoid `innerHTML`, `outerHTML` and `insertAdjacentHTML`"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-02",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 84,
+      "name": "Plugin guidelines > Security > Avoid innerHTML, outerHTML and insertAdjacentHTML",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS18047: 'containerElement' is possibly 'null'.`, at line 4 of the block (line 88 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "15:3 TS2564: Property 'onCreate' has no initializer and is not definitely assigned in the constructor."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/03-clean-up-resources-when-plugin-unloads.ts",
+      "headings": [
+        "Resource management",
+        "Clean up resources when plugin unloads"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-03",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 104,
+      "name": "Plugin guidelines > Resource management > Clean up resources when plugin unloads",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2564: Property 'onCreate' has no initializer and is not definitely assigned in the constructor.`, at line 6 of the block (line 110 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/04-avoid-accessing-workspace-activeleaf-dir.ts",
+      "headings": [
+        "Workspace",
+        "Avoid accessing `workspace.activeLeaf` directly"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-04",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 146,
+      "name": "Plugin guidelines > Workspace > Avoid accessing workspace.activeLeaf directly",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/05-avoid-accessing-workspace-activeleaf-dir.ts",
+      "headings": [
+        "Workspace",
+        "Avoid accessing `workspace.activeLeaf` directly"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 157,
+      "name": "Plugin guidelines > Workspace > Avoid accessing workspace.activeLeaf directly (2)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "11:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "11:48 TS2339: Property 'view' does not exist on type 'DocsThis'.",
+        "11:59 TS2304: Cannot find name 'MyCustomView'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/06-avoid-managing-references-to-custom-view.ts",
+      "headings": [
+        "Workspace",
+        "Avoid managing references to custom views"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-06",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 171,
+      "name": "Plugin guidelines > Workspace > Avoid managing references to custom views",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2304: Cannot find name 'MY_VIEW_TYPE'.`, at line 1 of the block (line 172 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "11:47 TS2304: Cannot find name 'MyCustomView'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/07-avoid-managing-references-to-custom-view.ts",
+      "headings": [
+        "Workspace",
+        "Avoid managing references to custom views"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-07",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 177,
+      "name": "Plugin guidelines > Workspace > Avoid managing references to custom views (2)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2304: Cannot find name 'MY_VIEW_TYPE'.`, at line 1 of the block (line 178 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "12:36 TS2551: Property 'getActiveLeavesOfType' does not exist on type 'Workspace'. Did you mean 'getLeavesOfType'?",
+        "12:58 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "14:27 TS2304: Cannot find name 'MyCustomView'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/08-avoid-managing-references-to-custom-view.ts",
+      "headings": [
+        "Workspace",
+        "Avoid managing references to custom views"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-08",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 183,
+      "name": "Plugin guidelines > Workspace > Avoid managing references to custom views (3)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2551: Property 'getActiveLeavesOfType' does not exist on type 'Workspace'. Did you mean 'getLeavesOfType'?`, at line 1 of the block (line 184 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:58 TS2304: Cannot find name 'filePath'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/09-avoid-iterating-all-files-to-find-a-file.ts",
+      "headings": [
+        "Vault",
+        "Avoid iterating all files to find a file by its path"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-09",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 230,
+      "name": "Plugin guidelines > Vault > Avoid iterating all files to find a file by its path",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2304: Cannot find name 'filePath'.`, at line 1 of the block (line 231 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/10-avoid-iterating-all-files-to-find-a-file.ts",
+      "headings": [
+        "Vault",
+        "Avoid iterating all files to find a file by its path"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-10",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 236,
+      "name": "Plugin guidelines > Vault > Avoid iterating all files to find a file by its path (2)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/11-avoid-iterating-all-files-to-find-a-file.ts",
+      "headings": [
+        "Vault",
+        "Avoid iterating all files to find a file by its path"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-11",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 242,
+      "name": "Plugin guidelines > Vault > Avoid iterating all files to find a file by its path (3)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "13:63 TS2304: Cannot find name 'filePath'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/12-avoid-iterating-all-files-to-find-a-file.ts",
+      "headings": [
+        "Vault",
+        "Avoid iterating all files to find a file by its path"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-12",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 249,
+      "name": "Plugin guidelines > Vault > Avoid iterating all files to find a file by its path (4)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2304: Cannot find name 'filePath'.`, at line 1 of the block (line 250 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/13-use-normalizepath-to-clean-up-user-defin.ts",
+      "headings": [
+        "Vault",
+        "Use `normalizePath()` to clean up user-defined paths"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-13",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 271,
+      "name": "Plugin guidelines > Vault > Use normalizePath() to clean up user-defined paths",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "26:31 TS2551: Property 'createEditorExtension' does not exist on type 'MyPlugin'. Did you mean 'editorExtension'?"
+      ],
+      "file": "plugins/releasing/plugin-guidelines/14-change-or-reconfigure-editor-extensions.ts",
+      "headings": [
+        "Editor",
+        "Change or reconfigure editor extensions"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-14",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 283,
+      "name": "Plugin guidelines > Editor > Change or reconfigure editor extensions",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2551: Property 'createEditorExtension' does not exist on type 'MyPlugin'. Did you mean 'editorExtension'?`, at line 16 of the block (line 299 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/15-no-hardcoded-styling.ts",
+      "headings": [
+        "Styling",
+        "No hardcoded styling"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-15",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 315,
+      "name": "Plugin guidelines > Styling > No hardcoded styling",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/16-no-hardcoded-styling.ts",
+      "headings": [
+        "Styling",
+        "No hardcoded styling"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-16",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 325,
+      "name": "Plugin guidelines > Styling > No hardcoded styling (2)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/releasing/plugin-guidelines/17-no-hardcoded-styling.ts",
+      "headings": [
+        "Styling",
+        "No hardcoded styling"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-17",
+      "kind": "css",
+      "lang": "css",
+      "line": 331,
+      "name": "Plugin guidelines > Styling > No hardcoded styling (3)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "TypeScript",
+        "Prefer async/await over Promise"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-18",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 353,
+      "name": "Plugin guidelines > TypeScript > Prefer async/await over Promise",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "does not parse as TypeScript: ')' expected. (line 7 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "13:22 TS2304: Cannot find name 'r'."
+      ],
+      "file": "plugins/releasing/plugin-guidelines/19-prefer-async-await-over-promise.ts",
+      "headings": [
+        "TypeScript",
+        "Prefer async/await over Promise"
+      ],
+      "id": "plugins-releasing-plugin-guidelines-19",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 366,
+      "name": "Plugin guidelines > TypeScript > Prefer async/await over Promise (2)",
+      "page": "Plugins/Releasing/Plugin guidelines",
+      "reason": "`TS2304: Cannot find name 'r'.`, at line 4 of the block (line 370 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-releasing-release-your-plugin-with-github-actions-01",
+      "kind": "not-runnable",
+      "lang": "yml",
+      "line": 5,
+      "name": "Release your plugin with GitHub Actions",
+      "page": "Plugins/Releasing/Release your plugin with GitHub Actions",
+      "reason": "a YAML file (a GitHub Actions workflow), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-releasing-release-your-plugin-with-github-actions-02",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 57,
+      "name": "Release your plugin with GitHub Actions (2)",
+      "page": "Plugins/Releasing/Release your plugin with GitHub Actions",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-releasing-release-your-plugin-with-github-actions-03",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 67,
+      "name": "Release your plugin with GitHub Actions (3)",
+      "page": "Plugins/Releasing/Release your plugin with GitHub Actions",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/commands/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-commands-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 7,
+      "name": "Commands",
+      "page": "Plugins/User interface/Commands",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "20:13 TS2304: Cannot find name 'doCommand'."
+      ],
+      "file": "plugins/user-interface/commands/02-conditional-commands.ts",
+      "headings": [
+        "Conditional commands"
+      ],
+      "id": "plugins-user-interface-commands-02",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 38,
+      "name": "Commands > Conditional commands",
+      "page": "Plugins/User interface/Commands",
+      "reason": "`TS2304: Cannot find name 'getRequiredValue'.`, at line 6 of the block (line 44 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Editor commands"
+      ],
+      "id": "plugins-user-interface-commands-03",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 63,
+      "name": "Commands > Editor commands",
+      "page": "Plugins/User interface/Commands",
+      "reason": "does not parse as TypeScript: ')' expected. (line 9 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "15:7 TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.",
+        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "20:13 TS2304: Cannot find name 'doCommand'."
+      ],
+      "file": "plugins/user-interface/commands/04-editor-commands.ts",
+      "headings": [
+        "Editor commands"
+      ],
+      "id": "plugins-user-interface-commands-04",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 80,
+      "name": "Commands > Editor commands (2)",
+      "page": "Plugins/User interface/Commands",
+      "reason": "`TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.`, at line 4 of the block (line 84 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/commands/05-hot-keys.ts",
+      "headings": [
+        "Hot keys"
+      ],
+      "id": "plugins-user-interface-commands-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 109,
+      "name": "Commands > Hot keys",
+      "page": "Plugins/User interface/Commands",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/context-menus/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-context-menus-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 3,
+      "name": "Context menus",
+      "page": "Plugins/User interface/Context menus",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "32:26 TS18047: 'view.file' is possibly 'null'."
+      ],
+      "file": "plugins/user-interface/context-menus/02-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-context-menus-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 46,
+      "name": "Context menus (2)",
+      "page": "Plugins/User interface/Context menus",
+      "reason": "`TS18047: 'view.file' is possibly 'null'.`, at line 25 of the block (line 71 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:11 TS2304: Cannot find name 'ExamplePlugin'.",
+        "13:33 TS2304: Cannot find name 'ExamplePlugin'."
+      ],
+      "file": "plugins/user-interface/html-elements/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-html-elements-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 3,
+      "name": "HTML elements",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "`TS2304: Cannot find name 'ExamplePlugin'.`, at line 4 of the block (line 7 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/html-elements/02-create-html-elements-using-createel.ts",
+      "headings": [
+        "Create HTML elements using `createEl()`"
+      ],
+      "id": "plugins-user-interface-html-elements-02",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 31,
+      "name": "HTML elements > Create HTML elements using createEl()",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/html-elements/03-create-html-elements-using-createel.ts",
+      "headings": [
+        "Create HTML elements using `createEl()`"
+      ],
+      "id": "plugins-user-interface-html-elements-03",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 37,
+      "name": "HTML elements > Create HTML elements using createEl() (2)",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/html-elements/04-style-your-elements.ts",
+      "headings": [
+        "Style your elements"
+      ],
+      "id": "plugins-user-interface-html-elements-04",
+      "kind": "css",
+      "lang": "css",
+      "line": 47,
+      "name": "HTML elements > Style your elements",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/html-elements/05-style-your-elements.ts",
+      "headings": [
+        "Style your elements"
+      ],
+      "id": "plugins-user-interface-html-elements-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 67,
+      "name": "HTML elements > Style your elements (2)",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/html-elements/06-conditional-styles.ts",
+      "headings": [
+        "Style your elements",
+        "Conditional styles"
+      ],
+      "id": "plugins-user-interface-html-elements-06",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 81,
+      "name": "HTML elements > Style your elements > Conditional styles",
+      "page": "Plugins/User interface/HTML elements",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/icons/01-use-icons.ts",
+      "headings": [
+        "Use icons"
+      ],
+      "id": "plugins-user-interface-icons-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 13,
+      "name": "Icons > Use icons",
+      "page": "Plugins/User interface/Icons",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/icons/02-use-icons.ts",
+      "headings": [
+        "Use icons"
+      ],
+      "id": "plugins-user-interface-icons-02",
+      "kind": "css",
+      "lang": "css",
+      "line": 26,
+      "name": "Icons > Use icons (2)",
+      "page": "Plugins/User interface/Icons",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/icons/03-add-your-own-icon.ts",
+      "headings": [
+        "Add your own icon"
+      ],
+      "id": "plugins-user-interface-icons-03",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 36,
+      "name": "Icons > Add your own icon",
+      "page": "Plugins/User interface/Icons",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-modals-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 3,
+      "name": "Modals",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/02-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-modals-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 16,
+      "name": "Modals (2)",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/03-accept-user-input.ts",
+      "headings": [
+        "Accept user input"
+      ],
+      "id": "plugins-user-interface-modals-03",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 39,
+      "name": "Modals > Accept user input",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/04-accept-user-input.ts",
+      "headings": [
+        "Accept user input"
+      ],
+      "id": "plugins-user-interface-modals-04",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 70,
+      "name": "Modals > Accept user input (2)",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/05-select-from-list-of-suggestions.ts",
+      "headings": [
+        "Select from list of suggestions"
+      ],
+      "id": "plugins-user-interface-modals-05",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 82,
+      "name": "Modals > Select from list of suggestions",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/06-approximate-string-matching-results.ts",
+      "headings": [
+        "Select from list of suggestions",
+        "Approximate string matching results"
+      ],
+      "id": "plugins-user-interface-modals-06",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 132,
+      "name": "Modals > Select from list of suggestions > Approximate string matching results",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/modals/07-custom-rendering-of-fuzzy-search-results.ts",
+      "headings": [
+        "Select from list of suggestions",
+        "Custom rendering of fuzzy search results"
+      ],
+      "id": "plugins-user-interface-modals-07",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 158,
+      "name": "Modals > Select from list of suggestions > Custom rendering of fuzzy search results",
+      "page": "Plugins/User interface/Modals",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/ribbon-actions/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-ribbon-actions-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 5,
+      "name": "Ribbon actions",
+      "page": "Plugins/User interface/Ribbon actions",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/right-to-left/01-use-fallback-values-when-necessary.ts",
+      "headings": [
+        "Make plugins and themes agnostic of language direction",
+        "Use fallback values when necessary"
+      ],
+      "id": "plugins-user-interface-right-to-left-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 69,
+      "name": "Right-to-left > Make plugins and themes agnostic of language direction > Use fallback values when necessary",
+      "page": "Plugins/User interface/Right-to-left",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/right-to-left/02-global-selectors.ts",
+      "headings": [
+        "Obsidian CSS helpers and rules for RTL",
+        "Selectors for language direction",
+        "Global selectors"
+      ],
+      "id": "plugins-user-interface-right-to-left-02",
+      "kind": "css",
+      "lang": "css",
+      "line": 98,
+      "name": "Right-to-left > Obsidian CSS helpers and rules for RTL > Selectors for language direction > Global selectors",
+      "page": "Plugins/User interface/Right-to-left",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/right-to-left/03-icons-are-mirrored-automatically.ts",
+      "headings": [
+        "Obsidian CSS helpers and rules for RTL",
+        "Icons are mirrored automatically"
+      ],
+      "id": "plugins-user-interface-right-to-left-03",
+      "kind": "css",
+      "lang": "css",
+      "line": 120,
+      "name": "Right-to-left > Obsidian CSS helpers and rules for RTL > Icons are mirrored automatically",
+      "page": "Plugins/User interface/Right-to-left",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "20:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.",
+        "25:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-settings-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 12,
+      "name": "Settings",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.`, at line 13 of the block (line 25 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "15:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor."
+      ],
+      "file": "plugins/user-interface/settings/02-create-a-settings-definition.ts",
+      "headings": [
+        "Create a settings definition"
+      ],
+      "id": "plugins-user-interface-settings-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 49,
+      "name": "Settings > Create a settings definition",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.`, at line 6 of the block (line 55 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "8:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
+      ],
+      "file": "plugins/user-interface/settings/03-save-and-load-the-settings-object.ts",
+      "headings": [
+        "Save and load the settings object"
+      ],
+      "id": "plugins-user-interface-settings-03",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 65,
+      "name": "Settings > Save and load the settings object",
+      "page": "Plugins/User interface/Settings",
+      "reason": "it imports from the block at line 12 of Plugins/User interface/Settings, which does not compile",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "18:16 TS2551: Property 'loadSettings' does not exist on type 'DocsSnippetPlugin'. Did you mean 'settings'?"
+      ],
+      "file": "plugins/user-interface/settings/04-save-and-load-the-settings-object.ts",
+      "headings": [
+        "Save and load the settings object"
+      ],
+      "id": "plugins-user-interface-settings-04",
+      "kind": "members",
+      "lang": "ts",
+      "line": 82,
+      "name": "Settings > Save and load the settings object (2)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2551: Property 'loadSettings' does not exist on type 'DocsSnippetPlugin'. Did you mean 'settings'?`, at line 2 of the block (line 84 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "8:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
+      ],
+      "file": "plugins/user-interface/settings/05-provide-default-values.ts",
+      "headings": [
+        "Provide default values"
+      ],
+      "id": "plugins-user-interface-settings-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 96,
+      "name": "Settings > Provide default values",
+      "page": "Plugins/User interface/Settings",
+      "reason": "it imports from the block at line 12 of Plugins/User interface/Settings, which does not compile",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "8:39 TS2307: Cannot find module './02-create-a-settings-definition.ts' or its corresponding type declarations."
+      ],
+      "file": "plugins/user-interface/settings/06-provide-default-values.ts",
+      "headings": [
+        "Provide default values"
+      ],
+      "id": "plugins-user-interface-settings-06",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 102,
+      "name": "Settings > Provide default values (2)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "it imports from the block at line 49 of Plugins/User interface/Settings, which does not compile",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "12:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/07-register-a-settings-tab.ts",
+      "headings": [
+        "Register a settings tab"
+      ],
+      "id": "plugins-user-interface-settings-07",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 115,
+      "name": "Settings > Register a settings tab",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'.`, at line 1 of the block (line 116 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "8:27 TS2307: Cannot find module './main' or its corresponding type declarations.",
+        "19:3 TS2416: Property 'getSettingDefinitions' in type 'ExampleSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "34:49 TS2322: Type 'ExampleSettingTab' is not assignable to type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/08-register-a-settings-tab.ts",
+      "headings": [
+        "Register a settings tab"
+      ],
+      "id": "plugins-user-interface-settings-08",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 121,
+      "name": "Settings > Register a settings tab (2)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 1 of the block (line 122 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/09-toggle.ts",
+      "headings": [
+        "Control types",
+        "Toggle"
+      ],
+      "id": "plugins-user-interface-settings-09",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 190,
+      "name": "Settings > Control types > Toggle",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/10-text.ts",
+      "headings": [
+        "Control types",
+        "Text"
+      ],
+      "id": "plugins-user-interface-settings-10",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 196,
+      "name": "Settings > Control types > Text",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/11-textarea.ts",
+      "headings": [
+        "Control types",
+        "Textarea"
+      ],
+      "id": "plugins-user-interface-settings-11",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 205,
+      "name": "Settings > Control types > Textarea",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/12-number.ts",
+      "headings": [
+        "Control types",
+        "Number"
+      ],
+      "id": "plugins-user-interface-settings-12",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 214,
+      "name": "Settings > Control types > Number",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/13-slider.ts",
+      "headings": [
+        "Control types",
+        "Slider"
+      ],
+      "id": "plugins-user-interface-settings-13",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 223,
+      "name": "Settings > Control types > Slider",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/14-dropdown.ts",
+      "headings": [
+        "Control types",
+        "Dropdown"
+      ],
+      "id": "plugins-user-interface-settings-14",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 232,
+      "name": "Settings > Control types > Dropdown",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/15-file.ts",
+      "headings": [
+        "Control types",
+        "File"
+      ],
+      "id": "plugins-user-interface-settings-15",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 246,
+      "name": "Settings > Control types > File",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/16-folder.ts",
+      "headings": [
+        "Control types",
+        "Folder"
+      ],
+      "id": "plugins-user-interface-settings-16",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 259,
+      "name": "Settings > Control types > Folder",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/17-color-picker.ts",
+      "headings": [
+        "Control types",
+        "Color picker"
+      ],
+      "id": "plugins-user-interface-settings-17",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 268,
+      "name": "Settings > Control types > Color picker",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/18-validating-input.ts",
+      "headings": [
+        "Validating input"
+      ],
+      "id": "plugins-user-interface-settings-18",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 288,
+      "name": "Settings > Validating input",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "13:3 TS2416: Property 'getSettingDefinitions' in type 'DocsSnippetSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "44:49 TS2322: Type 'DocsSnippetSettingTab' is not assignable to type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/19-conditional-visibility-and-enabling.ts",
+      "headings": [
+        "Conditional visibility and enabling"
+      ],
+      "id": "plugins-user-interface-settings-19",
+      "kind": "members",
+      "lang": "ts",
+      "line": 318,
+      "name": "Settings > Conditional visibility and enabling",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2416: Property 'getSettingDefinitions' in type 'DocsSnippetSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.`, at line 1 of the block (line 319 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:11 TS2304: Cannot find name 'MyPlugin'.",
+        "13:33 TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.",
+        "22:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "28:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/20-custom-settings-storage.ts",
+      "headings": [
+        "Custom settings storage"
+      ],
+      "id": "plugins-user-interface-settings-20",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 360,
+      "name": "Settings > Custom settings storage",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2304: Cannot find name 'MyPlugin'.`, at line 2 of the block (line 362 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "40:11 TS2304: Cannot find name 'MyPlugin'.",
+        "42:33 TS2304: Cannot find name 'MyPlugin'.",
+        "56:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "86:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
+      ],
+      "file": "plugins/user-interface/settings/21-advanced-nested-settings-with-dot-notati.ts",
+      "headings": [
+        "Custom settings storage",
+        "Advanced: nested settings with dot-notation keys"
+      ],
+      "id": "plugins-user-interface-settings-21",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 388,
+      "name": "Settings > Custom settings storage > Advanced: nested settings with dot-notation keys",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2304: Cannot find name 'MyPlugin'.`, at line 31 of the block (line 419 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "11:11 TS2304: Cannot find name 'MyPlugin'.",
+        "13:33 TS2304: Cannot find name 'MyPlugin'."
+      ],
+      "file": "plugins/user-interface/settings/22-reacting-to-changes-outside-the-settings.ts",
+      "headings": [
+        "Reacting to changes outside the settings tab"
+      ],
+      "id": "plugins-user-interface-settings-22",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 472,
+      "name": "Settings > Reacting to changes outside the settings tab",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2304: Cannot find name 'MyPlugin'.`, at line 4 of the block (line 476 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/23-groups.ts",
+      "headings": [
+        "Groups"
+      ],
+      "id": "plugins-user-interface-settings-23",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 499,
+      "name": "Settings > Groups",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "18:28 TS2339: Property 'openAddFolderModal' does not exist on type 'DocsThis'.",
+        "31:48 TS7006: Parameter 'path' implicitly has an 'any' type."
+      ],
+      "file": "plugins/user-interface/settings/24-lists.ts",
+      "headings": [
+        "Lists"
+      ],
+      "id": "plugins-user-interface-settings-24",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 518,
+      "name": "Settings > Lists",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2339: Property 'openAddFolderModal' does not exist on type 'DocsThis'.`, at line 7 of the block (line 525 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Lists"
+      ],
+      "id": "plugins-user-interface-settings-25",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 558,
+      "name": "Settings > Lists (2)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "a fragment of an object literal: members shown out of the object they belong to",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "15:46 TS7006: Parameter 'item' implicitly has an 'any' type.",
+        "18:18 TS7006: Parameter 'index' implicitly has an 'any' type.",
+        "18:40 TS2339: Property 'doSomething' does not exist on type 'DocsPlugin'."
+      ],
+      "file": "plugins/user-interface/settings/26-lists.ts",
+      "headings": [
+        "Lists"
+      ],
+      "id": "plugins-user-interface-settings-26",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 572,
+      "name": "Settings > Lists (3)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS7006: Parameter 'item' implicitly has an 'any' type.`, at line 4 of the block (line 576 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "14:11 TS2304: Cannot find name 'AddEntryModal'.",
+        "14:44 TS7006: Parameter 'entry' implicitly has an 'any' type.",
+        "30:20 TS7006: Parameter 'idx' implicitly has an 'any' type."
+      ],
+      "file": "plugins/user-interface/settings/27-lists-with-a-form-modal.ts",
+      "headings": [
+        "Lists",
+        "Lists with a form modal"
+      ],
+      "id": "plugins-user-interface-settings-27",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 590,
+      "name": "Settings > Lists > Lists with a form modal",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2304: Cannot find name 'AddEntryModal'.`, at line 4 of the block (line 594 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "24:62 TS2339: Property 'clearCache' does not exist on type 'DocsPlugin'."
+      ],
+      "file": "plugins/user-interface/settings/28-declarative-pages.ts",
+      "headings": [
+        "Sub-pages",
+        "Declarative pages"
+      ],
+      "id": "plugins-user-interface-settings-28",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 633,
+      "name": "Settings > Sub-pages > Declarative pages",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2339: Property 'clearCache' does not exist on type 'DocsPlugin'.`, at line 13 of the block (line 646 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Sub-pages",
+        "Imperative pages"
+      ],
+      "id": "plugins-user-interface-settings-29",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 662,
+      "name": "Settings > Sub-pages > Imperative pages",
+      "page": "Plugins/User interface/Settings",
+      "reason": "does not parse as TypeScript: ';' expected. (line 30 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "11:11 TS2564: Property 'timer' has no initializer and is not definitely assigned in the constructor."
+      ],
+      "file": "plugins/user-interface/settings/30-imperative-pages.ts",
+      "headings": [
+        "Sub-pages",
+        "Imperative pages"
+      ],
+      "id": "plugins-user-interface-settings-30",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 701,
+      "name": "Settings > Sub-pages > Imperative pages (2)",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2564: Property 'timer' has no initializer and is not definitely assigned in the constructor.`, at line 2 of the block (line 703 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "19:25 TS2339: Property 'applyFeatureX' does not exist on type 'DocsPlugin'."
+      ],
+      "file": "plugins/user-interface/settings/31-render-callback.ts",
+      "headings": [
+        "Render callback"
+      ],
+      "id": "plugins-user-interface-settings-31",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 725,
+      "name": "Settings > Render callback",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2339: Property 'applyFeatureX' does not exist on type 'DocsPlugin'.`, at line 8 of the block (line 733 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/32-cleanup.ts",
+      "headings": [
+        "Render callback",
+        "Cleanup"
+      ],
+      "id": "plugins-user-interface-settings-32",
+      "kind": "expression",
+      "lang": "ts",
+      "line": 749,
+      "name": "Settings > Render callback > Cleanup",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/33-no-top-level-heading.ts",
+      "headings": [
+        "Style guide",
+        "No top-level heading"
+      ],
+      "id": "plugins-user-interface-settings-33",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 781,
+      "name": "Settings > Style guide > No top-level heading",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/34-headings-only-when-there-are-multiple-se.ts",
+      "headings": [
+        "Style guide",
+        "Headings only when there are multiple sections"
+      ],
+      "id": "plugins-user-interface-settings-34",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 800,
+      "name": "Settings > Style guide > Headings only when there are multiple sections",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "8:27 TS2307: Cannot find module './main' or its corresponding type declarations."
+      ],
+      "file": "plugins/user-interface/settings/35-legacy-imperative-display-approach.ts",
+      "headings": [
+        "Legacy: imperative display() approach"
+      ],
+      "id": "plugins-user-interface-settings-35",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 855,
+      "name": "Settings > Legacy: imperative display() approach",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 1 of the block (line 856 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/36-headings.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Headings"
+      ],
+      "id": "plugins-user-interface-settings-36",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 897,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Headings",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "22:13 TS2304: Cannot find name 'IconSuggest'."
+      ],
+      "file": "plugins/user-interface/settings/37-search-with-suggestions.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Search with suggestions"
+      ],
+      "id": "plugins-user-interface-settings-37",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 907,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Search with suggestions",
+      "page": "Plugins/User interface/Settings",
+      "reason": "`TS2304: Cannot find name 'IconSuggest'.`, at line 10 of the block (line 917 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/38-moment-format.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Moment format"
+      ],
+      "id": "plugins-user-interface-settings-38",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 925,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Moment format",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/39-buttons.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Buttons"
+      ],
+      "id": "plugins-user-interface-settings-39",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 953,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Buttons",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/40-extra-button.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Extra button"
+      ],
+      "id": "plugins-user-interface-settings-40",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 969,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Extra button",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/settings/41-progress-bar.ts",
+      "headings": [
+        "Legacy: imperative display() approach",
+        "Available components",
+        "Progress bar"
+      ],
+      "id": "plugins-user-interface-settings-41",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 985,
+      "name": "Settings > Legacy: imperative display() approach > Available components > Progress bar",
+      "page": "Plugins/User interface/Settings",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/status-bar/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-status-bar-01",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 6,
+      "name": "Status bar",
+      "page": "Plugins/User interface/Status bar",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/status-bar/02-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-status-bar-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 22,
+      "name": "Status bar (2)",
+      "page": "Plugins/User interface/Status bar",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/views/01-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-views-01",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 5,
+      "name": "Views",
+      "page": "Plugins/User interface/Views",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "34:7 TS2322: Type 'WorkspaceLeaf | undefined' is not assignable to type 'WorkspaceLeaf | null'.",
+        "39:13 TS18047: 'leaf' is possibly 'null'.",
+        "43:26 TS2345: Argument of type 'WorkspaceLeaf | null' is not assignable to parameter of type 'WorkspaceLeaf'."
+      ],
+      "file": "plugins/user-interface/views/02-intro.ts",
+      "headings": [],
+      "id": "plugins-user-interface-views-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 47,
+      "name": "Views (2)",
+      "page": "Plugins/User interface/Views",
+      "reason": "`TS2322: Type 'WorkspaceLeaf | undefined' is not assignable to type 'WorkspaceLeaf | null'.`, at line 27 of the block (line 74 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-user-interface-workspace-01",
+      "kind": "not-runnable",
+      "lang": "mermaid",
+      "line": 7,
+      "name": "Workspace",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "a Mermaid diagram, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "plugins-user-interface-workspace-02",
+      "kind": "not-runnable",
+      "lang": "mermaid",
+      "line": 25,
+      "name": "Workspace (2)",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "a Mermaid diagram, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Splits"
+      ],
+      "id": "plugins-user-interface-workspace-03",
+      "kind": "not-runnable",
+      "lang": "mermaid",
+      "line": 54,
+      "name": "Workspace > Splits",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "a Mermaid diagram, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Splits"
+      ],
+      "id": "plugins-user-interface-workspace-04",
+      "kind": "not-runnable",
+      "lang": "mermaid",
+      "line": 71,
+      "name": "Workspace > Splits (2)",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "a Mermaid diagram, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/user-interface/workspace/05-inspect-the-workspace.ts",
+      "headings": [
+        "Inspect the workspace"
+      ],
+      "id": "plugins-user-interface-workspace-05",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 101,
+      "name": "Workspace > Inspect the workspace",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Leaf groups"
+      ],
+      "id": "plugins-user-interface-workspace-06",
+      "kind": "not-runnable",
+      "lang": "ts",
+      "line": 132,
+      "name": "Workspace > Leaf groups",
+      "page": "Plugins/User interface/Workspace",
+      "reason": "does not parse as TypeScript: ')' expected. (line 1 of the block)",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [
+        "14:19 TS2532: Object is possibly 'undefined'."
+      ],
+      "file": "plugins/vault/01-intro.ts",
+      "headings": [],
+      "id": "plugins-vault-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 12,
+      "name": "Vault",
+      "page": "Plugins/Vault",
+      "reason": "`TS2532: Object is possibly 'undefined'.`, at line 4 of the block (line 16 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/vault/02-read-files.ts",
+      "headings": [
+        "Read files"
+      ],
+      "id": "plugins-vault-02",
+      "kind": "plugin-class",
+      "lang": "ts",
+      "line": 35,
+      "name": "Vault > Read files",
+      "page": "Plugins/Vault",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/vault/03-modify-files.ts",
+      "headings": [
+        "Modify files"
+      ],
+      "id": "plugins-vault-03",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 67,
+      "name": "Vault > Modify files",
+      "page": "Plugins/Vault",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/vault/04-modify-files.ts",
+      "headings": [
+        "Modify files"
+      ],
+      "id": "plugins-vault-04",
+      "kind": "declarations",
+      "lang": "ts",
+      "line": 75,
+      "name": "Vault > Modify files (2)",
+      "page": "Plugins/Vault",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "plugins/vault/05-is-it-a-file-or-folder.ts",
+      "headings": [
+        "Is it a file or folder?"
+      ],
+      "id": "plugins-vault-05",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 109,
+      "name": "Vault > Is it a file or folder?",
+      "page": "Plugins/Vault",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/css-variables/about-styling/01-for-plugins.ts",
+      "headings": [
+        "For plugins"
+      ],
+      "id": "reference-css-variables-about-styling-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 11,
+      "name": "About styling > For plugins",
+      "page": "Reference/CSS variables/About styling",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/css-variables/about-styling/02-for-themes-and-snippets.ts",
+      "headings": [
+        "For themes and snippets"
+      ],
+      "id": "reference-css-variables-about-styling-02",
+      "kind": "css",
+      "lang": "css",
+      "line": 23,
+      "name": "About styling > For themes and snippets",
+      "page": "Reference/CSS variables/About styling",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Extended colors"
+      ],
+      "id": "reference-css-variables-foundations-colors-01",
+      "kind": "not-runnable",
+      "lang": "css",
+      "line": 55,
+      "name": "Colors > Extended colors",
+      "page": "Reference/CSS variables/Foundations/Colors",
+      "reason": "a CSS fragment with no selector, so there is no rule to apply",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/css-variables/publish/site-fonts/01-intro.ts",
+      "headings": [],
+      "id": "reference-css-variables-publish-site-fonts-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 8,
+      "name": "Site fonts",
+      "page": "Reference/CSS variables/Publish/Site fonts",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "fundingUrl"
+      ],
+      "id": "reference-manifest-01",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 53,
+      "name": "Manifest > fundingUrl",
+      "page": "Reference/Manifest",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "fundingUrl"
+      ],
+      "id": "reference-manifest-02",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 61,
+      "name": "Manifest > fundingUrl (2)",
+      "page": "Reference/Manifest",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/typescript-api/command/callback/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-command-callback-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 23,
+      "name": "callback > Example",
+      "page": "Reference/TypeScript API/Command/callback",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "15:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "19:13 TS2304: Cannot find name 'doCommand'."
+      ],
+      "file": "reference/typescript-api/command/checkcallback/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-command-checkcallback-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 23,
+      "name": "checkCallback > Example",
+      "page": "Reference/TypeScript API/Command/checkCallback",
+      "reason": "`TS2304: Cannot find name 'getRequiredValue'.`, at line 5 of the block (line 28 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "15:7 TS2322: Type '(editor: Editor, view: MarkdownView) => void' is not assignable to type '(editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any'."
+      ],
+      "file": "reference/typescript-api/command/editorcallback/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-command-editorcallback-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 23,
+      "name": "editorCallback > Example",
+      "page": "Reference/TypeScript API/Command/editorCallback",
+      "reason": "`TS2322: Type '(editor: Editor, view: MarkdownView) => void' is not assignable to type '(editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any'.`, at line 4 of the block (line 27 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [
+        "15:7 TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.",
+        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "20:13 TS2304: Cannot find name 'doCommand'."
+      ],
+      "file": "reference/typescript-api/command/editorcheckcallback/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-command-editorcheckcallback-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 23,
+      "name": "editorCheckCallback > Example",
+      "page": "Reference/TypeScript API/Command/editorCheckCallback",
+      "reason": "`TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.`, at line 4 of the block (line 27 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/typescript-api/debounce/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-debounce-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 37,
+      "name": "debounce > Example",
+      "page": "Reference/TypeScript API/debounce",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "14:31 TS2304: Cannot find name 'value'."
+      ],
+      "file": "reference/typescript-api/filemanager/processfrontmatter/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-filemanager-processfrontmatter-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 43,
+      "name": "processFrontMatter > Example",
+      "page": "Reference/TypeScript API/FileManager/processFrontMatter",
+      "reason": "`TS2304: Cannot find name 'value'.`, at line 2 of the block (line 45 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "reference/typescript-api/vault/process/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-vault-process-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 37,
+      "name": "process > Example",
+      "page": "Reference/TypeScript API/Vault/process",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [
+        "12:10 TS2339: Property 'scope' does not exist on type 'DocsThis'."
+      ],
+      "file": "reference/typescript-api/view/scope/01-example.ts",
+      "headings": [
+        "Example"
+      ],
+      "id": "reference-typescript-api-view-scope-01",
+      "kind": "statements",
+      "lang": "ts",
+      "line": 23,
+      "name": "scope > Example",
+      "page": "Reference/TypeScript API/View/scope",
+      "reason": "`TS2339: Property 'scope' does not exist on type 'DocsThis'.`, at line 1 of the block (line 24 of the page)",
+      "status": "type-error"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "reference-versions-01",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 15,
+      "name": "Versions",
+      "page": "Reference/Versions",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "reference-versions-02",
+      "kind": "not-runnable",
+      "lang": "json",
+      "line": 28,
+      "name": "Versions (2)",
+      "page": "Reference/Versions",
+      "reason": "a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 1: Download the sample theme"
+      ],
+      "id": "themes-app-themes-build-a-theme-01",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 26,
+      "name": "Build a theme > Step 1: Download the sample theme",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 1: Download the sample theme"
+      ],
+      "id": "themes-app-themes-build-a-theme-02",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 32,
+      "name": "Build a theme > Step 1: Download the sample theme (2)",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 3: Update the manifest"
+      ],
+      "id": "themes-app-themes-build-a-theme-03",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 57,
+      "name": "Build a theme > Step 3: Update the manifest",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Step 4: Change the font"
+      ],
+      "id": "themes-app-themes-build-a-theme-04",
+      "kind": "not-runnable",
+      "lang": "md",
+      "line": 74,
+      "name": "Build a theme > Step 4: Change the font",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "Markdown, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/build-a-theme/05-step-4-change-the-font.ts",
+      "headings": [
+        "Step 4: Change the font"
+      ],
+      "id": "themes-app-themes-build-a-theme-05",
+      "kind": "css",
+      "lang": "css",
+      "line": 80,
+      "name": "Build a theme > Step 4: Change the font (2)",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/build-a-theme/06-step-5-change-the-background-color.ts",
+      "headings": [
+        "Step 5: Change the background color"
+      ],
+      "id": "themes-app-themes-build-a-theme-06",
+      "kind": "css",
+      "lang": "css",
+      "line": 94,
+      "name": "Build a theme > Step 5: Change the background color",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/build-a-theme/07-step-6-change-the-input-hover-border-col.ts",
+      "headings": [
+        "Step 6: Change the input hover border color"
+      ],
+      "id": "themes-app-themes-build-a-theme-07",
+      "kind": "css",
+      "lang": "css",
+      "line": 134,
+      "name": "Build a theme > Step 6: Change the input hover border color",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/build-a-theme/08-step-7-discover-css-variables-in-use.ts",
+      "headings": [
+        "Step 7: Discover CSS variables in use"
+      ],
+      "id": "themes-app-themes-build-a-theme-08",
+      "kind": "css",
+      "lang": "css",
+      "line": 173,
+      "name": "Build a theme > Step 7: Discover CSS variables in use",
+      "page": "Themes/App themes/Build a theme",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [
+        "Use data URLs"
+      ],
+      "id": "themes-app-themes-embed-fonts-and-images-in-your-theme-01",
+      "kind": "not-runnable",
+      "lang": "css",
+      "line": 12,
+      "name": "Embed fonts and images in your theme > Use data URLs",
+      "page": "Themes/App themes/Embed fonts and images in your theme",
+      "reason": "a CSS fragment with no selector, so there is no rule to apply",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/embed-fonts-and-images-in-your-theme/02-use-data-urls.ts",
+      "headings": [
+        "Use data URLs"
+      ],
+      "id": "themes-app-themes-embed-fonts-and-images-in-your-theme-02",
+      "kind": "css",
+      "lang": "css",
+      "line": 21,
+      "name": "Embed fonts and images in your theme > Use data URLs (2)",
+      "page": "Themes/App themes/Embed fonts and images in your theme",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "themes-app-themes-release-your-theme-with-github-actions-01",
+      "kind": "not-runnable",
+      "lang": "yml",
+      "line": 5,
+      "name": "Release your theme with GitHub Actions",
+      "page": "Themes/App themes/Release your theme with GitHub Actions",
+      "reason": "a YAML file (a GitHub Actions workflow), not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "themes-app-themes-release-your-theme-with-github-actions-02",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 35,
+      "name": "Release your theme with GitHub Actions (2)",
+      "page": "Themes/App themes/Release your theme with GitHub Actions",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "",
+      "headings": [],
+      "id": "themes-app-themes-release-your-theme-with-github-actions-03",
+      "kind": "not-runnable",
+      "lang": "bash",
+      "line": 43,
+      "name": "Release your theme with GitHub Actions (3)",
+      "page": "Themes/App themes/Release your theme with GitHub Actions",
+      "reason": "shell commands, not plugin code",
+      "status": "not-runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/app-themes/theme-guidelines/01-use-css-variables.ts",
+      "headings": [
+        "Use CSS variables"
+      ],
+      "id": "themes-app-themes-theme-guidelines-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 11,
+      "name": "Theme guidelines > Use CSS variables",
+      "page": "Themes/App themes/Theme guidelines",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/obsidian-publish-themes/best-practices-for-publish-themes/01-small-screens-and-mobile-devices.ts",
+      "headings": [
+        "Small screens and mobile devices"
+      ],
+      "id": "themes-obsidian-publish-themes-best-practices-for-publish-themes-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 41,
+      "name": "Best practices for Publish themes > Small screens and mobile devices",
+      "page": "Themes/Obsidian Publish themes/Best practices for Publish themes",
+      "reason": "",
+      "status": "runnable"
+    },
+    {
+      "diagnostics": [],
+      "file": "themes/obsidian-publish-themes/build-a-publish-theme/01-intro.ts",
+      "headings": [],
+      "id": "themes-obsidian-publish-themes-build-a-publish-theme-01",
+      "kind": "css",
+      "lang": "css",
+      "line": 13,
+      "name": "Build a Publish theme",
+      "page": "Themes/Obsidian Publish themes/Build a Publish theme",
+      "reason": "",
+      "status": "runnable"
+    }
+  ],
+  "obsidianVersion": "1.14.4",
+  "repo": "obsidianmd/obsidian-developer-docs"
+}

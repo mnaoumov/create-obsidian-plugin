@@ -70,6 +70,7 @@ export const config = defineObsidianPluginVitestConfig({
       { find: /^.+\.wasm(?:\?.*)?$/u, replacement: WASM_MODULE_STUB_PATH },
       { find: /^data-url:.+$/u, replacement: WASM_MODULE_STUB_PATH }
     ];
+<%- render('edit-context') -%>
   }
 });
 <%- render('post-config') -%>

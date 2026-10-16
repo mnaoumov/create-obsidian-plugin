@@ -3,11 +3,12 @@ import type { FeatureOption } from '../../feature-option.ts';
 import { promptFeature } from '../../feature-option.ts';
 import { AllInOne } from './all-in-one.ts';
 import { Demo } from './demo.ts';
+import { DocsShowcase } from './docs-showcase.ts';
 import { OfficialSample } from './official-sample.ts';
 import { Standalone } from './standalone.ts';
 
 /** The template presets: the ones `buildTemplate` composes and the verification tiers sweep. */
-export const PRESET_OPTIONS: readonly FeatureOption[] = [new AllInOne(), new Demo(), new Standalone()];
+export const PRESET_OPTIONS: readonly FeatureOption[] = [new AllInOne(), new Demo(), new DocsShowcase(), new Standalone()];
 
 /** Every preset the prompt offers: the template presets, then the official sample, which copies upstream instead. */
 export const PRESET_PROMPT_OPTIONS: readonly FeatureOption[] = [...PRESET_OPTIONS, new OfficialSample()];

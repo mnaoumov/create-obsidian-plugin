@@ -10,6 +10,7 @@
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
 - `templates/default/` — EJS template files (all must have `.ejs` extension), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
 - `templates/official-sample/files/` — the vendored snapshot the `official-sample` preset copies, pinned in `upstreams.json` (see "`official-sample` copies upstream")
+- `templates/docs-showcase/` — the `docs-showcase` preset's `src/docs/`: `host/` is hand-written, `files/` and `snippets.json` are what `npm run sync:docs-showcase` generated from the pinned obsidian-developer-docs commit (see "`docs-showcase` is the All-in-one Framework project plus the developer docs' code blocks")
 - `scripts/` — All build/lint/test logic lives here
 - `dist/` — Built output (published to npm, not tracked in git)
 - `plugin-drift-baseline.json` — the differences between the emitted framework presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
@@ -114,6 +115,8 @@ removes.
 
 `all-in-one` and `demo` both build on `@mnaoumov/obsidian-lib` and the two toolkits, so they both contribute the **`framework`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
 
+`docs-showcase` takes the `all-in-one` partial whole, because it is that project plus `src/docs/`. See below.
+
 They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_all-in-one` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `all-in-one`. `src/plugin.ts_all-in-one*` and the three `plugin-settings*_all-in-one` files therefore stay keyed on `all-in-one`, which only that preset carries.
 
 ### `all-in-one` was `enhanced`, and the old value is an alias
@@ -150,6 +153,20 @@ hand-edited file the same way, and `.create-obsidian-plugin.json` records the `u
 `prepublishOnly`) builds a generated project and a pristine copy of the same tree and requires the generated one to
 lint EXACTLY as upstream does: the identity edits may add no finding and remove none. Renaming the sample classes was
 considered and refused, because "as is" is the ask.
+
+### `docs-showcase` is the All-in-one Framework project plus the developer docs' code blocks
+
+`preset: docs-showcase` (**Developer docs showcase**) adds `src/docs/` to the All-in-one Framework project: every code block of obsidianmd/obsidian-developer-docs, each one a command (`Docs: <page> > <heading>`). `DocsShowcase.configure` runs `AllInOne.configure` and adds the `all-in-one` partial, so the project is that preset's byte for byte apart from the `docs-showcase` partials. It never also carries `demo`, which is what keeps it clear of the rule above.
+
+**The blocks are not templates.** `npm run sync:docs-showcase` (`scripts/sync-docs-showcase.ts`, the `obsidian-developer-docs` entry's `handler` in `upstreams.json`) fetches `en/**/*.md` at the tracked branch and takes every fenced block, except the ~1200 `**Signature:**` declarations API Documenter writes on the reference pages (`src/docs-showcase/extract-snippets.ts`). It classifies each one with the TypeScript parser and wraps it in a host module (`src/docs-showcase/wrap-snippet.ts`): a plugin class is loaded as a child plugin, statements run with `this` bound and the names the docs leave implicit (`app`, `file`, `editor`, `view`, `containerEl`) supplied, class members go in a plugin or settings tab, a declarative setting definition is shown in a settings tab, a modal or view the block declares is opened, an editor extension or a stylesheet is toggled. The block's own code is kept verbatim. Only its missing imports, an export list, and `run(context)` are added. A name the block takes from another block is imported from it, looked for on the same page first, then in the same docs section. The sync then type-checks every module with `tsc` against the latest `obsidian` and writes the ones that compile into `templates/docs-showcase/files/`, plus the fate of every block into `templates/docs-showcase/snippets.json`. `copyTemplates` appends that folder as it is, so no EJS touches upstream's code, and the render tier skips it (`DOCS_SHOWCASE_PREFIX`, `src/render-checks.ts`): its composition checks would only report the docs' own empty blocks.
+
+**A block that does not compile is a finding, never a silent drop.** It stays in `snippets.json` and in the generated `src/docs/README.md` with its first diagnostic, translated back to its line on the page. Most are genuine against the official sample's compiler options (`noUncheckedIndexedAccess`, uninitialized properties, names defined nowhere in the docs). `--check` re-runs the pinned commit against the pinned `obsidian` version and fails on any difference, so a change to the wrapping rules that is not re-synced is caught.
+
+**The project's own tooling leaves `src/docs/` alone.** Upstream's code would never pass `@tsconfig/strictest` or the shared ESLint config, so the folder carries its own `tsconfig.json` with the official sample plugin's options (`moduleResolution: bundler` in place of its `node`, which TypeScript 6 rejects). The root `tsconfig.json` excludes it, and the `docs-showcase` partials take it out of ESLint, dprint, prettier, biome, cspell and vitest coverage. The plugin reaches it through `src/docs/entry.js` with `entry.d.ts` beside it. A `.js` file is not in the root program, so tsc sees only the declaration, while the bundler follows the import into the `.ts` modules. A plain import of `index.ts` would pull every block into the strict program. `build:compile:typescript` (`scripts/build-compile-typescript.ts`) runs the toolkit's own TypeScript step and then `tsc` over `src/docs/tsconfig.json`, which is how the gate type-checks the showcase. webpack and rollup type-check while they bundle, so each gets a second ts-loader or `@rollup/plugin-typescript` instance for `src/docs/` with that `tsconfig.json`, and the main one excludes the folder. esbuild, vite and parcel only transpile. All five bundle the showcase into one `main.js`: each block's module is a dynamic import, which every bundler is already told to inline.
+
+**It runs, not just compiles.** On the vitest answer the preset emits `src/docs-showcase.desktop.integration.test.ts`, which runs every `Docs:` command in a real Obsidian through obsidian-integration-testing and fails on any that throws. The host rethrows after its notice for exactly that. The first run of it found a block the type check could not: a `const` reading `view` under a `@ts-expect-error` had been hoisted as a declaration, so nothing supplied `view`.
+
+**License.** obsidianmd/obsidian-developer-docs had no `LICENSE` when this was built. The sync recognizes upstream's `LICENSE` once one exists and names it, with its copyright line, in every module's header and in the README, so the notice appears by itself on the first sync after it lands.
 
 ### The toolkit presets ship a demo vault
 
@@ -866,7 +883,7 @@ EJS's `<%=` HTML-escapes its value. That is right in a README's `<a href>` and w
 
 The generator asks 24 questions — 22 choices plus two presence branches (`fundingUrl` and
 `obsidianConfigFolder`, on which `buildTemplate` contributes `has-funding` under `fundingPlatform: custom` and `has-vault-true`/`false`).
-They multiply out to **150,493,593,600** combinations, so "test every combination" is not one job. It is
+They multiply out to **200,658,124,800** combinations, so "test every combination" is not one job. It is
 three, each covering as much as its per-case cost allows.
 
 | tier | per case | what runs it | coverage it can afford |
@@ -887,8 +904,8 @@ over it, in the minute or two one case costs rather than the hour `verify:projec
 tool for *does this combination actually build, and what did the bundler emit?* — the question asked
 while changing a bundler's configuration, and the one the whole WebAssembly pass was driven from.
 
-`--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~1340 hours
-single-threaded and ~134 on ten workers, and the flag prints that projection before it starts.
+`--exhaustive` exists on the plan tier and is **not** the default: at the measured 32 us it is ~1780 hours
+single-threaded and ~178 on ten workers, and the flag prints that projection before it starts.
 
 **Six failure modes make a silent pass the default here, and every tier is shaped around them.**
 

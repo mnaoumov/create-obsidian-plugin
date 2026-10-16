@@ -1,4 +1,4 @@
-const FRAMEWORK_PRESETS = new Set(['all-in-one', 'demo']);
+const FRAMEWORK_PRESETS = new Set(['all-in-one', 'demo', 'docs-showcase']);
 
 /**
  * Whether a preset builds on `@mnaoumov/obsidian-lib` and the `@mnaoumov` toolkits.

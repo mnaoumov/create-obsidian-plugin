@@ -87,7 +87,7 @@ Worth knowing:
 - `verify:projects` accepts `--limit=N` for a quick subset and `--keep` to leave failing projects on disk
   for inspection. Both it and `verify:rendering` take `--out=<dir>`; point it somewhere short if Windows
   path lengths bite.
-- `verify:answer-space --exhaustive` checks all 150,493,593,600 combinations. It prints its projected cost
+- `verify:answer-space --exhaustive` checks all 200,658,124,800 combinations. It prints its projected cost
   first — on a 12-core machine that is roughly 134 hours.
 - `verify:plugin-drift` scans the checkout's parent directory for plugins — anything with both a
   `manifest.json` and a `src/main.ts` — so it only does anything on a machine that has them checked out

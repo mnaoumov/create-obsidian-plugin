@@ -5,6 +5,8 @@
     "coverage",
     "dist",
     "node_modules",
+    "templates/docs-showcase/files",
+    "templates/docs-showcase/snippets.json",
     "templates/official-sample/files",
     "tsconfig.tsbuildinfo"
   ],
