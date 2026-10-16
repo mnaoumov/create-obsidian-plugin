@@ -24,31 +24,42 @@ interface CommandRegistry {
 
 const PLUGIN_ID = '<%= pluginId %>';
 
-// The ids `src/docs/index.ts` registers, one per runnable code block of the docs, read when the suite is collected so
-// That each block is its own test.
-const ENTRY_ID_PATTERN = /^ {4}id: "(?<Id>[^"]+)",$/gm;
-const entryIds = [...readFileSync(new URL('docs/index.ts', import.meta.url), 'utf-8').matchAll(ENTRY_ID_PATTERN)]
-  .map((match) => match.groups?.['Id'] ?? '');
+interface DocsEntryRecord {
+  readonly id: string;
+  readonly source: string;
+}
+
+// The entries `src/docs/index.ts` registers, one per runnable code block of the docs, read when the suite is collected
+// So that each block is its own test.
+const ENTRY_PATTERN = /^ {4}id: "(?<Id>[^"]+)",\n(?:.*\n){2} {4}source: "(?<Source>[^"]+)"$/gm;
+const entries: DocsEntryRecord[] = [...readFileSync(new URL('docs/index.ts', import.meta.url), 'utf-8').matchAll(ENTRY_PATTERN)]
+  .map((match) => ({ id: match.groups?.['Id'] ?? '', source: match.groups?.['Source'] ?? '' }));
 
 // Runs every `Docs:` command in a real Obsidian and fails on any that throws: the showcase compiles by
 // Construction, and this is what proves each block also RUNS against the app it was written for.
 describe('Developer docs showcase', () => {
   it('registers a command for every runnable code block', () => {
-    expect(entryIds.length).toBeGreaterThan(0);
+    expect(entries.length).toBeGreaterThan(0);
   });
 
-  for (const entryId of entryIds) {
-    it(`runs docs-${entryId}`, async () => {
+  for (const entry of entries) {
+    it(`runs docs-${entry.id}, and links its docs page from what it shows`, async () => {
       const failure = await evalInObsidian({
-        async callback({ app, commandId }): Promise<string> {
+        async callback({ app, commandId, source }): Promise<string> {
           const untypedApp: unknown = app;
           const command = (untypedApp as AppWithCommands).commands.commands[commandId];
           if (!command?.callback) {
             return `There is no command ${commandId}.`;
           }
+          // The previous block's Notices are still up, and two blocks under one heading share a page.
+          for (const notice of activeDocument.querySelectorAll('.notice')) {
+            notice.remove();
+          }
           try {
             await command.callback();
-            return '';
+            // A Notice, a modal and a settings tab are each where some command puts the link; nothing else links the docs.
+            const links = [...activeDocument.querySelectorAll('a')].map((link) => link.getAttribute('href'));
+            return links.includes(source) ? '' : `Nothing ${commandId} showed links ${source}.`;
           } catch (error) {
             return error instanceof Error ? error.message : String(error);
           } finally {
@@ -58,7 +69,7 @@ describe('Developer docs showcase', () => {
             }
           }
         },
-        input: { commandId: `${PLUGIN_ID}:docs-${entryId}` }
+        input: { commandId: `${PLUGIN_ID}:docs-${entry.id}`, source: entry.source }
       });
       expect(failure).toBe('');
     });

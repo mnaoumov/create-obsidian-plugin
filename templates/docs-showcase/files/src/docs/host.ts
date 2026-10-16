@@ -17,6 +17,7 @@ import type {
 
 import {
   Component,
+  FuzzySuggestModal,
   MarkdownView,
   Modal,
   Notice,
@@ -104,7 +105,7 @@ export function registerDocsEntries(plugin: Plugin, entries: readonly DocsEntry[
           await module.run(context);
         } catch (error) {
           console.error(`Docs snippet "${entry.name}" (${entry.source}) threw`, error);
-          new Notice(`${entry.name} threw: ${error instanceof Error ? error.message : String(error)}. The developer console has the details.`);
+          showDocsNotice(entry, `${entry.name} threw: ${error instanceof Error ? error.message : String(error)}. The developer console has the details.`);
           // Rethrown so that whatever runs the command can tell it failed: the integration suite awaits it.
           throw error;
         }
@@ -113,6 +114,45 @@ export function registerDocsEntries(plugin: Plugin, entries: readonly DocsEntry[
       name: `Docs: ${entry.name}`
     });
   }
+
+  // The one way to reach a snippet's page without running it, which for many of them changes the vault.
+  plugin.addCommand({
+    callback: () => {
+      new DocsPageSuggestModal(plugin.app, entries).open();
+    },
+    id: 'open-docs-page',
+    name: 'Docs showcase: Open the docs page of a snippet'
+  });
+}
+
+/**
+ * A link to the docs page a snippet comes from, at the heading it sits under. Obsidian opens it in the browser.
+ *
+ * @param entry - The snippet.
+ * @returns The link.
+ */
+function createDocsLink(entry: DocsEntry): HTMLAnchorElement {
+  return createEl('a', {
+    attr: { target: '_blank' },
+    cls: 'external-link',
+    href: entry.source,
+    text: 'Open docs page'
+  });
+}
+
+/**
+ * Shows a Notice about a snippet, with the link to its docs page under the message. Every Notice the showcase shows
+ * goes through here, so that whatever a command shows leads back to the page its code came from.
+ *
+ * @param entry - The snippet.
+ * @param message - The message.
+ */
+function showDocsNotice(entry: DocsEntry, message: string): void {
+  new Notice(createFragment((fragment) => {
+    fragment.appendText(message);
+    fragment.createEl('br');
+    fragment.append(createDocsLink(entry));
+  }));
 }
 
 /**
@@ -124,6 +164,10 @@ class DocsHostPlugin extends Plugin implements DocsThis {
   public plugin: DocsPlugin = this;
   public settings: Record<string, any> = {};
   private data: unknown = null;
+
+  public constructor(app: App, manifest: PluginManifest, private readonly entry: DocsEntry) {
+    super(app, manifest);
+  }
 
   public override async loadData(): Promise<any> {
     return this.data;
@@ -138,7 +182,7 @@ class DocsHostPlugin extends Plugin implements DocsThis {
   }
 
   public update(): void {
-    new Notice('The snippet asked its settings tab to update.');
+    showDocsNotice(this.entry, `${this.entry.name}: the snippet asked its settings tab to update.`);
   }
 }
 
@@ -156,14 +200,15 @@ class HostContext implements DocsContext {
   }
 
   public addChildComponent(component: Component): void {
-    this.replaceChild(new DocsHostPlugin(this.app, this.childManifest())).addChild(component);
-    new Notice(`${this.entry.name}: loaded its component. Run the command again to unload it.`);
+    this.replaceChild(new DocsHostPlugin(this.app, this.childManifest(), this.entry)).addChild(component);
+    showDocsNotice(this.entry, `${this.entry.name}: loaded its component. Run the command again to unload it.`);
   }
 
   public getContainerEl(): HTMLElement {
     if (!this.containerEl) {
       const modal = new Modal(this.app);
       modal.setTitle(this.entry.name);
+      modal.titleEl.createDiv({ cls: 'setting-item-description' }).append(createDocsLink(this.entry));
       modal.open();
       this.containerEl = modal.contentEl;
     }
@@ -210,27 +255,31 @@ class HostContext implements DocsContext {
 
   public openModal(modal: Modal): void {
     modal.open();
+    // The modal is the snippet's own, so the link goes in a Notice rather than into it.
+    showDocsNotice(this.entry, `${this.entry.name}: opened the snippet's modal.`);
   }
 
   public async openView(createView: (leaf: WorkspaceLeaf) => View): Promise<void> {
     const leaf = this.app.workspace.getLeaf('tab');
     await leaf.open(createView(leaf));
+    // The view is the snippet's own, so the link goes in a Notice rather than into it.
+    showDocsNotice(this.entry, `${this.entry.name}: opened the snippet's view.`);
   }
 
   public report(message: string): void {
     console.log(`${this.entry.name}: ${message}`);
-    new Notice(`${this.entry.name}: ${message}`);
+    showDocsNotice(this.entry, `${this.entry.name}: ${message}`);
   }
 
   public async showResult(value: unknown, label?: string): Promise<void> {
     const resolved = await value;
     const prefix = label ? `${this.entry.name}: ${label}` : this.entry.name;
     if (resolved === undefined) {
-      new Notice(`${prefix} ran. Anything it logged is in the developer console.`);
+      showDocsNotice(this.entry, `${prefix} ran. Anything it logged is in the developer console.`);
       return;
     }
     console.log(prefix, resolved);
-    new Notice(`${prefix} returned ${preview(resolved)}`);
+    showDocsNotice(this.entry, `${prefix} returned ${preview(resolved)}`);
   }
 
   public async showSettingDefinitions(items: SettingDefinitionItem[]): Promise<void> {
@@ -238,19 +287,19 @@ class HostContext implements DocsContext {
   }
 
   public async showSettingTab(createTab: (app: App, plugin: DocsPlugin) => PluginSettingTab): Promise<void> {
-    const child = this.replaceChild(new DocsHostPlugin(this.app, this.childManifest()));
-    child.addSettingTab(createTab(this.app, child));
-    new Notice(`${this.entry.name}: added a settings tab named "${child.manifest.name}". Open Settings to see it.`);
+    const child = this.replaceChild(new DocsHostPlugin(this.app, this.childManifest(), this.entry));
+    child.addSettingTab(withDocsLink(createTab(this.app, child), this.entry));
+    showDocsNotice(this.entry, `${this.entry.name}: added a settings tab named "${child.manifest.name}". Open Settings to see it.`);
   }
 
   public thisValue(): DocsThis {
-    return this.replaceChild(new DocsHostPlugin(this.app, this.childManifest()));
+    return this.replaceChild(new DocsHostPlugin(this.app, this.childManifest(), this.entry));
   }
 
   public async toggleChildPlugin(pluginClass: new (...args: any[]) => Plugin): Promise<void> {
     if (this.children.has(this.entry.id)) {
       this.removeChild();
-      new Notice(`${this.entry.name}: unloaded the example plugin and everything it registered.`);
+      showDocsNotice(this.entry, `${this.entry.name}: unloaded the example plugin and everything it registered.`);
       return;
     }
 
@@ -267,7 +316,7 @@ class HostContext implements DocsContext {
       }
     };
     this.replaceChild(new HostedPlugin(this.app, this.childManifest()));
-    new Notice(`${this.entry.name}: loaded the example plugin. What it registers is live until you run this command again.`);
+    showDocsNotice(this.entry, `${this.entry.name}: loaded the example plugin. What it registers is live until you run this command again.`);
   }
 
   public async toggleCss(css: string): Promise<void> {
@@ -275,22 +324,22 @@ class HostContext implements DocsContext {
     const existing = activeDocument.getElementById(id);
     if (existing) {
       existing.remove();
-      new Notice(`${this.entry.name}: removed the stylesheet.`);
+      showDocsNotice(this.entry, `${this.entry.name}: removed the stylesheet.`);
       return;
     }
     const style = activeDocument.head.createEl('style', { attr: { id }, text: css });
     this.plugin.register(() => style.remove());
-    new Notice(`${this.entry.name}: applied the stylesheet. Run the command again to remove it.`);
+    showDocsNotice(this.entry, `${this.entry.name}: applied the stylesheet. Run the command again to remove it.`);
   }
 
   public toggleEditorExtension(extension: Extension): void {
     const index = this.editorExtensions.indexOf(extension);
     if (index === -1) {
       this.editorExtensions.push(extension);
-      new Notice(`${this.entry.name}: enabled the editor extension. Run the command again to disable it.`);
+      showDocsNotice(this.entry, `${this.entry.name}: enabled the editor extension. Run the command again to disable it.`);
     } else {
       this.editorExtensions.splice(index, 1);
-      new Notice(`${this.entry.name}: disabled the editor extension.`);
+      showDocsNotice(this.entry, `${this.entry.name}: disabled the editor extension.`);
     }
     this.app.workspace.updateOptions();
   }
@@ -326,6 +375,61 @@ class DefinitionsSettingTab extends PluginSettingTab {
   public override getSettingDefinitions(): SettingDefinitionItem[] {
     return this.items;
   }
+}
+
+/** Lists every snippet and opens the docs page of the chosen one. */
+class DocsPageSuggestModal extends FuzzySuggestModal<DocsEntry> {
+  public constructor(app: App, private readonly entries: readonly DocsEntry[]) {
+    super(app);
+    this.setPlaceholder('Pick a snippet to open its docs page');
+  }
+
+  public override getItems(): DocsEntry[] {
+    return [...this.entries];
+  }
+
+  public override getItemText(entry: DocsEntry): string {
+    return entry.name;
+  }
+
+  public override onChooseItem(entry: DocsEntry): void {
+    window.open(entry.source);
+  }
+}
+
+/**
+ * Puts a first row linking the snippet's docs page at the top of its settings tab. The tab is the snippet's own, so
+ * this wraps its two ways of rendering rather than subclassing it: Obsidian renders the definitions when
+ * `getSettingDefinitions()` returns any, and calls `display()` only when it returns none.
+ *
+ * @param tab - The tab the snippet created.
+ * @param entry - The snippet.
+ * @returns The same tab.
+ */
+function withDocsLink(tab: PluginSettingTab, entry: DocsEntry): PluginSettingTab {
+  const getSettingDefinitions = tab.getSettingDefinitions.bind(tab);
+  tab.getSettingDefinitions = (): SettingDefinitionItem[] => {
+    const items = getSettingDefinitions();
+    if (items.length === 0) {
+      return items;
+    }
+    return [
+      {
+        name: 'Docs page',
+        render: (setting): void => {
+          setting.setDesc(createFragment((fragment) => fragment.append(createDocsLink(entry))));
+        },
+        searchable: false
+      },
+      ...items
+    ];
+  };
+  const display = tab.display.bind(tab);
+  tab.display = (): void => {
+    display();
+    tab.containerEl.prepend(createDiv({ cls: 'setting-item-description' }, (div) => div.append(createDocsLink(entry))));
+  };
+  return tab;
 }
 
 function preview(value: unknown): string {
