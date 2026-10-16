@@ -81,6 +81,20 @@ describe('the docs-showcase preset', () => {
     expect(plugin).toContain('OpenDemoVaultCommandHandler');
   });
 
+  it('links the snippet\'s docs page from every Notice, modal and settings tab a command shows', () => {
+    const host = read('src/docs/host.ts');
+    // The one Notice is the one in `showDocsNotice`, which puts the link under every message.
+    expect(host.match(/new Notice\(/g)).toHaveLength(1);
+    expect(host).toMatch(/function showDocsNotice\(entry: DocsEntry, message: string\): void \{\n {2}new Notice\(createFragment\(\(fragment\) => \{\n(?:.*\n){2} {4}fragment\.append\(createDocsLink\(entry\)\);/);
+    expect(host).toContain('href: entry.source,');
+    expect(host).toContain('modal.titleEl.createDiv({ cls: \'setting-item-description\' }).append(createDocsLink(this.entry));');
+    expect(host).toContain('child.addSettingTab(withDocsLink(createTab(this.app, child), this.entry));');
+    for (const method of ['openModal', 'openView']) {
+      expect(host).toMatch(new RegExp(`public (?:async )?${method}\\([^]*?showDocsNotice\\(this\\.entry, `));
+    }
+    expect(host).toContain('id: \'open-docs-page\',');
+  });
+
   it('keeps the project\'s own tooling out of the showcase folder', () => {
     const tsconfig = JSON.parse(read('tsconfig.json')) as TsConfigJson;
     expect(tsconfig.exclude).toEqual(['./src/docs']);
