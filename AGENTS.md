@@ -358,11 +358,11 @@ only some also run commitlint.
 On the framework presets both configs come from typescript-dev-toolkit, as in the real plugins.
 `scripts/commitlint-config.ts` re-exports `commitlintConfig`, which resolves `@commitlint/config-conventional`
 from the toolkit's own dependencies, so only `standalone` declares that package and `@commitlint/types`.
-`scripts/nano-staged-config.ts` is `getNanoStagedConfig()` only when `usesToolkitNanoStagedConfig`
-(`src/features/git-hooks.ts`) holds: a framework preset with eslint, dprint, markdownlint and cspell.
-That function's tasks are fixed (`lint:fix`, `format`, `lint:md:fix`, `spellcheck`, each given the
-staged paths), so any other project would fail a commit on a missing script, or have prettier or biome
-rewrite the whole tree. Those projects get the inline config built from `addLintStagedCommand`.
+`scripts/nano-staged-config.ts` is `getNanoStagedConfig()` on every framework preset
+(`usesToolkitNanoStagedConfig`, `src/features/git-hooks.ts`). Since typescript-dev-toolkit 3.2.0 that
+config leaves out a task whose script the project lacks, and every framework format and lint script is a
+toolkit runner that takes the staged paths, whichever tool it runs. `standalone` gets the inline config
+built from `addLintStagedCommand`.
 
 ### Every answer says whether the toolkits run it
 
@@ -637,7 +637,9 @@ The biome config is `biome.jsonc` so it can carry those reasons. Biome parses it
 whatever the extension, but it rejects a `"//"` key as unknown, and real comments in a file named
 `.json` would fail the render tier's JSON check. It also turns `noUnusedVariables` off for `.svelte`
 and `.vue`, where biome reads the script block but not the markup and reports every binding the
-template uses as unused.
+template uses as unused. That is `standalone`'s file. The framework presets' `biome.jsonc` extends
+typescript-dev-toolkit's `assets/biome.json`, which makes the same two choices, and keeps only the
+project's excludes; their `prettier.config.mjs` spreads the toolkit's `getPrettierConfig()`.
 
 ### The PostCSS config must be named `postcss.config.cjs`, and Tailwind is v4
 

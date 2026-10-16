@@ -924,16 +924,17 @@ describe('buildTemplate', () => {
       }
     });
 
-    it('takes the staged-files config from the toolkit exactly when it runs this project\'s tools', () => {
-      const toolkitShape: Partial<Answers> = { formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', spellChecker: 'cspell' };
+    // Since typescript-dev-toolkit 3.2.0 `getNanoStagedConfig()` leaves out a task whose script the project
+    // Lacks, so it fits every framework project whatever tools were answered.
+    it('takes the staged-files config from the toolkit on every framework preset', () => {
       const cases: [Partial<Answers>, boolean][] = [
-        [{ ...toolkitShape, preset: 'all-in-one' }, true],
-        [{ ...toolkitShape, preset: 'demo' }, true],
-        [{ ...toolkitShape, preset: 'standalone' }, false],
-        [{ ...toolkitShape, formatter: 'prettier', preset: 'all-in-one' }, false],
-        [{ ...toolkitShape, linter: 'biome', preset: 'all-in-one' }, false],
-        [{ ...toolkitShape, markdownLinter: 'none', preset: 'all-in-one' }, false],
-        [{ ...toolkitShape, preset: 'all-in-one', spellChecker: 'none' }, false]
+        [{ preset: 'all-in-one' }, true],
+        [{ preset: 'demo' }, true],
+        [{ preset: 'standalone' }, false],
+        [{ formatter: 'prettier', preset: 'all-in-one' }, true],
+        [{ formatter: 'biome', linter: 'biome', preset: 'all-in-one' }, true],
+        [{ markdownLinter: 'none', preset: 'all-in-one', spellChecker: 'none' }, true],
+        [{ formatter: 'prettier', preset: 'standalone' }, false]
       ];
       for (const [overrides, expected] of cases) {
         const partials = buildTemplate(makeAnswers(overrides)).partials;
@@ -1913,9 +1914,9 @@ describe('copyTemplates', () => {
       ['standalone', 'eslint', 'eslint .'],
       ['standalone', 'biome', 'biome lint .'],
       ['all-in-one', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
-      ['all-in-one', 'biome', 'biome lint .'],
+      ['all-in-one', 'biome', '@mnaoumov/typescript-dev-toolkit/linters/biome'],
       ['demo', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
-      ['demo', 'biome', 'biome lint .'],
+      ['demo', 'biome', '@mnaoumov/typescript-dev-toolkit/linters/biome'],
       ['demo', 'none', '@mnaoumov/obsidian-dev-toolkit/linters/eslint']
     ];
 
@@ -1935,13 +1936,6 @@ describe('copyTemplates', () => {
     expect(builder.templateFiles.has('eslint.config.mts')).toBe(false);
     expect(builder.dependencies.map((dependency) => dependency.packageName)).not.toContain('eslint');
     expect(builder.lintStagedPatterns.flatMap((pattern) => pattern.commands)).not.toContain('eslint --fix');
-  });
-
-  it('renders markdownlint\'s *.md after the ESLint pattern the demo preset forces in', () => {
-    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'demo' }), targetDir, '1.0.0', null);
-    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
-    const keys = [...config.matchAll(/^ {2}'(?<pattern>[^']+)': \[/gm)].map((match) => match.groups?.['pattern']);
-    expect(keys).toEqual(['*.{ts,tsx,mts}', '*.md']);
   });
 
   // The rendered half of "drops a forced UI framework that would fight the chosen one". `JSON.parse`
@@ -2043,12 +2037,28 @@ describe('copyTemplates', () => {
   });
 
   it('creates biome config and lint scripts when biome is selected', () => {
-    copyTemplates(makeAnswers({ linter: 'biome' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ linter: 'biome', preset: 'standalone' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'biome.jsonc'))).toBe(true);
     const lint = readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8');
     expect(lint).toContain('biome lint');
     const lintFix = readFileSync(join(targetDir, 'scripts/lint-fix.ts'), 'utf-8');
     expect(lintFix).toContain('biome lint --write');
+  });
+
+  // On the framework presets the formatter and linter scripts are typescript-dev-toolkit runners that take the
+  // Staged paths, and the configs build on the toolkit's shared ones.
+  it('runs prettier and biome through typescript-dev-toolkit on the framework presets', () => {
+    copyTemplates(makeAnswers({ formatter: 'prettier', preset: 'all-in-one' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/format.ts'), 'utf-8')).toContain('from \'@mnaoumov/typescript-dev-toolkit/formatters/prettier\'');
+    expect(readFileSync(join(targetDir, 'prettier.config.mjs'), 'utf-8')).toContain('getPrettierConfig()');
+    expect(existsSync(join(targetDir, 'scripts/prettier.config.ts'))).toBe(false);
+    rmSync(targetDir, { force: true, recursive: true });
+
+    copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome', preset: 'all-in-one' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'scripts/format-check.ts'), 'utf-8')).toContain('from \'@mnaoumov/typescript-dev-toolkit/formatters/biome\'');
+    expect(readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8')).toContain('from \'@mnaoumov/typescript-dev-toolkit/linters/biome\'');
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.jsonc'), 'utf-8')) as Record<string, unknown>;
+    expect(biome['extends']).toStrictEqual(['./node_modules/@mnaoumov/typescript-dev-toolkit/assets/biome.json']);
   });
 
   it('renders build script from esbuild partial', () => {
@@ -2163,13 +2173,20 @@ describe('copyTemplates', () => {
     // The three tests above all run on the default `standalone` preset, which is why the obsidian-dev-utils
     // Presets could import the dprint runner whatever was chosen -- and install prettier or biome without
     // Ever invoking them, while dprint was not even a dependency.
-    const expectedCommands = new Map([
+    const standaloneCommands = new Map([
       ['biome', 'biome format'],
       ['dprint', 'dprint'],
       ['prettier', 'prettier']
     ]);
+    // The framework presets run each formatter through its toolkit runner.
+    const frameworkCommands = new Map([
+      ['biome', 'formatters/biome'],
+      ['dprint', 'formatters/dprint'],
+      ['prettier', 'formatters/prettier']
+    ]);
 
     for (const preset of ['standalone', 'all-in-one', 'demo']) {
+      const expectedCommands = preset === 'standalone' ? standaloneCommands : frameworkCommands;
       for (const [formatter, expectedCommand] of expectedCommands) {
         rmSync(targetDir, { force: true, recursive: true });
         copyTemplates(makeAnswers({ formatter, preset }), targetDir, '1.0.0', null);
