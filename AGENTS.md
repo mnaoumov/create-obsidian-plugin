@@ -17,12 +17,12 @@
 
 ### No obsidian ecosystem dependencies in the generator
 
-The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, or `obsidian-dev-utils`. These are only used in the *generated* plugin projects.
+The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, `obsidian-dev-utils` or the `@mnaoumov/obsidian-*` packages. These are only used in the *generated* plugin projects.
 
 ### Two-tier script strategy
 
-- **Enhanced/demo presets**: thin wrapper scripts that call the matching `obsidian-dev-utils` module — `script-utils/bundlers/esbuild`, `script-utils/linters/eslint`, `script-utils/test-runners/vitest`, `script-utils/version`, and so on, each wrapped in `wrapCliTask`. Updates propagate via `npm update`. There is no `script-utils/commands` barrel; every command has its own module.
-- **Standalone preset**: fully inlined self-contained scripts with no obsidian-dev-utils dependency.
+- **Enhanced/demo presets**: thin wrapper scripts that call the matching toolkit module — `@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild`, `.../linters/eslint`, `.../version`, `@mnaoumov/typescript-dev-toolkit/test-runners/vitest`, `.../gate`, and so on, each wrapped in `typescript-dev-toolkit`'s `wrapCliTask`. The plugin code imports `@mnaoumov/obsidian-lib` (and `@mnaoumov/typescript-lib` where it needs a generic helper). Updates propagate via `npm update`. Every command has its own module.
+- **Standalone preset**: fully inlined self-contained scripts with no `@mnaoumov` package dependency.
 
 The ESLint *config* follows the same split. The dev-utils presets wrap `defineEslintConfigs` in `scripts/eslint-config.ts`, and `standalone` inlines its config in the root `eslint.config.mts`. See "Root configs are thin wrappers".
 
@@ -34,16 +34,16 @@ esbuild whatever was answered, while still installing the chosen bundler and emi
 nothing to read. `build.ts` was fixed in `9fe2d67` and `dev.ts` was left behind, which is exactly how
 the two came to disagree: `npm run build` ran webpack, `npm run dev` ran esbuild, both green.
 
-Under each, only esbuild splits again by preset — obsidian-dev-utils supplies a build and a watcher
+Under each, only esbuild splits again by preset — obsidian-dev-toolkit supplies a build and a watcher
 for it, standalone writes its own inline — and the four command-line bundlers share one script. On the
 `dev` side that shared script is two lines: `build.ts` already reads `dev` off `process.argv` and
 derives the watch flag, `dist/dev`, sourcemaps, the `.hotreload` marker and the vault copy from it, so
 `dev` re-enters it rather than restating any of that.
 
-**Standalone deliberately does not gain obsidian-dev-utils' `dev()` behavior.** That `dev()` is not
+**Standalone deliberately does not gain obsidian-dev-toolkit's `dev()` behavior.** That `dev()` is not
 just a watcher: it also watches `node_modules` recursively and, on a change, disposes the esbuild
 context and re-runs the whole pipeline including `build:compile`. That exists to compensate for
-dev-utils' own `build:compile` step, which standalone has not got — and standalone's premise is a
+the toolkit's own `build:compile` step, which standalone has not got — and standalone's premise is a
 self-contained script with no dev-utils. Porting it would buy ~25 lines of debounced fs watching and
 process restart for no equivalent benefit. That was asked and answered; do not re-open it.
 
@@ -105,13 +105,15 @@ removes.
 
 ### Three preset partials: `dev-utils`, `enhanced`, `demo`
 
-`enhanced` and `demo` both build on `obsidian-dev-utils`, so they both contribute the **`dev-utils`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
+`enhanced` and `demo` both build on `@mnaoumov/obsidian-lib` and the two toolkits, so they both contribute the **`dev-utils`** partial for what they share (the `scripts/`, `tsconfig.json`, the styles, the framework components and views, the README preset section).
 
 They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_enhanced` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `enhanced`. `src/plugin.ts_enhanced*` and the three `plugin-settings*_enhanced` files therefore stay keyed on `enhanced`, which only that preset carries.
 
-### The obsidian-dev-utils presets ship a demo vault
+### The toolkit presets ship a demo vault
 
-`demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
+`demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `@mnaoumov/obsidian-dev-toolkit` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
+
+The vault's `_assets/CodeScriptToolkit/demoSetup.ts` still imports `obsidian-dev-utils/obsidian/community-plugins`. A vault script takes its modules from what `CodeScript Toolkit` serves, not from `node_modules`, and that plugin serves nothing from `@mnaoumov/obsidian-lib` yet. For the same reason the render tier's `undeclared-dependency` check skips `demo-vault/`: `package.json` does not govern a vault script's imports.
 
 Only the `dev-utils` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
@@ -131,7 +133,7 @@ is optional decoration, and each piece was found by a combination that failed wi
   `obsidian-test-mocks/obsidian` in every runner. The dev-utils presets get that free from
   `defineObsidianPluginVitestConfig`'s `unit-tests` project; `standalone`'s own `vitest.config.ts` and
   `jest.config.ts` declare it themselves. `obsidian-test-mocks` is therefore added by the **test-runner**
-  answer, not the preset — `standalone`'s premise is "no obsidian-dev-utils", which this does not breach,
+  answer, not the preset — `standalone`'s premise is "no @mnaoumov packages", which this does not breach,
   and a project on `testRunner: 'none'` gets none of it.
 - **The alias is not enough on its own for vitest, and the setup file is not enough either.**
   `obsidian-test-mocks/vitest-setup` calls `vi.mock('obsidian')`, but vite has to *resolve* the specifier
@@ -187,11 +189,11 @@ provisioned Obsidian or emulator, so a fresh project would ship tests nothing ca
 
 All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `commitlint.config.ts`, `vitest.config.ts`) are minimal re-exports from `scripts/`. Root `package.json` scripts all use `jiti scripts/*.ts`.
 
-The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The dev-utils presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-utils' `defineEslintConfigs` the way every real plugin does.
+The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The dev-utils presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-toolkit's `defineEslintConfigs` the way every real plugin does.
 
-`scripts/markdownlint-cli2-config.ts` splits the same way. The dev-utils presets spread obsidian-dev-utils' `obsidianDevUtilsConfig` and turn `no-soft-break-in-paragraph` on, byte for byte what the real plugins carry; `standalone` inlines its rules and is the only preset that declares `markdownlint` and `markdownlint-rule-relative-links`.
+`scripts/markdownlint-cli2-config.ts` splits the same way. The dev-utils presets spread obsidian-dev-toolkit's `obsidianMarkdownlintCli2Config` and turn `no-soft-break-in-paragraph` on, byte for byte what the real plugins carry; `standalone` inlines its rules and is the only preset that declares `markdownlint` and `markdownlint-rule-relative-links`.
 
-**The shared config is much stricter than the inlined one.** It adds unicorn, perfectionist, `@stylistic`, import-x, eslint-comments and obsidian-dev-utils' own rules, and the templates are written to pass it. A sample that is red under its own `npm run lint` means the project has not really adopted the config. Two things were structural:
+**The shared config is much stricter than the inlined one.** It adds unicorn, perfectionist, `@stylistic`, import-x, eslint-comments and the two toolkits' own rules (`typescript-dev-toolkit/*`, `obsidian-dev-toolkit/*`), and the templates are written to pass it. A sample that is red under its own `npm run lint` means the project has not really adopted the config. Two things were structural:
 
 - **Sample views `return super.onOpen()` / `super.onClose()`** rather than `await Promise.resolve()`. The shared config's `prefer-noop-async` rejects the latter, and its fleet answer, `noopAsync()`, cannot be imported on `standalone`, which shares three of the view templates.
 - **`sortImports(text)`** (`src/templates.ts`) re-sorts an import group whose lines come from per-answer partials. Partials contribute in question-registration order, which `perfectionist/sort-imports` rejects. A run of `//` comment lines directly above an import moves with that import, so an `eslint-disable-next-line` stays on the line it was written for.
@@ -204,7 +206,7 @@ It also carries three categorical exemptions, so that no template needs an inlin
 
 Most templates are shared by all three presets, but only the dev-utils presets load import-x, unicorn, perfectionist and the other plugins the shared config registers. On `standalone`, a directive naming one of those rules is `Definition for rule ... was not found`, which is an error. A directive for a core rule that only the shared config enables, such as `no-void`, is an unused directive there, which is also an error. So such a directive is written as `<%- render('lint-<what>') -%>` and lives in `<template>@lint-<what>_dev-utils.ejs`. The `dev-utils` partial is carried by both dev-utils presets and by nothing else. Inside a JavaScript template literal (the `sortImports` blocks, rollup's plugin list) the same section is `${render('lint-<what>')}`.
 
-Two options come before adding a section: change the code so that neither config complains, or exempt a whole category in `scripts/eslint-config.ts`. The wasm sample's command callback became `async` for the first reason, and i18next's `init` / `t` became named imports for the same reason. A foreign member name (`outDir`, `rootDir`, `emptyOutDir`) stays an inline disable, which is what obsidian-dev-utils' own source does for `unicorn/name-replacements`. The render tier's `foreign-lint-directive` check catches a directive written straight into a shared template.
+Two options come before adding a section: change the code so that neither config complains, or exempt a whole category in `scripts/eslint-config.ts`. The wasm sample's command callback became `async` for the first reason, and i18next's `init` / `t` became named imports for the same reason. A foreign member name (`outDir`, `rootDir`, `emptyOutDir`) stays an inline disable, which is what the toolkits' own source does for `unicorn/name-replacements`. The render tier's `foreign-lint-directive` check catches a directive written straight into a shared template.
 
 ### addScript single-arg convention
 
@@ -235,7 +237,7 @@ own — gets none of them, and each still emits a `pinned-versions.json` entry w
 ### `minAppVersion` is fetched, not hardcoded — from the same place the release flow reads it
 
 The manifest's `minAppVersion` comes from `desktop-releases.json` in `obsidianmd/obsidian-releases`, which
-is exactly what `obsidian-dev-utils/script-utils/version` reads when it stamps the field on a release. Same
+is exactly what `@mnaoumov/obsidian-dev-toolkit/version` reads when it stamps the field on a release. Same
 source at both ends means the scaffold and the project's first `npm run version` never disagree about where
 the number comes from. `versions.json` ships the matching `"0.0.0": "<minAppVersion>"` entry rather than
 `{}` — it maps each released version to the app version it needs, so an empty one is not a smaller version
@@ -277,10 +279,10 @@ only some also run commitlint.
 
 ### `npm run gate` is emitted on every dev-utils preset
 
-`scripts/gate.ts` is the one-line wrapper over obsidian-dev-utils' `gate()` that every real plugin ships
+`scripts/gate.ts` is the one-line wrapper over typescript-dev-toolkit's `gate()` that every real plugin ships
 byte for byte: the release preflight's checks, reachable before committing. Both dev-utils presets register
-it beside `version`, and its `CONTRIBUTING.md` line is a `dev-utils` partial. Since obsidian-dev-utils 107,
-`gate()` requires only `build`, which every preset registers, and runs `format:check`, `spellcheck`,
+it beside `version`, and its `CONTRIBUTING.md` line is a `dev-utils` partial. Since obsidian-dev-utils 107, and so in the toolkit that
+replaced it, `gate()` requires only `build`, which every preset registers, and runs `format:check`, `spellcheck`,
 `lint:md` and `lint` through `npmRunOptional`, so a project that answered `none` for any of those tools
 still gets a gate that passes. Before that release all five were required, and the gate was emitted only
 where the answers had registered every one of them.
@@ -310,9 +312,9 @@ package that IS used where depcheck cannot see it — never to quiet a package n
 measured, not copied: generate and install a case, run `npx depcheck` in it, and read what is left.
 The same measurement decides what is declared at all: a package depcheck reports and nothing in the
 project reaches is removed from that path, not ignored. So on the dev-utils presets' esbuild build, where
-obsidian-dev-utils depends on and registers its own copies, `esbuild-sass-plugin`, `esbuild-svelte` and
+the toolkits depend on and register their own copies, `esbuild-sass-plugin`, `esbuild-svelte` and
 `svelte-preprocess` are not declared. `svelte-preprocess` is also declared only on the bundlers whose
-config imports it. `svelte-check` looks like the same case and is not: obsidian-dev-utils' `build:compile`
+config imports it. `svelte-check` looks like the same case and is not: typescript-dev-toolkit's `build:compile`
 refuses to build a project with `.svelte` files unless package.json declares it, so it stays declared
 everywhere and is ignored with that reason. `type-fest` and `@codemirror/language` are declared nowhere, because no
 template imports either one.
@@ -479,7 +481,7 @@ and `cli-args.ts`'s `FREE_TEXT_VALIDATORS` is the same table, so a flag, an answ
 default-branch HEAD, so a one-word correction found afterwards costs a version bump and a fresh release —
 and an `id` costs more than that, because it can never be changed once the plugin is published.
 
-**The constraint set is stated twice on purpose.** `obsidian-dev-utils` carries the same rules as four
+**The constraint set is stated twice on purpose.** `@mnaoumov/obsidian-dev-toolkit` carries the same rules as four
 ESLint checks over a repo's `manifest.json`, which is what catches an already-generated project. Sharing
 one copy would mean a runtime dependency on an obsidian ecosystem package, which the section above
 forbids, so the two are kept in step by hand. Change one and change the other.
@@ -511,7 +513,7 @@ plugin's own saved id matches itself.
 Typed ESLint rules need every file ESLint reaches to be in the tsconfig `include`, so the ESLint file
 list, the emitted `tsconfig.json`'s `include`, and the set of files actually written have to say the
 same thing. The ESLint file list is `typeScriptFiles` in `standalone`'s inlined `eslint.config.mts`, and
-on the dev-utils presets it is obsidian-dev-utils' own context, which `scripts/eslint-config.ts` widens through
+on the dev-utils presets it is obsidian-dev-toolkit's own context, which `scripts/eslint-config.ts` widens through
 `editContext` — the root wrappers for jest, vite and webpack, and `e2e/`. `e2e/` was in neither list while
 `obsidianmd.configs.recommended` still linted it, which is the whole of "You have used a rule which
 requires type information" — the largest single class of install-tier failures. It reaches both lists
@@ -524,7 +526,7 @@ Putting a directory into the program is not free: it starts being type-checked. 
 
 ### Where the linters and the compiler disagree, the compiler wins
 
-`@tsconfig/strictest` turns on `noPropertyAccessFromIndexSignature`, which the obsidian-dev-utils
+`@tsconfig/strictest` turns on `noPropertyAccessFromIndexSignature`, which the toolkit
 presets inherit, and it REJECTS `process.env.BUILD`. ESLint's `dot-notation` and biome's
 `useLiteralKeys` both ask for exactly that form. The compiler's complaint is an error and the linters'
 is a preference, so `dot-notation` is configured with `allowIndexSignaturePropertyAccess` and
@@ -564,7 +566,7 @@ green build the whole time:
 | --- | --- | --- |
 | webpack | `styles.css` | `MiniCssExtractPlugin({ filename: 'styles.css' })` — always did |
 | rollup | `styles.css` (postcss); `assets/output-<hash>.css` (scss) | `postcss({ extract: … })` / `scss({ fileName: … })` — rollup-plugin-scss 4 ignores a string `output` |
-| esbuild (dev-utils) | `styles.css` | obsidian-dev-utils' own `renameCssPlugin` — always did |
+| esbuild (dev-utils) | `styles.css` | obsidian-dev-toolkit's own `renameCssPlugin` — always did |
 | esbuild (standalone) | `main.css` | a local `renameCssPlugin`; the CSS lands beside `outfile` |
 | vite | `<pluginId>.css` | `build.lib.cssFileName`; lib mode names it after the package |
 | parcel | `main.<hash>.css` | `parcel-namer-obsidian.cjs`; sibling bundles are content-hashed |
@@ -681,7 +683,7 @@ untouched and rewrite `./view.tsx` imports to `./view.jsx`. A post-enforced `bab
 
 ### The dev-utils presets pass their extra esbuild plugins through `customEsbuildPlugins`
 
-obsidian-dev-utils' `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
+obsidian-dev-toolkit's `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
 own plugin list. They already register a svelte wrapper and a sass plugin — which is exactly why svelte
 and SCSS work on these presets untouched — but nothing for Vue, so `esbuild-plugin-vue3` was installed
 and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the dev-utils presets when the
@@ -716,12 +718,12 @@ answered view like `enhanced` does, and the same test covers both presets over e
 `@rollup/plugin-typescript` (12.3.0, the latest) asks `ts.getModeForResolutionAtIndex` for each import's
 resolution mode without passing the compiler options, and TypeScript answers `undefined` without them. So the
 plugin's program resolves every import in `src/` under the `require` condition, while tsc resolves them as
-`import`. A dual package then loads twice: obsidian-dev-utils' `.d.cts` pins `@codemirror/state` with
+`import`. A dual package then loads twice: obsidian-lib's `.d.cts` pins `@codemirror/state` with
 `resolution-mode: import`, the sample's own import gets `index.d.cts`, and the codemirror sample's
 `implements StateFieldSpec` printed TS2416 three times on every rollup build while plain tsc passed.
 `scripts/rollup.config.ts` therefore passes the plugin's `typescript` option a copy of TypeScript whose
 `getModeForResolutionAtIndex` supplies `module: Node16`. It is fixed there rather than in the sample, because
-any user code that mixes obsidian-dev-utils' codemirror types with its own `@codemirror/*` imports meets the
+any user code that mixes obsidian-lib's codemirror types with its own `@codemirror/*` imports meets the
 same split. Turning the plugin's type check off was the other option and was refused: on `standalone` it is
 the rollup build's only type check.
 
@@ -844,7 +846,7 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
    gate tier's `wasm` step asserts no stray `.wasm` in `dist/build` AND the module's bytes inside
    `main.js`. Both clauses: without the second, a bundler that tree-shook the import away would pass on
    the first alone. See "Every bundler has to be told to INLINE the WebAssembly module into `main.js`".
-5. **A bundler that code-splits exits 0.** obsidian-dev-utils has dynamic imports, and webpack and vite
+5. **A bundler that code-splits exits 0.** obsidian-lib has dynamic imports, and webpack and vite
    (lib mode inlines them only for `umd` / `iife`, not `cjs`) each turned them into sibling chunks that
    `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. The same
    step also fails a bundle that `require()`s a package Obsidian does not supply, which is what parcel's
@@ -862,7 +864,7 @@ single-threaded and ~134 on ten workers, and the flag prints that projection bef
 6. **Hard-wrapped markdown lints clean and renders wrong.** Obsidian's parser runs with `breaks: true`, so
    every newline in a README or a demo-vault note becomes a `<br>` — both a README and a demo-vault note need one source line
    per paragraph, per list item, per blockquote line. Nothing in a generated project says so: `MD013` is
-   off in the emitted markdownlint config, dprint excludes markdown, and obsidian-dev-utils' demo-vault
+   off in the emitted markdownlint config, dprint excludes markdown, and obsidian-dev-toolkit's demo-vault
    coverage suite checks the `# H1`, the link style and reachability rather than the prose form. So the
    render tier's `hard-wrapped-markdown` step reads the emitted `.md` bytes. Seven templates wrapped their
    prose before it existed, and every tier was green. Fenced code, tables, raw HTML and thematic breaks
@@ -885,7 +887,7 @@ emits `if (prod) { }` on every answer contributing nothing, which the emitted ES
 error, so the parse pass sees nothing; all three are cheap enough to run over all 265 cases.
 
 A fourth, `foreign-lint-directive`, is about which preset a line reaches. On a `standalone` + ESLint case,
-it fails any inline directive naming a rule that only obsidian-dev-utils' shared config turns on. See
+it fails any inline directive naming a rule that only obsidian-dev-toolkit's shared config turns on. See
 "A lint directive for the shared config goes in an `_dev-utils` section".
 
 Three rules that are easy to get wrong and were:
@@ -918,20 +920,20 @@ never formatted. So that pre-format now runs only for prettier and biome, the tw
 templates' style. And no tier runs `lint:md`, which let the funding `<a>` reach the README with no
 `MD033` disable around it.
 
-### A link into obsidian-dev-utils' source is checked against its git tree, before every publish
+### A link into obsidian-lib's source is checked against its git tree, before every publish
 
-The stylesheet templates cite obsidian-dev-utils source files for the user to read. That library renamed every file
-to kebab-case in `77c2bac1`, and `src/CssClass.ts` stayed in the templates as a 404 emitted into every generated
+The stylesheet templates cite obsidian-lib source files for the user to read. obsidian-dev-utils, which they cited
+before obsidian-lib replaced it, renamed every file to kebab-case in `77c2bac1`, and `src/CssClass.ts` stayed in the templates as a 404 emitted into every generated
 plugin for seven months, with every tier green. `npm run verify:upstream-links` (`src/upstream-links.ts`) finds
 every literal `blob` / `raw` / `tree` link into that repository in this repo's tracked files, test files excepted,
 and resolves each against `git ls-tree` of the link's ref in a checkout: `origin/<ref>` first, then `<ref>`.
 
 It reads a checkout, not the network and not the published package. The package ships `dist/` and no `src/`, so it
-cannot answer. The checkout is the sibling `../obsidian-dev-utils` by default, `--odu-dir` or
-`OBSIDIAN_DEV_UTILS_DIR` otherwise. It is only as fresh as its last fetch, so a dead-link report on a stale checkout
+cannot answer. The checkout is the sibling `../obsidian-lib` by default, `--lib-dir` or
+`OBSIDIAN_LIB_DIR` otherwise. It is only as fresh as its last fetch, so a dead-link report on a stale checkout
 says to fetch first. A missing checkout fails rather than skips, and so does a scan that finds no link at all.
 `prepublishOnly` runs it before `verify:tarball`, and `publish-npm.yml` checks the library out into
-`.upstream/obsidian-dev-utils` for it, outside the tarball's `files`.
+`.upstream/obsidian-lib` for it, outside the tarball's `files`.
 
 Links to other sites are not checked by any tier. Probing them needs the network, which is why `lint:md` is left to
 the generated project.
@@ -940,7 +942,7 @@ the generated project.
 
 The three tiers above all ask the same question — is the output valid? — over as much of the answer space
 as each can afford. `verify:plugin-drift` (`src/plugin-drift-checks.ts`) asks a different one, over a single
-point in that space: does what the obsidian-dev-utils presets emit actually look like the 29 plugins
+point in that space: does what the toolkit presets emit actually look like the 29 plugins
 checked out beside this repo? The README advertises `obsidian-sample-plugin-extended` as the "Sample
 output", so a divergence there is a documented promise being broken, and nothing measured it until this
 existed. It found, among other things, that the conventional-commits answer had never registered husky:

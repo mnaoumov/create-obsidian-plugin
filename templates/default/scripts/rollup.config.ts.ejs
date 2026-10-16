@@ -50,7 +50,7 @@ const typescript = asPluginFactory(typescriptModule);
  * compiler options, and without them TypeScript answers `undefined`. So every import in `src/` resolves
  * under the `require` condition, while a declaration file that pins `resolution-mode: import` gets the
  * ESM types. A package that ships both, such as `@codemirror/state`, is then loaded twice, and its
- * classes stop being assignable to themselves: TS2416 against obsidian-dev-utils' `StateFieldSpec`.
+ * classes stop being assignable to themselves: TS2416 against obsidian-lib's `StateFieldSpec`.
  * Handing over the `module` the emitted `tsconfig.json` declares restores the per-file mode tsc uses.
  */
 const typescriptWithResolutionModes: typeof ts = {
@@ -118,7 +118,7 @@ if you want to view the source, please visit the github repository of this plugi
     file: `${distFolder}/main.js`,
     format: 'cjs',
     // An Obsidian plugin is one file: the manifest names `main.js` and nothing loads a second chunk.
-    // Any dynamic import in the sources -- the obsidian-dev-utils presets have several -- otherwise
+    // Any dynamic import in the sources -- obsidian-lib, which the toolkit presets import, has several -- otherwise
     // Makes rollup refuse `output.file` and demand `output.dir`.
     inlineDynamicImports: true,
     sourcemap: isProduction ? false : 'inline'

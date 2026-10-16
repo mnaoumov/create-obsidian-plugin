@@ -9,7 +9,7 @@
     "ignored in this file.",
     "",
     "@commitlint/cli - .husky/commit-msg runs it as the `commitlint` binary.",
-    "@commitlint/config-conventional - extended by name (a string in the commitlint config's `extends`), never imported - either directly, or through obsidian-dev-utils' script-utils/commitlint-config, which extends it without declaring it.",
+    "@commitlint/config-conventional - extended by name (a string in the commitlint config's `extends`), never imported - either directly, or through a shared commitlint config that extends it without declaring it.",
     "better-typescript-lib - has no import anywhere by design: it supplies the @typescript/lib-* aliases that tsconfig.json's `libReplacement: true` resolves.",
     "czg - run as a CLI by scripts/commit.ts.",
     "dprint - run as a CLI by the format scripts, configured by dprint.json.",

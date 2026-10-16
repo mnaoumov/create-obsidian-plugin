@@ -18,7 +18,7 @@ export class Eslint extends FeatureOption {
       // Not resolve `eslint/config` at all -- the exact class of defect a non-npm package manager
       // Exists to expose, and invisible for as long as the tier only ever ran npm.
       .addPackage('eslint')
-      // Declared on BOTH presets, and on the obsidian-dev-utils ones it is the only ESLint package
+      // Declared on BOTH presets, and on the toolkit ones it is the only ESLint package
       // Nothing imports. It is load-bearing anyway: the `typescript` pin's `check` command reads
       // `typescript-eslint/package.json` for the peer range that decides the pin, and `checkRequires`
       // Downgrades that pin to a manual one the moment the package leaves the project.
@@ -31,7 +31,7 @@ export class Eslint extends FeatureOption {
         'scripts/lint-fix.ts'
       ]);
 
-    // Split on the preset, the way `scripts/lint.ts` itself already is. The obsidian-dev-utils presets
+    // Split on the preset, the way `scripts/lint.ts` itself already is. The toolkit presets
     // Wrap that package's `defineEslintConfigs` in a `scripts/eslint-config.ts` the root `eslint.config.mts`
     // Re-exports, so the root config is a thin wrapper like every other one and the rule set arrives by
     // `npm update`. The standalone preset keeps the whole config inlined, because its premise is that it

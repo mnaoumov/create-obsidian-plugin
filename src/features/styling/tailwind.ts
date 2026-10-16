@@ -11,7 +11,7 @@ export class Tailwind extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       // Tailwind 4 is compiled by its own CLI rather than through PostCSS. PostCSS is not reachable on
-      // Every path this generator emits -- the obsidian-dev-utils presets call that library's esbuild
+      // Every path this generator emits -- the toolkit presets call obsidian-dev-toolkit's esbuild
       // Build, which has no PostCSS step and registers `esbuild-sass-plugin` (whose default filter
       // Claims `.css`, not just `.scss`) ahead of the `customEsbuildPlugins` seam a project can add to.
       // Compiling first means every bundler receives ordinary, already-expanded CSS and the question

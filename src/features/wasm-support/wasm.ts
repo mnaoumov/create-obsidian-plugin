@@ -62,7 +62,7 @@ export class Wasm extends FeatureOption {
       'src/wasm/README.md'
     ]);
 
-    // Only the obsidian-dev-utils presets ship a demo vault. The rows and the button helper the note
+    // Only the toolkit presets ship a demo vault. The rows and the button helper the note
     // Needs in `00 Start.md`, `01 Sample commands.md` and `demoSetup.ts` are `wasm` partials, which render
     // Nowhere on `standalone` because those files are never emitted there.
     if (isDevUtilsPreset(answers.preset)) {

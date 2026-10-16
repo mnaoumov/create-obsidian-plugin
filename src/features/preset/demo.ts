@@ -13,24 +13,31 @@ export class Demo extends FeatureOption {
       .addPackage('@tsconfig/strictest')
       .addPackage('moment')
       .addDepcheckIgnore('moment', 'imported through `obsidian` rather than directly, and the typings of `obsidian` resolve it by name.')
-      .addPackage('obsidian-dev-utils')
-      // Not a testing dependency here, despite the name. The obsidian-dev-utils esbuild bundler
+      // The runtime library the emitted plugin code imports, and the two toolkits every scripts/*.ts
+      // Wraps: the Obsidian one for the build, lint, version and demo-vault tooling, the generic one for
+      // The CLI wrapper, the gate and the remaining runners.
+      .addPackage('@mnaoumov/obsidian-lib')
+      // `plugin.ts` and the settings component import its async, debug and type helpers.
+      .addPackage('@mnaoumov/typescript-lib')
+      .addPackage('@mnaoumov/obsidian-dev-toolkit')
+      .addPackage('@mnaoumov/typescript-dev-toolkit')
+      // Not a testing dependency here, despite the name. obsidian-dev-toolkit's esbuild bundler
       // STATICALLY imports it from its copy-to-obsidian-plugins-folder plugin, so a preset built on
-      // Obsidian-dev-utils cannot run its own build without it. It used to be added only alongside
+      // The toolkit cannot run its own build without it. It used to be added only alongside
       // Vitest, which left every such preset on any other test runner dying at
-      // "Cannot find module 'obsidian-integration-testing'" -- and obsidian-dev-utils declares it as an
+      // "Cannot find module 'obsidian-integration-testing'" -- and the toolkit declares it as an
       // Optional peer, which is exactly what makes npm leave it out without a word.
       .addPackage('obsidian-integration-testing')
       .addScript('dev')
       .addScript('build')
       .addScript('build:clean')
       .addScript('build:compile')
-      // The over-exposure linter from obsidian-dev-utils, which every plugin compared here runs. It reports
+      // The over-exposure linter from typescript-dev-toolkit, which every plugin compared here runs. It reports
       // Members exported more widely than anything imports them, so it needs no configuration here.
       .addScript('find-overexposed')
       .addScript('find-overexposed:fix')
       .addScript('version')
-      // The release preflight's checks, reachable before committing. obsidian-dev-utils' `gate()` requires only
+      // The release preflight's checks, reachable before committing. typescript-dev-toolkit's `gate()` requires only
       // `build`, which this preset always registers, and skips every other check the project has no script for.
       .addScript('gate')
       .addFiles([

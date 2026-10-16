@@ -7,7 +7,7 @@ import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
  *
- * On the obsidian-dev-utils presets' esbuild build the `esbuild` entry is not declared at all: that library
+ * On the toolkit presets' esbuild build the `esbuild` entry is not declared at all: the toolkit
  * depends on `esbuild-svelte` and registers it itself, so the project's build never names it.
  *
  * **Parcel has no entry, and cannot have one.** Parcel publishes a scoped transformer for Vue but never
@@ -52,14 +52,14 @@ export class Svelte extends FeatureOption {
       builder.addPackage(plugin);
     }
 
-    // `svelte-check` is the exception: obsidian-dev-utils' `build:compile` runs the PROJECT's copy and
+    // `svelte-check` is the exception: typescript-dev-toolkit's `build:compile` runs the PROJECT's copy and
     // Refuses to build when package.json does not declare it, although it also depends on its own.
     builder
       .addPackage('svelte-check')
       .addDepcheckIgnore(
         'svelte-check',
         isDevUtilsEsbuild
-          ? 'run as a CLI by obsidian-dev-utils\' `build:compile`, which refuses to build without it declared.'
+          ? 'run as a CLI by typescript-dev-toolkit\'s `build:compile`, which refuses to build without it declared.'
           : 'run as a CLI by `scripts/build.ts`.'
       );
 

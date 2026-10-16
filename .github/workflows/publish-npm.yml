@@ -28,20 +28,20 @@ jobs:
     env:
       # `npm ci` and `npm publish` both run the `prepare` script, which installs husky -- pointless in CI.
       HUSKY: 0
-      OBSIDIAN_DEV_UTILS_DIR: .upstream/obsidian-dev-utils
+      OBSIDIAN_LIB_DIR: .upstream/obsidian-lib
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       # `prepublishOnly` runs `verify:upstream-links`, which resolves every link the templates cite into
-      # obsidian-dev-utils against that repository's git tree. A runner has no sibling checkout to find,
+      # obsidian-lib against that repository's git tree. A runner has no sibling checkout to find,
       # so it gets one here, outside `package.json`'s `files` and so outside the tarball.
-      - name: Checkout obsidian-dev-utils
+      - name: Checkout obsidian-lib
         uses: actions/checkout@v6
         with:
-          repository: mnaoumov/obsidian-dev-utils
+          repository: mnaoumov/obsidian-lib
           ref: main
-          path: .upstream/obsidian-dev-utils
+          path: .upstream/obsidian-lib
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

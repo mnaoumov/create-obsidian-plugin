@@ -1,9 +1,9 @@
 /**
- * The starter demo vault every obsidian-dev-utils preset ships.
+ * The starter demo vault every toolkit preset ships.
  *
- * `obsidian-dev-utils` archives `demo-vault/` into the GitHub release at version time, injecting the
+ * `@mnaoumov/obsidian-dev-toolkit` archives `demo-vault/` into the GitHub release at version time, injecting the
  * freshly built plugin and the `demo-vault-helper` bootstrap plugin into the archived copy. Only the
- * presets that depend on `obsidian-dev-utils` get a vault, because only they have the release flow that
+ * presets built on that toolkit get a vault, because only they have the release flow that
  * does the injecting — a `standalone` project would ship a vault that never reaches a release.
  */
 export const DEMO_VAULT_TEMPLATE_FILES = [

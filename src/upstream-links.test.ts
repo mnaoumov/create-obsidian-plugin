@@ -12,7 +12,7 @@ import {
   findUpstreamLinks
 } from './upstream-links.ts';
 
-const BASE = 'https://github.com/mnaoumov/obsidian-dev-utils';
+const BASE = 'https://github.com/mnaoumov/obsidian-lib';
 
 /** Both links in the first case sit on the text's second line. */
 const LINK_LINE = 2;
@@ -37,7 +37,7 @@ describe('findUpstreamLinks', () => {
   });
 
   it('ignores other repositories, including one whose name only starts the same', () => {
-    const text = 'https://github.com/mnaoumov/obsidian-dev-utils-extra/blob/main/a.ts https://github.com/other/obsidian-dev-utils/blob/main/a.ts';
+    const text = 'https://github.com/mnaoumov/obsidian-lib-extra/blob/main/a.ts https://github.com/other/obsidian-lib/blob/main/a.ts';
     expect(findUpstreamLinks('a.md', text)).toEqual([]);
   });
 
@@ -46,7 +46,7 @@ describe('findUpstreamLinks', () => {
   it('finds the links the stylesheet templates cite', () => {
     const file = 'templates/default/src/styles/main.css_dev-utils.ejs';
     const text = readFileSync(join(getScriptDir(), '..', file), 'utf-8');
-    expect(findUpstreamLinks(file, text).map((link) => link.path)).toEqual(['src/styles/main.scss', 'src/obsidian/css-class.ts']);
+    expect(findUpstreamLinks(file, text).map((link) => link.path)).toEqual(['src/styles/main.scss', 'src/css-class.ts']);
   });
 });
 

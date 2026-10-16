@@ -11,7 +11,7 @@ import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
  * to escape. So what ships depends on what is there to say:
  *
  * - `src/main.test.ts` on every preset: the default export Obsidian loads is the plugin class.
- * - `src/plugin-settings-component.test.ts` on the obsidian-dev-utils presets: the component takes its
+ * - `src/plugin-settings-component.test.ts` on the toolkit presets: the component takes its
  *   defaults from the emitted settings class, and on `demo` a typed setting survives a save and a load.
  * - `src/plugin-settings.test.ts` on `demo` only, where `TypedItem.deserialize` is behavior. On
  *   `enhanced` the settings class is one default value, and a test of it would restate the source.
@@ -33,9 +33,15 @@ export function addSampleUnitTests(builder: TemplateBuilder, answers: Answers): 
     return;
   }
 
-  builder.addFiles(['src/plugin-settings-component.test.ts']);
+  builder
+    .addFiles(['src/plugin-settings-component.test.ts'])
+    // The settings-component test drives the component through `AsyncEvents` and `noopAsync`.
+    .addPackage('@mnaoumov/typescript-lib');
 
   if (answers.preset === 'demo') {
-    builder.addFiles(['src/plugin-settings.test.ts']);
+    builder
+      .addFiles(['src/plugin-settings.test.ts'])
+      // `strictProxy` stands in for the plugin the demo settings-component test hands the component.
+      .addPackage('@mnaoumov/typescript-test-toolkit');
   }
 }

@@ -22,7 +22,7 @@ export class Vitest extends FeatureOption {
       .addDepcheckIgnore(
         'obsidian-test-mocks',
         isDevUtilsPreset(answers.preset)
-          ? 'aliased and loaded as a setup file by name by `defineObsidianPluginVitestConfig` from obsidian-dev-utils.'
+          ? 'aliased and loaded as a setup file by name by `defineObsidianPluginVitestConfig` from @mnaoumov/obsidian-dev-toolkit.'
           : 'aliased and loaded as a setup file by name in `vitest.config.ts`.'
       )
       .addPackage('vitest')
@@ -49,7 +49,7 @@ export class Vitest extends FeatureOption {
       return;
     }
 
-    // The two demo-vault suites are vitest suites registered by `obsidian-dev-utils`, and the button suite
+    // The two demo-vault suites are vitest suites registered by `@mnaoumov/obsidian-dev-toolkit`, and the button suite
     // Additionally drives a real Obsidian through `obsidian-integration-testing`. Both therefore need the
     // Project-based vitest config, which is also what gives the coverage suite its `integration-tests:no-app`
     // Project. A suite file whose suffix matches no declared project is collected by nothing and reports

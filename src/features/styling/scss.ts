@@ -26,7 +26,7 @@ const SCSS_PLUGINS: Partial<Record<string, string>> = {
  * Why depcheck cannot see a bundler's SCSS package used, for the bundlers that reach it by name.
  *
  * esbuild and rollup import theirs from the build script, so they have no entry -- and on the
- * obsidian-dev-utils presets `esbuild-sass-plugin` is not declared at all.
+ * toolkit presets `esbuild-sass-plugin` is not declared at all.
  */
 const SCSS_PLUGIN_DEPCHECK_REASONS: Partial<Record<string, string>> = {
   parcel: 'resolved by name by `@parcel/config-default` for `.scss`; nothing imports it.',

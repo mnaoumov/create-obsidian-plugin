@@ -153,15 +153,18 @@ const SCOPED_PACKAGE_SEGMENTS = 2;
  */
 const SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/;
 
+/** The committed demo vault, whose scripts take their modules from `CodeScript Toolkit` rather than `node_modules`. */
+const DEMO_VAULT_PREFIX = 'demo-vault/';
+
 /**
- * Rules that only obsidian-dev-utils' shared ESLint config turns on: the plugins it registers and
+ * Rules that only obsidian-dev-toolkit's shared ESLint config turns on: the plugins it registers and
  * `standalone`'s inlined config does not, plus the one core rule it enables that the inlined config leaves
  * off. `standalone` shares most templates with the dev-utils presets, so a directive written for the shared
  * config lands in a project whose config has never heard of the rule.
  */
 const SHARED_CONFIG_ONLY_RULES = {
   exact: new Set(['no-void']),
-  prefixes: ['@eslint-community/', '@stylistic/', 'import-x/', 'obsidian-dev-utils/', 'perfectionist/', 'unicorn/']
+  prefixes: ['@eslint-community/', '@stylistic/', 'import-x/', 'obsidian-dev-toolkit/', 'perfectionist/', 'typescript-dev-toolkit/', 'unicorn/']
 };
 
 /** An inline ESLint directive, capturing the rule list up to its `--` reason or the comment's end. */
@@ -254,6 +257,12 @@ function checkDeclaredDependencies(targetDir: string, answers: Answers): RenderV
   for (const relativePath of walk(targetDir, '')) {
     const fileName = relativePath.split('/').pop() ?? '';
     if (!TYPESCRIPT_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
+      continue;
+    }
+
+    // A vault script runs inside Obsidian, where `CodeScript Toolkit` resolves its imports from the modules it
+    // Serves. `package.json` does not govern it, so a package it imports need not be declared there.
+    if (relativePath.startsWith(DEMO_VAULT_PREFIX)) {
       continue;
     }
 
@@ -401,7 +410,7 @@ function checkForeignLintDirectives(targetDir: string, answers: Answers): Render
       const foreign = rules.filter((rule) => SHARED_CONFIG_ONLY_RULES.exact.has(rule) || SHARED_CONFIG_ONLY_RULES.prefixes.some((prefix) => rule.startsWith(prefix)));
       if (foreign.length > 0) {
         violations.push({
-          detail: `Names ${foreign.join(', ')}, which only obsidian-dev-utils' shared config turns on: ${match[0].trim()}`,
+          detail: `Names ${foreign.join(', ')}, which only obsidian-dev-toolkit's shared config turns on: ${match[0].trim()}`,
           kind: 'foreign-lint-directive',
           subject: relativePath
         });
@@ -667,7 +676,7 @@ function importedNames(statement: ImportDeclaration): string[] {
  * name to resolve -- parcel's `data-url:./module.wasm` asks it to inline the file, and reading `data-url:.`
  * as a package name reported a dependency that could not be declared because it does not exist.
  * Everything else is a package, and its name is the first path segment -- two for a scoped one, so
- * `obsidian-dev-utils/script-utils/version` and `@codemirror/state/dist` both reduce to what
+ * `@mnaoumov/obsidian-dev-toolkit/version` and `@codemirror/state/dist` both reduce to what
  * `package.json` would have to declare.
  */
 function importedPackages(source: SourceFile): string[] {
