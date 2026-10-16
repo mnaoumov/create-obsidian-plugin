@@ -27,6 +27,7 @@ export class Preact extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('preact')
+      .addPartial('jsx-quotes')
       .addPartial('ui-view')
       .addSentenceCaseBrand('Preact')
       .addFiles([

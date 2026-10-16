@@ -22,6 +22,7 @@ export class React extends FeatureOption {
       .addPackage('@types/react-dom')
       .addPackage('react')
       .addPackage('react-dom')
+      .addPartial('jsx-quotes')
       .addPartial('ui-view')
       .addSentenceCaseBrand('React')
       .addFiles([
