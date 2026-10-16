@@ -111,6 +111,15 @@ describe('buildOverrides', () => {
     expect(overrides).not.toHaveProperty('deepmerge-ts');
   });
 
+  it('forces smol-toml wherever markdownlint-cli2 is reached, directly or through the toolkit', () => {
+    // The toolkit presets reach markdownlint-cli2 through @mnaoumov/typescript-dev-toolkit even on
+    // `markdownLinter: none`, so naming only the markdownlint answer's package left those red.
+    for (const packageName of ['markdownlint-cli2', '@mnaoumov/typescript-dev-toolkit', '@mnaoumov/obsidian-dev-toolkit']) {
+      expect(buildOverrides([new Dependency(packageName)])['smol-toml'], packageName).toBe('^1.9.1');
+    }
+    expect(buildOverrides([new Dependency('typescript')])).not.toHaveProperty('smol-toml');
+  });
+
   // Yarn ignores `overrides` outright, so a yarn project got no forcing at all and `@codemirror/view`
   // Brought a second `@codemirror/state` -- two copies of a CodeMirror facet, which do not interoperate.
   it('states the same forcing as literal resolutions, which is what yarn and pnpm read', () => {
@@ -159,5 +168,13 @@ describe('buildPinnedVersionsJson', () => {
       expect(pin?.why, packageName).toContain('GHSA-');
       expect(pin?.check, packageName).toContain('@wdio/utils');
     }
+  });
+
+  it('documents the smol-toml override against the range markdownlint-cli2 pins', () => {
+    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('markdownlint-cli2')])) as ParsedPinnedVersions;
+    const pin = parsed.pins['smol-toml'];
+    expect(pin?.section).toBe('overrides');
+    expect(pin?.why).toContain('GHSA-r4xh-jqrq-34v2');
+    expect(pin?.check).toContain('markdownlint-cli2');
   });
 });
