@@ -1,6 +1,6 @@
 {
   "comment": [
-    "Differences between what the generator emits for the obsidian-dev-utils presets and what the real",
+    "Differences between what the generator emits for the toolkit presets and what the real",
     "plugins beside this checkout actually look like, each one recorded as deliberate with the reason it is.",
     "`npm run verify:plugin-drift` fails on any difference that is NOT listed here, on any entry here whose",
     "difference has since gone, and on any entry whose `pluginCount` has moved -- the count is the evidence",
@@ -37,7 +37,7 @@
     },
     "demo/layout/extra/scripts/esbuild-plugins.ts": {
       "pluginCount": 0,
-      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-utils does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
+      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-toolkit does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
     },
     "demo/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,
@@ -169,7 +169,7 @@
     },
     "enhanced/layout/extra/scripts/esbuild-plugins.ts": {
       "pluginCount": 0,
-      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-utils does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
+      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-toolkit does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
     },
     "enhanced/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,

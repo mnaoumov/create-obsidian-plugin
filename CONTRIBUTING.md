@@ -67,8 +67,8 @@ A fourth script asks a different question — not whether the output is valid, b
 real plugin. It and the link check below are the only ones that read anything outside this repo:
 
 ```bash
-npm run verify:plugin-drift    # ~2s: the two obsidian-dev-utils presets against the real plugins
-npm run verify:upstream-links  # <1s: every link into obsidian-dev-utils' source resolved against its checkout
+npm run verify:plugin-drift    # ~2s: the two toolkit presets against the real plugins
+npm run verify:upstream-links  # <1s: every link into obsidian-lib's source resolved against its checkout
 ```
 
 The last one runs what `npm publish` would ship rather than the source. `prepublishOnly` runs it, after
@@ -95,8 +95,8 @@ Worth knowing:
   when it finds none. Every difference it reports has to be either fixed or recorded in
   `plugin-drift-baseline.json` with the reason it is deliberate;
   `npm run verify:plugin-drift -- --print-baseline` prints a skeleton to fill in.
-- `verify:upstream-links` reads the sibling `../obsidian-dev-utils` checkout's git tree, never the network,
-  so `git fetch` that checkout first. `--odu-dir <dir>` or `OBSIDIAN_DEV_UTILS_DIR` points it elsewhere, and it
+- `verify:upstream-links` reads the sibling `../obsidian-lib` checkout's git tree, never the network,
+  so `git fetch` that checkout first. `--lib-dir <dir>` or `OBSIDIAN_LIB_DIR` points it elsewhere, and it
   exits 1 when there is no checkout to read.
 
 ### Look at one combination

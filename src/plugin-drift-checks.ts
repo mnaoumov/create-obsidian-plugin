@@ -565,11 +565,12 @@ function extractDevUtilsModules(projectDir: string, files: readonly string[]): M
       if (!isImportDeclaration(statement) || !isStringLiteral(statement.moduleSpecifier)) {
         continue;
       }
-      if (!TOOLKIT_SPECIFIER_PREFIXES.some((prefix) => statement.moduleSpecifier.text.startsWith(prefix))) {
+      const specifier = statement.moduleSpecifier.text;
+      if (!TOOLKIT_SPECIFIER_PREFIXES.some((prefix) => specifier.startsWith(prefix))) {
         continue;
       }
       const names = importedNames(statement);
-      wrapped.push(names.length === 0 ? statement.moduleSpecifier.text : `${statement.moduleSpecifier.text}#${names.join(',')}`);
+      wrapped.push(names.length === 0 ? specifier : `${specifier}#${names.join(',')}`);
     }
 
     if (wrapped.length > 0) {
