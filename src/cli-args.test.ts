@@ -192,6 +192,17 @@ describe('the demo pin', () => {
   });
 });
 
+describe('the deprecated preset "enhanced"', () => {
+  it('is read as "all-in-one" from a flag', () => {
+    expect(parseCliArgs(['--preset=enhanced']).answers).toStrictEqual({ preset: 'all-in-one' });
+  });
+
+  it('is read as "all-in-one" from an answers file', () => {
+    const path = writeAnswersFile('deprecated.json', { preset: 'enhanced' });
+    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ preset: 'all-in-one' });
+  });
+});
+
 describe('the answers file', () => {
   it('reads a bare answers object', () => {
     const path = writeAnswersFile('bare.json', { linter: 'biome', packageManager: 'pnpm' });

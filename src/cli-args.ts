@@ -10,6 +10,7 @@ import type {
 
 import { ANSWER_SPACE } from './answer-space.ts';
 import { Mode } from './answers.ts';
+import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 import {
   validatePluginDescription,
   validatePluginId,
@@ -205,8 +206,9 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
       continue;
     }
 
-    const [rawKey, value] = splitFlag(argument);
+    const [rawKey, rawValue] = splitFlag(argument);
     const key = toAnswerKey(rawKey);
+    const value = resolveDeprecatedAnswer(key, rawValue, `--${key}`);
     assertValidAnswer(key, value);
     flagAnswers[key] = value;
   }
@@ -319,8 +321,9 @@ function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>>
     }
 
     const key = toAnswerKey(rawKey);
-    assertValidAnswer(key, value);
-    answers[key] = value;
+    const resolved = resolveDeprecatedAnswer(key, value, path);
+    assertValidAnswer(key, resolved);
+    answers[key] = resolved;
   }
 
   return answers;

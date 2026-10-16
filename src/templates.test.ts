@@ -1617,6 +1617,14 @@ describe('copyTemplates', () => {
     expect(plugin).not.toContain('Stale');
   });
 
+  it('reads an old project\'s preset "enhanced" as "all-in-one"', () => {
+    writeFileSync(
+      join(targetDir, '.create-obsidian-plugin.json'),
+      JSON.stringify({ answers: { ...makeAnswers(), preset: 'enhanced' }, fileHashes: {}, generatorVersion: '1.0.0' })
+    );
+    expect(loadConfig(targetDir)?.answers).toMatchObject({ preset: 'all-in-one' });
+  });
+
   // The shared config's `prefer-setting-definitions` warns on a tab without it.
   // An imperative `display()` is invisible to Obsidian's settings search from 1.13.0 on.
   it('builds the standalone settings tab declaratively, with no display()', () => {
