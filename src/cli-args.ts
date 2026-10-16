@@ -208,9 +208,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
 
     const [rawKey, rawValue] = splitFlag(argument);
     const key = toAnswerKey(rawKey);
-    const value = resolveDeprecatedAnswer(key, rawValue, `--${key}`);
-    assertValidAnswer(key, value);
-    flagAnswers[key] = value;
+    flagAnswers[key] = resolveAnswer(key, rawValue, `--${key}`);
   }
 
   const fileAnswers = answersFilePath === null ? {} : readAnswersFile(answersFilePath);
@@ -225,6 +223,23 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
     showHelp,
     useDefaults
   };
+}
+
+/**
+ * The value to use for a supplied answer: a deprecated alias mapped to its replacement, then validated.
+ *
+ * Exported for the same reason as {@link assertValidAnswer}, so `render:case` and `gate:case` accept
+ * exactly what the CLI accepts, old values included.
+ *
+ * @param key - The answer key.
+ * @param value - The answer value as supplied.
+ * @param source - Where the value came from, named in a deprecation warning.
+ * @returns The value to use.
+ */
+export function resolveAnswer(key: StringAnswerKey, value: string, source: string): string {
+  const resolved = resolveDeprecatedAnswer(key, value, source);
+  assertValidAnswer(key, resolved);
+  return resolved;
 }
 
 /**
@@ -321,9 +336,7 @@ function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>>
     }
 
     const key = toAnswerKey(rawKey);
-    const resolved = resolveDeprecatedAnswer(key, value, path);
-    assertValidAnswer(key, resolved);
-    answers[key] = resolved;
+    answers[key] = resolveAnswer(key, value, path);
   }
 
   return answers;

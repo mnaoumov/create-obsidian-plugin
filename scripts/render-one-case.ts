@@ -22,7 +22,7 @@ import {
   makeAnswers
 } from '../src/answer-space.ts';
 import {
-  assertValidAnswer,
+  resolveAnswer,
   toAnswerKey
 } from '../src/cli-args.ts';
 import { listGeneratedFiles } from '../src/plugin-drift-checks.ts';
@@ -121,10 +121,7 @@ function parseOptions(argv: readonly string[]): Options {
 function parseOverride(argument: string, overrides: Partial<Record<StringAnswerKey, string>>): void {
   const separatorIndex = argument.indexOf('=');
   const key = toAnswerKey(argument.slice(0, separatorIndex));
-  const value = argument.slice(separatorIndex + 1);
-
-  assertValidAnswer(key, value);
-  overrides[key] = value;
+  overrides[key] = resolveAnswer(key, argument.slice(separatorIndex + 1), argument);
 }
 
 /** Lists what the case emitted, for when the question is which files exist at all. */
