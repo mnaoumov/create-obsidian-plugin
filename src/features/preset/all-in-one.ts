@@ -5,7 +5,11 @@ import { DEMO_VAULT_TEMPLATE_FILES } from './demo-vault.ts';
 
 export class AllInOne extends FeatureOption {
   public constructor() {
-    super({ promptHint: 'Recommended. Uses @mnaoumov/obsidian-lib and its toolkits for settings, linting, and more', promptLabel: 'Enhanced', settingValue: 'all-in-one' });
+    super({
+      promptHint: 'Recommended. The author\'s framework: @mnaoumov/obsidian-lib, a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases',
+      promptLabel: 'All-in-one Framework',
+      settingValue: 'all-in-one'
+    });
   }
 
   public override configure(builder: TemplateBuilder): void {

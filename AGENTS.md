@@ -115,6 +115,10 @@ removes.
 
 They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_all-in-one` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `all-in-one`. `src/plugin.ts_all-in-one*` and the three `plugin-settings*_all-in-one` files therefore stay keyed on `all-in-one`, which only that preset carries.
 
+### `all-in-one` was `enhanced`, and the old value is an alias
+
+The preset's label is **All-in-one Framework** and its value `all-in-one`; until 1.1.0 it was `Enhanced` / `enhanced`, and the shared partial and its predicate were `dev-utils` / `isDevUtilsPreset`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters. `enhanced` still works wherever an answer can arrive — a flag, an answers file, a saved `.create-obsidian-plugin.json` — through the one table in `src/deprecated-answers.ts`, which logs a deprecation warning and hands on `all-in-one`, so nothing downstream ever sees the old value. A future rename of an answer value goes in the same table.
+
 ### The toolkit presets ship a demo vault
 
 `demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `@mnaoumov/obsidian-dev-toolkit` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
