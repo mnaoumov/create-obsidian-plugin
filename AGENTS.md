@@ -305,7 +305,10 @@ reaches webdriverio, and gets the `smol-toml` entry only on the markdownlint ans
 emits a `pinned-versions.json` entry with a runnable check. An advisory left un-overridden on purpose
 (`braces`, `katex`, `moment`) is recorded with its reason in the doc comment above the table, so the next
 sweep does not re-measure it. The gate fails `npm audit` only at `high`, and `braces` stays the one
-`high` until it has a patched release.
+`high` until it has a patched release. So the gate tier reads `npm audit --json` and lets through an
+advisory listed in `UNPATCHED_ADVISORIES` (`src/versions.ts`), by its GHSA id rather than by the package
+count: npm marks every package between the advisory and the project `high` too, so `braces` alone reads
+as seven. Any other `high` still fails. When a patched release ships, the entry moves to an override.
 
 ### `minAppVersion` is fetched, not hardcoded — from the same place the release flow reads it
 
