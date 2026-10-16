@@ -39,7 +39,7 @@
     "sync:docs-showcase": "jiti scripts/sync-docs-showcase.ts",
     "sync:obsidian": "jiti scripts/sync-obsidian.ts",
     "sync:official-sample": "jiti scripts/sync-official-sample.ts",
-    "sync:upstreams": "jiti scripts/sync-upstreams.ts",
+    "sync:upstreams": "sync-upstreams",
     "test": "jiti scripts/test.ts",
     "verify:answer-space": "jiti scripts/verify-answer-space.ts",
     "verify:official-sample": "jiti scripts/verify-official-sample.ts",
@@ -66,12 +66,13 @@
     "@commitlint/types": "^21.2.0",
     "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
     "@eslint/js": "^10.0.1",
+    "@mnaoumov/typescript-dev-toolkit": "^3.3.0",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@tsconfig/strictest": "^2.0.8",
     "@types/ejs": "^3.1.5",
     "@types/semver": "^7.8.0",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^5.0.5",
     "better-typescript-lib": "^2.12.0",
     "cspell": "^10.1.1",
     "czg": "^1.14.0",
@@ -86,7 +87,7 @@
     "jiti": "^2.7.0",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.68.0",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.5",
     "yaml": "^2.9.0"
   }
 }
