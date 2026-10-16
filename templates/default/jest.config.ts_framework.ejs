@@ -1,0 +1,31 @@
+import { defineObsidianPluginJestConfig } from '@mnaoumov/obsidian-dev-toolkit/test-runners/jest-config';
+
+// The toolkit's config runs ts-jest as ESM under jsdom, maps `obsidian` onto `obsidian-test-mocks` and loads
+// Both setup files. What is left here is what only this project knows.
+export default defineObsidianPluginJestConfig({
+  moduleNameMapper: {
+    // `src/main.ts` imports the stylesheet for its side effect, and jest would parse it as JavaScript.
+    '\\.(css|scss)$': '<rootDir>/scripts/stylesheet-stub.ts',
+    // Compiling a single-file component is the bundler's job, not the unit runner's. A unit test that reaches
+    // One through the plugin's module graph gets this stub instead, so the graph loads.
+    '\\.(svelte|vue)$': '<rootDir>/scripts/framework-component-stub.ts',
+    // Same decision for WebAssembly: loading a `.wasm` is the bundler's job.
+    '\\.wasm(\\?.*)?$': '<rootDir>/scripts/wasm-module-stub.ts',
+    '^data-url:': '<rootDir>/scripts/wasm-module-stub.ts',
+    // Svelte reaches its own runtime through Node subpath imports (`#client/constants`), and jest's ESM
+    // Resolver hands back the types entry for those, so the whole package goes to the stub too. It exports
+    // The `mount` / `unmount` the generated view uses.
+    '^svelte$': '<rootDir>/scripts/framework-component-stub.ts'
+  },
+  tsJestOptions: {
+    // Merged over `tsconfig.json`. `rootDir` is here rather than there because that file declares `noEmit: true`
+    // And is also read by the bundler, while ts-jest compiles WITH emit and so raises TS5011 on an inferred
+    // Common source directory.
+    tsconfig: {
+      isolatedModules: true,
+<%- render('ts-jest-tsconfig') -%>
+<%- render('lint-root-dir') -%>
+      rootDir: '.'
+    }
+  }
+});

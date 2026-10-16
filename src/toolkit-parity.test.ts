@@ -48,6 +48,7 @@ const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
   // The esbuild builder bundles plain CSS and names it `styles.css`, and registers its own sass plugin.
   'styling=css': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'styling=scss': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'testRunner=jest': '@mnaoumov/obsidian-dev-toolkit/test-runners/jest-config',
   'testRunner=vitest': '@mnaoumov/typescript-dev-toolkit/test-runners/vitest',
   // The esbuild builder registers its own svelte plugin.
   'uiFramework=svelte': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild'
@@ -72,7 +73,6 @@ const AWAITING_TOOLKIT: Readonly<Record<string, string>> = {
   'styling=css-modules': 'the esbuild builder has no CSS-modules support; the project carries the plugin and its options.',
   'styling=postcss': 'the esbuild builder runs no PostCSS; the project carries its config and a styles pre-build.',
   'styling=tailwind': 'the esbuild builder runs no Tailwind; the project carries its config and a styles pre-build.',
-  'testRunner=jest': 'the toolkits offer only a jest setup file; the project carries its config and runner script.',
   'uiFramework=preact': 'the esbuild builder sets no JSX runtime; the project carries the JSX options.',
   'uiFramework=react': 'the esbuild builder sets no JSX runtime; the project carries the JSX options.',
   'uiFramework=solid': 'the esbuild builder has no solid plugin; the project carries it and the JSX options.',

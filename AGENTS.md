@@ -107,6 +107,12 @@ then dies on "Must use import to load ES Module". So the jest answer runs in ESM
 which Node exposes only under that flag. All four pieces are load-bearing; drop any one and **zero tests run
 while the exit code stays green**, which is why `src/templates.test.ts` asserts each of them.
 
+On the framework presets the toolkits supply those pieces. `jest.config.ts` is
+`defineObsidianPluginJestConfig` (obsidian-dev-toolkit), which turns on ESM for a `"type": "module"` project,
+and `scripts/test.ts` is typescript-dev-toolkit's jest runner, which appends the flag. The config keeps only
+the stub mappings and `tsJestOptions.tsconfig`, which carries `rootDir` and replaces the toolkit's
+`isolatedModules: true`, so it restates that. `standalone` keeps all four pieces inline.
+
 The CommonJS alternative is a dead end, not an untried option: forcing `module: CommonJS` drags
 `moduleResolution` down to `node10`, which TypeScript 6 rejects outright (TS5107, deprecated) and TypeScript 7
 removes.

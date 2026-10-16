@@ -2313,13 +2313,18 @@ describe('copyTemplates', () => {
   // A `jest.mock('obsidian')` to stand in for), the setup files (the prototype extensions and globals
   // Obsidian installs), and jsdom (that setup writes to `Document`, `Element` and `window`). Miss one and
   // The sample test cannot even load the plugin it is testing.
+  // The framework presets get all three from `defineObsidianPluginJestConfig`; standalone declares them itself.
   it('points jest at the obsidian mocks', () => {
-    for (const preset of ['standalone', 'all-in-one', 'demo']) {
+    copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'jest' }), targetDir, '1.0.0', null);
+    const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
+    expect(jestConfig).toContain('\'^obsidian$\': \'obsidian-test-mocks/obsidian\'');
+    expect(jestConfig).toContain('obsidian-test-mocks/jest-setup');
+    expect(jestConfig).toContain('testEnvironment: \'jsdom\'');
+
+    for (const preset of ['all-in-one', 'demo']) {
+      rmSync(targetDir, { force: true, recursive: true });
       copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
-      const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
-      expect(jestConfig, preset).toContain('\'^obsidian$\': \'obsidian-test-mocks/obsidian\'');
-      expect(jestConfig, preset).toContain('obsidian-test-mocks/jest-setup');
-      expect(jestConfig, preset).toContain('testEnvironment: \'jsdom\'');
+      expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8'), preset).toContain('export default defineObsidianPluginJestConfig({');
     }
   });
 

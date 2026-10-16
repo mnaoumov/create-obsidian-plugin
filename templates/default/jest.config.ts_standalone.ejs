@@ -46,7 +46,6 @@ const config: Config = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
 <%- render('ts-jest-tsconfig') -%>
-<%- render('lint-root-dir') -%>
         rootDir: '.'
       },
       useESM: true
