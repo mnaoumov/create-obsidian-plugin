@@ -43,7 +43,7 @@ async function main(): Promise<void> {
 
     // `--ignore-scripts`: `prepare` runs husky, which prints to stdout under `HUSKY=0` and breaks the JSON.
     const packOutput = capture(`npm pack --json --ignore-scripts --pack-destination "${root}"`, repoDir);
-    const [pack] = JSON.parse(packOutput) as PackResult[];
+    const pack = parsePackResult(packOutput);
     if (!pack) {
       throw new Error(`npm pack reported nothing:\n${packOutput}`);
     }
@@ -93,6 +93,15 @@ function capture(command: string, cwd: string): string {
     throw new Error(`Failed (${String(result.status)}): ${command}`);
   }
   return result.stdout;
+}
+
+/**
+ * `npm pack --json` prints an array of results through npm 11, and from npm 12 an object keyed by package name.
+ */
+function parsePackResult(packOutput: string): PackResult | undefined {
+  const parsed = JSON.parse(packOutput) as PackResult[] | Record<string, PackResult>;
+  const results = Array.isArray(parsed) ? parsed : Object.values(parsed);
+  return results[0];
 }
 
 function run(command: string, cwd: string): void {
