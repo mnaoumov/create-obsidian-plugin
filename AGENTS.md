@@ -500,7 +500,10 @@ having generated nothing, and a silent guess at mode detection may update a proj
 leave alone. On update, `--yes` skips "change any settings?" and uses the saved answers with the flags over
 them. Answering yes to it interactively re-asks every question, each seeded from its saved answer, and only
 this run's flags skip theirs: `promptAnswers` takes the seeds and the supplied answers separately, because
-passing the saved answers as both skipped every question. It refuses a config that records no answers, because using the defaults there would mean guessing
+passing the saved answers as both skipped every question. When the saved tooling differs from the
+recommended set, `Tooling` offers three answers: "Keep current tooling" (the default, which names what it keeps),
+"Customize", and "Use recommended defaults" (which names what it changes, and really applies the recommended
+answers). It used to offer only the last, under that label, and keep the saved tooling. It refuses a config that records no answers, because using the defaults there would mean guessing
 the plugin id of a project that already exists. The exporter writes `--yes --mode=create`, so a recipe
 run inside an existing project still creates a new plugin.
 

@@ -5,6 +5,7 @@ import {
 import { styleText } from 'node:util';
 
 import type { Answers } from './answers.ts';
+import type { FeatureOption } from './feature-option.ts';
 
 import { select } from './clack-select.ts';
 import { text } from './clack-text.ts';
@@ -14,36 +15,100 @@ import {
   validatePluginId,
   validatePluginName
 } from './directory-constraints.ts';
-import { promptApiSubset } from './features/api-subset/index.ts';
-import { promptBundler } from './features/bundler/index.ts';
-import { promptCommitLinting } from './features/commit-linting/index.ts';
-import { promptCoverageBadge } from './features/coverage-badge/index.ts';
-import { promptE2eTestRunner } from './features/e2e-test-runner/index.ts';
-import { promptEditorExtensions } from './features/editor-extensions/index.ts';
-import { promptFormatter } from './features/formatter/index.ts';
+import {
+  API_SUBSET_OPTIONS,
+  promptApiSubset
+} from './features/api-subset/index.ts';
+import {
+  BUNDLER_OPTIONS,
+  promptBundler
+} from './features/bundler/index.ts';
+import {
+  COMMIT_LINTING_OPTIONS,
+  promptCommitLinting
+} from './features/commit-linting/index.ts';
+import {
+  COVERAGE_BADGE_OPTIONS,
+  promptCoverageBadge
+} from './features/coverage-badge/index.ts';
+import {
+  E2E_TEST_RUNNER_OPTIONS,
+  promptE2eTestRunner
+} from './features/e2e-test-runner/index.ts';
+import {
+  EDITOR_EXTENSIONS_OPTIONS,
+  promptEditorExtensions
+} from './features/editor-extensions/index.ts';
+import {
+  FORMATTER_OPTIONS,
+  promptFormatter
+} from './features/formatter/index.ts';
 import {
   asksFundingUsername,
   promptFundingPlatform,
   validateFundingUsername
 } from './features/funding-platform/index.ts';
-import { promptGitHubActions } from './features/git-hub-actions/index.ts';
-import { promptGitHubIssueTemplates } from './features/git-hub-issue-templates/index.ts';
-import { promptHotReload } from './features/hot-reload/index.ts';
-import { promptInternationalization } from './features/internationalization/index.ts';
-import { promptLinter } from './features/linter/index.ts';
-import { promptMarkdownLinter } from './features/markdown-linter/index.ts';
-import { promptPackageManager } from './features/package-manager/index.ts';
-import { promptPlatformSupport } from './features/platform-support/index.ts';
+import {
+  GITHUB_ACTIONS_OPTIONS,
+  promptGitHubActions
+} from './features/git-hub-actions/index.ts';
+import {
+  GITHUB_ISSUE_TEMPLATES_OPTIONS,
+  promptGitHubIssueTemplates
+} from './features/git-hub-issue-templates/index.ts';
+import {
+  HOT_RELOAD_OPTIONS,
+  promptHotReload
+} from './features/hot-reload/index.ts';
+import {
+  INTERNATIONALIZATION_OPTIONS,
+  promptInternationalization
+} from './features/internationalization/index.ts';
+import {
+  LINTER_OPTIONS,
+  promptLinter
+} from './features/linter/index.ts';
+import {
+  MARKDOWN_LINTER_OPTIONS,
+  promptMarkdownLinter
+} from './features/markdown-linter/index.ts';
+import {
+  PACKAGE_MANAGER_OPTIONS,
+  promptPackageManager
+} from './features/package-manager/index.ts';
+import {
+  PLATFORM_SUPPORT_OPTIONS,
+  promptPlatformSupport
+} from './features/platform-support/index.ts';
 import { promptPreset } from './features/preset/index.ts';
 import { isOfficialSamplePreset } from './features/preset/official-sample.ts';
-import { promptSpellChecker } from './features/spell-checker/index.ts';
-import { promptStyling } from './features/styling/index.ts';
-import { promptTestRunner } from './features/test-runner/index.ts';
-import { promptUiFramework } from './features/ui-framework/index.ts';
-import { promptWasmSupport } from './features/wasm-support/index.ts';
+import {
+  promptSpellChecker,
+  SPELL_CHECKER_OPTIONS
+} from './features/spell-checker/index.ts';
+import {
+  promptStyling,
+  STYLING_OPTIONS
+} from './features/styling/index.ts';
+import {
+  promptTestRunner,
+  TEST_RUNNER_OPTIONS
+} from './features/test-runner/index.ts';
+import {
+  promptUiFramework,
+  UI_FRAMEWORK_OPTIONS
+} from './features/ui-framework/index.ts';
+import {
+  promptWasmSupport,
+  WASM_SUPPORT_OPTIONS
+} from './features/wasm-support/index.ts';
 
+/**
+ * The answer every question behind the `Tooling` question takes on "Use recommended defaults".
+ */
 interface DefaultTooling {
   apiSubset: string;
+  bundler: string;
   commitLinting: string;
   coverageBadge: string;
   e2eTestRunner: string;
@@ -55,20 +120,79 @@ interface DefaultTooling {
   internationalization: string;
   linter: string;
   markdownLinter: string;
+  packageManager: string;
+  platformSupport: string;
   spellChecker: string;
   styling: string;
   testRunner: string;
+  uiFramework: string;
   wasmSupport: string;
 }
 
 interface PromptStep {
   defaultValue: (answers: StepAnswers) => string;
   key: string;
-  prompt: (savedValue: string) => Promise<string>;
+  prompt: (savedValue: string, answers: StepAnswers) => Promise<string>;
   skip?: (answers: StepAnswers) => boolean;
 }
 
 type StepAnswers = Map<string, string>;
+
+/**
+ * A question behind `Tooling` whose saved answer differs from the recommended one.
+ */
+interface ToolingChange {
+  question: string;
+  recommended: string;
+  saved: string;
+}
+
+type ToolingKey = keyof DefaultTooling;
+
+interface ToolingQuestion {
+  message: string;
+  options: readonly FeatureOption[];
+}
+
+/**
+ * How many changes a `Tooling` hint names before it says how many more there are.
+ */
+const MAX_HINTED_CHANGES = 3;
+
+/**
+ * Every question behind `Tooling`, in the order they are asked, with the message and options each one prompts with.
+ *
+ * It is what lets the `Tooling` question say, on an update, which saved answers each of its options keeps or changes.
+ */
+/* eslint-disable perfectionist/sort-objects -- The order the questions are asked in, which the hints follow. */
+const TOOLING_QUESTIONS: Readonly<Record<ToolingKey, ToolingQuestion>> = {
+  bundler: { message: 'Bundler', options: BUNDLER_OPTIONS },
+  uiFramework: { message: 'UI framework', options: UI_FRAMEWORK_OPTIONS },
+  linter: { message: 'Linter', options: LINTER_OPTIONS },
+  formatter: { message: 'Formatter', options: FORMATTER_OPTIONS },
+  spellChecker: { message: 'Spell checker', options: SPELL_CHECKER_OPTIONS },
+  markdownLinter: { message: 'Markdown linter', options: MARKDOWN_LINTER_OPTIONS },
+  testRunner: { message: 'Unit testing', options: TEST_RUNNER_OPTIONS },
+  e2eTestRunner: { message: 'E2E testing', options: E2E_TEST_RUNNER_OPTIONS },
+  editorExtensions: { message: 'Editor extensions', options: EDITOR_EXTENSIONS_OPTIONS },
+  styling: { message: 'Styling', options: STYLING_OPTIONS },
+  wasmSupport: { message: 'WebAssembly support', options: WASM_SUPPORT_OPTIONS },
+  commitLinting: { message: 'Commit linting', options: COMMIT_LINTING_OPTIONS },
+  hotReload: { message: 'Hot reload', options: HOT_RELOAD_OPTIONS },
+  internationalization: { message: 'Internationalization', options: INTERNATIONALIZATION_OPTIONS },
+  gitHubActions: { message: 'GitHub Actions', options: GITHUB_ACTIONS_OPTIONS },
+  gitHubIssueTemplates: { message: 'GitHub issue templates', options: GITHUB_ISSUE_TEMPLATES_OPTIONS },
+  coverageBadge: { message: 'Coverage badge', options: COVERAGE_BADGE_OPTIONS },
+  apiSubset: { message: 'Obsidian API subset', options: API_SUBSET_OPTIONS },
+  packageManager: { message: 'Package manager', options: PACKAGE_MANAGER_OPTIONS },
+  platformSupport: { message: 'Platform support', options: PLATFORM_SUPPORT_OPTIONS }
+};
+/* eslint-enable perfectionist/sort-objects -- The order the questions are asked in, which the hints follow. */
+
+/**
+ * The presets that ask the `apiSubset` question. The docs showcase IS the All-in-one Framework project, so it takes it too.
+ */
+const API_SUBSET_PRESETS = ['all-in-one', 'docs-showcase'];
 
 /**
  * The id every other default is derived from, and the one the `--yes` path ships.
@@ -113,7 +237,7 @@ export async function promptAnswers(defaults?: Partial<Answers>, supplied: Parti
   showHotkeyHints();
 
   const defaultTooling = getDefaultTooling();
-  const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, defaultTooling), supplied);
+  const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, supplied, defaultTooling), supplied);
   const answers = await runPromptSteps(steps);
 
   return buildAnswers(answers, defaultTooling);
@@ -124,6 +248,10 @@ export function validateNotEmpty(value: string | undefined): string | undefined 
     return 'Should not be empty';
   }
   return undefined;
+}
+
+function asksApiSubset(preset: string | undefined): boolean {
+  return API_SUBSET_PRESETS.includes(preset ?? '');
 }
 
 function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Answers {
@@ -137,7 +265,7 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     apiSubset: get('apiSubset', defaultTooling.apiSubset),
     authorGitHubName: get('authorGitHubName', 'johndoe'),
     authorName: get('authorName', 'John Doe'),
-    bundler: get('bundler', 'esbuild'),
+    bundler: get('bundler', defaultTooling.bundler),
     commitLinting: get('commitLinting', defaultTooling.commitLinting),
     coverageBadge: get('coverageBadge', defaultTooling.coverageBadge),
     currentYear: new Date().getFullYear(),
@@ -155,8 +283,8 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     linter: get('linter', defaultTooling.linter),
     markdownLinter: get('markdownLinter', defaultTooling.markdownLinter),
     obsidianConfigFolder: get('obsidianConfigFolder', ''),
-    packageManager: get('packageManager', 'npm'),
-    platformSupport: get('platformSupport', 'desktop-only'),
+    packageManager: get('packageManager', defaultTooling.packageManager),
+    platformSupport: get('platformSupport', defaultTooling.platformSupport),
     pluginDescription: get('pluginDescription', 'Does something awesome.'),
     pluginId,
     pluginName: get('pluginName', makePluginName(pluginId)),
@@ -164,18 +292,35 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     spellChecker: get('spellChecker', defaultTooling.spellChecker),
     styling: get('styling', defaultTooling.styling),
     testRunner: get('testRunner', defaultTooling.testRunner),
-    uiFramework: get('uiFramework', 'none'),
+    uiFramework: get('uiFramework', defaultTooling.uiFramework),
     wasmSupport: get('wasmSupport', defaultTooling.wasmSupport)
   };
 }
 
-function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): PromptStep[] {
+function buildPromptSteps(d: Partial<Answers>, supplied: Partial<Answers>, defaultTooling: DefaultTooling): PromptStep[] {
   function isCustomize(answers: StepAnswers): boolean {
     return answers.get('toolingMode') === 'customize';
   }
 
   function skipUnlessCustomize(answers: StepAnswers): boolean {
     return !isCustomize(answers);
+  }
+
+  /**
+   * The answer a question behind `Tooling` starts from, or takes when it is not asked.
+   *
+   * "Use recommended defaults" takes the recommended answer over a saved one, which is what its label says. Only
+   * "Keep current tooling" and "Customize" start from the saved answer. A flag given on this run wins over both.
+   */
+  function tooling(key: ToolingKey, answers: StepAnswers): string {
+    if (answers.get('toolingMode') === 'defaults' && supplied[key] === undefined) {
+      return defaultTooling[key];
+    }
+    return d[key] ?? defaultTooling[key];
+  }
+
+  function changes(answers: StepAnswers): ToolingChange[] {
+    return findToolingChanges(d, supplied, defaultTooling, answers.get('preset'));
   }
 
   return [
@@ -185,129 +330,129 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       prompt: (saved): Promise<string> => promptPreset(saved)
     },
     {
-      defaultValue: () => 'defaults',
+      // A skipped `Tooling` keeps what was saved, which is what the question offers first when there is any.
+      defaultValue: (answers) => changes(answers).length > 0 ? 'keep' : 'defaults',
       key: 'toolingMode',
-      prompt: (): Promise<string> => promptToolingMode(),
+      prompt: (saved, answers): Promise<string> => promptToolingMode(saved, changes(answers)),
       // The official sample is upstream's tooling as it is, so there is nothing to customize.
       skip: (answers) => answers.get('preset') === 'demo' || isOfficialSamplePreset(answers.get('preset'))
     },
     {
-      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'esbuild' : (d.bundler ?? 'esbuild'),
+      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'esbuild' : tooling('bundler', answers),
       key: 'bundler',
       prompt: (saved): Promise<string> => promptBundler(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'none' : (d.uiFramework ?? 'none'),
+      defaultValue: (answers) => answers.get('preset') === 'demo' ? 'none' : tooling('uiFramework', answers),
       key: 'uiFramework',
       prompt: (saved): Promise<string> => promptUiFramework(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.linter ?? defaultTooling.linter,
+      defaultValue: (answers) => tooling('linter', answers),
       key: 'linter',
       prompt: (saved): Promise<string> => promptLinter(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.formatter ?? defaultTooling.formatter,
+      defaultValue: (answers) => tooling('formatter', answers),
       key: 'formatter',
       prompt: (saved): Promise<string> => promptFormatter(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.spellChecker ?? defaultTooling.spellChecker,
+      defaultValue: (answers) => tooling('spellChecker', answers),
       key: 'spellChecker',
       prompt: (saved): Promise<string> => promptSpellChecker(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.markdownLinter ?? defaultTooling.markdownLinter,
+      defaultValue: (answers) => tooling('markdownLinter', answers),
       key: 'markdownLinter',
       prompt: (saved): Promise<string> => promptMarkdownLinter(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.testRunner ?? defaultTooling.testRunner,
+      defaultValue: (answers) => tooling('testRunner', answers),
       key: 'testRunner',
       prompt: (saved): Promise<string> => promptTestRunner(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.e2eTestRunner ?? defaultTooling.e2eTestRunner,
+      defaultValue: (answers) => tooling('e2eTestRunner', answers),
       key: 'e2eTestRunner',
       prompt: (saved): Promise<string> => promptE2eTestRunner(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.editorExtensions ?? defaultTooling.editorExtensions,
+      defaultValue: (answers) => tooling('editorExtensions', answers),
       key: 'editorExtensions',
       prompt: (saved): Promise<string> => promptEditorExtensions(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.styling ?? defaultTooling.styling,
+      defaultValue: (answers) => tooling('styling', answers),
       key: 'styling',
       prompt: (saved): Promise<string> => promptStyling(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.wasmSupport ?? defaultTooling.wasmSupport,
+      defaultValue: (answers) => tooling('wasmSupport', answers),
       key: 'wasmSupport',
       prompt: (saved): Promise<string> => promptWasmSupport(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.commitLinting ?? defaultTooling.commitLinting,
+      defaultValue: (answers) => tooling('commitLinting', answers),
       key: 'commitLinting',
       prompt: (saved): Promise<string> => promptCommitLinting(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.hotReload ?? defaultTooling.hotReload,
+      defaultValue: (answers) => tooling('hotReload', answers),
       key: 'hotReload',
       prompt: (saved): Promise<string> => promptHotReload(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.internationalization ?? defaultTooling.internationalization,
+      defaultValue: (answers) => tooling('internationalization', answers),
       key: 'internationalization',
       prompt: (saved): Promise<string> => promptInternationalization(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.gitHubActions ?? defaultTooling.gitHubActions,
+      defaultValue: (answers) => tooling('gitHubActions', answers),
       key: 'gitHubActions',
       prompt: (saved): Promise<string> => promptGitHubActions(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.gitHubIssueTemplates ?? defaultTooling.gitHubIssueTemplates,
+      defaultValue: (answers) => tooling('gitHubIssueTemplates', answers),
       key: 'gitHubIssueTemplates',
       prompt: (saved): Promise<string> => promptGitHubIssueTemplates(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.coverageBadge ?? defaultTooling.coverageBadge,
+      defaultValue: (answers) => tooling('coverageBadge', answers),
       key: 'coverageBadge',
       prompt: (saved): Promise<string> => promptCoverageBadge(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.apiSubset ?? defaultTooling.apiSubset,
+      defaultValue: (answers) => tooling('apiSubset', answers),
       key: 'apiSubset',
       prompt: (saved): Promise<string> => promptApiSubset(saved),
-      // The docs showcase IS the All-in-one Framework project, so it takes the same question.
-      skip: (answers) => !(isCustomize(answers) && ['all-in-one', 'docs-showcase'].includes(answers.get('preset') ?? ''))
+      skip: (answers) => !(isCustomize(answers) && asksApiSubset(answers.get('preset')))
     },
     {
-      defaultValue: () => d.packageManager ?? 'npm',
+      defaultValue: (answers) => tooling('packageManager', answers),
       key: 'packageManager',
       prompt: (saved): Promise<string> => promptPackageManager(saved),
       skip: skipUnlessCustomize
     },
     {
-      defaultValue: () => d.platformSupport ?? 'desktop-only',
+      defaultValue: (answers) => tooling('platformSupport', answers),
       key: 'platformSupport',
       prompt: (saved): Promise<string> => promptPlatformSupport(saved),
       skip: skipUnlessCustomize
@@ -412,8 +557,44 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
   ];
 }
 
+function describeChanges(changes: readonly ToolingChange[], describe: (change: ToolingChange) => string): string {
+  const named = changes.slice(0, MAX_HINTED_CHANGES).map(describe).join(', ');
+  const rest = changes.length - MAX_HINTED_CHANGES;
+  return rest > 0 ? `${named}, and ${String(rest)} more` : named;
+}
+
 function extractWords(pluginId: string): string[] {
   return pluginId.split('-').map((w) => (w[0] ?? '').toUpperCase() + w.slice(1));
+}
+
+/**
+ * The questions behind `Tooling` whose saved answer differs from the recommended one, in the order they are asked.
+ *
+ * A question a flag answered on this run is left out, since no option changes it, and so is `apiSubset` under a
+ * preset that does not ask it.
+ */
+function findToolingChanges(
+  d: Partial<Answers>,
+  supplied: Partial<Answers>,
+  defaultTooling: DefaultTooling,
+  preset: string | undefined
+): ToolingChange[] {
+  const changes: ToolingChange[] = [];
+  for (const [key, question] of Object.entries(TOOLING_QUESTIONS) as [ToolingKey, ToolingQuestion][]) {
+    const saved = d[key];
+    if (saved === undefined || supplied[key] !== undefined || saved === defaultTooling[key]) {
+      continue;
+    }
+    if (key === 'apiSubset' && !asksApiSubset(preset)) {
+      continue;
+    }
+    changes.push({
+      question: question.message,
+      recommended: getOptionLabel(question, defaultTooling[key]),
+      saved: getOptionLabel(question, saved)
+    });
+  }
+  return changes;
 }
 
 function getDefaultAnswersBase(pluginId: string): Answers {
@@ -421,26 +602,23 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     ...getDefaultTooling(),
     authorGitHubName: 'johndoe',
     authorName: 'John Doe',
-    bundler: 'esbuild',
     currentYear: new Date().getFullYear(),
     defaultBranch: 'main',
     fundingPlatform: 'buy-me-a-coffee',
     fundingUrl: '',
     fundingUsername: 'johndoe',
     obsidianConfigFolder: '',
-    packageManager: 'npm',
-    platformSupport: 'desktop-only',
     pluginDescription: 'Does something awesome.',
     pluginId,
     pluginName: makePluginName(pluginId),
-    preset: 'all-in-one',
-    uiFramework: 'none'
+    preset: 'all-in-one'
   };
 }
 
 function getDefaultTooling(): DefaultTooling {
   return {
     apiSubset: 'official',
+    bundler: 'esbuild',
     commitLinting: 'conventional-commits',
     coverageBadge: 'none',
     e2eTestRunner: 'none',
@@ -452,11 +630,18 @@ function getDefaultTooling(): DefaultTooling {
     internationalization: 'none',
     linter: 'eslint',
     markdownLinter: 'markdownlint',
+    packageManager: 'npm',
+    platformSupport: 'desktop-only',
     spellChecker: 'cspell',
     styling: 'scss',
     testRunner: 'vitest',
+    uiFramework: 'none',
     wasmSupport: 'none'
   };
+}
+
+function getOptionLabel(question: ToolingQuestion, value: string): string {
+  return question.options.find((option) => option.settingValue === value)?.promptLabel ?? value;
 }
 
 function promptPluginDescription(saved: string): Promise<string> {
@@ -479,13 +664,37 @@ function promptPluginName(saved: string): Promise<string> {
   });
 }
 
-async function promptToolingMode(): Promise<string> {
+/**
+ * Asks how to answer the questions behind `Tooling`.
+ *
+ * When saved answers differ from the recommended ones, which only an update has, "Keep current tooling" is offered
+ * first and names what it keeps, and "Use recommended defaults" names what it changes. Offering only the latter used
+ * to keep the saved tooling under a label that said otherwise.
+ */
+async function promptToolingMode(savedValue: string, changes: readonly ToolingChange[]): Promise<string> {
+  const customize = { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' };
+  if (changes.length === 0) {
+    return select({
+      initialValue: savedValue,
+      message: 'Tooling',
+      options: [
+        customize,
+        { hint: 'ESLint, dprint, SCSS, Vitest, and more', label: 'Use recommended defaults', value: 'defaults' }
+      ]
+    });
+  }
+
   return select({
-    initialValue: 'defaults',
+    initialValue: savedValue,
     message: 'Tooling',
     options: [
-      { hint: 'Choose each tool individually', label: 'Customize', value: 'customize' },
-      { hint: 'ESLint, dprint, SCSS, Vitest, and more', label: 'Use recommended defaults', value: 'defaults' }
+      { hint: describeChanges(changes, (change) => `${change.question}: ${change.saved}`), label: 'Keep current tooling', value: 'keep' },
+      customize,
+      {
+        hint: describeChanges(changes, (change) => `${change.question}: ${change.saved} -> ${change.recommended}`),
+        label: 'Use recommended defaults',
+        value: 'defaults'
+      }
     ]
   });
 }
@@ -506,7 +715,7 @@ async function runPromptSteps(steps: PromptStep[]): Promise<StepAnswers> {
 
     try {
       const savedValue = answers.get(step.key) ?? step.defaultValue(answers);
-      answers.set(step.key, await step.prompt(savedValue));
+      answers.set(step.key, await step.prompt(savedValue, answers));
       i++;
     } catch (error: unknown) {
       if (!(error instanceof GoBackError)) {
