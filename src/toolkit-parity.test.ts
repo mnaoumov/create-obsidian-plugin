@@ -11,6 +11,8 @@ import {
   it
 } from 'vitest';
 
+import type { Answers } from './answers.ts';
+
 import {
   ANSWER_SPACE,
   makeAnswers
@@ -30,17 +32,27 @@ import { copyTemplates } from './templates.ts';
  */
 
 /**
- * Answers the toolkits run, each with the toolkit module the emitted `all-in-one` project imports to do it.
- * The test renders that answer and fails unless some emitted file imports the module.
+ * Where obsidian-dev-toolkit's reusable workflows live, as a workflow's `uses:` names them.
+ */
+const WORKFLOWS = 'mnaoumov/obsidian-dev-toolkit/.github/workflows';
+
+/**
+ * Answers the toolkits run, each with the toolkit module the emitted `all-in-one` project imports to do it, or the
+ * toolkit workflow one of its workflows calls. The test renders that answer and fails unless some emitted file imports
+ * the module or calls the workflow.
  */
 const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
   'bundler=esbuild': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'commitLinting=conventional-commits': '@mnaoumov/typescript-dev-toolkit/commitlint-config',
+  // The toolkit's CI workflow renders the badge from the gate's coverage report and publishes it.
+  'coverageBadge=coverage-badge': `${WORKFLOWS}/obsidian-plugin-ci.yml`,
   'e2eTestRunner=obsidian-test': '@mnaoumov/obsidian-dev-toolkit/test-runners/obsidian-test-runner',
   'e2eTestRunner=wdio-obsidian': '@mnaoumov/obsidian-dev-toolkit/test-runners/wdio-obsidian',
   'formatter=biome': '@mnaoumov/typescript-dev-toolkit/formatters/biome',
   'formatter=dprint': '@mnaoumov/obsidian-dev-toolkit/formatters/dprint',
   'formatter=prettier': '@mnaoumov/typescript-dev-toolkit/formatters/prettier',
+  'gitHubActions=ci': `${WORKFLOWS}/obsidian-plugin-ci.yml`,
+  'gitHubActions=ci-and-release': `${WORKFLOWS}/obsidian-plugin-release.yml`,
   // The esbuild builder writes the `.hotreload` marker and copies the build into the vault itself.
   'hotReload=hot-reload-plugin': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'linter=biome': '@mnaoumov/typescript-dev-toolkit/linters/biome',
@@ -57,6 +69,14 @@ const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
 };
 
 /**
+ * The other answers a {@link TOOLKIT_BACKED} entry needs before the toolkit runs it.
+ */
+const ANSWERS_NEEDED: Readonly<Partial<Record<string, Partial<Answers>>>> = {
+  // The badge is measured only where the toolkit's CI workflow runs a coverage report.
+  'coverageBadge=coverage-badge': { gitHubActions: 'ci', testRunner: 'vitest' }
+};
+
+/**
  * Answers that are tools the toolkits do not run yet, each with what they lack. The generated project
  * carries that tool's code itself until they do. Move an entry to {@link TOOLKIT_BACKED} when its toolkit
  * support ships and the templates switch over to it.
@@ -66,9 +86,6 @@ const AWAITING_TOOLKIT: Readonly<Record<string, string>> = {
   'bundler=rollup': 'obsidian-dev-toolkit has no rollup builder; the project carries its config.',
   'bundler=vite': 'obsidian-dev-toolkit has no vite builder; the project carries its config.',
   'bundler=webpack': 'obsidian-dev-toolkit has no webpack builder; the project carries its config.',
-  'coverageBadge=coverage-badge': 'no toolkit publishes the coverage badge.',
-  'gitHubActions=ci': 'no toolkit ships a reusable CI workflow; the project carries its own.',
-  'gitHubActions=ci-and-release': 'no toolkit ships reusable CI and release workflows; the project carries its own.',
   'hotReload=obsidian-cli': 'obsidian-dev-toolkit has no obsidian-cli reload; the project runs the command itself.',
   'styling=css-modules': 'the esbuild builder has no CSS-modules support; the project carries the plugin and its options.',
   'styling=postcss': 'the esbuild builder runs no PostCSS; the project carries its config and a styles pre-build.',
@@ -128,10 +145,11 @@ describe('toolkit parity', () => {
     const [answerKey = '', value = ''] = key.split('=');
     const targetDir = mkdtempSync(join(tmpdir(), 'toolkit-parity-'));
     try {
-      copyTemplates(makeAnswers({ [answerKey]: value, preset: 'all-in-one' }), targetDir, '0.0.0', null);
+      copyTemplates(makeAnswers({ ...ANSWERS_NEEDED[key], [answerKey]: value, preset: 'all-in-one' }), targetDir, '0.0.0', null);
+      const isWorkflow = moduleSpecifier.startsWith(WORKFLOWS);
       const importers = listGeneratedFiles(targetDir)
-        .filter((file) => /\.(?:mjs|mts|ts)$/.test(file))
-        .filter((file) => readFileSync(join(targetDir, file), 'utf-8').includes(`from '${moduleSpecifier}'`));
+        .filter((file) => (isWorkflow ? /\.yml$/ : /\.(?:mjs|mts|ts)$/).test(file))
+        .filter((file) => readFileSync(join(targetDir, file), 'utf-8').includes(isWorkflow ? `uses: ${moduleSpecifier}@` : `from '${moduleSpecifier}'`));
       expect(importers, key).not.toEqual([]);
     } finally {
       rmSync(targetDir, { force: true, recursive: true });

@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [<%= defaultBranch %>]
+  pull_request:
+    branches: [<%= defaultBranch %>]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # Installs the dependencies and runs `<%= packageManager %> run gate`.
+    uses: mnaoumov/obsidian-dev-toolkit/.github/workflows/obsidian-plugin-ci.yml@<%= _toolkitWorkflowRef %>
+<%- render('job-permissions') -%>
+    with:
+      package-manager: <%= packageManager %>
+<%- render('with') -%>

@@ -1,0 +1,5 @@
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+import { testCoverage } from '@mnaoumov/typescript-dev-toolkit/test-runners/jest';
+
+// Writes `coverage/lcov.info`, which the CI workflow's coverage badge is rendered from.
+await wrapCliTask(() => testCoverage());

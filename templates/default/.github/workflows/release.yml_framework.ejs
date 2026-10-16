@@ -1,0 +1,19 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    # Checks the tag is the manifest version, builds, archives `demo-vault/`, publishes the release and attests its
+    # Assets.
+    uses: mnaoumov/obsidian-dev-toolkit/.github/workflows/obsidian-plugin-release.yml@<%= _toolkitWorkflowRef %>
+    with:
+      package-manager: <%= packageManager %>

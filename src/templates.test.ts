@@ -2509,6 +2509,44 @@ describe('copyTemplates', () => {
     expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(true);
   });
 
+  // On the framework presets every workflow is a caller of obsidian-dev-toolkit's reusable one, which runs the gate,
+  // Releases from the tag and attests. The release workflow attests its own assets, so the separate attest workflow is
+  // Emitted only where the project releases with `npm run version`.
+  it('calls obsidian-dev-toolkit\'s reusable workflows on the framework presets', () => {
+    copyTemplates(makeAnswers({ gitHubActions: 'ci-and-release', packageManager: 'pnpm', preset: 'all-in-one' }), targetDir, '1.0.0', null);
+    const workflows = join(targetDir, '.github/workflows');
+    const ci = readFileSync(join(workflows, 'ci.yml'), 'utf-8');
+    expect(ci).toContain('uses: mnaoumov/obsidian-dev-toolkit/.github/workflows/obsidian-plugin-ci.yml@');
+    expect(ci).toContain('package-manager: pnpm');
+    expect(ci).not.toContain('coverage-badge');
+    expect(readFileSync(join(workflows, 'release.yml'), 'utf-8')).toContain('uses: mnaoumov/obsidian-dev-toolkit/.github/workflows/obsidian-plugin-release.yml@');
+    expect(existsSync(join(workflows, 'attest-release-assets.yml'))).toBe(false);
+    rmSync(targetDir, { force: true, recursive: true });
+
+    copyTemplates(makeAnswers({ gitHubActions: 'ci', preset: 'demo' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(workflows, 'attest-release-assets.yml'), 'utf-8')).toContain('uses: mnaoumov/obsidian-dev-toolkit/.github/workflows/obsidian-plugin-attest-release-assets.yml@');
+  });
+
+  // The badge is measured where the toolkit's CI workflow can measure it, and is the `coverage: 100%` claim elsewhere.
+  it('measures the coverage badge where the CI workflow runs a coverage report', () => {
+    copyTemplates(makeAnswers({ coverageBadge: 'coverage-badge', gitHubActions: 'ci', preset: 'all-in-one', testRunner: 'jest' }), targetDir, '1.0.0', null);
+    const ci = readFileSync(join(targetDir, '.github/workflows/ci.yml'), 'utf-8');
+    expect(ci).toContain('coverage-badge: true');
+    expect(ci).toContain('contents: write');
+    expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toContain('/badges/coverage.svg)');
+    // The gate runs `test:coverage` in place of `test`, and that run writes the report the badge is drawn from.
+    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+    expect(pkg.scripts['test:coverage']).toBe('jiti scripts/test-coverage.ts');
+    expect(readFileSync(join(targetDir, 'scripts/test-coverage.ts'), 'utf-8')).toContain('test-runners/jest');
+    rmSync(targetDir, { force: true, recursive: true });
+
+    for (const overrides of [{ gitHubActions: 'none', preset: 'all-in-one', testRunner: 'vitest' }, { gitHubActions: 'ci', preset: 'standalone', testRunner: 'vitest' }]) {
+      copyTemplates(makeAnswers({ coverageBadge: 'coverage-badge', ...overrides }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8'), JSON.stringify(overrides)).toContain('img.shields.io/badge/coverage-100%25');
+      rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
   it('creates commitlint config for conventional-commits', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');

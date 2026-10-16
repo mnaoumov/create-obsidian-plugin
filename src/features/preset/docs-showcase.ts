@@ -26,7 +26,7 @@ export class DocsShowcase extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    new AllInOne().configure(builder);
+    new AllInOne().configure(builder, answers);
     builder
       // The project IS the All-in-one Framework one, so it takes that preset's partials whole.
       .addPartial('all-in-one')

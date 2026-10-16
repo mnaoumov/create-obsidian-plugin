@@ -1,3 +1,4 @@
+import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
@@ -8,7 +9,7 @@ export class Demo extends FeatureOption {
     super({ promptHint: 'All features enabled for demonstration', promptLabel: 'Demo', settingValue: 'demo' });
   }
 
-  public override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('@tsconfig/strictest')
       .addPackage('moment')
@@ -41,10 +42,6 @@ export class Demo extends FeatureOption {
       // `build`, which this preset always registers, and skips every other check the project has no script for.
       .addScript('gate')
       .addFiles([
-        // Not gated on the gitHubActions answer, and deliberately so: this attests the assets of a
-        // Published RELEASE, and the release flow is the preset's, not CI's. Every plugin compared here
-        // Ships this workflow -- they have no ci.yml at all.
-        '.github/workflows/attest-release-assets.yml',
         // Not gated on the answers either: the shared ESLint config's `obsidianmd/validate-license` compares
         // The LICENSE year with the current one, so without this bump every project turns red on 1 January.
         '.github/workflows/update-license-year.yml',
@@ -65,5 +62,12 @@ export class Demo extends FeatureOption {
         ...DEMO_VAULT_TEMPLATE_FILES
       ])
       .addPartial('framework');
+
+    // This attests the assets of a release `npm run version` published, and every plugin compared here ships it.
+    // `ci-and-release` publishes from a tag push with obsidian-dev-toolkit's release workflow instead, which attests
+    // Its own assets.
+    if (answers.gitHubActions !== 'ci-and-release') {
+      builder.addFiles(['.github/workflows/attest-release-assets.yml']);
+    }
   }
 }

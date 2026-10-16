@@ -45,7 +45,10 @@ export class Jest extends FeatureOption {
         // The toolkit's own jest setup file imports the lifecycle hooks from it, and it is an optional peer
         // Of the toolkit, so the project installs it.
         .addPackage('@jest/globals')
-        .addDepcheckIgnore('@jest/globals', 'imported by `@mnaoumov/obsidian-dev-toolkit/jest-setup`, which `defineObsidianPluginJestConfig` loads.');
+        .addDepcheckIgnore('@jest/globals', 'imported by `@mnaoumov/obsidian-dev-toolkit/jest-setup`, which `defineObsidianPluginJestConfig` loads.')
+        // The gate runs it in place of `test`, and its `coverage/lcov.info` is what the CI workflow's coverage badge reads.
+        .addScript('test:coverage')
+        .addFiles(['scripts/test-coverage.ts']);
     }
 
     addSampleUnitTests(builder, answers);
