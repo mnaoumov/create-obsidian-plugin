@@ -163,10 +163,17 @@ export interface MissingPackage {
 /**
  * Overrides that clear an advisory reached only transitively, keyed by package name.
  *
- * All three hang off webdriverio, which a project reaches either through
+ * Three hang off webdriverio, which a project reaches either through
  * `obsidian-integration-testing` or through the `wdio-obsidian` end-to-end answer's own
  * `wdio-obsidian-service`. A project with neither -- `standalone` on any other e2e answer -- gets none of
- * them, and audits clean without.
+ * them, and audits clean without. `smol-toml` hangs off `markdownlint-cli2`.
+ *
+ * Three advisories in the same trees are deliberately NOT overridden. `braces` GHSA-vfj7-8cjw-p6xm has no
+ * patched release to force. `katex` GHSA-238p-pmpm-9mq7 is `low`, and its fix is 0.18.2 while
+ * `micromark-extension-math` declares `^0.16.0`, a breaking range on a 0.x package, for a renderer markdownlint
+ * never calls: it uses only the math syntax extension. `moment` GHSA-4p3w-j4w9-5jqw is reported against the
+ * project's own `moment`, which {@link PINNED_VERSIONS} holds on 2.29.4 because Obsidian bundles that version;
+ * the fix is 2.31.0, and the copy that matters at runtime is the app's, not this types-only one.
  */
 export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
   '@puppeteer/browsers': {
@@ -192,6 +199,14 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     requires: ['@wdio/mocha-framework'],
     spec: '^7.1.1',
     why: 'Clears GHSA-5c6j-r48x-rmvq (RCE via RegExp.flags and Date.prototype.toISOString) and GHSA-qj8w-gfj5-8c6v (CPU-exhaustion denial of service via crafted array-likes), both fixed in 7.0.5. No direct bump reaches it: mocha declares `serialize-javascript@^6.0.2` at every published version including 11.8.0, and the only consumer here is @wdio/mocha-framework -> mocha. `npm audit fix --force` offers a DOWNGRADE to @wdio/mocha-framework@7.7.3 instead. The forced major is safe for the one call site that exists: mocha\'s `buffered-worker-pool.js` calls `serializeJavascript(opts, { unsafe: true, ignoreFunction: true })`, and 6.0.2 and 7.1.1 were measured to return byte-identical output for that exact option pair across RegExp, Date, Map, Set, undefined, BigInt, functions and a script-tag string. Note the call is on mocha\'s parallel-run path, which wdio does not take.'
+  },
+  'smol-toml': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/markdownlint-cli2/package.json\',\'utf8\')).dependencies[\'smol-toml\'])"',
+    expect: '1.8.0',
+    manualCheck: 'The check reads the exact version markdownlint-cli2 pins, which is what makes the override necessary. When it moves to 1.9.0 or later the override and this entry can go.',
+    requires: ['@mnaoumov/obsidian-dev-toolkit', '@mnaoumov/typescript-dev-toolkit', 'markdownlint-cli2'],
+    spec: '^1.9.1',
+    why: 'Clears GHSA-r4xh-jqrq-34v2 (quadratic-time parse() from parseKey rescanning to the end of the document), patched in 1.9.0. markdownlint-cli2 pins `smol-toml` to exactly 1.8.0 at every release up to the newest, so no direct bump reaches it, and `npm audit fix --force` offers only a DOWNGRADE of markdownlint-cli2 to 0.21.0. It is reached through the markdownlint answer\'s own markdownlint-cli2 and, on the toolkit presets, through @mnaoumov/typescript-dev-toolkit, which declares markdownlint-cli2 itself. The spec stays inside the 1.x major, and markdownlint-cli2 imports only `parse`, to read a `.markdownlint-cli2.toml` config.'
   }
 };
 

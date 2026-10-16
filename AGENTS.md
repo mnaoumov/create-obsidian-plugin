@@ -237,9 +237,13 @@ call it ~60 times and must not touch the network.
 
 `ADVISORY_OVERRIDES` is a **second, separate** table for overrides that exist only to clear an npm audit
 advisory in a package the project never declares. The pin table cannot express those: there is no
-declared spec for npm's `$<name>` shorthand to reuse. Each entry names the direct dependency whose
-subtree carries the advisory, so `standalone` — which never reaches webdriverio and audits clean on its
-own — gets none of them, and each still emits a `pinned-versions.json` entry with a runnable check.
+declared spec for npm's `$<name>` shorthand to reuse. Each entry names the direct dependencies whose
+subtree carries the advisory, so a project gets only the entries its tree needs. `standalone` never
+reaches webdriverio, and gets the `smol-toml` entry only on the markdownlint answer. Each entry still
+emits a `pinned-versions.json` entry with a runnable check. An advisory left un-overridden on purpose
+(`braces`, `katex`, `moment`) is recorded with its reason in the doc comment above the table, so the next
+sweep does not re-measure it. The gate fails `npm audit` only at `high`, and `braces` stays the one
+`high` until it has a patched release.
 
 ### `minAppVersion` is fetched, not hardcoded — from the same place the release flow reads it
 
