@@ -125,7 +125,7 @@ describe('buildOverrides', () => {
   it('states the same forcing as literal resolutions, which is what yarn and pnpm read', () => {
     const dependencies = [new Dependency('@codemirror/state'), new Dependency('obsidian-integration-testing')];
     const resolutions = buildResolutions(dependencies);
-    expect(resolutions['@codemirror/state']).toBe('6.5.0');
+    expect(resolutions['@codemirror/state']).toBe(PINNED_VERSIONS['@codemirror/state']?.version);
     expect(resolutions['deepmerge-ts']).toBe('^8.0.2');
     expect(Object.keys(resolutions)).toEqual(Object.keys(buildOverrides(dependencies)));
   });
