@@ -1,0 +1,67 @@
+name: Sync Upstreams
+
+# Checks every upstream `upstreams.json` lists and opens or updates one PR per upstream that moved, on the branch
+# `upstream/<name>`. Each PR carries the upstream compare link, the changed upstream files, the handler's and the
+# verify command's results and the generated diff summary. A failing handler or verify still opens the PR, as a
+# draft, so a breaking upstream change is seen rather than skipped. Nothing is ever merged automatically.
+#
+# A PR opened with GITHUB_TOKEN does not trigger other workflows, which is why the verify command runs here.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: Comma-separated upstream names to check (all when empty)
+        required: false
+        default: ''
+      dry-run:
+        description: Print the PRs instead of pushing them
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstreams
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      HUSKY: 0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Sync upstreams
+        env:
+          ONLY: ${{ inputs.only }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          args=("--base=${GITHUB_REF_NAME}")
+          if [ -n "$ONLY" ]; then args+=("--only=$ONLY"); fi
+          if [ "$DRY_RUN" = 'true' ]; then args+=('--dry-run'); fi
+          npm run sync:upstreams -- "${args[@]}"

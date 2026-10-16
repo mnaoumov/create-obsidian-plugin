@@ -168,6 +168,16 @@ considered and refused, because "as is" is the ask.
 
 **License.** obsidianmd/obsidian-developer-docs had no `LICENSE` when this was built. The sync recognizes upstream's `LICENSE` once one exists and names it, with its copyright line, in every module's header and in the README, so the notice appears by itself on the first sync after it lands.
 
+### Every upstream is watched by one job, driven by `upstreams.json`
+
+`upstreams.json` lists everything the scaffolder mirrors or holds itself to. A **git** entry (`repo`, `ref`, `commit`, `paths`) follows a branch or tag and is pinned to a commit. An **npm** entry (`npm`, optional `tag`, `version`) follows a dist-tag and is pinned to a version. That is how `obsidian` is followed, because obsidianmd/obsidian-api has no tags or releases and ships only as the npm package. Each entry names a `handler`, the command that turns a newer upstream state into changes here, and may name a `verify`, which overrides the file's top-level one.
+
+`npm run sync:upstreams` (`src/upstream-sync.ts`, the CLI in `scripts/sync-upstreams.ts`) compares each pin with its upstream. A git entry is compared through GitHub's compare API, filtered by `paths`, so a move that touches no watched path opens nothing and the pin stays where it is. A moved entry gets one PR on `upstream/<name>`. The job resets that branch from the base, runs the handler with `UPSTREAM_NAME` and `UPSTREAM_TARGET` set, writes the pin when the handler did not, and runs `verify`. It then commits everything, force-pushes, and opens or edits the PR. The PR body carries the compare link, the watched files that changed, both commands' results and the diff stat. **A failed handler or verify still opens the PR, as a draft with the output in the body**, and an open PR is turned back into a draft when a later run fails. A branch that already holds the same tree is not pushed again. `--dry-run` prints each PR and runs nothing. `.github/workflows/sync-upstreams.yml` runs it daily and on dispatch. **Nothing auto-merges.** The owner reviews every PR, and whether a green snapshot-only PR may merge itself stays undecided until the job has a track record.
+
+The handlers are `sync:official-sample`, `sync:docs-showcase` and `sync:obsidian`. Generated projects resolve `obsidian` at generation time, so `sync:obsidian` moves what is held to it: the `PINNED_VERSIONS` whose `check` reads one of obsidian's peer dependencies (`src/obsidian-peer-pins.ts`), and the docs showcase, regenerated against the new `obsidian` from the pinned docs commit (`sync:docs-showcase --pinned-docs`), so that PR carries the API move alone.
+
+`src/upstream-sync.ts` imports nothing from the scaffolder, so it can move to typescript-dev-toolkit as a CLI and a reusable workflow. That move is tracked separately. A new upstream is one more entry and a handler, never a second job.
+
 ### The toolkit presets ship a demo vault
 
 `demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `@mnaoumov/obsidian-dev-toolkit` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.

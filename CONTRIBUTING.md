@@ -99,6 +99,17 @@ Worth knowing:
   so `git fetch` that checkout first. `--lib-dir <dir>` or `OBSIDIAN_LIB_DIR` points it elsewhere, and it
   exits 1 when there is no checkout to read.
 
+### Upstreams
+
+`upstreams.json` pins everything the scaffolder mirrors. The `Sync Upstreams` workflow checks it daily and opens one PR per upstream that moved. To see what it would open:
+
+```bash
+npm run sync:upstreams -- --dry-run                     # every entry; set GITHUB_TOKEN to avoid the anonymous rate limit
+npm run sync:upstreams -- --dry-run --only=obsidian     # one entry
+```
+
+Without `--dry-run` it pushes `upstream/<name>` branches and opens PRs through `gh`. It refuses to run over a dirty working tree, because the update commit takes every file in it.
+
 ### Look at one combination
 
 Every script above sweeps the space, which is what makes none of them the tool for the question asked
