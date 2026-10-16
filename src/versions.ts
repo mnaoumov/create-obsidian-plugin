@@ -104,6 +104,56 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     version: '6.43.13',
     why: 'obsidian peers on this exact version. Anything else fails npm install with ERESOLVE, and a second copy in the tree breaks editor extensions at runtime.'
   },
+  '@wdio/cli': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
+    checkRequires: 'wdio-obsidian-service',
+    expect: '^9.18.1',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^9.32.0',
+    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+  },
+  '@wdio/globals': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
+    checkRequires: 'wdio-obsidian-service',
+    expect: '^9.18.1',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^9.31.3',
+    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+  },
+  '@wdio/local-runner': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
+    checkRequires: 'wdio-obsidian-service',
+    expect: '^9.18.1',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^9.32.0',
+    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+  },
+  '@wdio/mocha-framework': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
+    checkRequires: 'wdio-obsidian-service',
+    expect: '^9.18.1',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^9.32.0',
+    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+  },
+  'expect-webdriverio': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
+    checkRequires: 'wdio-obsidian-service',
+    expect: '^9.18.1',
+    manualCheck: null,
+    needsOverride: false,
+    section: 'devDependencies',
+    version: '^6.1.0',
+    why: 'Held on 6.x with the wdio packages: expect-webdriverio 7 and later peer on `webdriverio ^10`, and @wdio/globals 9 peers on `expect-webdriverio ^6`. wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+  },
   'moment': {
     check: null,
     checkRequires: null,
@@ -185,12 +235,12 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     why: 'Clears GHSA-jmr9-qjv8-65gv (extract-zip unvalidated symlink path traversal). extract-zip is vulnerable at every published version, so there is nothing to override it to, and the direct dependency cannot be bumped either: even the newest webdriverio reaches extract-zip through @wdio/utils -> @puppeteer/browsers ^2.x. @puppeteer/browsers@3 replaced extract-zip with modern-tar, so forcing 3.x on @wdio/utils, the only consumer left on 2.x, removes the subtree. @wdio/utils imports only install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, computeExecutablePath and the InstallOptions type, all still exported by 3.x, and both packages are ESM-only. Never take the `npm audit fix --force` remedy: it downgrades obsidian-integration-testing to 1.1.2.'
   },
   'deepmerge-ts': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@wdio/utils/package.json\',\'utf8\')).dependencies[\'deepmerge-ts\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');const path=[\'node_modules/obsidian-integration-testing/node_modules/@wdio/utils/package.json\',\'node_modules/@wdio/utils/package.json\'].find((candidate)=>fs.existsSync(candidate));process.stdout.write(JSON.parse(fs.readFileSync(path,\'utf8\')).dependencies[\'deepmerge-ts\'])"',
     expect: '^7.0.3',
-    manualCheck: 'The check reads the range @wdio/utils declares, which is what forces the override. When it moves to ^8 or later the override and this entry can go. Before lifting it, re-run the deepmergeCustom probe: @wdio/config passes a `mergeArrays` handler that reads `meta.key`, and that is the API 8.0.0 renamed.',
-    requires: ['obsidian-integration-testing', 'wdio-obsidian-service'],
+    manualCheck: 'The check reads the range declared by the @wdio/utils that obsidian-integration-testing reaches, nested under it when the project also has a newer wdio, which is what forces the override. When it moves to ^8 or later the override and this entry can go. Before lifting it, re-run the deepmergeCustom probe: @wdio/config passes a `mergeArrays` handler that reads `meta.key`, and that is the API 8.0.0 renamed.',
+    requires: ['obsidian-integration-testing'],
     spec: '^8.0.2',
-    why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. Every wdio package still declares ^7.0.3, including the newest, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
+    why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. @wdio/utils declares ^7.0.3 up to 9.30, and obsidian-integration-testing pins webdriverio 9.27.0, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
   },
   'serialize-javascript': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/mocha/package.json\',\'utf8\')).dependencies[\'serialize-javascript\'])"',

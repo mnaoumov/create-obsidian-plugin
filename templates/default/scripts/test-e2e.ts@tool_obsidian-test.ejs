@@ -1,8 +1,2 @@
-import { execSync } from 'node:child_process';
-import process from 'node:process';
-
-try {
-  execSync('obsidian-test', { stdio: 'inherit' });
-} catch {
-  process.exit(1);
-}
+<%# The framework presets go through the toolkit runner; standalone has no framework and shells out directly. -%>
+<%- render('preset') -%>

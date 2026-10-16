@@ -629,7 +629,13 @@ through the shared `has-e2e` partial, and only when an end-to-end runner was cho
 Putting a directory into the program is not free: it starts being type-checked. That is what exposed
 `wdio.conf.ts` never having compiled, and both sample specs asserting over `app.plugins` /
 `app.commands` regardless of the `apiSubset` answer — so those assertions now sit behind an
-`unofficial` section.
+`unofficial` section. The framework presets' config is `wdio.conf.mts` (obsidian-dev-toolkit's
+`defineWdioObsidianConfig`), which the root `./*.ts` glob misses, so the `wdio-obsidian` answer names it in
+the `include` itself.
+
+The `wdio-obsidian` answer holds `@wdio/*` and `expect-webdriverio` on wdio 9 (`PINNED_VERSIONS`), because
+wdio-obsidian-service 3.3.0 peers on `webdriverio ^9.18.1` and the registry's `latest` is wdio 10, which fails
+`npm install` with ERESOLVE.
 
 ### Where the linters and the compiler disagree, the compiler wins
 

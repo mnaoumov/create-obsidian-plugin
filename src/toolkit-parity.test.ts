@@ -36,6 +36,8 @@ import { copyTemplates } from './templates.ts';
 const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
   'bundler=esbuild': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'commitLinting=conventional-commits': '@mnaoumov/typescript-dev-toolkit/commitlint-config',
+  'e2eTestRunner=obsidian-test': '@mnaoumov/obsidian-dev-toolkit/test-runners/obsidian-test-runner',
+  'e2eTestRunner=wdio-obsidian': '@mnaoumov/obsidian-dev-toolkit/test-runners/wdio-obsidian',
   'formatter=biome': '@mnaoumov/typescript-dev-toolkit/formatters/biome',
   'formatter=dprint': '@mnaoumov/obsidian-dev-toolkit/formatters/dprint',
   'formatter=prettier': '@mnaoumov/typescript-dev-toolkit/formatters/prettier',
@@ -65,8 +67,6 @@ const AWAITING_TOOLKIT: Readonly<Record<string, string>> = {
   'bundler=vite': 'obsidian-dev-toolkit has no vite builder; the project carries its config.',
   'bundler=webpack': 'obsidian-dev-toolkit has no webpack builder; the project carries its config.',
   'coverageBadge=coverage-badge': 'no toolkit publishes the coverage badge.',
-  'e2eTestRunner=obsidian-test': 'the toolkits run end-to-end tests only through obsidian-integration-testing.',
-  'e2eTestRunner=wdio-obsidian': 'the toolkits run end-to-end tests only through obsidian-integration-testing.',
   'gitHubActions=ci': 'no toolkit ships a reusable CI workflow; the project carries its own.',
   'gitHubActions=ci-and-release': 'no toolkit ships reusable CI and release workflows; the project carries its own.',
   'hotReload=obsidian-cli': 'obsidian-dev-toolkit has no obsidian-cli reload; the project runs the command itself.',

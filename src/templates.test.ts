@@ -283,9 +283,11 @@ describe('buildTemplate', () => {
 
   describe('e2e test runner feature', () => {
     it('adds test:e2e script for wdio-obsidian', () => {
-      const builder = buildTemplate(makeAnswers({ e2eTestRunner: 'wdio-obsidian' }));
+      const builder = buildTemplate(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone' }));
       expect(builder.scripts['test:e2e']).toBe('jiti scripts/test-e2e.ts');
       expect([...builder.templateFiles]).toContain('wdio.conf.ts');
+      // The framework presets' config imports obsidian-dev-toolkit's ESM build, so it is an `.mts` file.
+      expect([...buildTemplate(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'all-in-one' })).templateFiles]).toContain('wdio.conf.mts');
     });
 
     it('adds test:e2e script for obsidian-test', () => {
@@ -2645,9 +2647,16 @@ describe('copyTemplates', () => {
   // `WebdriverIO.Config` requires `capabilities`, and the namespace itself only reaches the program
   // Through these type packages -- TS2741 and TS2503, on every case carrying this answer.
   it('emits a wdio config that satisfies its own type', () => {
-    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'wdio.conf.ts'), 'utf-8')).toContain('capabilities:');
     expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('@wdio/globals/types');
+    rmSync(targetDir, { force: true, recursive: true });
+
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'all-in-one' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'wdio.conf.mts'), 'utf-8')).toContain('defineWdioObsidianConfig()');
+    const tsconfig = readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8');
+    expect(tsconfig).toContain('@wdio/globals/types');
+    expect(tsconfig).toContain('"./wdio.conf.mts"');
   });
 
   // Vitest's default glob otherwise sweeps up `e2e/`, and `npm test` reports the end-to-end suite as
