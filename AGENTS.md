@@ -9,6 +9,7 @@
 - `src/` — Core generator logic (TemplateBuilder, features, prompts, templates), with the vitest unit tests co-located as `foo.test.ts` beside what they test
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
 - `templates/default/` — EJS template files (all must have `.ejs` extension), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
+- `templates/official-sample/files/` — the vendored snapshot the `official-sample` preset copies, pinned in `upstreams.json` (see "`official-sample` copies upstream")
 - `scripts/` — All build/lint/test logic lives here
 - `dist/` — Built output (published to npm, not tracked in git)
 - `plugin-drift-baseline.json` — the differences between the emitted framework presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
@@ -118,6 +119,37 @@ They must NOT share a partial for anything either one overrides. A registered fi
 ### `all-in-one` was `enhanced`, and the old value is an alias
 
 The preset's label is **All-in-one Framework** and its value `all-in-one`; until 1.1.0 it was `Enhanced` / `enhanced`, and the shared partial and its predicate were `dev-utils` / `isDevUtilsPreset`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters. `enhanced` still works wherever an answer can arrive — a flag, an answers file, a saved `.create-obsidian-plugin.json` — through the one table in `src/deprecated-answers.ts`, which logs a deprecation warning and hands on `all-in-one`, so nothing downstream ever sees the old value. A future rename of an answer value goes in the same table.
+
+### `official-sample` copies upstream; it is not a template preset
+
+`preset: official-sample` emits obsidianmd/obsidian-sample-plugin as it is, with only the identity fields filled in
+(`applyOfficialSampleIdentity`, `src/official-sample.ts`): the manifest's `id`, `name`, `description`, `author`,
+`authorUrl` and `fundingUrl`, the package name in `package.json` and `package-lock.json`, and the README title.
+Everything else is upstream's committed bytes.
+
+**It never reaches `buildTemplate`.** `PRESET_OPTIONS` stays the three template presets, which is what
+`FEATURE_REGISTRIES` and `ANSWER_SPACE` read, so none of the tiers sweeps it: there is nothing of ours to compose. The
+prompt offers `PRESET_PROMPT_OPTIONS`, and the CLI accepts the value through `VALUES_OUTSIDE_ANSWER_SPACE`
+(`src/cli-args.ts`). Every tooling question is skipped, a tooling flag beside it is refused (the same reasoning as
+demo's pinned keys), the exporter writes only `OFFICIAL_SAMPLE_ANSWER_KEYS`, and `--customTemplate` is refused because
+there are no templates to overlay. `formatter` and `packageManager` are pinned to `none` and `npm`, the two tooling
+answers `main.ts` reads after scaffolding.
+
+**The snapshot is vendored and pinned, `--latest` is opt-in.** `templates/official-sample/files/` holds upstream's
+blobs under a `.vendored` suffix (why the suffix: see that folder's README), marked `-text` in `.gitattributes`
+because upstream's own `.gitignore` is CRLF. The pin is the `obsidian-sample-plugin` entry in `upstreams.json`, which
+the package ships. `npm run sync:official-sample` refreshes both and is that entry's `handler`; `--check` exits 1 when
+upstream moved. Fetching at generate time by default was refused: it needs the network and can change under a user
+without warning.
+
+**It writes through `writeGeneratedFiles`**, the same hash-recording writer as the templates, so an update skips a
+hand-edited file the same way, and `.create-obsidian-plugin.json` records the `upstreamCommit` it came from.
+
+**Upstream's own `npm run lint` is red, on purpose.** `eslint-plugin-obsidianmd`'s `sample-names` and
+`no-sample-code` fail until the sample is renamed and replaced. So `npm run verify:official-sample` (in
+`prepublishOnly`) builds a generated project and a pristine copy of the same tree and requires the generated one to
+lint EXACTLY as upstream does: the identity edits may add no finding and remove none. Renaming the sample classes was
+considered and refused, because "as is" is the ask.
 
 ### The toolkit presets ship a demo vault
 
