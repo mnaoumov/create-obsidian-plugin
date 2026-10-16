@@ -1743,7 +1743,7 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
 
     const communityPlugins = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/community-plugins.json'), 'utf-8')) as string[];
-    // Listing only the helper is a silent failure: it enables CodeScript Toolkit, not the plugin itself.
+    // Listing only the helper is a silent failure: it enables `CodeScript Toolkit`, not the plugin itself.
     expect(communityPlugins).toStrictEqual(['demo-vault-helper', 'my-tool']);
 
     const appJson = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/app.json'), 'utf-8')) as Record<string, unknown>;

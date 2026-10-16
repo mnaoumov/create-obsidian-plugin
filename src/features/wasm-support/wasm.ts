@@ -51,7 +51,7 @@ export class Wasm extends FeatureOption {
 
     builder.addFiles([
       // The one binary in the template tree, copied verbatim (see `ASSET_EXTENSIONS`). 39 bytes, one
-      // Export, `answer()`, returning 42 -- the sample module from CodeScript Toolkit's demo vault.
+      // Export, `answer()`, returning 42 -- the sample module from `CodeScript Toolkit`'s demo vault.
       'src/wasm/module.wasm',
       // Its source in WebAssembly text format. Documentation only: nothing in the build reads it, and it
       // Is here so the binary beside it is not opaque.
