@@ -240,16 +240,17 @@ export function buildTemplate(answers: Answers, overlay: null | Overlay = null):
     }
   }
 
-  // After every answer and demo override, so an overlay's partials render after the built-in ones at each
-  // Seam and its badges follow the built-in badges on the README's badge line.
-  if (overlay) {
-    applyOverlay(builder, overlay);
+  // After the demo overrides, because they can register staged-files commands too. The pre-commit hook exists
+  // Exactly when something registered a command for it -- whatever the commit-linting answer was. An overlay
+  // Registers none, so this can come before it.
+  if (builder.lintStagedPatterns.length > 0) {
+    addStagedFilesHook(builder, answers.preset);
   }
 
-  // Last, because the demo overrides can register staged-files commands too. The pre-commit hook exists
-  // Exactly when something registered a command for it -- whatever the commit-linting answer was.
-  if (builder.lintStagedPatterns.length > 0) {
-    addStagedFilesHook(builder);
+  // Last, so an overlay's partials render after the built-in ones at each seam and its badges follow the
+  // Built-in badges on the README's badge line.
+  if (overlay) {
+    applyOverlay(builder, overlay);
   }
 
   return builder;
