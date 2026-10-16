@@ -82,6 +82,13 @@ import {
  */
 export const ASSET_EXTENSIONS: ReadonlySet<string> = new Set(['.wasm']);
 
+/** One file the generator writes: its path in the project, and its content. */
+export interface GeneratedFile {
+  /** Text is written as UTF-8; a `Buffer` is compared and written byte for byte. */
+  content: Buffer | string;
+  destinationPath: string;
+}
+
 const JSON_INDENT_SPACES = 2;
 
 // Only reached when generation runs without a resolution pass -- rendering tests, and `latest` is what the
@@ -284,10 +291,6 @@ export function copyTemplates(
     const builtInPath = join(templatesDir, relativePath);
     return existsSync(builtInPath) ? builtInPath : null;
   }
-  const newConfig: GeneratorConfig = {
-    fileHashes: {},
-    generatorVersion: currentVersion
-  };
 
   const builder = buildTemplate(answers, overlay);
   const templateFiles = builder.templateFiles;
@@ -365,14 +368,10 @@ export function copyTemplates(
     }
   };
 
-  const skipped: string[] = [];
-  const updated: string[] = [];
-  const created: string[] = [];
-  const written: string[] = [];
+  const renderedFiles: GeneratedFile[] = [];
 
   for (const registeredPath of templateFiles) {
     const destinationPath = getDestinationPath(registeredPath, answers);
-    const fullDestinationPath = join(targetDir, destinationPath);
     const isAsset = ASSET_EXTENSIONS.has(extname(registeredPath));
     const ejsPath = findTemplate(`${registeredPath}.ejs`);
 
@@ -399,61 +398,10 @@ export function copyTemplates(
       }
     }
 
-    const newHash = sha256(rendered);
-
-    if (existingConfig && existsSync(fullDestinationPath)) {
-      const currentContent = isAsset ? readFileSync(fullDestinationPath) : readFileSync(fullDestinationPath, 'utf-8');
-      const currentHash = sha256(currentContent);
-      const originalHash = existingConfig.fileHashes[destinationPath];
-
-      if (matchesRender(currentHash, newHash, projectFormatter, destinationPath, rendered)) {
-        newConfig.fileHashes[destinationPath] = currentHash;
-        continue;
-      }
-
-      if (originalHash === undefined) {
-        skipped.push(destinationPath);
-        // The generator never wrote this path -- a template new in this version, or an answer that now
-        // Registers it -- so the file there is the user's own. Recording no hash keeps it skipped on every
-        // Later update, until it matches a render or the user deletes it to take the generator's version.
-        continue;
-      }
-
-      if (currentHash !== originalHash) {
-        skipped.push(destinationPath);
-        // Keep the hash the generator wrote, not the user's. Recording the user's made the next update read
-        // The edit as untouched and overwrite it, reported as an ordinary "Updated". The file stays skipped
-        // Until it matches a render again, or the user deletes it to take the generator's version back.
-        newConfig.fileHashes[destinationPath] = originalHash;
-        continue;
-      }
-
-      updated.push(destinationPath);
-    } else {
-      created.push(destinationPath);
-    }
-
-    newConfig.fileHashes[destinationPath] = newHash;
-
-    const destDir = dirname(fullDestinationPath);
-    if (!existsSync(destDir)) {
-      mkdirSync(destDir, { recursive: true });
-    }
-
-    writeFileSync(fullDestinationPath, rendered);
-    written.push(destinationPath);
+    renderedFiles.push({ content: rendered, destinationPath });
   }
 
-  formatWrittenFiles(projectFormatter, targetDir, written, newConfig);
-
-  const configPath = join(targetDir, CONFIG_FILE_NAME);
-  writeFileSync(configPath, `${JSON.stringify(newConfig, null, JSON_INDENT_SPACES)}\n`);
-
-  if (existingConfig) {
-    logUpdateSummary(updated, created, skipped);
-  }
-
-  return newConfig;
+  return writeGeneratedFiles(renderedFiles, targetDir, currentVersion, existingConfig, projectFormatter);
 }
 
 /**
@@ -559,6 +507,97 @@ export function sortImportStatements(text: string): string {
   const statements = blocks.map((block) => block.join('\n'));
   statements.sort((a, b) => importedModule(a).localeCompare(importedModule(b)));
   return `${statements.join('\n')}\n`;
+}
+
+/**
+ * Writes generated files into a project and records the hash of each, skipping every file the user has edited
+ * since the generator last wrote it.
+ *
+ * Shared by the templates and the official sample, so both keep the same update contract: a file matching
+ * neither its recorded hash nor the new content is the user's, and so is a file at a path the generator never
+ * wrote.
+ *
+ * @param files - Each file's path in the project and its content. A `Buffer` is compared and written byte for byte.
+ * @param targetDir - The project directory.
+ * @param currentVersion - The generator's version, recorded in the config.
+ * @param existingConfig - The config of the previous generation, or `null` when creating.
+ * @param projectFormatter - The project's installed formatter, on an update.
+ * @returns The new config, also written to {@link CONFIG_FILE_NAME}.
+ */
+export function writeGeneratedFiles(
+  files: readonly GeneratedFile[],
+  targetDir: string,
+  currentVersion: string,
+  existingConfig: GeneratorConfig | null,
+  projectFormatter?: null | ProjectFormatter
+): GeneratorConfig {
+  const newConfig: GeneratorConfig = {
+    fileHashes: {},
+    generatorVersion: currentVersion
+  };
+
+  const skipped: string[] = [];
+  const updated: string[] = [];
+  const created: string[] = [];
+  const written: string[] = [];
+
+  for (const { content: rendered, destinationPath } of files) {
+    const fullDestinationPath = join(targetDir, destinationPath);
+    const newHash = sha256(rendered);
+
+    if (existingConfig && existsSync(fullDestinationPath)) {
+      const currentContent = Buffer.isBuffer(rendered) ? readFileSync(fullDestinationPath) : readFileSync(fullDestinationPath, 'utf-8');
+      const currentHash = sha256(currentContent);
+      const originalHash = existingConfig.fileHashes[destinationPath];
+
+      if (matchesRender(currentHash, newHash, projectFormatter, destinationPath, rendered)) {
+        newConfig.fileHashes[destinationPath] = currentHash;
+        continue;
+      }
+
+      if (originalHash === undefined) {
+        skipped.push(destinationPath);
+        // The generator never wrote this path -- a template new in this version, or an answer that now
+        // Registers it -- so the file there is the user's own. Recording no hash keeps it skipped on every
+        // Later update, until it matches a render or the user deletes it to take the generator's version.
+        continue;
+      }
+
+      if (currentHash !== originalHash) {
+        skipped.push(destinationPath);
+        // Keep the hash the generator wrote, not the user's. Recording the user's made the next update read
+        // The edit as untouched and overwrite it, reported as an ordinary "Updated". The file stays skipped
+        // Until it matches a render again, or the user deletes it to take the generator's version back.
+        newConfig.fileHashes[destinationPath] = originalHash;
+        continue;
+      }
+
+      updated.push(destinationPath);
+    } else {
+      created.push(destinationPath);
+    }
+
+    newConfig.fileHashes[destinationPath] = newHash;
+
+    const destDir = dirname(fullDestinationPath);
+    if (!existsSync(destDir)) {
+      mkdirSync(destDir, { recursive: true });
+    }
+
+    writeFileSync(fullDestinationPath, rendered);
+    written.push(destinationPath);
+  }
+
+  formatWrittenFiles(projectFormatter, targetDir, written, newConfig);
+
+  const configPath = join(targetDir, CONFIG_FILE_NAME);
+  writeFileSync(configPath, `${JSON.stringify(newConfig, null, JSON_INDENT_SPACES)}\n`);
+
+  if (existingConfig) {
+    logUpdateSummary(updated, created, skipped);
+  }
+
+  return newConfig;
 }
 
 /**
