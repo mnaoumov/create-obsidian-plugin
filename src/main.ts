@@ -679,7 +679,8 @@ This project records it in ${CONFIG_FILE_NAME}. Pass --customTemplate=<dir> to p
     assertNotCancelled(shouldRePrompt);
 
     if (shouldRePrompt) {
-      answers = await promptAnswers(saved);
+      // The saved answers seed each prompt, and only this run's flags skip theirs.
+      answers = await promptAnswers(saved, suppliedAnswers);
     } else {
       answers = saved;
     }

@@ -493,7 +493,9 @@ Under `--yes`, reaching either without its flag is a usage error that names the 
 `src/main.ts`). It does not take the prompt's default. A silent "no" at the directory check exits 0
 having generated nothing, and a silent guess at mode detection may update a project the caller meant to
 leave alone. On update, `--yes` skips "change any settings?" and uses the saved answers with the flags over
-them. It refuses a config that records no answers, because using the defaults there would mean guessing
+them. Answering yes to it interactively re-asks every question, each seeded from its saved answer, and only
+this run's flags skip theirs: `promptAnswers` takes the seeds and the supplied answers separately, because
+passing the saved answers as both skipped every question. It refuses a config that records no answers, because using the defaults there would mean guessing
 the plugin id of a project that already exists. The exporter writes `--yes --mode=create`, so a recipe
 run inside an existing project still creates a new plugin.
 
