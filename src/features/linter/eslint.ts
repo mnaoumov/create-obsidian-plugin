@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 export class Eslint extends FeatureOption {
   public constructor() {
@@ -37,7 +37,7 @@ export class Eslint extends FeatureOption {
     // `npm update`. The standalone preset keeps the whole config inlined, because its premise is that it
     // Depends on nothing from the ecosystem -- and that is why the emitted config could not simply BE the
     // Shared one.
-    if (isDevUtilsPreset(answers.preset)) {
+    if (isFrameworkPreset(answers.preset)) {
       builder
         .addDepcheckIgnore('typescript-eslint', 'imported by nothing here -- the shared config brings its own -- but the `typescript` pin\'s check reads its `package.json` for the peer range.')
         .addFiles(['scripts/eslint-config.ts']);

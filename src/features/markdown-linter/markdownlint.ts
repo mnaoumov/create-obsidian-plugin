@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 export class Markdownlint extends FeatureOption {
   public constructor() {
@@ -35,7 +35,7 @@ export class Markdownlint extends FeatureOption {
     // Split on the preset, the way `scripts/lint-md.ts` itself already is. The toolkit presets
     // Spread that package's shared config, as every real plugin does, so the rule set and its custom rules
     // Arrive by `npm update`. The standalone preset writes its own, and only it imports these two.
-    if (isDevUtilsPreset(answers.preset)) {
+    if (isFrameworkPreset(answers.preset)) {
       return;
     }
 

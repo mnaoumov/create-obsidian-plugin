@@ -150,35 +150,35 @@ describe('reconcileBaseline', () => {
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('unbaselined-drift');
-    expect(violations[0]?.key).toBe('enhanced/scripts/missing/prepare');
+    expect(violations[0]?.key).toBe('all-in-one/scripts/missing/prepare');
   });
 
   it('accepts a drift the baseline records at the same count', () => {
     expect(reconcileBaseline(scoped([finding('scripts', 'missing', 'prepare', PLUGIN_COUNT)]), {
-      'enhanced/scripts/missing/prepare': entry(PLUGIN_COUNT)
+      'all-in-one/scripts/missing/prepare': entry(PLUGIN_COUNT)
     })).toEqual([]);
   });
 
   // The presets do not emit the same project, so baselining a demo-only difference must not silence the
-  // Same key under enhanced, where it would be a genuine surprise.
+  // Same key under all-in-one, where it would be a genuine surprise.
   it('keeps the entry for one preset from silencing the other', () => {
     const violations = reconcileBaseline(
       new Map([
-        ['demo', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]],
-        ['enhanced', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]]
+        ['all-in-one', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]],
+        ['demo', [finding('layout', 'extra', 'src/react-components/sample.tsx', 0)]]
       ]),
       { 'demo/layout/extra/src/react-components/sample.tsx': entry(0) }
     );
 
     expect(violations).toHaveLength(1);
-    expect(violations[0]?.key).toBe('enhanced/layout/extra/src/react-components/sample.tsx');
+    expect(violations[0]?.key).toBe('all-in-one/layout/extra/src/react-components/sample.tsx');
   });
 
   // The count IS the evidence behind most of these judgements, so a trait that went from a divided
   // Majority to unanimous needs the call made again rather than silently kept.
   it('re-reports an entry whose real-plugin count has moved', () => {
     const violations = reconcileBaseline(scoped([finding('scripts', 'partial', 'capture:screenshots', PLUGIN_COUNT)]), {
-      'enhanced/scripts/partial/capture:screenshots': entry(PLUGIN_COUNT - PAIR)
+      'all-in-one/scripts/partial/capture:screenshots': entry(PLUGIN_COUNT - PAIR)
     });
 
     expect(violations).toHaveLength(1);
@@ -188,7 +188,7 @@ describe('reconcileBaseline', () => {
   // The direction that is easy to forget: fixing a drift without deleting its justification leaves the
   // File describing a difference that no longer exists, which is the drift a pin table forbids.
   it('fails an entry whose drift has gone', () => {
-    const violations = reconcileBaseline(scoped([]), { 'enhanced/scripts/missing/prepare': entry(PLUGIN_COUNT) });
+    const violations = reconcileBaseline(scoped([]), { 'all-in-one/scripts/missing/prepare': entry(PLUGIN_COUNT) });
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('stale-baseline-entry');
@@ -197,7 +197,7 @@ describe('reconcileBaseline', () => {
 
 describe('findingKey', () => {
   it('files a finding under preset, dimension, kind and key, so an entry names all four', () => {
-    expect(findingKey(finding('scripts', 'missing', 'build:clean', PLUGIN_COUNT), 'enhanced')).toBe('enhanced/scripts/missing/build:clean');
+    expect(findingKey(finding('scripts', 'missing', 'build:clean', PLUGIN_COUNT), 'all-in-one')).toBe('all-in-one/scripts/missing/build:clean');
   });
 });
 
@@ -228,9 +228,9 @@ function profile(traits: Partial<Record<DriftDimension, Record<string, string>>>
   return new Map(entries.map(([dimension, keys]) => [dimension, new Map(Object.entries(keys))]));
 }
 
-/** The findings of a single `enhanced` run, which is the scope every reconciliation test but one uses. */
+/** The findings of a single `all-in-one` run, which is the scope every reconciliation test but one uses. */
 function scoped(findings: readonly DriftFinding[]): ReadonlyMap<string, readonly DriftFinding[]> {
-  return new Map([['enhanced', findings]]);
+  return new Map([['all-in-one', findings]]);
 }
 
 /** A consensus in which all {@link PLUGIN_COUNT} plugins carry every given script. */

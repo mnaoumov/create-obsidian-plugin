@@ -19,7 +19,7 @@ import { listGeneratedFiles } from './plugin-drift-checks.ts';
 import { copyTemplates } from './templates.ts';
 
 /**
- * The goal these tables measure: on a dev-utils preset, every tool the generator offers is run by
+ * The goal these tables measure: on a framework preset, every tool the generator offers is run by
  * `@mnaoumov/obsidian-dev-toolkit` or `@mnaoumov/typescript-dev-toolkit`, and the generated project carries
  * a thin call into it rather than tool code of its own. Generic tooling belongs in typescript-dev-toolkit and
  * its Obsidian layer in obsidian-dev-toolkit, so a fix to either reaches every project by `npm update`.
@@ -30,7 +30,7 @@ import { copyTemplates } from './templates.ts';
  */
 
 /**
- * Answers the toolkits run, each with the toolkit module the emitted `enhanced` project imports to do it.
+ * Answers the toolkits run, each with the toolkit module the emitted `all-in-one` project imports to do it.
  * The test renders that answer and fails unless some emitted file imports the module.
  */
 const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
@@ -128,7 +128,7 @@ describe('toolkit parity', () => {
     const [answerKey = '', value = ''] = key.split('=');
     const targetDir = mkdtempSync(join(tmpdir(), 'toolkit-parity-'));
     try {
-      copyTemplates(makeAnswers({ [answerKey]: value, preset: 'enhanced' }), targetDir, '0.0.0', null);
+      copyTemplates(makeAnswers({ [answerKey]: value, preset: 'all-in-one' }), targetDir, '0.0.0', null);
       const importers = listGeneratedFiles(targetDir)
         .filter((file) => /\.(?:mjs|mts|ts)$/.test(file))
         .filter((file) => readFileSync(join(targetDir, file), 'utf-8').includes(`from '${moduleSpecifier}'`));

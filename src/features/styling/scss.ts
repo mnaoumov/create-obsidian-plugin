@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
  * The plugin each bundler needs to read `.scss`.
@@ -44,7 +44,7 @@ export class Scss extends FeatureOption {
 
     // Obsidian-dev-utils' esbuild build depends on and registers `esbuild-sass-plugin` itself, so the
     // Project's build never names it there.
-    const plugin = isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild' ? undefined : SCSS_PLUGINS[answers.bundler];
+    const plugin = isFrameworkPreset(answers.preset) && answers.bundler === 'esbuild' ? undefined : SCSS_PLUGINS[answers.bundler];
     if (plugin) {
       builder.addPackage(plugin);
       const depcheckReason = SCSS_PLUGIN_DEPCHECK_REASONS[answers.bundler];

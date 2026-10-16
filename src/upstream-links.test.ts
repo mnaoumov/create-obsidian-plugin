@@ -44,7 +44,7 @@ describe('findUpstreamLinks', () => {
   // The extraction is the only thing standing between a dead link and the verify script, and a pattern that
   // Stopped matching would report every template clean. So it is held to the links the templates cite today.
   it('finds the links the stylesheet templates cite', () => {
-    const file = 'templates/default/src/styles/main.css_dev-utils.ejs';
+    const file = 'templates/default/src/styles/main.css_framework.ejs';
     const text = readFileSync(join(getScriptDir(), '..', file), 'utf-8');
     expect(findUpstreamLinks(file, text).map((link) => link.path)).toEqual(['src/styles/main.scss', 'src/css-class.ts']);
   });

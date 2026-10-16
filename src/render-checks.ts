@@ -159,7 +159,7 @@ const DEMO_VAULT_PREFIX = 'demo-vault/';
 /**
  * Rules that only obsidian-dev-toolkit's shared ESLint config turns on: the plugins it registers and
  * `standalone`'s inlined config does not, plus the one core rule it enables that the inlined config leaves
- * off. `standalone` shares most templates with the dev-utils presets, so a directive written for the shared
+ * off. `standalone` shares most templates with the framework presets, so a directive written for the shared
  * config lands in a project whose config has never heard of the rule.
  */
 const SHARED_CONFIG_ONLY_RULES = {
@@ -389,8 +389,8 @@ function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
  *
  * ESLint does not ignore such a directive. A rule from a plugin the config never registered is
  * "Definition for rule ... was not found", and a core rule the config leaves off makes the directive
- * unused. Both are errors, so `npm run lint` is red on a freshly generated project. The dev-utils presets emit
- * these directives through `_dev-utils` sections, and this check catches one written straight into a template
+ * unused. Both are errors, so `npm run lint` is red on a freshly generated project. The framework presets emit
+ * these directives through `_framework` sections, and this check catches one written straight into a template
  * both presets share. Without it, only the install tier could see it, and it reaches few standalone cases.
  */
 function checkForeignLintDirectives(targetDir: string, answers: Answers): RenderViolation[] {

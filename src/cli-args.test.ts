@@ -184,7 +184,7 @@ describe('the demo pin', () => {
   });
 
   it('allows the same answers under another preset', () => {
-    expect(() => parseCliArgs(['--preset=enhanced', '--uiFramework=solid'])).not.toThrow();
+    expect(() => parseCliArgs(['--preset=all-in-one', '--uiFramework=solid'])).not.toThrow();
   });
 
   it('allows demo alongside an answer it honours', () => {

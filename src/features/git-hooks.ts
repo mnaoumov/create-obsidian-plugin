@@ -1,6 +1,6 @@
 import type { TemplateBuilder } from '../template-builder.ts';
 
-import { isDevUtilsPreset } from './preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from './preset/is-framework-preset.ts';
 
 /**
  * Registers husky, which installs whatever hooks `.husky/` holds.
@@ -67,5 +67,5 @@ const TOOLKIT_NANO_STAGED_PARTIALS = ['cspell', 'dprint', 'eslint', 'markdownlin
  */
 export function usesToolkitNanoStagedConfig(builder: TemplateBuilder, preset: string): boolean {
   const partials = builder.partials;
-  return isDevUtilsPreset(preset) && TOOLKIT_NANO_STAGED_PARTIALS.every((partial) => partials.has(partial));
+  return isFrameworkPreset(preset) && TOOLKIT_NANO_STAGED_PARTIALS.every((partial) => partials.has(partial));
 }

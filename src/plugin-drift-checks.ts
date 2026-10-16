@@ -72,7 +72,7 @@ export type BaselineViolationKind =
  * `types` -- so re-reporting them here would re-litigate a closed decision rather than find anything.
  */
 export type DriftDimension =
-  | 'dev-utils-modules'
+  | 'framework-modules'
   | 'layout'
   | 'plugin-shape'
   | 'scripts'
@@ -392,7 +392,7 @@ export function extractProfile(projectDir: string, files: readonly string[]): Pr
   const relevant = files.filter((file) => !IGNORED_FILES.has(lastSegment(file)));
 
   return new Map<DriftDimension, ReadonlyMap<string, string>>([
-    ['dev-utils-modules', extractDevUtilsModules(projectDir, relevant)],
+    ['framework-modules', extractFrameworkModules(projectDir, relevant)],
     ['layout', new Map(relevant.map((file) => [file, '']))],
     ['plugin-shape', extractPluginShape(projectDir)],
     ['scripts', extractScripts(projectDir)],
@@ -405,7 +405,7 @@ export function extractProfile(projectDir: string, files: readonly string[]): Pr
  *
  * The scope is the preset the case was generated for, and it is part of the key rather than dropped
  * because the presets do not emit the same project. Without it, baselining a `demo`-only extra -- one of
- * the framework components that preset forces in -- would silence the same key under `enhanced`, where
+ * the framework components that preset forces in -- would silence the same key under `all-in-one`, where
  * it would be a genuine surprise.
  */
 export function findingKey(finding: DriftFinding, scope: string): string {
@@ -547,7 +547,7 @@ const TOOLKIT_SPECIFIER_PREFIXES = ['@mnaoumov/', 'obsidian-dev-utils'];
  * `buildClean` versus `buildCompileTypeScript` out of the same `script-utils/build` module is exactly
  * the difference worth catching.
  */
-function extractDevUtilsModules(projectDir: string, files: readonly string[]): Map<string, string> {
+function extractFrameworkModules(projectDir: string, files: readonly string[]): Map<string, string> {
   const traits = new Map<string, string>();
 
   for (const file of files) {
@@ -587,7 +587,7 @@ function extractDevUtilsModules(projectDir: string, files: readonly string[]): M
  * What a reader checks by eye when asking whether a generated project looks like a real one: which of
  * the files exist, what each one's exported class extends, and what each module exports. The base class
  * is the substance -- obsidian-lib's `PluginBase` rather than Obsidian's own `Plugin` is the
- * single clearest marker that a project is on a dev-utils preset at all.
+ * single clearest marker that a project is on a framework preset at all.
  */
 function extractPluginShape(projectDir: string): Map<string, string> {
   const traits = new Map<string, string>();

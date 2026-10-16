@@ -66,7 +66,7 @@ The answers file is a JSON object using the same names. It also accepts a whole 
 
 ```json
 {
-  "preset": "enhanced",
+  "preset": "all-in-one",
   "bundler": "esbuild",
   "packageManager": "npm",
   "pluginId": "my-tool"

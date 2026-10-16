@@ -93,10 +93,10 @@ describe('the answer space at plan level', () => {
 
 describe('parsePartialPath', () => {
   it('reads the whole-file form', () => {
-    expect(parsePartialPath('dprint.json_dev-utils.ejs')).toEqual({
+    expect(parsePartialPath('dprint.json_framework.ejs')).toEqual({
       basePath: 'dprint.json',
-      partialName: 'dev-utils',
-      path: 'dprint.json_dev-utils.ejs',
+      partialName: 'framework',
+      path: 'dprint.json_framework.ejs',
       section: null
     });
   });
@@ -186,8 +186,8 @@ describe('checkPlan', () => {
   });
 
   it('passes a file composed from a contributed partial', () => {
-    const builder = new TemplateBuilder().addFiles(['dprint.json']).addPartial('dev-utils');
-    const inventory = makeInventory({ partials: [parsePartialPath('dprint.json_dev-utils.ejs')] });
+    const builder = new TemplateBuilder().addFiles(['dprint.json']).addPartial('framework');
+    const inventory = makeInventory({ partials: [parsePartialPath('dprint.json_framework.ejs')] });
     expect(checkPlan(builder, makeAnswers(), inventory)).toEqual([]);
   });
 
@@ -195,10 +195,10 @@ describe('checkPlan', () => {
   // Destination is written empty and every later gate accepts it.
   it('flags a file none of whose partials are contributed', () => {
     const builder = new TemplateBuilder().addFiles(['dprint.json']).addPartial('standalone');
-    const inventory = makeInventory({ partials: [parsePartialPath('dprint.json_dev-utils.ejs')] });
+    const inventory = makeInventory({ partials: [parsePartialPath('dprint.json_framework.ejs')] });
     const violations = checkPlan(builder, makeAnswers(), inventory);
     expect(kinds(violations)).toEqual(['empty-emitted-file']);
-    expect(violations[0]?.detail).toContain('dev-utils');
+    expect(violations[0]?.detail).toContain('framework');
   });
 
   it('flags a file with neither its own .ejs nor any partial', () => {
@@ -290,10 +290,10 @@ describe('checkUsage', () => {
   });
 
   it('flags a partial whose base is neither registered nor another partial', () => {
-    const usage = usageOf(new TemplateBuilder().addPartial('dev-utils'));
+    const usage = usageOf(new TemplateBuilder().addPartial('framework'));
     const inventory = makeInventory({
       directTemplates: new Set<string>(),
-      partials: [parsePartialPath('gone.json_dev-utils.ejs')],
+      partials: [parsePartialPath('gone.json_framework.ejs')],
       renderSites: []
     });
     expect(checkUsage(usage, inventory).map((violation) => violation.kind)).toEqual(['dead-partial-base']);

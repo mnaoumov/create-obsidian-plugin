@@ -152,7 +152,7 @@ function buildAnswers(answers: StepAnswers, defaultTooling: DefaultTooling): Ans
     pluginDescription: get('pluginDescription', 'Does something awesome.'),
     pluginId,
     pluginName: get('pluginName', makePluginName(pluginId)),
-    preset: get('preset', 'enhanced'),
+    preset: get('preset', 'all-in-one'),
     spellChecker: get('spellChecker', defaultTooling.spellChecker),
     styling: get('styling', defaultTooling.styling),
     testRunner: get('testRunner', defaultTooling.testRunner),
@@ -172,7 +172,7 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
 
   return [
     {
-      defaultValue: () => d.preset ?? 'enhanced',
+      defaultValue: () => d.preset ?? 'all-in-one',
       key: 'preset',
       prompt: (saved): Promise<string> => promptPreset(saved)
     },
@@ -288,7 +288,7 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       defaultValue: () => d.apiSubset ?? defaultTooling.apiSubset,
       key: 'apiSubset',
       prompt: (saved): Promise<string> => promptApiSubset(saved),
-      skip: (answers) => !(isCustomize(answers) && answers.get('preset') === 'enhanced')
+      skip: (answers) => !(isCustomize(answers) && answers.get('preset') === 'all-in-one')
     },
     {
       defaultValue: () => d.packageManager ?? 'npm',
@@ -421,7 +421,7 @@ function getDefaultAnswersBase(pluginId: string): Answers {
     pluginDescription: 'Does something awesome.',
     pluginId,
     pluginName: makePluginName(pluginId),
-    preset: 'enhanced',
+    preset: 'all-in-one',
     uiFramework: 'none'
   };
 }

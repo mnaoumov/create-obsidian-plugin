@@ -1,7 +1,7 @@
 import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
  * Registers the sample unit tests beside `src/plugin.test.ts`, which each runner registers itself.
@@ -14,7 +14,7 @@ import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
  * - `src/plugin-settings-component.test.ts` on the toolkit presets: the component takes its
  *   defaults from the emitted settings class, and on `demo` a typed setting survives a save and a load.
  * - `src/plugin-settings.test.ts` on `demo` only, where `TypedItem.deserialize` is behavior. On
- *   `enhanced` the settings class is one default value, and a test of it would restate the source.
+ *   `all-in-one` the settings class is one default value, and a test of it would restate the source.
  *
  * There is no `src/plugin-settings-tab.test.ts`. The one true thing to say about the tab is that it
  * binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components
@@ -29,7 +29,7 @@ import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
 export function addSampleUnitTests(builder: TemplateBuilder, answers: Answers): void {
   builder.addFiles(['src/main.test.ts']);
 
-  if (!isDevUtilsPreset(answers.preset)) {
+  if (!isFrameworkPreset(answers.preset)) {
     return;
   }
 

@@ -3,7 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { addHusky } from '../git-hooks.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 export class ConventionalCommits extends FeatureOption {
   public constructor() {
@@ -31,7 +31,7 @@ export class ConventionalCommits extends FeatureOption {
     // `commitlintConfig`, which adds the forbidden-patterns and header-spellcheck rules, arrives by
     // `npm update`, and resolves `@commitlint/config-conventional` from its own dependencies. The standalone
     // Preset writes its own config, so only it declares the preset it extends and the type it imports.
-    if (isDevUtilsPreset(answers.preset)) {
+    if (isFrameworkPreset(answers.preset)) {
       return;
     }
 

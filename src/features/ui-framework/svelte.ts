@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
@@ -46,9 +46,9 @@ export class Svelte extends FeatureOption {
 
     // Obsidian-dev-utils' esbuild build compiles Svelte with its own `esbuild-svelte` and `svelte-preprocess`,
     // So there the project reaches neither.
-    const isDevUtilsEsbuild = isDevUtilsPreset(answers.preset) && answers.bundler === 'esbuild';
+    const isFrameworkEsbuild = isFrameworkPreset(answers.preset) && answers.bundler === 'esbuild';
     const plugin = getBuildPlugin(answers.bundler);
-    if (plugin !== null && !isDevUtilsEsbuild) {
+    if (plugin !== null && !isFrameworkEsbuild) {
       builder.addPackage(plugin);
     }
 
@@ -58,14 +58,14 @@ export class Svelte extends FeatureOption {
       .addPackage('svelte-check')
       .addDepcheckIgnore(
         'svelte-check',
-        isDevUtilsEsbuild
+        isFrameworkEsbuild
           ? 'run as a CLI by typescript-dev-toolkit\'s `build:compile`, which refuses to build without it declared.'
           : 'run as a CLI by `scripts/build.ts`.'
       );
 
     // Only the esbuild, rollup and webpack configs preprocess; vite's plugin and the parcel transformer
     // The project ships do not import it.
-    if (!isDevUtilsEsbuild && SVELTE_PREPROCESS_BUNDLERS.has(answers.bundler)) {
+    if (!isFrameworkEsbuild && SVELTE_PREPROCESS_BUNDLERS.has(answers.bundler)) {
       builder.addPackage('svelte-preprocess');
     }
 
