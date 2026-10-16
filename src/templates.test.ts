@@ -2140,6 +2140,26 @@ describe('copyTemplates', () => {
     }
   });
 
+  it('keeps dprint from rewriting the double-quoted JSX attributes the shared ESLint config requires', () => {
+    // `quoteStyle: alwaysSingle` reaches JSX attributes too, so dprint rewrote the samples' `type="button"`
+    // To `type='button'`, while `@stylistic/jsx-quotes` in the shared config demands the double quotes back.
+    // The dev-utils presets extend the toolkit's config, so they add the override only for a JSX framework
+    // And stay byte for byte the real plugins' file otherwise.
+    for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const uiFramework of ['none', 'react', 'preact', 'solid', 'svelte']) {
+        if (preset === 'demo' && uiFramework !== 'none') {
+          continue;
+        }
+        rmSync(targetDir, { force: true, recursive: true });
+        copyTemplates(makeAnswers({ formatter: 'dprint', preset, uiFramework }), targetDir, '1.0.0', null);
+        const config = JSON.parse(readFileSync(join(targetDir, 'dprint.json'), 'utf-8')) as DprintConfig;
+        const isJsx = preset === 'demo' || ['preact', 'react', 'solid'].includes(uiFramework);
+        const expected = preset === 'standalone' || isJsx ? 'preferDouble' : undefined;
+        expect(config.typescript?.['jsx.quoteStyle'], `${preset}/${uiFramework}`).toBe(expected);
+      }
+    }
+  });
+
   it('formats staged files with biome when biome is the formatter but not the linter', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', formatter: 'biome', linter: 'eslint' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
@@ -2633,6 +2653,10 @@ describe('sortImportStatements', () => {
     ].join('\n'));
   });
 });
+
+interface DprintConfig {
+  typescript?: Record<string, unknown>;
+}
 
 interface ParcelRc {
   transformers: Record<string, string[]>;
