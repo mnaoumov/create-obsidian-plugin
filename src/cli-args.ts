@@ -18,6 +18,11 @@ import {
 } from './directory-constraints.ts';
 import { validateFundingUsername } from './features/funding-platform/index.ts';
 import {
+  isOfficialSamplePreset,
+  OFFICIAL_SAMPLE_ANSWER_KEYS,
+  OFFICIAL_SAMPLE_PRESET
+} from './features/preset/official-sample.ts';
+import {
   getDefaultAnswers,
   validateNotEmpty
 } from './prompts.ts';
@@ -32,6 +37,11 @@ export interface CliArgs {
   customTemplate: string | undefined;
   /** `--force`: scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. */
   force: boolean;
+  /**
+   * `--latest`: copy obsidianmd/obsidian-sample-plugin as it is upstream today, rather than the snapshot this
+   * release vendored. Only `preset=official-sample` reads it.
+   */
+  latest: boolean;
   /**
    * `--mode=create|update`: `undefined` when not given, which means asking when a project is detected in the
    * current directory -- or, under `--yes`, refusing, because neither answer is safe to assume.
@@ -104,6 +114,16 @@ const FREE_TEXT_VALIDATORS: Partial<Record<StringAnswerKey, (value: string) => s
 export const DEMO_PINNED_ANSWER_KEYS: readonly string[] = ['bundler', 'uiFramework'];
 
 /**
+ * Answer values accepted beside the ones {@link ANSWER_SPACE} sweeps.
+ *
+ * `preset=official-sample` copies upstream instead of rendering the templates, so it is no point in the answer
+ * space the verification tiers cover -- and it is still an answer the CLI has to take.
+ */
+const VALUES_OUTSIDE_ANSWER_SPACE: Partial<Record<StringAnswerKey, readonly string[]>> = {
+  preset: [OFFICIAL_SAMPLE_PRESET]
+};
+
+/**
  * Refuses an answer the generator cannot honour, naming what it accepts.
  *
  * Exported so `render:case` and `gate:case` validate exactly as the CLI does. They each carried their own
@@ -154,6 +174,8 @@ export function getHelpText(): string {
     '      --customTemplate=<dir> Layer your own templates over the built-in ones: a directory',
     '                            mirroring templates/default, plus an overlay.json. Recorded in the',
     '                            project and re-applied on update; pass it empty to drop it.',
+    '      --latest              With --preset=official-sample: copy obsidianmd/obsidian-sample-plugin',
+    '                            as it is upstream today, not the snapshot this release vendored.',
     '',
     'Answers (any of these may be given as --<key>=<value>):'
   ];
@@ -171,6 +193,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   let answersFilePath: null | string = null;
   let customTemplate: string | undefined;
   let force = false;
+  let latest = false;
   let mode: Mode | undefined;
   let showHelp = false;
   let useDefaults = false;
@@ -201,6 +224,11 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
       continue;
     }
 
+    if (argument === '--latest') {
+      latest = true;
+      continue;
+    }
+
     if (argument.startsWith(MODE_PREFIX)) {
       mode = toMode(argument.slice(MODE_PREFIX.length));
       continue;
@@ -212,13 +240,20 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   }
 
   const fileAnswers = answersFilePath === null ? {} : readAnswersFile(answersFilePath);
-  const answers = { ...fileAnswers, ...flagAnswers };
+  const isOfficialSample = isOfficialSamplePreset(flagAnswers.preset ?? fileAnswers.preset);
+  if (isOfficialSample) {
+    assertNoOfficialSampleConflict(flagAnswers);
+  }
+  // A saved official-sample project records every answer, tooling included, so pointing `--answersFile` at its
+  // Config must not trip the refusal above: those answers were never the user's choice, and they are dropped.
+  const answers = { ...isOfficialSample ? pickOfficialSampleAnswers(fileAnswers) : fileAnswers, ...flagAnswers };
   assertNoDemoConflict(answers);
 
   return {
     answers,
     customTemplate,
     force,
+    latest,
     mode,
     showHelp,
     useDefaults
@@ -283,6 +318,18 @@ function assertNoDemoConflict(answers: Partial<Record<StringAnswerKey, string>>)
 }
 
 /**
+ * Refuses `preset=official-sample` alongside any tooling answer: upstream has made every one of those choices, so
+ * the flag would be dropped -- the defect class {@link assertNoDemoConflict} refuses for demo.
+ */
+function assertNoOfficialSampleConflict(answers: Partial<Record<StringAnswerKey, string>>): void {
+  const conflicting = Object.keys(answers).filter((key) => answers[key as StringAnswerKey] !== undefined && !OFFICIAL_SAMPLE_ANSWER_KEYS.includes(key));
+  if (conflicting.length > 0) {
+    const flags = conflicting.map((key) => `--${key}`).join(', ');
+    throw new Error(`preset=official-sample copies obsidianmd/obsidian-sample-plugin as it is, so it takes no ${conflicting.join(', ')}. Drop ${flags}, or choose another preset.`);
+  }
+}
+
+/**
  * The dimension for a key whose answers are a closed set, or `null` where the answer is free text.
  *
  * A dimension carrying `''` is a presence branch -- `fundingUrl` and `obsidianConfigFolder` are free text
@@ -294,7 +341,12 @@ function findChoiceDimension(key: StringAnswerKey): null | typeof ANSWER_SPACE[n
   if (!dimension || dimension.values.includes('')) {
     return null;
   }
-  return dimension;
+  const extraValues = VALUES_OUTSIDE_ANSWER_SPACE[key];
+  return extraValues ? { ...dimension, values: [...dimension.values, ...extraValues] } : dimension;
+}
+
+function pickOfficialSampleAnswers(answers: Partial<Record<StringAnswerKey, string>>): Partial<Record<StringAnswerKey, string>> {
+  return Object.fromEntries(Object.entries(answers).filter(([key]) => OFFICIAL_SAMPLE_ANSWER_KEYS.includes(key)));
 }
 
 /**

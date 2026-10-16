@@ -5,6 +5,7 @@
     "coverage",
     "dist",
     "node_modules",
+    "templates/official-sample/files",
     "tsconfig.tsbuildinfo"
   ],
   "dictionaryDefinitions": [],
@@ -21,6 +22,7 @@
     "creatordate",
     "depcheck",
     "depcheckrc",
+    "Dynalist",
     "edgedriver",
     "ERESOLVE",
     "geckodriver",
@@ -49,6 +51,7 @@
     "parcelrc",
     "pjeby",
     "rescanning",
+    "scaffolder",
     "sidian",
     "smol",
     "stylesheet",

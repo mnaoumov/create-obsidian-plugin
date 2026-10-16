@@ -29,6 +29,7 @@ import type {
 } from './answers.ts';
 import type { CliArgs } from './cli-args.ts';
 import type { Overlay } from './overlay.ts';
+import type { UpstreamSnapshot } from './upstream-snapshot.ts';
 
 import {
   formatAnswersJson,
@@ -57,6 +58,14 @@ import {
   getInstallCommand,
   getRunCommand
 } from './features/package-manager/index.ts';
+import { isOfficialSamplePreset } from './features/preset/official-sample.ts';
+import {
+  copyOfficialSample,
+  getUpstreamsPath,
+  loadOfficialSampleSnapshot,
+  OFFICIAL_SAMPLE_PINNED_ANSWERS,
+  OFFICIAL_SAMPLE_UPSTREAM_NAME
+} from './official-sample.ts';
 import {
   loadOverlay,
   toRecordedOverlayPath
@@ -74,6 +83,10 @@ import {
   loadConfig,
   recordHashesOnDisk
 } from './templates.ts';
+import {
+  fetchUpstreamSnapshot,
+  readUpstream
+} from './upstream-snapshot.ts';
 import {
   fetchLatestObsidianVersion,
   fetchLatestVersion,
@@ -103,8 +116,34 @@ const ARGV_OFFSET = 2;
 
 const JSON_INDENT_SPACES = 2;
 
+/** How much of a commit SHA a message names: git's own short form. */
+const SHORT_SHA_LENGTH = 7;
+
 /** Owner-writable, everyone-executable: a script the user must `chmod` before running is a poor hand-off. */
 const SCRIPT_MODE = 0o755;
+
+/**
+ * The answers with what the preset pins applied, refusing the two flags only one kind of preset reads.
+ *
+ * `--latest` picks which upstream tree the official sample copies, so on a template preset it would be dropped.
+ * `--customTemplate` layers over the built-in templates, and the official sample renders none.
+ */
+function applyPresetFlags(answers: Answers, cliArgs: CliArgs, hasOverlay: boolean): Answers {
+  if (!isOfficialSamplePreset(answers.preset)) {
+    if (cliArgs.latest) {
+      exitWithUsageError(`--latest picks which upstream tree preset=official-sample copies, and the preset is ${answers.preset}.
+Drop --latest, or pass --preset=official-sample.`);
+    }
+    return answers;
+  }
+
+  if (hasOverlay) {
+    exitWithUsageError(`--customTemplate layers over the built-in templates, and preset=official-sample renders none: it copies obsidianmd/obsidian-sample-plugin as it is.
+Drop --customTemplate, or choose another preset.`);
+  }
+
+  return { ...answers, ...OFFICIAL_SAMPLE_PINNED_ANSWERS };
+}
 
 /**
  * Refuses to scaffold a plugin the Community directory would not list, naming the flag that fixes it.
@@ -392,12 +431,41 @@ async function resolveExternalVersions(answers: Answers, overlay: null | Overlay
   return { minAppVersion, resolvedVersions };
 }
 
+/**
+ * The upstream tree the official sample copies: the snapshot this release vendored, or under `--latest` upstream's
+ * tree today. A failed fetch falls back to the snapshot with a warning, for the reason `resolveVersions()` falls back
+ * to `latest`: generating offline must still work.
+ */
+async function resolveOfficialSampleSnapshot(latest: boolean): Promise<UpstreamSnapshot> {
+  const vendored = loadOfficialSampleSnapshot();
+  if (!latest) {
+    return vendored;
+  }
+
+  const upstream = readUpstream(getUpstreamsPath(), OFFICIAL_SAMPLE_UPSTREAM_NAME);
+  const s = spinner();
+  s.start(`Fetching ${upstream.repo}@${upstream.ref}...`);
+  try {
+    const snapshot = await fetchUpstreamSnapshot(upstream.repo, upstream.ref);
+    s.stop(`Fetched ${upstream.repo} at ${snapshot.commit.slice(0, SHORT_SHA_LENGTH)}.`);
+    return snapshot;
+  } catch (error: unknown) {
+    s.stop(`Could not fetch ${upstream.repo}.`);
+    log.warn(`${error instanceof Error ? error.message : String(error)}\nUsing the snapshot this release vendored, ${vendored.commit.slice(0, SHORT_SHA_LENGTH)}.`);
+    return vendored;
+  }
+}
+
 async function runCreate(currentVersion: string, cliArgs: CliArgs): Promise<void> {
   const { answers: suppliedAnswers, customTemplate, useDefaults } = cliArgs;
   const overlay = customTemplate ? loadOverlayOrExit(resolvePath(customTemplate)) : null;
-  const answers = await ensurePluginIdIsUnlisted(
-    assertManifestAnswersAreListable(useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers)),
-    useDefaults
+  const answers = applyPresetFlags(
+    await ensurePluginIdIsUnlisted(
+      assertManifestAnswersAreListable(useDefaults ? getDefaultAnswers(suppliedAnswers) : await promptAnswers(suppliedAnswers)),
+      useDefaults
+    ),
+    cliArgs,
+    overlay !== null
   );
 
   // Not under `--yes`: that path is what an exported script itself runs, so offering to export from
@@ -426,15 +494,25 @@ Pass --force to scaffold into it anyway.`);
     }
   }
 
-  const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers, overlay);
+  let newConfig: GeneratorConfig;
+  if (isOfficialSamplePreset(answers.preset)) {
+    // Upstream's own versions and lockfile are the point, so nothing is resolved.
+    const snapshot = await resolveOfficialSampleSnapshot(cliArgs.latest);
+    const s = spinner();
+    s.start('Copying the official sample plugin...');
+    newConfig = copyOfficialSample(answers, targetDir, currentVersion, null, snapshot);
+    s.stop(`Copied obsidianmd/obsidian-sample-plugin at ${snapshot.commit.slice(0, SHORT_SHA_LENGTH)}.`);
+  } else {
+    const { minAppVersion, resolvedVersions } = await resolveExternalVersions(answers, overlay);
+    const s = spinner();
+    s.start('Scaffolding plugin...');
+    newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions, minAppVersion, overlay);
+    s.stop('Plugin scaffolded.');
+  }
 
-  const s = spinner();
-  s.start('Scaffolding plugin...');
-  const newConfig = copyTemplates(answers, targetDir, currentVersion, null, resolvedVersions, minAppVersion, overlay);
   const configPath = join(targetDir, CONFIG_FILE_NAME);
   const configWithAnswers = buildSavedConfig(newConfig, answers, overlay, targetDir);
   writeFileSync(configPath, `${JSON.stringify(configWithAnswers, null, JSON_INDENT_SPACES)}\n`);
-  s.stop('Plugin scaffolded.');
 
   // `--yes` installs nothing and so formats nothing, which leaves a prettier or biome project failing its own
   // `format:check` until `format` runs once. It stays out of the install on purpose -- a script may want to
@@ -621,6 +699,19 @@ Run without --yes to answer them again.`);
   const savedPluginId = savedConfig.answers?.pluginId;
   if (savedPluginId !== undefined && answers.pluginId !== savedPluginId) {
     answers = await ensurePluginIdIsUnlisted(answers, useDefaults);
+  }
+
+  answers = applyPresetFlags(answers, cliArgs, overlay !== null);
+
+  if (isOfficialSamplePreset(answers.preset)) {
+    const snapshot = await resolveOfficialSampleSnapshot(cliArgs.latest);
+    const s = spinner();
+    s.start('Updating project files...');
+    const newConfig = copyOfficialSample(answers, targetDir, currentVersion, existingConfig, snapshot);
+    writeFileSync(configPath, `${JSON.stringify({ ...newConfig, answers }, null, JSON_INDENT_SPACES)}\n`);
+    s.stop(`Update complete: obsidianmd/obsidian-sample-plugin at ${snapshot.commit.slice(0, SHORT_SHA_LENGTH)}.`);
+    outro('Project updated successfully!');
+    return;
   }
 
   // A project that has already released carries a `manifest.json` its own `npm run version` rewrote, so its

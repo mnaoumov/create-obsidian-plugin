@@ -35,6 +35,7 @@ import { promptMarkdownLinter } from './features/markdown-linter/index.ts';
 import { promptPackageManager } from './features/package-manager/index.ts';
 import { promptPlatformSupport } from './features/platform-support/index.ts';
 import { promptPreset } from './features/preset/index.ts';
+import { isOfficialSamplePreset } from './features/preset/official-sample.ts';
 import { promptSpellChecker } from './features/spell-checker/index.ts';
 import { promptStyling } from './features/styling/index.ts';
 import { promptTestRunner } from './features/test-runner/index.ts';
@@ -180,7 +181,8 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
       defaultValue: () => 'defaults',
       key: 'toolingMode',
       prompt: (): Promise<string> => promptToolingMode(),
-      skip: (answers) => answers.get('preset') === 'demo'
+      // The official sample is upstream's tooling as it is, so there is nothing to customize.
+      skip: (answers) => answers.get('preset') === 'demo' || isOfficialSamplePreset(answers.get('preset'))
     },
     {
       defaultValue: (answers) => answers.get('preset') === 'demo' ? 'esbuild' : (d.bundler ?? 'esbuild'),
@@ -395,7 +397,9 @@ function buildPromptSteps(d: Partial<Answers>, defaultTooling: DefaultTooling): 
           defaultValue: saved || undefined,
           message: 'Path to test vault config folder (.obsidian, by default, but it is configurable in Obsidian settings). This enables auto-update of your plugin in your test vault during dev. Leave empty if you prefer to update the plugin manually.',
           placeholder: saved || 'path/to/test-vault/.obsidian'
-        })
+        }),
+      // Upstream builds into the project folder and copies nothing into a vault.
+      skip: (answers) => isOfficialSamplePreset(answers.get('preset'))
     }
   ];
 }

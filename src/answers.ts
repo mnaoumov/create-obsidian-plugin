@@ -50,6 +50,8 @@ export interface GeneratorConfig {
   customTemplate?: string;
   fileHashes: Record<string, string>;
   generatorVersion: string;
+  /** The upstream commit an official-sample project was copied from. Absent on every template preset. */
+  upstreamCommit?: string;
 }
 
 export interface PackageJson {

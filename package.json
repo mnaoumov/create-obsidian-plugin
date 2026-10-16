@@ -21,7 +21,8 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
-    "package.json"
+    "package.json",
+    "upstreams.json"
   ],
   "scripts": {
     "build": "jiti scripts/build.ts",
@@ -32,11 +33,13 @@
     "lint": "jiti scripts/lint.ts",
     "lint:fix": "jiti scripts/lint-fix.ts",
     "prepare": "jiti scripts/prepare.ts",
-    "prepublishOnly": "npm run verify:upstream-links && npm run verify:tarball",
+    "prepublishOnly": "npm run verify:upstream-links && npm run verify:official-sample && npm run verify:tarball",
     "render:case": "jiti scripts/render-one-case.ts",
     "spellcheck": "jiti scripts/spellcheck.ts",
+    "sync:official-sample": "jiti scripts/sync-official-sample.ts",
     "test": "jiti scripts/test.ts",
     "verify:answer-space": "jiti scripts/verify-answer-space.ts",
+    "verify:official-sample": "jiti scripts/verify-official-sample.ts",
     "verify:plugin-drift": "jiti scripts/verify-plugin-drift.ts",
     "verify:projects": "jiti scripts/verify-generated-projects.ts",
     "verify:rendering": "jiti scripts/verify-rendering.ts",

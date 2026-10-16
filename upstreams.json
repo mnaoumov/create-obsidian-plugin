@@ -1,0 +1,14 @@
+{
+  "upstreams": [
+    {
+      "name": "obsidian-sample-plugin",
+      "repo": "obsidianmd/obsidian-sample-plugin",
+      "ref": "master",
+      "commit": "07ceb81d1fb3384af611ebf665a1ec42a7e5926d",
+      "paths": [
+        "**"
+      ],
+      "handler": "npm run sync:official-sample"
+    }
+  ]
+}
