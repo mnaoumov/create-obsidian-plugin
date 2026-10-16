@@ -113,7 +113,7 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 `demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `@mnaoumov/obsidian-dev-toolkit` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
 
-The vault's `_assets/CodeScriptToolkit/demoSetup.ts` still imports `obsidian-dev-utils/obsidian/community-plugins`. A vault script takes its modules from what `CodeScript Toolkit` serves, not from `node_modules`, and that plugin serves nothing from `@mnaoumov/obsidian-lib` yet. For the same reason the render tier's `undeclared-dependency` check skips `demo-vault/`: `package.json` does not govern a vault script's imports.
+The vault's `_assets/CodeScriptToolkit/demoSetup.ts` imports `@mnaoumov/obsidian-lib/community-plugins`, which `CodeScript Toolkit` serves to vault scripts from 13.8.0. A vault script takes its modules from what that plugin serves, not from `node_modules`, so the render tier's `undeclared-dependency` check skips `demo-vault/`: `package.json` does not govern a vault script's imports.
 
 Only the `dev-utils` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
