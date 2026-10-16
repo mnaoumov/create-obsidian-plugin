@@ -102,11 +102,18 @@ export function makePluginName(pluginId: string): string {
   return extractWords(pluginId).join(' ');
 }
 
-export async function promptAnswers(defaults?: Partial<Answers>): Promise<Answers> {
+/**
+ * Asks every question, each starting from its answer in `defaults`, and skips the ones `supplied` answers.
+ *
+ * The two are separate because an update seeds every prompt from the saved answers while only the flags
+ * given on this run count as answered: passing the saved answers as `supplied` too skipped every question,
+ * so "change any settings?" asked nothing and returned the saved answers unchanged.
+ */
+export async function promptAnswers(defaults?: Partial<Answers>, supplied: Partial<Answers> = defaults ?? {}): Promise<Answers> {
   showHotkeyHints();
 
   const defaultTooling = getDefaultTooling();
-  const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, defaultTooling), defaults ?? {});
+  const steps = skipSuppliedAnswers(buildPromptSteps(defaults ?? {}, defaultTooling), supplied);
   const answers = await runPromptSteps(steps);
 
   return buildAnswers(answers, defaultTooling);
