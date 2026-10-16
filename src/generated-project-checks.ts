@@ -88,6 +88,10 @@ interface PinEntry {
   expect?: null | string;
 }
 
+interface PinnedVersionsFile {
+  pins?: unknown;
+}
+
 /**
  * The npm audit severity at or above which the gate fails.
  *
@@ -236,12 +240,19 @@ const PASSED_COUNT_PATTERN = /(?<Passed>\d+) passed/;
  * still needed, so any other output means the pin has gone stale: follow it to the new range, or drop it.
  * A check that cannot run is reported too, because a check nobody can run never retires its pin.
  *
- * @param pinnedVersionsJson - The file's text.
+ * The entries sit under the file's `pins` key, beside its `comment`. Walking the top level instead read
+ * those two keys as entries with no `check`, so every pin was skipped and the step passed on a stale pin.
+ * A file with no `pins` object is therefore an error rather than an empty list.
+ *
+ * @param pinnedVersionsJson - The file's text, as `buildPinnedVersionsJson` writes it.
  * @param runCheck - Runs one check command and returns its result.
  * @returns One line per stale or unrunnable pin.
  */
 export function findStalePins(pinnedVersionsJson: string, runCheck: (command: string) => CommandResult): string[] {
-  const pins = JSON.parse(pinnedVersionsJson) as Record<string, unknown>;
+  const { pins } = JSON.parse(pinnedVersionsJson) as PinnedVersionsFile;
+  if (typeof pins !== 'object' || pins === null) {
+    throw new Error('pinned-versions.json has no "pins" object');
+  }
   const stale: string[] = [];
   for (const [packageName, value] of Object.entries(pins)) {
     if (typeof value !== 'object' || value === null) {
