@@ -29,8 +29,9 @@ const EXTERNAL = [
 
 <%# Each per-answer plugin partial ends its entry with a comma so two of them concatenate into a valid -%>
 <%# list; the last entry of the array must not carry one. Stripped here rather than by making every -%>
-<%# partial know whether it is last. -%>
-<% const plugins = render('plugin'); -%>
+<%# partial know whether it is last. With no entry at all the list is `[]` on one line, which is how -%>
+<%# the formatter writes an empty array. -%>
+<% const plugins = render('plugin').replace(/,(?<Trailing>\s*)$/, '$<Trailing>'); -%>
 export const config = defineConfig({
   build: {
     // An Obsidian release ships `main.js` and `styles.css` and nothing else, so ANY asset vite emits
@@ -68,9 +69,7 @@ if you want to view the source, please visit the github repository of this plugi
         inlineDynamicImports: true
       }
     },
-    sourcemap: isProduction ? false : 'inline'
+    sourcemap: !isProduction && 'inline'
   },
-  plugins: [
-<%- plugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
-  ]
+  plugins: [<%- plugins === '' ? '' : `\n${plugins}  ` -%>]
 });

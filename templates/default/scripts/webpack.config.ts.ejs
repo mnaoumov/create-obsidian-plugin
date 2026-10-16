@@ -71,7 +71,7 @@ if you want to view the source, please visit the github repository of this plugi
 ${render('plugin')}`;
 -%>
 export const config: Configuration = {
-  devtool: isProduction ? false : 'inline-source-map',
+  devtool: !isProduction && 'inline-source-map',
   entry: './src/main.ts',
   externals: Object.fromEntries(
     EXTERNAL.map((moduleName) => [moduleName, `commonjs2 ${moduleName}`])

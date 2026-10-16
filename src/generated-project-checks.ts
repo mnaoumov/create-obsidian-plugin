@@ -13,6 +13,7 @@ import type { Answers } from './answers.ts';
 
 import { needsInitialFormat } from './features/formatter/index.ts';
 import { getInstallCommand } from './features/package-manager/index.ts';
+import { UNPATCHED_ADVISORIES } from './versions.ts';
 
 export interface CommandResult {
   ok: boolean;
@@ -96,6 +97,55 @@ interface PinEntry {
  * `ADVISORY_OVERRIDES` for the advisories that are worth clearing.
  */
 const AUDIT_LEVEL = 'high';
+
+/** An advisory as `npm audit --json` lists it in a package's `via`. */
+interface AuditAdvisory {
+  severity?: string;
+  url?: string;
+}
+
+/** The part of an `npm audit --json` report the gate reads. */
+interface AuditReport {
+  vulnerabilities?: Record<string, AuditVulnerability>;
+}
+
+/** One package in an `npm audit --json` report: an advisory object, or the name of the package it came through. */
+interface AuditVulnerability {
+  via?: (AuditAdvisory | string)[];
+}
+
+/** The severities at or above {@link AUDIT_LEVEL}. */
+const BLOCKING_SEVERITIES = new Set(['critical', 'high']);
+
+/**
+ * Returns the advisories in an `npm audit --json` report that fail the gate.
+ *
+ * npm marks every package between an advisory and the project with the advisory's severity, so the
+ * report's counts say nothing about how many advisories there are. The advisories themselves are the
+ * objects in each package's `via`: one at or above {@link AUDIT_LEVEL} whose GHSA id is not in
+ * `accepted` blocks. Each is named by its GHSA id, or by its URL when the id cannot be read off it.
+ */
+export function findBlockingAdvisories(report: unknown, accepted: ReadonlySet<string>): string[] {
+  const vulnerabilities = (report as AuditReport).vulnerabilities ?? {};
+  const blocking = new Set<string>();
+  for (const vulnerability of Object.values(vulnerabilities)) {
+    for (const advisory of vulnerability.via ?? []) {
+      // A string names the package the advisory came through, which has its own entry.
+      if (typeof advisory === 'string') {
+        continue;
+      }
+      if (!BLOCKING_SEVERITIES.has(advisory.severity ?? '')) {
+        continue;
+      }
+      const url = advisory.url ?? '';
+      const id = /GHSA-[\w-]+$/.exec(url)?.[0] ?? url;
+      if (!accepted.has(id)) {
+        blocking.add(id);
+      }
+    }
+  }
+  return [...blocking].sort();
+}
 
 /** How much of a failing step's output to keep. Enough to diagnose, short enough to print per case. */
 const OUTPUT_LIMIT = 4000;
@@ -336,8 +386,22 @@ function checkAudit(targetDir: string, answers: Answers, skipped: GateStep[], pa
     return [];
   }
 
+  // The text report is truncated for printing, so the decision reads the JSON one, which is not.
+  const json = spawnSync('npm audit --json', { cwd: targetDir, encoding: 'utf-8', shell: true, timeout: COMMAND_TIMEOUT_MS });
+  let blocking: null | string[] = null;
+  try {
+    blocking = findBlockingAdvisories(JSON.parse(json.stdout), new Set(Object.keys(UNPATCHED_ADVISORIES)));
+  } catch {
+    // An unreadable JSON report leaves the text report's failure standing.
+  }
+
+  if (blocking?.length === 0) {
+    passed.push('audit');
+    return [];
+  }
+
   return [{
-    detail: `At or above "${AUDIT_LEVEL}":\n${audit.output}`,
+    detail: `At or above "${AUDIT_LEVEL}"${blocking ? ` (${blocking.join(', ')})` : ''}:\n${audit.output}`,
     kind: 'step-failed',
     step: 'audit'
   }];
