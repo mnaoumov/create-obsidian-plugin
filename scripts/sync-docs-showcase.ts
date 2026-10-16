@@ -84,10 +84,13 @@ await main();
  * It is the `upstreams.json` entry's `handler`, so the upstream-sync job runs it when the docs move. By default it
  * reads the docs at the tracked branch and type-checks against the latest `obsidian`. `--check` re-runs the pinned
  * commit against the pinned `obsidian` version, writes nothing, and exits 1 when the result differs from what is
- * committed, or when upstream has moved past the pin.
+ * committed, or when upstream has moved past the pin. `--pinned-docs` regenerates from the pinned commit against the
+ * latest `obsidian`, which is what the `obsidian` entry's handler runs when a new `obsidian` is released, so that PR
+ * carries the API change alone and leaves the docs to their own entry.
  */
 async function main(): Promise<void> {
   const isCheck = process.argv.includes('--check');
+  const isPinnedDocs = process.argv.includes('--pinned-docs');
   const packageRoot = getPackageRoot();
   const upstreamsPath = getUpstreamsPath();
   const upstream = readUpstream(upstreamsPath, DOCS_SHOWCASE_UPSTREAM_NAME);
@@ -98,8 +101,8 @@ async function main(): Promise<void> {
   try {
     const docsDir = join(workDir, 'docs');
     const headCommit = fetchCommit(upstream.repo, upstream.ref, docsDir);
-    const commit = isCheck ? upstream.commit : headCommit;
-    if (isCheck && headCommit !== upstream.commit) {
+    const commit = isCheck || isPinnedDocs ? upstream.commit : headCommit;
+    if (commit !== headCommit) {
       fetchCommit(upstream.repo, upstream.commit, docsDir);
     }
 

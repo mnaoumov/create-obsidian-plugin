@@ -1,4 +1,5 @@
 {
+  "verify": "npm run lint && npm test",
   "upstreams": [
     {
       "name": "obsidian-sample-plugin",
@@ -8,7 +9,8 @@
       "paths": [
         "**"
       ],
-      "handler": "npm run sync:official-sample"
+      "handler": "npm run sync:official-sample",
+      "verify": "npm run lint && npm test && npm run build && npm run verify:official-sample"
     },
     {
       "name": "obsidian-developer-docs",
@@ -19,7 +21,15 @@
         "en/**/*.md",
         "LICENSE"
       ],
-      "handler": "npm run sync:docs-showcase"
+      "handler": "npm run sync:docs-showcase",
+      "verify": "npm run lint && npm test && npm run gate:case -- preset=docs-showcase"
+    },
+    {
+      "name": "obsidian",
+      "npm": "obsidian",
+      "version": "1.14.4",
+      "handler": "npm run sync:obsidian",
+      "verify": "npm run lint && npm test && npm run gate:case -- preset=docs-showcase"
     }
   ]
 }
