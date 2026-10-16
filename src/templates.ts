@@ -27,6 +27,7 @@ import {
   getPluginShortName
 } from './answers.ts';
 import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
+import { readDocsShowcaseFiles } from './docs-showcase/docs-showcase-files.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
@@ -49,6 +50,7 @@ import { LINTER_OPTIONS } from './features/linter/index.ts';
 import { MARKDOWN_LINTER_OPTIONS } from './features/markdown-linter/index.ts';
 import { PACKAGE_MANAGER_OPTIONS } from './features/package-manager/index.ts';
 import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
+import { DOCS_SHOWCASE_PRESET } from './features/preset/docs-showcase.ts';
 import { PRESET_OPTIONS } from './features/preset/index.ts';
 import { SPELL_CHECKER_OPTIONS } from './features/spell-checker/index.ts';
 import { STYLING_OPTIONS } from './features/styling/index.ts';
@@ -399,6 +401,12 @@ export function copyTemplates(
     }
 
     renderedFiles.push({ content: rendered, destinationPath });
+  }
+
+  // The showcase's modules are upstream's code blocks, extracted, wrapped and type-checked by the sync rather than
+  // Composed from the answers, so they are written as the sync left them. Nothing in them depends on the answers.
+  if (answers.preset === DOCS_SHOWCASE_PRESET) {
+    renderedFiles.push(...readDocsShowcaseFiles(join(getScriptDir(), '..')));
   }
 
   return writeGeneratedFiles(renderedFiles, targetDir, currentVersion, existingConfig, projectFormatter);

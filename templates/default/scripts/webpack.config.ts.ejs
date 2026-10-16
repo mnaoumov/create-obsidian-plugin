@@ -47,7 +47,7 @@ const EXTERNAL = [
         // From exactly such sources. \`onlyCompileBundledFiles\` keeps ts-loader to the graph webpack
         // Actually pulls in, instead of every file the tsconfig's \`include\` lists -- it was reaching
         // \`webpack.config.ts\` and \`scripts/dev.ts\`, which are no business of the bundle.
-        exclude: /node_modules/,
+        exclude: [/node_modules/${render('ts-loader-exclude')}],
         test: /\\.tsx?$/,
         use: {
           loader: 'ts-loader',

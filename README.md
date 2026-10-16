@@ -121,6 +121,7 @@ The wizard lets you pick and choose from the following categories:
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. `"preset": "enhanced"` still works as a deprecated alias |
 | Demo                 | All features enabled for demonstration                                                                                                                                                                                                                                                                                                                |
+| Developer docs showcase | The All-in-one Framework project, plus every code block of the [Obsidian developer docs](https://docs.obsidian.md) as a command you can run. See [Developer docs showcase](#developer-docs-showcase) |
 | Standalone           | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                                                                          |
 | Official sample plugin | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author and description filled in. See [Official sample plugin](#official-sample-plugin) |
 
@@ -139,6 +140,18 @@ Every other file is upstream's, byte for byte, including its 0BSD `LICENSE` and 
 The files come from a snapshot this release ships, pinned to an upstream commit in `upstreams.json`, so generating works offline and gives the same result every time. Pass `--latest` to copy upstream as it is today instead; if upstream cannot be reached, the shipped snapshot is used with a warning.
 
 Upstream's `npm run lint` fails on a fresh copy, and on upstream itself, until you rename the sample classes and remove the sample code: `eslint-plugin-obsidianmd` checks for exactly that. `npm run build` passes.
+
+#### Developer docs showcase
+
+`"preset": "docs-showcase"` generates the All-in-one Framework project and adds `src/docs/`: every code block of [obsidianmd/obsidian-developer-docs](https://github.com/obsidianmd/obsidian-developer-docs), each one a command. Open the command palette, type `Docs:`, and run `Docs: Vault > Modify files` to see that block of the Vault page work against a scratch note.
+
+Each block is kept as the docs show it. The generator adds only what the docs leave to the reader: the imports a block leaves out, and a host that gives the block a plugin to register things on, a note to work with, an editor, or an element to draw into. A block that declares a plugin class is loaded as a child plugin, and running its command again unloads it. A stylesheet is applied and removed the same way.
+
+`src/docs/README.md` lists every block of the docs. A block that does not compile against the `obsidian` API, or that is not plugin code (shell commands, JSON samples, diagrams), is listed there with the reason rather than left out silently.
+
+The blocks are type-checked by `src/docs/tsconfig.json`, which carries the official sample plugin's compiler options, so the project's own stricter `tsconfig.json`, linter, formatter and spell checker leave the folder alone. With the vitest answer, `npm run test:integration:desktop` runs every `Docs:` command in a real Obsidian and fails on any that throws.
+
+The blocks come from a snapshot this release ships, pinned to an upstream commit in `upstreams.json`. Maintainers refresh it with `npm run sync:docs-showcase`.
 
 ### Bundler
 

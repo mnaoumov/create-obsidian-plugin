@@ -1,0 +1,66 @@
+import { readFileSync } from 'node:fs';
+import { evalInObsidian } from 'obsidian-integration-testing';
+import {
+  describe,
+  expect,
+  it
+} from 'vitest';
+
+/**
+ * The part of Obsidian's command registry this suite reads. It is not in the public API, so it is declared here
+ * rather than taken from `obsidian`.
+ */
+interface AppWithCommands {
+  readonly commands: CommandRegistry;
+}
+
+interface CommandEntry {
+  readonly callback?: () => unknown;
+}
+
+interface CommandRegistry {
+  readonly commands: Readonly<Record<string, CommandEntry | undefined>>;
+}
+
+const PLUGIN_ID = '<%= pluginId %>';
+
+// The ids `src/docs/index.ts` registers, one per runnable code block of the docs, read when the suite is collected so
+// That each block is its own test.
+const ENTRY_ID_PATTERN = /^ {4}id: "(?<Id>[^"]+)",$/gm;
+const entryIds = [...readFileSync(new URL('docs/index.ts', import.meta.url), 'utf-8').matchAll(ENTRY_ID_PATTERN)]
+  .map((match) => match.groups?.['Id'] ?? '');
+
+// Runs every `Docs:` command in a real Obsidian and fails on any that throws: the showcase compiles by
+// Construction, and this is what proves each block also RUNS against the app it was written for.
+describe('Developer docs showcase', () => {
+  it('registers a command for every runnable code block', () => {
+    expect(entryIds.length).toBeGreaterThan(0);
+  });
+
+  for (const entryId of entryIds) {
+    it(`runs docs-${entryId}`, async () => {
+      const failure = await evalInObsidian({
+        async callback({ app, commandId }): Promise<string> {
+          const untypedApp: unknown = app;
+          const command = (untypedApp as AppWithCommands).commands.commands[commandId];
+          if (!command?.callback) {
+            return `There is no command ${commandId}.`;
+          }
+          try {
+            await command.callback();
+            return '';
+          } catch (error) {
+            return error instanceof Error ? error.message : String(error);
+          } finally {
+            // A block that opens a modal leaves it open; close it so it does not sit over the next one.
+            for (const modalContainer of activeDocument.querySelectorAll('.modal-container')) {
+              modalContainer.remove();
+            }
+          }
+        },
+        input: { commandId: `${PLUGIN_ID}:docs-${entryId}` }
+      });
+      expect(failure).toBe('');
+    });
+  }
+});
