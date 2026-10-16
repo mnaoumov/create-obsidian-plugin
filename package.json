@@ -36,6 +36,7 @@
     "prepublishOnly": "npm run verify:upstream-links && npm run verify:official-sample && npm run verify:tarball",
     "render:case": "jiti scripts/render-one-case.ts",
     "spellcheck": "jiti scripts/spellcheck.ts",
+    "sync:docs-showcase": "jiti scripts/sync-docs-showcase.ts",
     "sync:official-sample": "jiti scripts/sync-official-sample.ts",
     "test": "jiti scripts/test.ts",
     "verify:answer-space": "jiti scripts/verify-answer-space.ts",
