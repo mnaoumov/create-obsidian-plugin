@@ -17,7 +17,7 @@ import {
   makeAnswers
 } from '../src/answer-space.ts';
 import {
-  assertValidAnswer,
+  resolveAnswer,
   toAnswerKey
 } from '../src/cli-args.ts';
 import { runGate } from '../src/generated-project-checks.ts';
@@ -108,9 +108,7 @@ function parseOptions(argv: readonly string[]): Options {
     // The CLI's own checks (`src/cli-args.ts`), not a second copy. This parser used to validate the key
     // And let ANY value through, so a misspelt ANSWER gated a case it had silently renamed.
     const key = toAnswerKey(rawKey);
-    const value = rest.join('=');
-    assertValidAnswer(key, value);
-    overrides[key] = value;
+    overrides[key] = resolveAnswer(key, rest.join('='), argument);
   }
 
   return { keep, outRoot, overrides };
