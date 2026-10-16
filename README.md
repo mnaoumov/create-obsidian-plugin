@@ -51,6 +51,7 @@ Every question the wizard asks can be answered up front instead, which is what l
 | `-h`, `--help` | List every option, including the accepted values for each answer |
 | `--answersFile=<path>` | Read answers from a JSON file |
 | `--customTemplate=<dir>` | Layer your own templates over the built-in ones — see [Your own templates](#your-own-templates) |
+| `--latest` | With `--preset=official-sample`: copy the official sample plugin as it is upstream today, rather than the snapshot this release ships — see [Official sample plugin](#official-sample-plugin) |
 | `--<answer>=<value>` | Set one answer, e.g. `--packageManager=yarn` |
 
 Because `npm create` needs to be told which flags are yours rather than its own, npm takes a `--` first; pnpm, yarn and bun do not:
@@ -121,6 +122,23 @@ The wizard lets you pick and choose from the following categories:
 | All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. `"preset": "enhanced"` still works as a deprecated alias |
 | Demo                 | All features enabled for demonstration                                                                                                                                                                                                                                                                                                                |
 | Standalone           | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                                                                          |
+| Official sample plugin | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author and description filled in. See [Official sample plugin](#official-sample-plugin) |
+
+#### Official sample plugin
+
+`"preset": "official-sample"` gives you Obsidian's own sample plugin as it is, rather than a project built from this tool's templates. No other question is asked: upstream has already chosen its tooling (esbuild, ESLint with `eslint-plugin-obsidianmd`, npm), and a tooling flag beside this preset is refused.
+
+Only the plugin's identity changes:
+
+- `manifest.json`: `id`, `name`, `description`, `author`, `authorUrl` (your GitHub profile) and `fundingUrl`, which is removed if you choose no funding platform
+- `package.json` and `package-lock.json`: the package name, `obsidian-<id>`
+- `README.md`: the title
+
+Every other file is upstream's, byte for byte, including its 0BSD `LICENSE` and its `AGENTS.md`. The generator adds only its own `.create-obsidian-plugin.json`, which is what lets an update work the way it does for every preset.
+
+The files come from a snapshot this release ships, pinned to an upstream commit in `upstreams.json`, so generating works offline and gives the same result every time. Pass `--latest` to copy upstream as it is today instead; if upstream cannot be reached, the shipped snapshot is used with a warning.
+
+Upstream's `npm run lint` fails on a fresh copy, and on upstream itself, until you rename the sample classes and remove the sample code: `eslint-plugin-obsidianmd` checks for exactly that. `npm run build` passes.
 
 ### Bundler
 

@@ -4,6 +4,10 @@ import {
   DEMO_PINNED_ANSWER_KEYS,
   getAnswerableKeys
 } from './cli-args.ts';
+import {
+  isOfficialSamplePreset,
+  OFFICIAL_SAMPLE_ANSWER_KEYS
+} from './features/preset/official-sample.ts';
 
 /** Which shell an exported create-script is written for. */
 export type Shell = 'cmd' | 'sh';
@@ -93,6 +97,10 @@ export function formatCreateScript(answers: Answers, shell: Shell, customTemplat
  */
 export function getExportableKeys(answers: Answers): string[] {
   const keys = getAnswerableKeys();
+  // The official sample takes its identity answers only, and the CLI refuses every other one beside it.
+  if (isOfficialSamplePreset(answers.preset)) {
+    return keys.filter((key) => OFFICIAL_SAMPLE_ANSWER_KEYS.includes(key));
+  }
   if (answers.preset !== 'demo') {
     return keys;
   }

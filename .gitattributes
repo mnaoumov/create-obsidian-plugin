@@ -5,3 +5,7 @@
 # probably spare 39 bytes full of NULs -- but "probably" is the wrong guarantee for the only file here
 # that a line-ending conversion would silently corrupt.
 *.wasm binary
+
+# The vendored snapshot of obsidianmd/obsidian-sample-plugin is upstream's committed bytes, and the official-sample
+# preset promises them byte for byte. Upstream's own .gitignore is CRLF, so a line-ending conversion would break that.
+templates/official-sample/files/** -text
