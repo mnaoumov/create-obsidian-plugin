@@ -11,6 +11,11 @@ import {
   findUnshippedFiles,
   readCollectedTestCount
 } from './generated-project-checks.ts';
+import { Dependency } from './template-builder.ts';
+import {
+  buildPinnedVersionsJson,
+  PINNED_VERSIONS
+} from './versions.ts';
 
 describe('findBlockingAdvisories', () => {
   const braces = { severity: 'high', url: 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm' };
@@ -85,9 +90,11 @@ describe('readCollectedTestCount', () => {
 describe('findStalePins', () => {
   const PINS = JSON.stringify({
     comment: ['Release conditions.'],
-    held: { check: 'print held', expect: '^1.0.0', section: 'devDependencies', why: 'still needed' },
-    manual: { check: null, manualCheck: 'look by hand', section: 'devDependencies', why: 'no check' },
-    moved: { check: 'print moved', expect: '^16.0.0', section: 'devDependencies', why: 'the peer moved' }
+    pins: {
+      held: { check: 'print held', expect: '^1.0.0', section: 'devDependencies', why: 'still needed' },
+      manual: { check: null, manualCheck: 'look by hand', section: 'devDependencies', why: 'no check' },
+      moved: { check: 'print moved', expect: '^16.0.0', section: 'devDependencies', why: 'the peer moved' }
+    }
   });
   const OUTPUTS: Record<string, string> = { 'print held': '^1.0.0', 'print moved': '^17.3.0' };
 
@@ -101,6 +108,20 @@ describe('findStalePins', () => {
     expect(findStalePins(PINS, (command) => command === 'print held' ? { ok: false, output: 'Cannot find module' } : { ok: true, output: '^16.0.0' })).toEqual([
       'held: the check failed to run: Cannot find module'
     ]);
+  });
+
+  it('runs the checks of the file the generator actually writes', () => {
+    const json = buildPinnedVersionsJson([new Dependency('@codemirror/state'), new Dependency('obsidian')]);
+    const commands: string[] = [];
+    findStalePins(json, (command) => {
+      commands.push(command);
+      return { ok: true, output: '' };
+    });
+    expect(commands).toEqual([PINNED_VERSIONS['@codemirror/state']?.check]);
+  });
+
+  it('refuses a file with no pins object rather than passing it', () => {
+    expect(() => findStalePins(JSON.stringify({ comment: [] }), () => ({ ok: true, output: '' }))).toThrow('no "pins" object');
   });
 });
 

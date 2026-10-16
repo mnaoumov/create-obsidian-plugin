@@ -87,21 +87,21 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
   '@codemirror/state': {
     check: 'node -e "process.stdout.write(require(\'obsidian/package.json\').peerDependencies[\'@codemirror/state\'])"',
     checkRequires: 'obsidian',
-    expect: '6.5.0',
+    expect: '6.7.6',
     manualCheck: null,
     needsOverride: true,
     section: 'devDependencies',
-    version: '6.5.0',
+    version: '6.7.6',
     why: 'obsidian peers on this exact version. Anything else fails npm install with ERESOLVE, and a second copy in the tree breaks editor extensions at runtime.'
   },
   '@codemirror/view': {
     check: 'node -e "process.stdout.write(require(\'obsidian/package.json\').peerDependencies[\'@codemirror/view\'])"',
     checkRequires: 'obsidian',
-    expect: '6.38.6',
+    expect: '6.43.13',
     manualCheck: null,
     needsOverride: true,
     section: 'devDependencies',
-    version: '6.38.6',
+    version: '6.43.13',
     why: 'obsidian peers on this exact version. Anything else fails npm install with ERESOLVE, and a second copy in the tree breaks editor extensions at runtime.'
   },
   'moment': {
