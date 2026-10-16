@@ -184,11 +184,22 @@ describe('the demo pin', () => {
   });
 
   it('allows the same answers under another preset', () => {
-    expect(() => parseCliArgs(['--preset=enhanced', '--uiFramework=solid'])).not.toThrow();
+    expect(() => parseCliArgs(['--preset=all-in-one', '--uiFramework=solid'])).not.toThrow();
   });
 
   it('allows demo alongside an answer it honours', () => {
     expect(() => parseCliArgs(['--preset=demo', '--linter=biome'])).not.toThrow();
+  });
+});
+
+describe('the deprecated preset "enhanced"', () => {
+  it('is read as "all-in-one" from a flag', () => {
+    expect(parseCliArgs(['--preset=enhanced']).answers).toStrictEqual({ preset: 'all-in-one' });
+  });
+
+  it('is read as "all-in-one" from an answers file', () => {
+    const path = writeAnswersFile('deprecated.json', { preset: 'enhanced' });
+    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ preset: 'all-in-one' });
   });
 });
 

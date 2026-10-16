@@ -26,6 +26,7 @@ import {
   CONFIG_FILE_NAME,
   getPluginShortName
 } from './answers.ts';
+import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
 import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
@@ -717,6 +718,11 @@ function migrateAnswers(raw: Record<string, unknown>): void {
   answers['coverageBadge'] ??= 'none';
   // Once a stored answer, now derived from `pluginId` at render time; a stale copy must not reach the context.
   delete answers['pluginShortName'];
+  for (const [key, value] of Object.entries(answers)) {
+    if (typeof value === 'string') {
+      answers[key] = resolveDeprecatedAnswer(key, value, CONFIG_FILE_NAME);
+    }
+  }
 }
 
 /**

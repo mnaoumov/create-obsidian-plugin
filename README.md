@@ -66,7 +66,7 @@ The answers file is a JSON object using the same names. It also accepts a whole 
 
 ```json
 {
-  "preset": "enhanced",
+  "preset": "all-in-one",
   "bundler": "esbuild",
   "packageManager": "npm",
   "pluginId": "my-tool"
@@ -116,11 +116,11 @@ The wizard lets you pick and choose from the following categories:
 
 ### Preset
 
-| Option     | Description                                                                                                                           |
-|------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Demo       | All features enabled for demonstration                                                                                                |
-| Enhanced   | Recommended. Uses [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib) and its toolkits for settings, linting, and more |
-| Standalone | Standalone plugin without the @mnaoumov library dependencies                                                                          |
+| Option               | Description                                                                                                                                                                                                                                                                                                                                           |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. `"preset": "enhanced"` still works as a deprecated alias |
+| Demo                 | All features enabled for demonstration                                                                                                                                                                                                                                                                                                                |
+| Standalone           | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                                                                          |
 
 ### Bundler
 
@@ -314,7 +314,7 @@ The `.create-obsidian-plugin.json` file stores:
 
 - **EJS templates** with a partial-based composition system
 - **Logicless templates** — no `<% if %>` conditionals; conditional content via partials
-- **Two-tier scripts** — standalone has full inline scripts; enhanced wraps `@mnaoumov/obsidian-dev-toolkit` and `@mnaoumov/typescript-dev-toolkit`
+- **Two-tier scripts** — standalone has full inline scripts; All-in-one Framework wraps `@mnaoumov/obsidian-dev-toolkit` and `@mnaoumov/typescript-dev-toolkit`
 - **Root configs are thin wrappers** — actual logic lives in `scripts/`
 
 ## Sample output

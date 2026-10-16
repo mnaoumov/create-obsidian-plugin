@@ -69,7 +69,7 @@ describe('buildTemplate', () => {
       pluginDescription: 'A test plugin.',
       pluginId: 'test',
       pluginName: 'Test',
-      preset: 'enhanced',
+      preset: 'all-in-one',
       spellChecker: 'cspell',
       styling: 'none',
       testRunner: 'none',
@@ -122,7 +122,7 @@ describe('buildTemplate', () => {
     it('never registers files with .ejs extension', () => {
       const presets: Partial<Answers>[] = [
         { formatter: 'none', linter: 'none', markdownLinter: 'none', preset: 'standalone', spellChecker: 'none' },
-        { preset: 'enhanced' },
+        { preset: 'all-in-one' },
         { linter: 'none', markdownLinter: 'none', preset: 'demo', spellChecker: 'none', testRunner: 'vitest', uiFramework: 'none' },
         {
           apiSubset: 'with-unofficial',
@@ -184,8 +184,8 @@ describe('buildTemplate', () => {
     // Because the binary runs, and `typescript-eslint` because the `typescript` pin's `check` command
     // Reads its `package.json` for the peer range -- `checkRequires` silently downgrades that pin to a
     // Manual one the moment the package leaves the project.
-    it('declares only the eslint packages a dev-utils preset actually uses', () => {
-      const builder = buildTemplate(makeAnswers({ linter: 'eslint', preset: 'enhanced' }));
+    it('declares only the eslint packages a framework preset actually uses', () => {
+      const builder = buildTemplate(makeAnswers({ linter: 'eslint', preset: 'all-in-one' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('eslint');
       expect(depNames).toContain('typescript-eslint');
@@ -194,8 +194,8 @@ describe('buildTemplate', () => {
       expect(depNames).not.toContain('eslint-plugin-obsidianmd');
     });
 
-    it('emits the shared-config wrapper on a dev-utils preset and not on standalone', () => {
-      expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'enhanced' })).templateFiles]).toContain('scripts/eslint-config.ts');
+    it('emits the shared-config wrapper on a framework preset and not on standalone', () => {
+      expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'all-in-one' })).templateFiles]).toContain('scripts/eslint-config.ts');
       expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'demo' })).templateFiles]).toContain('scripts/eslint-config.ts');
       expect([...buildTemplate(makeAnswers({ linter: 'eslint', preset: 'standalone' })).templateFiles]).not.toContain('scripts/eslint-config.ts');
     });
@@ -268,7 +268,7 @@ describe('buildTemplate', () => {
     // Code that imports `obsidian`. It is tied to the runner rather than to the preset, so a project that
     // Picked no runner carries no testing dependency at all.
     it('adds the obsidian mocks for every preset that picks a runner, and never without one', () => {
-      for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const preset of ['standalone', 'all-in-one', 'demo']) {
         for (const testRunner of ['jest', 'vitest']) {
           const builder = buildTemplate(makeAnswers({ preset, testRunner }));
           const depNames = builder.dependencies.map((d) => d.packageName);
@@ -370,7 +370,7 @@ describe('buildTemplate', () => {
     });
 
     // Parcel's default bundler makes every `import()` a bundle root of its own and has no option to inline
-    // One, so on the dev-utils presets obsidian-lib's `await import(...)` of its desktop-only modules
+    // One, so on the framework presets obsidian-lib's `await import(...)` of its desktop-only modules
     // Shipped as a sibling chunk no release carries. The transformer rewrites a literal `import()` into a
     // `require()` inside an async arrow -- NOT `Promise.resolve().then(() => require())`, which Parcel
     // Recognizes as a dynamic import and splits all the same.
@@ -397,7 +397,7 @@ describe('buildTemplate', () => {
     // Build died parsing the TypeScript, or, on `demo`, handed it to the react babel pass instead. Every
     // Preset, because `demo` reaches vue through its override rather than through the answer.
     it('strips the types from vue script blocks on rollup with a babel TypeScript pass', () => {
-      for (const preset of ['standalone', 'enhanced', 'demo'] as const) {
+      for (const preset of ['standalone', 'all-in-one', 'demo'] as const) {
         const answers = makeAnswers({ bundler: 'rollup', preset, uiFramework: preset === 'demo' ? 'none' : 'vue' });
         const packages = buildTemplate(answers).dependencies.map((d) => d.packageName);
         expect(packages, preset).toContain('@babel/preset-typescript');
@@ -420,7 +420,7 @@ describe('buildTemplate', () => {
 
     // Its lists are composed from per-framework partials, each ending its item in a comma, and the keys
     // Were once in the reverse of `perfectionist/sort-objects` order: three lint errors on every
-    // Dev-utils preset that reached it.
+    // Framework preset that reached it.
     it('emits a babel config with sorted keys and no trailing commas', () => {
       const cases = [
         { expected: 'export const config = {\n  plugins: [],\n  presets: [\n    \'@babel/preset-react\'\n  ]\n};\n', uiFramework: 'react' },
@@ -432,7 +432,7 @@ describe('buildTemplate', () => {
       for (const { expected, uiFramework } of cases) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-babel-'));
         try {
-          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', uiFramework }), targetDir, '1.0.0', null);
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'all-in-one', uiFramework }), targetDir, '1.0.0', null);
           expect(readFileSync(join(targetDir, 'scripts/babel.config.ts'), 'utf-8'), uiFramework).toBe(expected);
         } finally {
           rmSync(targetDir, { force: true, recursive: true });
@@ -447,7 +447,7 @@ describe('buildTemplate', () => {
       for (const styling of ['css', 'css-modules', 'postcss', 'tailwind'] as const) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-css-'));
         try {
-          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', styling }), targetDir, '1.0.0', null);
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'all-in-one', styling }), targetDir, '1.0.0', null);
           const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
           expect(config.match(/postcss\(\{ extract: 'styles\.css' \}\)/gu), styling).toHaveLength(1);
         } finally {
@@ -462,7 +462,7 @@ describe('buildTemplate', () => {
     it('exempts the rollup config from no-rename-default rather than each import', () => {
       const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-rename-'));
       try {
-        copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'enhanced', styling: 'scss', uiFramework: 'react', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+        copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'all-in-one', styling: 'scss', uiFramework: 'react', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
         expect(readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8')).not.toContain('no-rename-default');
         expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toMatch(
           /files: \['scripts\/rollup\.config\.ts'\],\n\s+rules: \{\n\s+'import-x\/no-rename-default': 'off'/u
@@ -477,7 +477,7 @@ describe('buildTemplate', () => {
     // TS2416 three times on the codemirror sample. The tsconfig's inline source map printed one more warning
     // On every production build. No tier fails on a build warning, so only this test pins either fix.
     it('keeps the rollup TypeScript plugin warning-free', () => {
-      for (const preset of ['standalone', 'enhanced'] as const) {
+      for (const preset of ['standalone', 'all-in-one'] as const) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-ts-'));
         try {
           copyTemplates(makeAnswers({ bundler: 'rollup', editorExtensions: 'codemirror', preset }), targetDir, '1.0.0', null);
@@ -506,7 +506,7 @@ describe('buildTemplate', () => {
     // Obsidian-dev-utils' esbuild build compiles Svelte with its own copies of these two, so a declaration
     // Here is one depcheck reports as unused. `svelte-check` is the opposite: its `build:compile` refuses to
     // Build unless package.json declares it.
-    it.each(['enhanced', 'demo'])('declares only svelte-check of the svelte build tooling on %s + esbuild', (preset) => {
+    it.each(['all-in-one', 'demo'])('declares only svelte-check of the svelte build tooling on %s + esbuild', (preset) => {
       const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', preset, uiFramework: 'svelte' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('svelte');
@@ -522,7 +522,7 @@ describe('buildTemplate', () => {
       ['vite', false],
       ['parcel', false]
     ])('declares svelte-preprocess on %s only where its config imports it', (bundler, expected) => {
-      const answers = makeAnswers({ bundler, preset: 'enhanced', uiFramework: 'svelte' });
+      const answers = makeAnswers({ bundler, preset: 'all-in-one', uiFramework: 'svelte' });
       const depNames = buildTemplate(answers).dependencies.map((d) => d.packageName);
       expect(depNames.includes('svelte-preprocess')).toBe(expected);
       const targetDir = mkdtempSync(join(tmpdir(), 'cop-svelte-preprocess-'));
@@ -588,15 +588,15 @@ describe('buildTemplate', () => {
       expect(depNames.filter((name) => name.startsWith('@mnaoumov/') || name === 'obsidian-dev-utils')).toEqual([]);
     });
 
-    it('enhanced includes the runtime library and both toolkits, and not obsidian-dev-utils', () => {
-      const builder = buildTemplate(makeAnswers({ preset: 'enhanced' }));
+    it('all-in-one includes the runtime library and both toolkits, and not obsidian-dev-utils', () => {
+      const builder = buildTemplate(makeAnswers({ preset: 'all-in-one' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toEqual(expect.arrayContaining(['@mnaoumov/obsidian-lib', '@mnaoumov/obsidian-dev-toolkit', '@mnaoumov/typescript-dev-toolkit']));
       expect(depNames).not.toContain('obsidian-dev-utils');
     });
 
     it('emits the branch gate on both toolkit presets and not on standalone', () => {
-      for (const preset of ['enhanced', 'demo']) {
+      for (const preset of ['all-in-one', 'demo']) {
         const builder = buildTemplate(makeAnswers({ preset }));
         expect(builder.scripts['gate'], preset).toBe('jiti scripts/gate.ts');
         expect([...builder.templateFiles], preset).toContain('scripts/gate.ts');
@@ -618,7 +618,7 @@ describe('buildTemplate', () => {
         { linter: 'none' },
         { formatter: 'none', linter: 'none', markdownLinter: 'none', spellChecker: 'none' }
       ];
-      for (const preset of ['enhanced', 'demo']) {
+      for (const preset of ['all-in-one', 'demo']) {
         for (const overrides of noneAnswers) {
           const builder = buildTemplate(makeAnswers({ preset, ...overrides }));
           const label = `${preset} ${JSON.stringify(overrides)}`;
@@ -628,23 +628,23 @@ describe('buildTemplate', () => {
       }
     });
 
-    it('both toolkit presets add the shared dev-utils partial', () => {
-      for (const preset of ['enhanced', 'demo']) {
+    it('both toolkit presets add the shared framework partial', () => {
+      for (const preset of ['all-in-one', 'demo']) {
         const builder = buildTemplate(makeAnswers({ preset }));
-        expect(builder.partials.has('dev-utils'), preset).toBe(true);
+        expect(builder.partials.has('framework'), preset).toBe(true);
       }
     });
 
     it('keeps the two toolkit presets mutually exclusive', () => {
-      // A file with both an `_enhanced` and a `_demo` whole-file partial is composed by concatenating
-      // Every match, so a `demo` build that also carried `enhanced` emitted `src/plugin.ts` twice over.
+      // A file with both an `_all-in-one` and a `_demo` whole-file partial is composed by concatenating
+      // Every match, so a `demo` build that also carried `all-in-one` emitted `src/plugin.ts` twice over.
       const demoPartials = buildTemplate(makeAnswers({ preset: 'demo' })).partials;
       expect(demoPartials.has('demo')).toBe(true);
-      expect(demoPartials.has('enhanced')).toBe(false);
+      expect(demoPartials.has('all-in-one')).toBe(false);
 
-      const enhancedPartials = buildTemplate(makeAnswers({ preset: 'enhanced' })).partials;
-      expect(enhancedPartials.has('enhanced')).toBe(true);
-      expect(enhancedPartials.has('demo')).toBe(false);
+      const allInOnePartials = buildTemplate(makeAnswers({ preset: 'all-in-one' })).partials;
+      expect(allInOnePartials.has('all-in-one')).toBe(true);
+      expect(allInOnePartials.has('demo')).toBe(false);
     });
   });
 
@@ -731,10 +731,10 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).toContain('scripts/lint-md-fix.ts');
     });
 
-    // The dev-utils presets spread obsidian-dev-toolkit's shared config, so the two packages only the inlined
+    // The framework presets spread obsidian-dev-toolkit's shared config, so the two packages only the inlined
     // Standalone config imports would be declared for nothing there.
     it('declares markdownlint and its relative-links rule only on the standalone preset', () => {
-      for (const preset of ['enhanced', 'demo']) {
+      for (const preset of ['all-in-one', 'demo']) {
         const packages = buildTemplate(makeAnswers({ markdownLinter: 'markdownlint', preset })).dependencies.map((d) => d.packageName);
         expect(packages).not.toContain('markdownlint');
         expect(packages).not.toContain('markdownlint-rule-relative-links');
@@ -749,8 +749,8 @@ describe('buildTemplate', () => {
   // `obsidianmd/validate-license` in the shared ESLint config fails a LICENSE whose year is not the current
   // One, so a project without the bump goes red every 1 January.
   describe('update-license-year workflow', () => {
-    it('is emitted on both dev-utils presets whatever the gitHubActions answer, and not on standalone', () => {
-      expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'enhanced' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
+    it('is emitted on both framework presets whatever the gitHubActions answer, and not on standalone', () => {
+      expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'all-in-one' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
       expect([...buildTemplate(makeAnswers({ gitHubActions: 'none', preset: 'demo' })).templateFiles]).toContain('.github/workflows/update-license-year.yml');
       expect([...buildTemplate(makeAnswers({ preset: 'standalone' })).templateFiles]).not.toContain('.github/workflows/update-license-year.yml');
     });
@@ -795,10 +795,10 @@ describe('buildTemplate', () => {
 
     // The shared ESLint config rejects an unassigned import and a blank line inside one import group, so
     // The side-effect `build-styles.ts` import carries its directive and sits in the relative group.
-    it('emits the dev-utils esbuild tailwind build and dev imports as one lint-clean relative group', () => {
+    it('emits the framework esbuild tailwind build and dev imports as one lint-clean relative group', () => {
       const targetDir = mkdtempSync(join(tmpdir(), 'cop-tailwind-esbuild-'));
       try {
-        copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'enhanced', styling: 'tailwind' }), targetDir, '1.0.0', null);
+        copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'all-in-one', styling: 'tailwind' }), targetDir, '1.0.0', null);
         for (const script of ['build', 'dev']) {
           const text = readFileSync(join(targetDir, `scripts/${script}.ts`), 'utf-8');
           expect(text, script).toContain([
@@ -916,7 +916,7 @@ describe('buildTemplate', () => {
     // The toolkit's `commitlintConfig` resolves `@commitlint/config-conventional` from its own
     // Dependencies, so only the preset that extends it by name declares it.
     it('declares the conventional preset and its types only where the config is the project\'s own', () => {
-      for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const preset of ['standalone', 'all-in-one', 'demo']) {
         const depNames = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits', preset })).dependencies.map((d) => d.packageName);
         const isOwnConfig = preset === 'standalone';
         expect(depNames.includes('@commitlint/config-conventional'), preset).toBe(isOwnConfig);
@@ -927,13 +927,13 @@ describe('buildTemplate', () => {
     it('takes the staged-files config from the toolkit exactly when it runs this project\'s tools', () => {
       const toolkitShape: Partial<Answers> = { formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', spellChecker: 'cspell' };
       const cases: [Partial<Answers>, boolean][] = [
-        [{ ...toolkitShape, preset: 'enhanced' }, true],
+        [{ ...toolkitShape, preset: 'all-in-one' }, true],
         [{ ...toolkitShape, preset: 'demo' }, true],
         [{ ...toolkitShape, preset: 'standalone' }, false],
-        [{ ...toolkitShape, formatter: 'prettier', preset: 'enhanced' }, false],
-        [{ ...toolkitShape, linter: 'biome', preset: 'enhanced' }, false],
-        [{ ...toolkitShape, markdownLinter: 'none', preset: 'enhanced' }, false],
-        [{ ...toolkitShape, preset: 'enhanced', spellChecker: 'none' }, false]
+        [{ ...toolkitShape, formatter: 'prettier', preset: 'all-in-one' }, false],
+        [{ ...toolkitShape, linter: 'biome', preset: 'all-in-one' }, false],
+        [{ ...toolkitShape, markdownLinter: 'none', preset: 'all-in-one' }, false],
+        [{ ...toolkitShape, preset: 'all-in-one', spellChecker: 'none' }, false]
       ];
       for (const [overrides, expected] of cases) {
         const partials = buildTemplate(makeAnswers(overrides)).partials;
@@ -1064,7 +1064,7 @@ describe('buildTemplate', () => {
       ['vue', 'SampleVueView']
     ] as const;
 
-    it.each(['standalone', 'enhanced'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework, view]) => [preset, uiFramework, view])))(
+    it.each(['standalone', 'all-in-one'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework, view]) => [preset, uiFramework, view])))(
       'registers the %s + %s view',
       (preset, uiFramework, view) => {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-views-'));
@@ -1098,7 +1098,7 @@ describe('buildTemplate', () => {
       ['uiFramework', 'vue', './views/sample-vue-view.ts']
     ] as const;
 
-    it.each(['standalone', 'enhanced', 'demo'].flatMap((preset) => ENTRY_MODULES.map(([key, value, specifier]) => [preset, key, value, specifier])))(
+    it.each(['standalone', 'all-in-one', 'demo'].flatMap((preset) => ENTRY_MODULES.map(([key, value, specifier]) => [preset, key, value, specifier])))(
       'imports the %s + %s=%s entry module %s from plugin.ts',
       (preset, key, value, specifier) => {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-entry-modules-'));
@@ -1114,7 +1114,7 @@ describe('buildTemplate', () => {
 
     // The converse: `plugin.ts` imports nothing the answers did not emit. `demo` imported the react view
     // Unconditionally, while `demo + preact|solid` drops the forced react for the JSX runtime and so never emits it.
-    it.each(['standalone', 'enhanced', 'demo'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework]) => [preset, uiFramework])))(
+    it.each(['standalone', 'all-in-one', 'demo'].flatMap((preset) => FRAMEWORK_VIEWS.map(([uiFramework]) => [preset, uiFramework])))(
       'imports only emitted modules from plugin.ts on %s + %s',
       (preset, uiFramework) => {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-emitted-imports-'));
@@ -1139,7 +1139,7 @@ describe('buildTemplate', () => {
   // Each of these was declared and reached by nothing in the project, which depcheck reports as unused:
   // Obsidian-dev-utils depends on its own copy of the first two, and no sample imports the last two.
   describe('packages nothing in the project reaches', () => {
-    it.each(['enhanced', 'demo'])('declares no esbuild-sass-plugin on %s + esbuild', (preset) => {
+    it.each(['all-in-one', 'demo'])('declares no esbuild-sass-plugin on %s + esbuild', (preset) => {
       const depNames = buildTemplate(makeAnswers({ bundler: 'esbuild', preset, styling: 'scss' })).dependencies.map((d) => d.packageName);
       expect(depNames).not.toContain('esbuild-sass-plugin');
       expect(depNames).toContain('sass-embedded');
@@ -1150,7 +1150,7 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('esbuild-sass-plugin');
     });
 
-    it.each(['standalone', 'enhanced', 'demo'])('declares neither type-fest nor @codemirror/language on %s', (preset) => {
+    it.each(['standalone', 'all-in-one', 'demo'])('declares neither type-fest nor @codemirror/language on %s', (preset) => {
       const depNames = buildTemplate(makeAnswers({ editorExtensions: 'codemirror', preset })).dependencies.map((d) => d.packageName);
       expect(depNames).not.toContain('type-fest');
       expect(depNames).not.toContain('@codemirror/language');
@@ -1161,7 +1161,7 @@ describe('buildTemplate', () => {
 
   describe('depcheck ignores', () => {
     it('names only packages the project declares', () => {
-      for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const preset of ['standalone', 'all-in-one', 'demo']) {
         for (const dimension of ANSWER_SPACE) {
           for (const value of dimension.values) {
             const answers = makeSpaceAnswers({ [dimension.answerKey]: value, preset });
@@ -1180,7 +1180,7 @@ describe('buildTemplate', () => {
     // The patterns are the keys of the emitted object, which the shared config's
     // `perfectionist/sort-objects` checks; answers register them in question order, not sorted order.
     it('emits its patterns sorted, whatever the answers are', () => {
-      for (const preset of ['standalone', 'enhanced', 'demo']) {
+      for (const preset of ['standalone', 'all-in-one', 'demo']) {
         for (const dimension of ANSWER_SPACE) {
           for (const value of dimension.values) {
             const patterns = buildTemplate(makeSpaceAnswers({ [dimension.answerKey]: value, preset })).lintStagedPatterns.map((entry) => entry.pattern);
@@ -1617,6 +1617,14 @@ describe('copyTemplates', () => {
     expect(plugin).not.toContain('Stale');
   });
 
+  it('reads an old project\'s preset "enhanced" as "all-in-one"', () => {
+    writeFileSync(
+      join(targetDir, '.create-obsidian-plugin.json'),
+      JSON.stringify({ answers: { ...makeAnswers(), preset: 'enhanced' }, fileHashes: {}, generatorVersion: '1.0.0' })
+    );
+    expect(loadConfig(targetDir)?.answers).toMatchObject({ preset: 'all-in-one' });
+  });
+
   // The shared config's `prefer-setting-definitions` warns on a tab without it.
   // An imperative `display()` is invisible to Obsidian's settings search from 1.13.0 on.
   it('builds the standalone settings tab declaratively, with no display()', () => {
@@ -1641,7 +1649,7 @@ describe('copyTemplates', () => {
   });
 
   it('orders the README sections per the house skeleton', () => {
-    copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     const sections = [...readme.matchAll(/^## (?<Title>.+)$/gm)].map((match) => match.groups?.['Title']);
     // The skeleton puts `Demo vault` first, before any feature section.
@@ -1656,7 +1664,7 @@ describe('copyTemplates', () => {
   });
 
   it('links the demo vault from the README for the toolkit presets', () => {
-    for (const preset of ['enhanced', 'demo']) {
+    for (const preset of ['all-in-one', 'demo']) {
       rmSync(targetDir, { force: true, recursive: true });
       copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
       const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
@@ -1687,7 +1695,7 @@ describe('copyTemplates', () => {
       return (url) => patterns.some((pattern) => pattern.test(url));
     }
 
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       rmSync(targetDir, { force: true, recursive: true });
       copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset }), targetDir, '1.0.0', null);
       const config = JSON.parse(readFileSync(join(targetDir, 'linkinator.config.json'), 'utf-8')) as ParsedLinkinatorConfig;
@@ -1726,14 +1734,14 @@ describe('copyTemplates', () => {
   });
 
   it('omits the Changelog section, which the generator scaffolds no file for', () => {
-    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).not.toContain('## Changelog');
     expect(existsSync(join(targetDir, 'CHANGELOG.md'))).toBe(false);
   });
 
   it('scaffolds a demo vault for the toolkit presets', () => {
-    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one' }), targetDir, '1.0.0', null);
 
     for (const relativePath of ['00 Start.md', '01 Sample commands.md', '02 Settings.md', 'README.md']) {
       const note = readFileSync(join(targetDir, 'demo-vault', relativePath), 'utf-8');
@@ -1758,7 +1766,7 @@ describe('copyTemplates', () => {
   it('documents the WebAssembly command in the demo vault only when both answers ask for it', () => {
     const wasmNote = join(targetDir, 'demo-vault', '03 WebAssembly.md');
 
-    copyTemplates(makeAnswers({ preset: 'enhanced', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
     const note = readFileSync(wasmNote, 'utf-8');
     expect(note.startsWith('# WebAssembly\n')).toBe(true);
     expect(note).toContain('require(\'/demoSetup.ts\').runSampleWasmAnswerCommand(app);');
@@ -1770,7 +1778,7 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'src/wasm/sample-command.ts'), 'utf-8')).toContain('id: \'sample-wasm-answer\'');
 
     rmSync(targetDir, { force: true, recursive: true });
-    copyTemplates(makeAnswers({ preset: 'enhanced', wasmSupport: 'none' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', wasmSupport: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(wasmNote)).toBe(false);
     const startNote = readFileSync(join(targetDir, 'demo-vault', '00 Start.md'), 'utf-8');
     expect(startNote).not.toContain('WebAssembly');
@@ -1784,7 +1792,7 @@ describe('copyTemplates', () => {
   });
 
   it('commits both plugin ids and none of the injected app.json settings in the demo vault', () => {
-    copyTemplates(makeAnswers({ preset: 'enhanced' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one' }), targetDir, '1.0.0', null);
 
     const communityPlugins = JSON.parse(readFileSync(join(targetDir, 'demo-vault/.obsidian/community-plugins.json'), 'utf-8')) as string[];
     // Listing only the helper is a silent failure: it enables `CodeScript Toolkit`, not the plugin itself.
@@ -1801,7 +1809,7 @@ describe('copyTemplates', () => {
   it('wires both demo-vault suites only for an toolkit preset running vitest', () => {
     const suiteFiles = ['src/demo-vault.no-app.integration.test.ts', 'src/demo-vault-buttons.demo-vault.integration.test.ts'];
 
-    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'vitest' }), targetDir, '1.0.0', null);
     for (const suiteFile of suiteFiles) {
       expect(existsSync(join(targetDir, suiteFile)), suiteFile).toBe(true);
     }
@@ -1821,7 +1829,7 @@ describe('copyTemplates', () => {
   it('renders each preset-specific file exactly once for the demo preset', () => {
     copyTemplates(makeAnswers({ preset: 'demo' }), targetDir, '1.0.0', null);
     // A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so
-    // While `demo` also carried the `enhanced` partial each of these was emitted twice over.
+    // While `demo` also carried the `all-in-one` partial each of these was emitted twice over.
     for (const relativePath of ['src/plugin.ts', 'src/plugin-settings.ts', 'src/plugin-settings-component.ts', 'src/plugin-settings-tab.ts']) {
       const content = readFileSync(join(targetDir, relativePath), 'utf-8');
       const declarationCount = [...content.matchAll(/^export class (?<ClassName>\w+)/gm)].filter((match) => match.groups?.['ClassName'] !== 'TypedItem').length;
@@ -1855,10 +1863,10 @@ describe('copyTemplates', () => {
 
   // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING
   // Under `node_modules/@types` reaches the program -- measured: zero packages -- so `standalone` failed
-  // Its own `tsc --noEmit` with twelve TS2591s. The dev-utils config and this generator's own tsconfig both
+  // Its own `tsc --noEmit` with twelve TS2591s. The framework config and this generator's own tsconfig both
   // Already named what they need; standalone was the one that did not.
   it('names the node types in the tsconfig, for both presets', () => {
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
       const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
       expect(tsconfig['compilerOptions']?.['types'], preset).toContain('node');
@@ -1870,7 +1878,7 @@ describe('copyTemplates', () => {
   // Preset. Every compared plugin -- including the sample plugin the README advertises as this generator's output --
   // Names the scoped package in both places and carries no import of the old name at all.
   it('names the typings package it actually installs, on both presets', () => {
-    for (const preset of ['standalone', 'enhanced']) {
+    for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ apiSubset: 'with-unofficial', preset }), targetDir, '1.0.0', null);
       const tsconfig = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
       const packageJson = readFileSync(join(targetDir, 'package.json'), 'utf-8');
@@ -1890,7 +1898,7 @@ describe('copyTemplates', () => {
     expect(build).toContain('from \'node:child_process\'');
   });
 
-  // `lint.ts_dev-utils.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
+  // `lint.ts_framework.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
   // Obsidian-dev-utils ESLint runner whatever the linter answer said: `linter: biome` installed biome,
   // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
   // Keyed on the tool first, exactly as the format scripts already were.
@@ -1904,8 +1912,8 @@ describe('copyTemplates', () => {
     const expected = [
       ['standalone', 'eslint', 'eslint .'],
       ['standalone', 'biome', 'biome lint .'],
-      ['enhanced', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
-      ['enhanced', 'biome', 'biome lint .'],
+      ['all-in-one', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
+      ['all-in-one', 'biome', 'biome lint .'],
       ['demo', 'eslint', '@mnaoumov/obsidian-dev-toolkit/linters/eslint'],
       ['demo', 'biome', 'biome lint .'],
       ['demo', 'none', '@mnaoumov/obsidian-dev-toolkit/linters/eslint']
@@ -1964,7 +1972,7 @@ describe('copyTemplates', () => {
   });
 
   it('emits no lint script when no linter is chosen and no preset forces one', () => {
-    for (const preset of ['standalone', 'enhanced']) {
+    for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ linter: 'none', preset }), targetDir, '1.0.0', null);
       expect(existsSync(join(targetDir, 'scripts/lint.ts')), preset).toBe(false);
     }
@@ -1974,7 +1982,7 @@ describe('copyTemplates', () => {
   // @types package it does not name -- so `@types/jest` was installed and then ignored, and every
   // Jest project failed `tsc` with TS2593 on its own sample test.
   it('names the jest types when jest is the test runner, and only then', () => {
-    for (const preset of ['standalone', 'enhanced']) {
+    for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
       const withJest = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
       expect(withJest['compilerOptions']?.['types'], preset).toContain('jest');
@@ -1987,7 +1995,7 @@ describe('copyTemplates', () => {
 
   // `src/i18n/index.ts` imports `./locales/en.json`, which TypeScript refuses without this (TS2732).
   it('enables resolveJsonModule for the i18next answer, which imports a JSON locale', () => {
-    for (const preset of ['standalone', 'enhanced']) {
+    for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ internationalization: 'i18next', preset }), targetDir, '1.0.0', null);
       const config = JSON.parse(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')) as Record<string, Record<string, unknown>>;
       expect(config['compilerOptions']?.['resolveJsonModule'], preset).toBe(true);
@@ -2094,9 +2102,9 @@ describe('copyTemplates', () => {
   // While `dev.ts` was still keyed on the preset, which left every toolkit preset watching
   // With esbuild whatever was answered, its chosen bundler's config emitted, installed and unread.
   it('dev.ts and build.ts pick the same bundler on every preset', () => {
-    const presets = ['demo', 'enhanced', 'standalone'];
+    const presets = ['demo', 'all-in-one', 'standalone'];
     const bundlers = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
-    const devUtilsDevImport = '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild';
+    const frameworkDevImport = '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild';
 
     for (const preset of presets) {
       for (const bundler of bundlers) {
@@ -2108,7 +2116,7 @@ describe('copyTemplates', () => {
         if (preset !== 'standalone' && bundler === 'esbuild') {
           // The one path that genuinely differs: obsidian-dev-toolkit's `dev()` also watches node_modules
           // And re-runs build:compile, which its `build()` cannot do and no CLI bundler offers.
-          expect(devScript, label).toContain(`import { dev } from '${devUtilsDevImport}'`);
+          expect(devScript, label).toContain(`import { dev } from '${frameworkDevImport}'`);
           expect(devScript, label).toContain('dev({ customEsbuildPlugins })');
           continue;
         }
@@ -2117,7 +2125,7 @@ describe('copyTemplates', () => {
         // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
         expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
         expect(devScript, label).toContain('import(\'./build.ts\')');
-        expect(devScript, label).not.toContain(devUtilsDevImport);
+        expect(devScript, label).not.toContain(frameworkDevImport);
       }
     }
   });
@@ -2161,7 +2169,7 @@ describe('copyTemplates', () => {
       ['prettier', 'prettier']
     ]);
 
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       for (const [formatter, expectedCommand] of expectedCommands) {
         rmSync(targetDir, { force: true, recursive: true });
         copyTemplates(makeAnswers({ formatter, preset }), targetDir, '1.0.0', null);
@@ -2183,7 +2191,7 @@ describe('copyTemplates', () => {
   it('emits dprint.json wherever the dprint runner is what actually runs', () => {
     // Without it the toolkit runner silently falls back to the copy bundled in the library,
     // Which carries none of this project's own excludes -- notably `demo-vault`.
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       rmSync(targetDir, { force: true, recursive: true });
       copyTemplates(makeAnswers({ formatter: 'dprint', preset }), targetDir, '1.0.0', null);
       expect(existsSync(join(targetDir, 'dprint.json')), preset).toBe(true);
@@ -2193,9 +2201,9 @@ describe('copyTemplates', () => {
   it('keeps dprint from rewriting the double-quoted JSX attributes the shared ESLint config requires', () => {
     // `quoteStyle: alwaysSingle` reaches JSX attributes too, so dprint rewrote the samples' `type="button"`
     // To `type='button'`, while `@stylistic/jsx-quotes` in the shared config demands the double quotes back.
-    // `standalone` inlines the option. The dev-utils presets extend the toolkit's config, which sets it from
+    // `standalone` inlines the option. The framework presets extend the toolkit's config, which sets it from
     // 2.1.0, so they must not restate it and stay byte for byte the real plugins' file.
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       for (const uiFramework of ['none', 'react', 'preact', 'solid', 'svelte']) {
         if (preset === 'demo' && uiFramework !== 'none') {
           continue;
@@ -2289,7 +2297,7 @@ describe('copyTemplates', () => {
   // Obsidian installs), and jsdom (that setup writes to `Document`, `Element` and `window`). Miss one and
   // The sample test cannot even load the plugin it is testing.
   it('points jest at the obsidian mocks', () => {
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       copyTemplates(makeAnswers({ preset, testRunner: 'jest' }), targetDir, '1.0.0', null);
       const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
       expect(jestConfig, preset).toContain('\'^obsidian$\': \'obsidian-test-mocks/obsidian\'');
@@ -2298,7 +2306,7 @@ describe('copyTemplates', () => {
     }
   });
 
-  // The dev-utils presets get their alias from `defineObsidianPluginVitestConfig`; standalone has no such
+  // The framework presets get their alias from `defineObsidianPluginVitestConfig`; standalone has no such
   // Config, so it declares both halves itself. Both ARE needed: `vitest-setup` only calls
   // `vi.mock('obsidian')`, and vite has to resolve the specifier before that mock is ever consulted.
   it('points the standalone vitest config at the obsidian mocks', () => {
@@ -2335,17 +2343,17 @@ describe('copyTemplates', () => {
   // Vite refuses to parse it at all. Both get the automatic runtime from `solid-js/h`, the entry point
   // That publishes a `jsx-runtime`; plain `solid-js` does not.
   it('gives both runners a JSX runtime for the solid answer, and only for it', () => {
-    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'jest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('jsxImportSource: \'solid-js/h\'');
 
-    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'vitest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'vitest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8')).toContain('importSource: \'solid-js/h\'');
 
     copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest', uiFramework: 'solid' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'vitest.config.ts'), 'utf-8')).toContain('importSource: \'solid-js/h\'');
 
     // Wrong for every other framework's runtime, so it must not leak into them.
-    copyTemplates(makeAnswers({ preset: 'enhanced', testRunner: 'jest', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'jest', uiFramework: 'react' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('solid-js');
   });
 
@@ -2353,7 +2361,7 @@ describe('copyTemplates', () => {
   // Every webpack + solid build failed to resolve it -- and, resolved, could not have parsed it. A babel
   // Pass after ts-loader compiles the JSX, and `extensionAlias` maps the `.jsx` name back.
   it('compiles Solid JSX on webpack, and adds babel for no other framework', () => {
-    for (const preset of ['standalone', 'enhanced']) {
+    for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ bundler: 'webpack', preset, uiFramework: 'solid' }), targetDir, '1.0.0', null);
       const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
       expect(config, preset).toContain('loader: \'babel-loader\'');
@@ -2365,7 +2373,7 @@ describe('copyTemplates', () => {
       expect(devDependencies, preset).toEqual(expect.arrayContaining(['@babel/core', 'babel-loader', 'babel-preset-solid']));
     }
 
-    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'enhanced', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'all-in-one', uiFramework: 'react' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).not.toContain('babel-loader');
   });
 
@@ -2409,7 +2417,7 @@ describe('copyTemplates', () => {
   // Proving nothing, which is what hid the missing `obsidian` runtime for as long as it did. Importing the
   // Plugin under test is what gives the gate tier's non-zero collected-test count something to mean.
   it('emits a sample test that imports the plugin under test', () => {
-    for (const preset of ['standalone', 'enhanced', 'demo']) {
+    for (const preset of ['standalone', 'all-in-one', 'demo']) {
       for (const testRunner of ['jest', 'vitest']) {
         copyTemplates(makeAnswers({ preset, testRunner }), targetDir, '1.0.0', null);
         const sample = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
@@ -2483,15 +2491,15 @@ describe('copyTemplates', () => {
     expect(config).toContain('@commitlint/config-conventional');
   });
 
-  it('re-exports the toolkit\'s commitlint config on a dev-utils preset, as the real plugins do', () => {
-    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', preset: 'enhanced' }), targetDir, '1.0.0', null);
+  it('re-exports the toolkit\'s commitlint config on a framework preset, as the real plugins do', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
     expect(config).toBe('export { commitlintConfig as config } from \'@mnaoumov/typescript-dev-toolkit/commitlint-config\';\n');
   });
 
   it('emits the real plugins\' one-call nano-staged config where the toolkit runs the project\'s tools', () => {
     copyTemplates(
-      makeAnswers({ formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', preset: 'enhanced', spellChecker: 'cspell' }),
+      makeAnswers({ formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', preset: 'all-in-one', spellChecker: 'cspell' }),
       targetDir,
       '1.0.0',
       null
@@ -2547,10 +2555,10 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).toContain('e2e/**/*.ts');
   });
 
-  // On a dev-utils preset the ESLint file list lives in `scripts/eslint-config.ts`, which the root
+  // On a framework preset the ESLint file list lives in `scripts/eslint-config.ts`, which the root
   // `eslint.config.mts` re-exports -- so that is where the `e2e/` entry has to appear.
-  it('puts e2e in the tsconfig include and the ESLint file list on the enhanced preset', () => {
-    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+  it('puts e2e in the tsconfig include and the ESLint file list on the all-in-one preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', linter: 'eslint', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).toContain('e2e/**/*.ts');
     expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('e2e/**/*.ts');
   });
@@ -2564,23 +2572,23 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
   });
 
-  it('names neither list an e2e directory that was not emitted, on the enhanced preset', () => {
-    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+  it('names neither list an e2e directory that was not emitted, on the all-in-one preset', () => {
+    copyTemplates(makeAnswers({ e2eTestRunner: 'none', linter: 'eslint', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'e2e'))).toBe(false);
     expect(readFileSync(join(targetDir, 'tsconfig.json'), 'utf-8')).not.toContain('"./e2e/**/*.ts"');
     expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).not.toContain('\'e2e/**/*.ts\'');
   });
 
   // The repo's own "root configs are thin wrappers" decision, which the emitted `eslint.config.mts` was
-  // The one violation of until the dev-utils presets adopted the shared config.
-  it('emits a thin root eslint config on a dev-utils preset and an inlined one on standalone', () => {
-    copyTemplates(makeAnswers({ linter: 'eslint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+  // The one violation of until the framework presets adopted the shared config.
+  it('emits a thin root eslint config on a framework preset and an inlined one on standalone', () => {
+    copyTemplates(makeAnswers({ linter: 'eslint', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'eslint.config.mts'), 'utf-8').trim()).toBe('export { configs as default } from \'./scripts/eslint-config.ts\';');
     expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('defineEslintConfigs');
   });
 
-  it('spreads the shared markdownlint config on a dev-utils preset and inlines one on standalone', () => {
-    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'enhanced' }), targetDir, '1.0.0', null);
+  it('spreads the shared markdownlint config on a framework preset and inlines one on standalone', () => {
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8')).toContain('...obsidianMarkdownlintCli2Config');
     rmSync(targetDir, { force: true, recursive: true });
     copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'standalone' }), targetDir, '1.0.0', null);
@@ -2600,7 +2608,7 @@ describe('copyTemplates', () => {
   // The per-plugin brands are the whole of what a real plugin's wrapper overrides, so they have to
   // Survive the move into `scripts/eslint-config.ts`.
   it('carries the sentence-case brands into the shared-config wrapper', () => {
-    copyTemplates(makeAnswers({ linter: 'eslint', pluginName: 'My Awesome Plugin', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ linter: 'eslint', pluginName: 'My Awesome Plugin', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/eslint-config.ts'), 'utf-8')).toContain('\'My Awesome Plugin\'');
   });
 
@@ -2613,7 +2621,7 @@ describe('copyTemplates', () => {
   });
 
   // Vitest's default glob otherwise sweeps up `e2e/`, and `npm test` reports the end-to-end suite as
-  // Failed unit tests. The dev-utils presets escape it through their per-project `include`, jest through
+  // Failed unit tests. The framework presets escape it through their per-project `include`, jest through
   // `roots`; this config had neither.
   it('restricts the standalone vitest config to src, so the e2e suite is not collected', () => {
     copyTemplates(makeAnswers({ e2eTestRunner: 'wdio-obsidian', preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);

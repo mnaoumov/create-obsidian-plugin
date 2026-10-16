@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
  * The package each bundler needs to import `.wasm`, or `null` where the bundler needs none.
@@ -65,7 +65,7 @@ export class Wasm extends FeatureOption {
     // Only the toolkit presets ship a demo vault. The rows and the button helper the note
     // Needs in `00 Start.md`, `01 Sample commands.md` and `demoSetup.ts` are `wasm` partials, which render
     // Nowhere on `standalone` because those files are never emitted there.
-    if (isDevUtilsPreset(answers.preset)) {
+    if (isFrameworkPreset(answers.preset)) {
       builder.addFiles(['demo-vault/03 WebAssembly.md']);
     }
   }

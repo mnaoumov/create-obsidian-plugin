@@ -2,7 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { isDevUtilsPreset } from '../preset/is-dev-utils-preset.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 import { addSampleUnitTests } from './sample-unit-tests.ts';
 
 export class Vitest extends FeatureOption {
@@ -21,7 +21,7 @@ export class Vitest extends FeatureOption {
       .addPackage('obsidian-test-mocks')
       .addDepcheckIgnore(
         'obsidian-test-mocks',
-        isDevUtilsPreset(answers.preset)
+        isFrameworkPreset(answers.preset)
           ? 'aliased and loaded as a setup file by name by `defineObsidianPluginVitestConfig` from @mnaoumov/obsidian-dev-toolkit.'
           : 'aliased and loaded as a setup file by name in `vitest.config.ts`.'
       )
@@ -33,9 +33,9 @@ export class Vitest extends FeatureOption {
         'src/plugin.test.ts',
         'scripts/test.ts',
         'scripts/test-watch.ts',
-        // Both presets, not just the dev-utils ones: the emitted `src/plugin.ts` reaches `src/wasm/answer.ts`
+        // Both presets, not just the framework ones: the emitted `src/plugin.ts` reaches `src/wasm/answer.ts`
         // On every preset when the `wasm` answer is chosen, so every vitest config aliases `.wasm` to
-        // This stub. `framework-component-stub.ts` is dev-utils-only because only those presets' `plugin.ts`
+        // This stub. `framework-component-stub.ts` is framework-only because only those presets' `plugin.ts`
         // Reaches a single-file component.
         'scripts/wasm-module-stub.ts',
         // `src/main.test.ts` imports `src/main.ts`, which imports the stylesheet -- and on `tailwind` that
@@ -45,7 +45,7 @@ export class Vitest extends FeatureOption {
 
     addSampleUnitTests(builder, answers);
 
-    if (!isDevUtilsPreset(answers.preset)) {
+    if (!isFrameworkPreset(answers.preset)) {
       return;
     }
 

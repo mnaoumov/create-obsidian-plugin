@@ -105,7 +105,7 @@ Every script above sweeps the space, which is what makes none of them the tool f
 while actually changing a template: *what does this one combination emit?*
 
 ```bash
-npm run render:case -- preset=enhanced bundler=webpack --show=scripts/dev.ts,scripts/build.ts
+npm run render:case -- preset=all-in-one bundler=webpack --show=scripts/dev.ts,scripts/build.ts
 ```
 
 Bare `question=answer` arguments override individual answers; everything else takes its default. Both

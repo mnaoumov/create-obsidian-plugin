@@ -43,11 +43,11 @@ const JSON_INDENT_SPACES = 2;
 /**
  * The presets compared, and the scope each one's findings are filed under.
  *
- * Both, and not just the default: `isDevUtilsPreset` covers `enhanced` and `demo` alike, and `demo` forces a
- * second answer into several questions, so it emits files `enhanced` never does. A tier that checked
+ * Both, and not just the default: `isFrameworkPreset` covers `all-in-one` and `demo` alike, and `demo` forces a
+ * second answer into several questions, so it emits files `all-in-one` never does. A tier that checked
  * only the default would call those files verified when nothing had looked at them.
  */
-const PRESETS = ['enhanced', 'demo'];
+const PRESETS = ['all-in-one', 'demo'];
 
 interface Baseline {
   accepted: Record<string, BaselineEntry>;
