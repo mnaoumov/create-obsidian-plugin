@@ -630,7 +630,7 @@ function getFundingTemplateContext(answers: Answers): Record<string, string> {
 /**
  * The linkinator `skip` pattern for the plugin's own GitHub repository, read by `linkinator.config.json`.
  *
- * Anchored at the start, so the BRAT install link, which carries the repository URL in its query, is
+ * Anchored at the start, so the `BRAT` install link, which carries the repository URL in its query, is
  * still checked. linkinator splits a `skip` entry on whitespace and commas, which a GitHub name and a
  * plugin id cannot contain.
  */

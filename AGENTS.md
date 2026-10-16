@@ -111,13 +111,13 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 ### The obsidian-dev-utils presets ship a demo vault
 
-`demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by CodeScript Toolkit. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
+`demo-vault/` is the generated plugin's documentation: notes that explain each feature and demonstrate it with `code-button`s run by `CodeScript Toolkit`. `obsidian-dev-utils` archives it into the GitHub release and injects the built plugin plus the `demo-vault-helper` bootstrap plugin into the archived copy, so the vault commits nothing under `.obsidian/plugins/` and none of the four `app.json` settings the library owns.
 
 Only the `dev-utils` presets get one: `standalone` has no release flow to do the injecting, so its vault would never reach a release — and the root README's `## Demo vault` section is omitted there for the same reason.
 
 A note that only some answers need is registered by that answer's `configure` behind `isDevUtilsPreset`, and reaches the vault through seams rather than conditionals: `00 Start.md` renders a `features` section inside its `## Features` table (the coverage suite fails a note `00 Start.md` does not reach), and `01 Sample commands.md` and `demoSetup.ts` each render a `commands` section. `wasm` is the one user today, with `03 WebAssembly.md`. Each seam renders nothing on a project that did not answer for it.
 
-Two suites guard it, both emitted only when the preset is `dev-utils` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so CodeScript Toolkit installs — see the generated `CONTRIBUTING.md`.
+Two suites guard it, both emitted only when the preset is `dev-utils` AND the test runner is vitest (both are vitest suites): `registerDemoVaultCoverageSuite` reads the notes without launching Obsidian, and `registerDemoVaultButtonSuite` clicks every button in a real one. The button suite needs `demo-vault/` opened in Obsidian once so `CodeScript Toolkit` installs — see the generated `CONTRIBUTING.md`.
 
 ### Unit tests import the plugin, which is what forces every piece of the mock wiring
 
@@ -329,7 +329,7 @@ pushes the repository and cuts a release, so without a skip a fresh project fail
 `version` for a reason nothing local can fix. The markdownlint answer therefore emits `linkinator.config.json`
 under every preset. Both presets' `lint:md` run linkinator from the project root with no `--config` or `--skip`,
 and linkinator reads that file by default and merges it under its flags. Its one `skip` pattern
-(`getOwnRepoLinkPattern`, `src/templates.ts`) is anchored, so the BRAT install link that carries the repo URL in
+(`getOwnRepoLinkPattern`, `src/templates.ts`) is anchored, so the `BRAT` install link that carries the repo URL in
 its query is still checked. The author's profile link stays checked too, because it exists for a real author
 and is what catches a mistyped GitHub name. No tier runs `lint:md`: it needs the network, and the fixture author
 `testuser` has no GitHub profile.
