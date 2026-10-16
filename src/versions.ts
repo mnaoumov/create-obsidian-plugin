@@ -210,6 +210,19 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
   }
 };
 
+/**
+ * Advisories at or above the gate's audit threshold that no override can clear, keyed by GHSA id.
+ *
+ * The gate tier fails `npm audit` at `high`, and an advisory with no patched release is high in every
+ * framework project: npm then reports each package between it and the project as high too, so one
+ * advisory reads as seven. Listing it here lets the gate pass on it while still failing on any other
+ * high advisory. Remove an entry once a patched release exists, and add the override for it to
+ * {@link ADVISORY_OVERRIDES} instead.
+ */
+export const UNPATCHED_ADVISORIES: Record<string, string> = {
+  'GHSA-vfj7-8cjw-p6xm': 'braces: stack-exhaustion denial of service through deeply nested patterns. Every published version is affected, so there is nothing to override it to. It is reached through the markdownlint-cli2 -> globby -> fast-glob -> micromatch chain the toolkits declare.'
+};
+
 // The same source `@mnaoumov/obsidian-dev-toolkit/version` reads when it stamps `minAppVersion` on a
 // Release, so the scaffold and the project's first `npm run version` agree on where the number comes from.
 const DESKTOP_RELEASES_JSON_URL = 'https://raw.githubusercontent.com/obsidianmd/obsidian-releases/master/desktop-releases.json';

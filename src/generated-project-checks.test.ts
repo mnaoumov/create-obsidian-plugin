@@ -5,11 +5,37 @@ import {
 } from 'vitest';
 
 import {
+  findBlockingAdvisories,
   findStalePins,
   findUnbundledRequires,
   findUnshippedFiles,
   readCollectedTestCount
 } from './generated-project-checks.ts';
+
+describe('findBlockingAdvisories', () => {
+  const braces = { severity: 'high', url: 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm' };
+  const report = {
+    vulnerabilities: {
+      braces: { via: [braces] },
+      katex: { via: [{ severity: 'low', url: 'https://github.com/advisories/GHSA-238p-pmpm-9mq7' }] },
+      micromatch: { via: ['braces'] }
+    }
+  };
+
+  it('passes a report whose only high advisory is accepted, however many packages npm marks high', () => {
+    expect(findBlockingAdvisories(report, new Set(['GHSA-vfj7-8cjw-p6xm']))).toEqual([]);
+  });
+
+  it('names a high advisory that is not accepted, once', () => {
+    expect(findBlockingAdvisories(report, new Set())).toEqual(['GHSA-vfj7-8cjw-p6xm']);
+  });
+
+  it('blocks a critical advisory beside an accepted high one', () => {
+    const critical = { severity: 'critical', url: 'https://github.com/advisories/GHSA-aaaa-bbbb-cccc' };
+    const withCritical = { vulnerabilities: { ...report.vulnerabilities, other: { via: [critical] } } };
+    expect(findBlockingAdvisories(withCritical, new Set(['GHSA-vfj7-8cjw-p6xm']))).toEqual(['GHSA-aaaa-bbbb-cccc']);
+  });
+});
 
 describe('readCollectedTestCount', () => {
   const VITEST_PASSED = 3;
