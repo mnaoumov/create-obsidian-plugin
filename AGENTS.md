@@ -287,6 +287,24 @@ command for it, and it can never run an empty `nano-staged-config.ts`. Both hook
 gets no husky at all. The real plugins beside this repo split the same way: all of them run nano-staged, and
 only some also run commitlint.
 
+On the dev-utils presets both configs come from typescript-dev-toolkit, as in the real plugins.
+`scripts/commitlint-config.ts` re-exports `commitlintConfig`, which resolves `@commitlint/config-conventional`
+from the toolkit's own dependencies, so only `standalone` declares that package and `@commitlint/types`.
+`scripts/nano-staged-config.ts` is `getNanoStagedConfig()` only when `usesToolkitNanoStagedConfig`
+(`src/features/git-hooks.ts`) holds: a dev-utils preset with eslint, dprint, markdownlint and cspell.
+That function's tasks are fixed (`lint:fix`, `format`, `lint:md:fix`, `spellcheck`, each given the
+staged paths), so any other project would fail a commit on a missing script, or have prettier or biome
+rewrite the whole tree. Those projects get the inline config built from `addLintStagedCommand`.
+
+### Every answer says whether the toolkits run it
+
+`src/toolkit-parity.test.ts` puts every answer value in exactly one of three tables. `TOOLKIT_BACKED`
+lists the answers a toolkit runs, each with the module the emitted `enhanced` project imports, and the
+test renders the answer and checks that import. `AWAITING_TOOLKIT` lists the tools the toolkits do not
+run yet, with what each lacks. `NOT_TOOLKIT_CONCERN` lists answers that are not tooling. A new option
+fails the test until it is classified. When toolkit support for an awaiting entry ships, switch its
+dev-utils templates to the toolkit, delete the project's own copy, and move the entry to `TOOLKIT_BACKED`.
+
 ### `npm run gate` is emitted on every dev-utils preset
 
 `scripts/gate.ts` is the one-line wrapper over typescript-dev-toolkit's `gate()` that every real plugin ships

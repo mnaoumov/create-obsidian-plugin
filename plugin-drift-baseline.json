@@ -135,10 +135,6 @@
       "pluginCount": 20,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
     },
-    "demo/dev-utils-modules/missing/scripts/nano-staged-config.ts": {
-      "pluginCount": 32,
-      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so a dev-utils preset paired with biome or prettier would get commands for tools it does not have."
-    },
     "demo/dev-utils-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 30,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
@@ -250,10 +246,6 @@
     "enhanced/layout/partial/src/styles/scss.d.ts": {
       "pluginCount": 20,
       "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
-    },
-    "enhanced/dev-utils-modules/missing/scripts/nano-staged-config.ts": {
-      "pluginCount": 32,
-      "why": "The generator renders the nano-staged commands from the linter and formatter actually chosen. `getNanoStagedConfig()` cannot do that -- it returns the real plugins' own eslint + dprint + cspell + markdownlint set -- so a dev-utils preset paired with biome or prettier would get commands for tools it does not have."
     },
     "enhanced/dev-utils-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 30,

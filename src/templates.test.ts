@@ -909,9 +909,37 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('@commitlint/cli');
-      expect(depNames).toContain('@commitlint/config-conventional');
       expect(depNames).toContain('husky');
       expect(depNames).toContain('nano-staged');
+    });
+
+    // The toolkit's `commitlintConfig` resolves `@commitlint/config-conventional` from its own
+    // Dependencies, so only the preset that extends it by name declares it.
+    it('declares the conventional preset and its types only where the config is the project\'s own', () => {
+      for (const preset of ['standalone', 'enhanced', 'demo']) {
+        const depNames = buildTemplate(makeAnswers({ commitLinting: 'conventional-commits', preset })).dependencies.map((d) => d.packageName);
+        const isOwnConfig = preset === 'standalone';
+        expect(depNames.includes('@commitlint/config-conventional'), preset).toBe(isOwnConfig);
+        expect(depNames.includes('@commitlint/types'), preset).toBe(isOwnConfig);
+      }
+    });
+
+    it('takes the staged-files config from the toolkit exactly when it runs this project\'s tools', () => {
+      const toolkitShape: Partial<Answers> = { formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', spellChecker: 'cspell' };
+      const cases: [Partial<Answers>, boolean][] = [
+        [{ ...toolkitShape, preset: 'enhanced' }, true],
+        [{ ...toolkitShape, preset: 'demo' }, true],
+        [{ ...toolkitShape, preset: 'standalone' }, false],
+        [{ ...toolkitShape, formatter: 'prettier', preset: 'enhanced' }, false],
+        [{ ...toolkitShape, linter: 'biome', preset: 'enhanced' }, false],
+        [{ ...toolkitShape, markdownLinter: 'none', preset: 'enhanced' }, false],
+        [{ ...toolkitShape, preset: 'enhanced', spellChecker: 'none' }, false]
+      ];
+      for (const [overrides, expected] of cases) {
+        const partials = buildTemplate(makeAnswers(overrides)).partials;
+        expect(partials.has('toolkit-nano-staged'), JSON.stringify(overrides)).toBe(expected);
+        expect(partials.has('inline-nano-staged'), JSON.stringify(overrides)).toBe(!expected);
+      }
     });
 
     it('adds no files for none', () => {
@@ -2453,6 +2481,25 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
     expect(config).toContain('@commitlint/config-conventional');
+  });
+
+  it('re-exports the toolkit\'s commitlint config on a dev-utils preset, as the real plugins do', () => {
+    copyTemplates(makeAnswers({ commitLinting: 'conventional-commits', preset: 'enhanced' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
+    expect(config).toBe('export { commitlintConfig as config } from \'@mnaoumov/typescript-dev-toolkit/commitlint-config\';\n');
+  });
+
+  it('emits the real plugins\' one-call nano-staged config where the toolkit runs the project\'s tools', () => {
+    copyTemplates(
+      makeAnswers({ formatter: 'dprint', linter: 'eslint', markdownLinter: 'markdownlint', preset: 'enhanced', spellChecker: 'cspell' }),
+      targetDir,
+      '1.0.0',
+      null
+    );
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
+    expect(config).toBe(
+      'import { getNanoStagedConfig } from \'@mnaoumov/typescript-dev-toolkit/nano-staged-config\';\n\nexport const config = getNanoStagedConfig();\n'
+    );
   });
 
   it('creates nano-staged config with eslint command', () => {
