@@ -1148,6 +1148,21 @@ describe('buildTemplate', () => {
     });
   });
 
+  describe('nano-staged config', () => {
+    // The patterns are the keys of the emitted object, which the shared config's
+    // `perfectionist/sort-objects` checks; answers register them in question order, not sorted order.
+    it('emits its patterns sorted, whatever the answers are', () => {
+      for (const preset of ['standalone', 'enhanced', 'demo']) {
+        for (const dimension of ANSWER_SPACE) {
+          for (const value of dimension.values) {
+            const patterns = buildTemplate(makeSpaceAnswers({ [dimension.answerKey]: value, preset })).lintStagedPatterns.map((entry) => entry.pattern);
+            expect(patterns, `preset=${preset} ${dimension.answerKey}=${value}`).toEqual([...patterns].sort((a, b) => a.localeCompare(b)));
+          }
+        }
+      }
+    });
+  });
+
   describe('all scripts use default convention', () => {
     it('every script follows jiti scripts/{name}.ts pattern', () => {
       const configs: Partial<Answers>[] = [
@@ -1884,6 +1899,13 @@ describe('copyTemplates', () => {
     expect(builder.templateFiles.has('eslint.config.mts')).toBe(false);
     expect(builder.dependencies.map((dependency) => dependency.packageName)).not.toContain('eslint');
     expect(builder.lintStagedPatterns.flatMap((pattern) => pattern.commands)).not.toContain('eslint --fix');
+  });
+
+  it('renders markdownlint\'s *.md after the ESLint pattern the demo preset forces in', () => {
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset: 'demo' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, 'scripts/nano-staged-config.ts'), 'utf-8');
+    const keys = [...config.matchAll(/^ {2}'(?<pattern>[^']+)': \[/gm)].map((match) => match.groups?.['pattern']);
+    expect(keys).toEqual(['*.{ts,tsx,mts}', '*.md']);
   });
 
   // The rendered half of "drops a forced UI framework that would fight the chosen one". `JSON.parse`

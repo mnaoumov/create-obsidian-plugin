@@ -53,7 +53,9 @@ export class TemplateBuilder {
   }
 
   public get lintStagedPatterns(): LintStagedPattern[] {
-    return [...this._lintStagedPatterns.entries()].map(([pattern, commands]) => ({ commands: [...commands], pattern }));
+    return [...this._lintStagedPatterns.entries()]
+      .map(([pattern, commands]) => ({ commands: [...commands], pattern }))
+      .sort((a, b) => a.pattern.localeCompare(b.pattern));
   }
 
   public get partials(): Set<string> {
@@ -129,6 +131,11 @@ export class TemplateBuilder {
    * The commands are collected here rather than concatenated from template partials because a partial can
    * only ever emit `'<command>',` -- and the trailing comma the last one leaves behind is exactly what the
    * generated formatter config strips, so the file failed its own `format:check`.
+   *
+   * The patterns are rendered sorted, not in registration order: they become the keys of the emitted
+   * `nano-staged-config.ts` object, which the shared ESLint config's `perfectionist/sort-objects` checks,
+   * and answers register them in question order (markdownlint's `*.md` before the `*.{ts,tsx,mts}` that
+   * `preset: demo` forces in). Commands under one pattern keep their order, since nano-staged runs them so.
    */
   public addLintStagedCommand(pattern: string, command: string): this {
     const commands = this._lintStagedPatterns.get(pattern) ?? [];
