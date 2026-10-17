@@ -6,7 +6,11 @@ import {
   statSync
 } from 'node:fs';
 import { builtinModules } from 'node:module';
-import { join } from 'node:path';
+import {
+  join,
+  relative,
+  sep
+} from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
 
 import type { Answers } from './answers.ts';
@@ -186,14 +190,22 @@ const OWNED_BY_ANOTHER_STEP_PATTERN = /\.(?:[cm]?js|css|wasm)$/;
 const WASM_MODULE_PATH = 'src/wasm/module.wasm';
 
 /**
- * Matches the side-effect stylesheet import in the emitted `src/main.ts`.
+ * Matches a stylesheet import in an emitted `src/` module: the side-effect form `src/main.ts` uses, or a
+ * CSS module's class names bound to a default import, which is how the css-modules sample reaches its
+ * stylesheet. A bare import of a CSS module is not enough under vite, which drops it with its CSS.
  *
- * Read out of the generated file rather than derived from `answers.styling`, for the reason
+ * Read out of the generated files rather than derived from `answers.styling`, for the reason
  * {@link runScriptStep} gives about scripts: `DEMO_OVERRIDES` forces `styling: 'scss'` on the demo
  * preset whatever was answered, so an expectation built from the raw answers calls a correct project
  * wrong. The import is the thing that makes the bundler emit CSS, so the import is the trigger.
  */
-const STYLESHEET_IMPORT_PATTERN = /^import '[^']+\.(?:css|less|sass|scss)';/m;
+const STYLESHEET_IMPORT_PATTERN = /^import (?:\w+ from )?'[^']+\.(?:css|less|sass|scss)';/m;
+
+/**
+ * Upstream's code blocks, which the docs-showcase preset copies verbatim. Not the project's own
+ * stylesheet imports, so the `styles` trigger does not read them.
+ */
+const DOCS_SHOWCASE_FOLDER = join('src', 'docs');
 
 /**
  * Matches a `require()` of a string literal in the bundle, capturing the specifier.
@@ -599,14 +611,8 @@ function checkStyles(targetDir: string, passed: GateStep[], skipped: GateStep[])
     return [];
   }
 
-  let mainTs: string;
-  try {
-    mainTs = readFileSync(join(targetDir, 'src', 'main.ts'), 'utf-8');
-  } catch {
-    mainTs = '';
-  }
-
-  if (!STYLESHEET_IMPORT_PATTERN.test(mainTs)) {
+  const importingModule = findStylesheetImportingModule(targetDir);
+  if (importingModule === undefined) {
     skipped.push('styles');
     return [];
   }
@@ -641,7 +647,7 @@ function checkStyles(targetDir: string, passed: GateStep[], skipped: GateStep[])
   }
 
   return [{
-    detail: `\`src/main.ts\` imports a stylesheet, so the build emits one, but ${problems.join(' ')}\n`
+    detail: `\`${importingModule}\` imports a stylesheet, so the build emits one, but ${problems.join(' ')}\n`
       + `CSS in \`${BUILD_DIST_FOLDER}\`: ${emitted.length > 0 ? emitted.join(', ') : '(none)'}`,
     kind: 'unreadable-stylesheet',
     step: 'styles'
@@ -779,6 +785,28 @@ function execCommand(packageManager: string): string {
   // "Couldn't find the binary tsc"), so reaching for every manager's own exec subcommand would trade
   // One broken case for another.
   return packageManager === 'bun' ? 'bun x' : 'npx';
+}
+
+/**
+ * The first emitted `src/` TypeScript module that imports a stylesheet, as a `/`-separated path, or
+ * `undefined` when none does. `src/main.ts` is read first, since that is where every styling answer but
+ * css-modules imports its stylesheet.
+ */
+function findStylesheetImportingModule(targetDir: string): string | undefined {
+  let modules: string[];
+  try {
+    modules = readdirSync(join(targetDir, 'src'), { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile() && /\.tsx?$/.test(entry.name))
+      .map((entry) => relative(targetDir, join(entry.parentPath, entry.name)))
+      .filter((path) => !path.startsWith(DOCS_SHOWCASE_FOLDER + sep));
+  } catch {
+    return undefined;
+  }
+
+  const mainTs = join('src', 'main.ts');
+  modules.sort((a, b) => Number(b === mainTs) - Number(a === mainTs));
+  const found = modules.find((path) => STYLESHEET_IMPORT_PATTERN.test(readFileSync(join(targetDir, path), 'utf-8')));
+  return found?.replaceAll('\\', '/');
 }
 
 /**
