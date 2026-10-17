@@ -3,7 +3,8 @@ import {
   existsSync,
   readdirSync,
   readFileSync,
-  statSync
+  statSync,
+  writeFileSync
 } from 'node:fs';
 import { builtinModules } from 'node:module';
 import {
@@ -39,12 +40,15 @@ export type GateStep =
   | 'audit'
   | 'build'
   | 'bundle'
+  | 'commit'
   | 'compile'
+  | 'coverage'
   | 'format'
   | 'install'
   | 'lint'
   | 'pins'
   | 'release-files'
+  | 'spellcheck-after-outputs'
   | 'spellcheck'
   | 'styles'
   | 'test'
@@ -70,10 +74,14 @@ export interface GateViolation {
  * WebAssembly module in a separate file that an Obsidian release does not ship; the bundler ran, reported
  * success, and wrote something else beside the bundle that the release leaves behind.
  *
+ * `committed-output` is a file the project's own steps wrote -- a coverage report, a build -- that a first
+ * `git add -A` commits, because `.gitignore` does not name it.
+ *
  * `stale-pin` is a pin in `pinned-versions.json` whose own check no longer prints what it expects, which
  * nothing fails on until the pin breaks an install.
  */
 export type GateViolationKind =
+  | 'committed-output'
   | 'no-tests-collected'
   | 'split-bundle'
   | 'stale-pin'
@@ -82,6 +90,10 @@ export type GateViolationKind =
   | 'unbundled-wasm-module'
   | 'unreadable-stylesheet'
   | 'unshipped-file';
+
+interface LinkinatorConfig {
+  skip?: string[];
+}
 
 interface PackageJsonScripts {
   scripts?: Record<string, string>;
@@ -168,6 +180,13 @@ const COMMAND_TIMEOUT_MS = 900_000;
  * `join(targetDir, BUILD_DIST_FOLDER)` normalizes it for the filesystem either way.
  */
 const BUILD_DIST_FOLDER = 'dist/build';
+
+/** What the gate's own steps write into the project, none of which belongs in its first commit. */
+const COMMITTED_OUTPUT_FOLDERS: readonly string[] = ['coverage', 'dist', 'node_modules'];
+
+const LINKINATOR_CONFIG_FILE = 'linkinator.config.json';
+
+const JSON_INDENT_SPACES = 2;
 
 /** The one script Obsidian loads. Any other `.js` beside it ships with no release and is never read. */
 const MAIN_JS = 'main.js';
@@ -381,6 +400,11 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   violations.push(...runScriptStep('spellcheck', 'spellcheck', targetDir, answers, scripts, passed, skipped));
   violations.push(...checkFormat(targetDir, answers, scripts, passed, skipped));
   violations.push(...checkTests(targetDir, answers, scripts, passed, skipped));
+  violations.push(...runScriptStep('coverage', 'test:coverage', targetDir, answers, scripts, passed, skipped));
+  // The first spellcheck ran before anything wrote a report, so it cannot see one that `cspell.json` does not
+  // Ignore. A coverage report left the gate green and the next `spellcheck` red on about 80 words.
+  violations.push(...runScriptStep('spellcheck-after-outputs', 'spellcheck', targetDir, answers, scripts, passed, skipped));
+  violations.push(...checkCommit(targetDir, answers, scripts, passed));
 
   return {
     durationMs: Date.now() - started,
@@ -495,6 +519,43 @@ function checkBundle(targetDir: string, passed: GateStep[], skipped: GateStep[])
     kind: 'split-bundle',
     step: 'bundle'
   }];
+}
+
+/**
+ * Takes the project's first commit the way its author would: `git init`, the `prepare` script that installs the
+ * hooks, `git add -A`, `git commit`.
+ *
+ * Last, so the tree holds everything the other steps wrote. Two failures only show here. The pre-commit hook hands
+ * its tools the staged paths, dotfiles included, where the project-wide scripts skip them, so a word in
+ * `.create-obsidian-plugin.json` failed the hook's cspell while `spellcheck` passed. And `committed-output` is an
+ * output `.gitignore` does not name, which the commit takes in.
+ */
+function checkCommit(targetDir: string, answers: Answers, scripts: Readonly<Record<string, string>>, passed: GateStep[]): GateViolation[] {
+  skipAuthorProfileLink(targetDir, answers);
+  const commands = [
+    `git init -b ${answers.defaultBranch}`,
+    ...(Object.hasOwn(scripts, 'prepare') ? [runScriptCommand(answers, 'prepare')] : []),
+    'git add -A',
+    'git -c user.name=create-obsidian-plugin -c user.email=gate@create-obsidian-plugin.invalid commit -m "chore: initial commit"'
+  ];
+  for (const command of commands) {
+    const result = run(command, targetDir);
+    if (!result.ok) {
+      return [{ detail: `${command}\n${result.output}`, kind: 'step-failed', step: 'commit' }];
+    }
+  }
+
+  const committedOutputs = run(`git ls-files -- ${COMMITTED_OUTPUT_FOLDERS.join(' ')}`, targetDir).output;
+  if (committedOutputs) {
+    return [{
+      detail: `The first commit took in files the project's own steps wrote, which .gitignore does not name:\n${committedOutputs}`,
+      kind: 'committed-output',
+      step: 'commit'
+    }];
+  }
+
+  passed.push('commit');
+  return [];
 }
 
 /**
@@ -884,4 +945,21 @@ function runScriptStep(
 
   passed.push(step);
   return [];
+}
+
+/**
+ * Tells linkinator to skip the author's GitHub profile, which the pre-commit hook's `lint:md:fix` checks.
+ *
+ * The harness's own opt-out, like pnpm's `minimumReleaseAge` in {@link installCommand}: the fixture author `testuser`
+ * has no profile, so the link 404s for a reason that is about the fixture, not the project. A real author's profile
+ * stays checked in a real project, because it is what catches a mistyped GitHub name.
+ */
+function skipAuthorProfileLink(targetDir: string, answers: Answers): void {
+  const configPath = join(targetDir, LINKINATOR_CONFIG_FILE);
+  if (!existsSync(configPath)) {
+    return;
+  }
+  const config = JSON.parse(readFileSync(configPath, 'utf-8')) as LinkinatorConfig;
+  config.skip = [...config.skip ?? [], `^https://github\\.com/${answers.authorGitHubName}/?$`];
+  writeFileSync(configPath, `${JSON.stringify(config, null, JSON_INDENT_SPACES)}\n`);
 }
