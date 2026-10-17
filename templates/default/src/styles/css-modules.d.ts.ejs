@@ -1,10 +1,9 @@
 // A CSS module's default export is its scoped class names, keyed by the names the stylesheet uses.
 // TypeScript resolves an import against the FIRST declared pattern among equally long prefixes, so a
 // `declare module '*.css'` read before a `'*.module.css'` one types every CSS module as `any`, and the
-// typed lint rules then reject each use of its class names. obsidian-dev-toolkit's `types/styles` is
-// declared in that order. This file is in the program before any `types` entry, so its pattern is met
-// first; it is spelled `*module.css`, without the dot, because the same pattern string would merge with
-// the toolkit's declaration into a duplicate default export.
+// typed lint rules then reject each use of its class names. It is spelled `*module.css`, without the
+// dot, because the same pattern string would merge with obsidian-dev-toolkit's declaration into a
+// duplicate default export.
 declare module '*module.css' {
   const classNames: Readonly<Record<string, string>>;
   export default classNames;

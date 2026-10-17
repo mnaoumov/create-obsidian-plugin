@@ -736,12 +736,13 @@ module's `sampleNotice` class, reached from each preset's `plugin.ts` through it
 seams the way the wasm sample is. The rule needs a declaration too: every minifier drops an empty one,
 which is how esbuild emitted an empty `styles.css` before.
 
-**`src/styles/css-modules.d.ts` is emitted on the framework presets too.** obsidian-dev-toolkit's
-`types/styles` declares `*.css` before `*.module.css`, and TypeScript takes the first of two patterns with
-equally long prefixes, so the module came out `any` and the typed lint rules rejected every use of
-its class names. The project's own file is in the program before any `types` entry, and it is spelled
-`*module.css` because the same pattern string would merge with the toolkit's into a duplicate default
-export. It stays harmless once the toolkit reorders its declarations.
+**`src/styles/css-modules.d.ts` is emitted on the framework presets too.** TypeScript takes the first of
+two patterns with equally long prefixes, so a `*.css` declaration read before `*.module.css` types the
+module `any` and the typed lint rules reject every use of its class names. obsidian-dev-toolkit's
+`types/styles` declared them in that order until 3.4.1, and the project's own file, which is in the
+program before any `types` entry, is what kept the class names typed. From 3.4.1 the toolkit types them
+itself and the file is redundant there, but harmless: it is spelled `*module.css` because the same
+pattern string would merge with the toolkit's into a duplicate default export.
 
 ### Every bundler has to be told to INLINE the WebAssembly module into `main.js`
 
