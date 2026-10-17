@@ -3,7 +3,7 @@
  *
  * `src/main.ts` imports the plugin's stylesheet for its side effect, so that the bundler emits
  * `styles.css` -- and `src/main.test.ts` imports `src/main.ts`. Neither runner should load the real
- * file: jest has no transform for `.css` / `.scss` and parses one as JavaScript, and on the `tailwind`
+ * file: jest has no transform for `.css` / `.scss` and parses one as JavaScript, and on `standalone`'s `tailwind`
  * answer the file `src/main.ts` names does not exist until `npm run build:styles` has run. So both
  * runners send every stylesheet import here, exactly as they send every `.svelte` / `.vue` import to
  * `framework-component-stub.ts`.

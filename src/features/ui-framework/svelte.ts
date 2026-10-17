@@ -7,8 +7,7 @@ import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
  *
- * On the toolkit presets' esbuild build the `esbuild` entry is not declared at all: the toolkit
- * depends on `esbuild-svelte` and registers it itself, so the project's build never names it.
+ * Standalone only: on the framework presets obsidian-dev-toolkit compiles Svelte on every bundler.
  *
  * **Parcel has no entry, and cannot have one.** Parcel publishes a scoped transformer for Vue but never
  * has for Svelte, and the community `parcel-transformer-svelte` is a Svelte 3-era package: it peers on
@@ -44,28 +43,28 @@ export class Svelte extends FeatureOption {
         'src/views/sample-svelte-view.ts'
       ]);
 
-    // Obsidian-dev-utils' esbuild build compiles Svelte with its own `esbuild-svelte` and `svelte-preprocess`,
-    // So there the project reaches neither.
-    const isFrameworkEsbuild = isFrameworkPreset(answers.preset) && answers.bundler === 'esbuild';
-    const plugin = getBuildPlugin(answers.bundler);
-    if (plugin !== null && !isFrameworkEsbuild) {
-      builder.addPackage(plugin);
+    // `svelte-check` is declared on every bundler: typescript-dev-toolkit's `build:compile` runs the PROJECT's copy
+    // And refuses to build when package.json does not declare it, although it also depends on its own.
+    builder.addPackage('svelte-check');
+
+    // The obsidian-dev-toolkit adapters compile Svelte themselves, from its `framework` option.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addBuildFramework('svelte')
+        .addTsconfigExtends('@mnaoumov/obsidian-dev-toolkit/tsconfig/svelte.json')
+        .addDepcheckIgnore('svelte-check', 'run as a CLI by typescript-dev-toolkit\'s `build:compile`, which refuses to build without it declared.');
+      return;
     }
 
-    // `svelte-check` is the exception: typescript-dev-toolkit's `build:compile` runs the PROJECT's copy and
-    // Refuses to build when package.json does not declare it, although it also depends on its own.
-    builder
-      .addPackage('svelte-check')
-      .addDepcheckIgnore(
-        'svelte-check',
-        isFrameworkEsbuild
-          ? 'run as a CLI by typescript-dev-toolkit\'s `build:compile`, which refuses to build without it declared.'
-          : 'run as a CLI by `scripts/build.ts`.'
-      );
+    const plugin = getBuildPlugin(answers.bundler);
+    if (plugin !== null) {
+      builder.addPackage(plugin);
+    }
+    builder.addDepcheckIgnore('svelte-check', 'run as a CLI by `scripts/build.ts`.');
 
     // Only the esbuild, rollup and webpack configs preprocess; vite's plugin and the parcel transformer
     // The project ships do not import it.
-    if (!isFrameworkEsbuild && SVELTE_PREPROCESS_BUNDLERS.has(answers.bundler)) {
+    if (SVELTE_PREPROCESS_BUNDLERS.has(answers.bundler)) {
       builder.addPackage('svelte-preprocess');
     }
 

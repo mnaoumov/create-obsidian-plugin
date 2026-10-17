@@ -43,6 +43,10 @@ const WORKFLOWS = 'mnaoumov/obsidian-dev-toolkit/.github/workflows';
  */
 const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
   'bundler=esbuild': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'bundler=parcel': '@mnaoumov/obsidian-dev-toolkit/bundlers/parcel',
+  'bundler=rollup': '@mnaoumov/obsidian-dev-toolkit/bundlers/rollup',
+  'bundler=vite': '@mnaoumov/obsidian-dev-toolkit/bundlers/vite',
+  'bundler=webpack': '@mnaoumov/obsidian-dev-toolkit/bundlers/webpack',
   'commitLinting=conventional-commits': '@mnaoumov/typescript-dev-toolkit/commitlint-config',
   // The toolkit's CI workflow renders the badge from the gate's coverage report and publishes it.
   'coverageBadge=coverage-badge': `${WORKFLOWS}/obsidian-plugin-ci.yml`,
@@ -53,19 +57,31 @@ const TOOLKIT_BACKED: Readonly<Record<string, string>> = {
   'formatter=prettier': '@mnaoumov/typescript-dev-toolkit/formatters/prettier',
   'gitHubActions=ci': `${WORKFLOWS}/obsidian-plugin-ci.yml`,
   'gitHubActions=ci-and-release': `${WORKFLOWS}/obsidian-plugin-release.yml`,
-  // The esbuild builder writes the `.hotreload` marker and copies the build into the vault itself.
+  // Every builder writes the `.hotreload` marker and copies the build into the vault itself.
   'hotReload=hot-reload-plugin': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  // The builders take `reload: 'obsidian-cli'` from `scripts/build-options.ts` and run the CLI themselves.
+  'hotReload=obsidian-cli': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'linter=biome': '@mnaoumov/typescript-dev-toolkit/linters/biome',
   'linter=eslint': '@mnaoumov/obsidian-dev-toolkit/linters/eslint',
   'markdownLinter=markdownlint': '@mnaoumov/obsidian-dev-toolkit/linters/markdownlint',
   'spellChecker=cspell': '@mnaoumov/typescript-dev-toolkit/linters/cspell',
-  // The esbuild builder bundles plain CSS and names it `styles.css`, and registers its own sass plugin.
+  // Each styling answer is a `styles` option in `scripts/build-options.ts`, or, for plain CSS and Sass, what the esbuild
+  // Builder does unasked: it bundles plain CSS, names it `styles.css` and registers its own sass plugin.
   'styling=css': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'styling=css-modules': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'styling=postcss': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'styling=scss': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'styling=tailwind': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
   'testRunner=jest': '@mnaoumov/obsidian-dev-toolkit/test-runners/jest-config',
   'testRunner=vitest': '@mnaoumov/typescript-dev-toolkit/test-runners/vitest',
-  // The esbuild builder registers its own svelte plugin.
-  'uiFramework=svelte': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild'
+  // Each UI framework is the `framework` option in `scripts/build-options.ts`.
+  'uiFramework=preact': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'uiFramework=react': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'uiFramework=solid': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'uiFramework=svelte': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  'uiFramework=vue': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild',
+  // The `wasm` option in `scripts/build-options.ts` inlines the module and imports it as its bytes.
+  'wasmSupport=wasm': '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild'
 };
 
 /**
@@ -81,21 +97,7 @@ const ANSWERS_NEEDED: Readonly<Partial<Record<string, Partial<Answers>>>> = {
  * carries that tool's code itself until they do. Move an entry to {@link TOOLKIT_BACKED} when its toolkit
  * support ships and the templates switch over to it.
  */
-const AWAITING_TOOLKIT: Readonly<Record<string, string>> = {
-  'bundler=parcel': 'obsidian-dev-toolkit has no parcel builder; the project carries its config and two parcel plugins.',
-  'bundler=rollup': 'obsidian-dev-toolkit has no rollup builder; the project carries its config.',
-  'bundler=vite': 'obsidian-dev-toolkit has no vite builder; the project carries its config.',
-  'bundler=webpack': 'obsidian-dev-toolkit has no webpack builder; the project carries its config.',
-  'hotReload=obsidian-cli': 'obsidian-dev-toolkit has no obsidian-cli reload; the project runs the command itself.',
-  'styling=css-modules': 'the esbuild builder has no CSS-modules support; the project carries the plugin and its options.',
-  'styling=postcss': 'the esbuild builder runs no PostCSS; the project carries its config and a styles pre-build.',
-  'styling=tailwind': 'the esbuild builder runs no Tailwind; the project carries its config and a styles pre-build.',
-  'uiFramework=preact': 'the esbuild builder sets no JSX runtime; the project carries the JSX options.',
-  'uiFramework=react': 'the esbuild builder sets no JSX runtime; the project carries the JSX options.',
-  'uiFramework=solid': 'the esbuild builder has no solid plugin; the project carries it and the JSX options.',
-  'uiFramework=vue': 'the esbuild builder has no vue plugin; the project registers one through `customEsbuildPlugins`.',
-  'wasmSupport=wasm': 'the esbuild builder has no WebAssembly loader; the project carries the loader options.'
-};
+const AWAITING_TOOLKIT: Readonly<Record<string, string>> = {};
 
 /**
  * Answers that are not tooling at all, each with why. A runtime library the plugin imports is configured

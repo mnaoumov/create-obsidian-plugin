@@ -1,0 +1,6 @@
+<%# The development build is the bundler's watch mode, which obsidian-dev-toolkit's plugin builds into `dist/dev` and -%>
+<%# deploys into the vault after every rebuild. -%>
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+import { execFromRoot } from '@mnaoumov/typescript-dev-toolkit/root';
+
+<%- render('run') -%>

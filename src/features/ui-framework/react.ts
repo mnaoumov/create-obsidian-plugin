@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   rollup: '@rollup/plugin-babel',
@@ -28,6 +29,14 @@ export class React extends FeatureOption {
         'src/react-components/sample-react-component.tsx',
         'src/views/sample-react-view.tsx'
       ]);
+
+    // The obsidian-dev-toolkit adapters compile the JSX from its `framework` option and the tsconfig preset.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addBuildFramework('react')
+        .addTsconfigExtends('@mnaoumov/obsidian-dev-toolkit/tsconfig/react.json');
+      return;
+    }
 
     const plugin = BUILD_PLUGINS[answers.bundler];
     if (plugin) {

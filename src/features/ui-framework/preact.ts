@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
  * The package each bundler needs to compile Preact JSX. Bundlers absent from the table need none.
@@ -33,6 +34,14 @@ export class Preact extends FeatureOption {
         'src/preact-components/sample-preact-component.tsx',
         'src/views/sample-preact-view.tsx'
       ]);
+
+    // The obsidian-dev-toolkit adapters compile the JSX from its `framework` option and the tsconfig preset.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addBuildFramework('preact')
+        .addTsconfigExtends('@mnaoumov/obsidian-dev-toolkit/tsconfig/preact.json');
+      return;
+    }
 
     const plugin = BUILD_PLUGINS[answers.bundler];
     if (plugin) {

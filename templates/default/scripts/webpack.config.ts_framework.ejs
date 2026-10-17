@@ -1,0 +1,19 @@
+import type { Configuration } from 'webpack';
+
+<%- sortImports(`import { ObsidianPluginWebpackPlugin } from '@mnaoumov/obsidian-dev-toolkit/bundlers/webpack';
+${render('import')}`) -%>
+<%- _buildOptionsImport -%>
+
+// The obsidian-dev-toolkit plugin fills in the entry, the mode, the CommonJS `main.js` in `dist/build` (or `dist/dev`
+// Under `--watch`) with no async chunks, Obsidian's modules as externals and the browser export conditions.
+export const config: Configuration = {
+  module: {
+    rules: [
+      // Strips the types without checking them, which `build:compile` does. `ts-loader` calls TypeScript's
+      // JavaScript API, which TypeScript 7 no longer has.
+      { loader: 'esbuild-loader', test: /\.[jt]sx?$/ }<%- render('rule') %>
+    ]
+  },
+  plugins: [new ObsidianPluginWebpackPlugin(<%- _buildOptionsArgument %>)<%- render('plugin') %>],
+  resolve: { extensions: ['.ts', '.tsx', '.js'] }
+};

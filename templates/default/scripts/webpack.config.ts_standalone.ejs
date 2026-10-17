@@ -6,7 +6,7 @@ import type { Configuration } from 'webpack';
 import { join } from 'node:path';
 import process from 'node:process';
 import TerserPlugin from 'terser-webpack-plugin';
-${render('lint-webpack-default')}import webpack from 'webpack';
+import webpack from 'webpack';
 ${render('import')}`) -%>
 
 const isProduction = process.env['BUILD'] === 'production';
@@ -47,7 +47,7 @@ const EXTERNAL = [
         // From exactly such sources. \`onlyCompileBundledFiles\` keeps ts-loader to the graph webpack
         // Actually pulls in, instead of every file the tsconfig's \`include\` lists -- it was reaching
         // \`webpack.config.ts\` and \`scripts/dev.ts\`, which are no business of the bundle.
-        exclude: [/node_modules/${render('ts-loader-exclude')}],
+        exclude: [/node_modules/],
         test: /\\.tsx?$/,
         use: {
           loader: 'ts-loader',

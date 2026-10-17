@@ -158,7 +158,8 @@ export const PLUGIN_SHAPED_ANSWERS: Readonly<Partial<Answers>> = {
   fundingUsername: 'testuser',
   gitHubActions: 'none',
   gitHubIssueTemplates: 'bug-and-feature',
-  hotReload: 'none',
+  // What every real plugin's toolkit build does when given no `reload`.
+  hotReload: 'hot-reload-plugin',
   internationalization: 'none',
   linter: 'eslint',
   markdownLinter: 'markdownlint',

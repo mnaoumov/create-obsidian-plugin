@@ -1,0 +1,10 @@
+import { obsidianPluginVite } from '@mnaoumov/obsidian-dev-toolkit/bundlers/vite';
+import { defineConfig } from 'vite';
+<%- _buildOptionsImport -%>
+
+// The obsidian-dev-toolkit plugin makes this a library build of `src/main.ts` into `dist/build`, or `dist/dev` under
+// `--watch`, with Obsidian's modules external, every asset and dynamic import inlined and the stylesheet named
+// `styles.css`.
+export const config = defineConfig({
+  plugins: [obsidianPluginVite(<%- _buildOptionsArgument %>)]
+});

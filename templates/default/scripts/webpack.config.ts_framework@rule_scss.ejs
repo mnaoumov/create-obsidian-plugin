@@ -1,0 +1,4 @@
+,
+      // The toolkit compiles plain stylesheets only, so Sass is the project's own rule. The toolkit merges the extracted
+      // Stylesheet into `styles.css`.
+      { test: /\.scss$/, use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'] }

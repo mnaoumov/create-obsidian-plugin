@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   esbuild: 'esbuild-plugin-vue3',
@@ -19,7 +20,6 @@ export class Vue extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('vue')
-      .addPackage(getBuildPlugin(answers.bundler))
       .addPartial('ui-view')
       .addSentenceCaseBrand('Vue')
       .addFiles([
@@ -27,6 +27,23 @@ export class Vue extends FeatureOption {
         'src/vue-components/sample-vue-component.vue',
         'src/views/sample-vue-view.ts'
       ]);
+
+    // The obsidian-dev-toolkit adapters compile single-file components through `unplugin-vue`, and on parcel through
+    // Parcel's own Vue transformer.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addBuildFramework('vue')
+        .addPackage('unplugin-vue')
+        .addDepcheckIgnore('unplugin-vue', 'loaded by obsidian-dev-toolkit to compile `.vue` components.');
+      if (answers.bundler === 'parcel') {
+        builder
+          .addPackage('@parcel/transformer-vue')
+          .addDepcheckIgnore('@parcel/transformer-vue', 'resolved by name by `@parcel/config-default` for `.vue`; nothing imports it.');
+      }
+      return;
+    }
+
+    builder.addPackage(getBuildPlugin(answers.bundler));
 
     // `rollup-plugin-vue` hands a `<script lang="ts">` block on as a virtual module and compiles none of
     // It, and `@rollup/plugin-typescript` only compiles files in the tsconfig program, which a virtual

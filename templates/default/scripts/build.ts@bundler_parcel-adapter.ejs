@@ -1,0 +1,5 @@
+import { build } from '@mnaoumov/obsidian-dev-toolkit/bundlers/parcel';
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+<%- _buildOptionsImport -%>
+
+await wrapCliTask(() => build(<%- _buildOptionsArgument %>));

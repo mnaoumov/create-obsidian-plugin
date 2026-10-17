@@ -10,6 +10,7 @@ import type {
 } from './plan-checks.ts';
 
 import {
+  ANSWER_SPACE,
   ANSWER_SPACE_DIMENSION_SIZES,
   answersFromValueIndices,
   describeCase,
@@ -51,12 +52,32 @@ function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInve
 }
 
 /**
+ * Every pair of answers, and every pair under each preset.
+ *
+ * The preset decides which template an answer reaches: the framework presets build through obsidian-dev-toolkit's
+ * adapters, and only `standalone` emits a bundler's own plugins for a framework, a stylesheet or WebAssembly. Such a
+ * file needs a triple, which a strength-2 array over the whole space need not hold. Fixing the preset and covering the
+ * pairs of the rest holds every one of them, for a few hundred cases.
+ */
+function* sweepCases(strength: number): Generator<number[]> {
+  yield* buildCoveringArray({ dimensionSizes: ANSWER_SPACE_DIMENSION_SIZES, strength });
+  const presetDimension = ANSWER_SPACE.findIndex((dimension) => dimension.answerKey === 'preset');
+  const presetCount = ANSWER_SPACE_DIMENSION_SIZES[presetDimension] ?? 0;
+  const sizes = ANSWER_SPACE_DIMENSION_SIZES.map((size, dimension) => (dimension === presetDimension ? 1 : size));
+  for (let presetIndex = 0; presetIndex < presetCount; presetIndex++) {
+    for (const valueIndices of buildCoveringArray({ dimensionSizes: sizes, strength })) {
+      yield valueIndices.map((valueIndex, dimension) => (dimension === presetDimension ? presetIndex : valueIndex));
+    }
+  }
+}
+
+/**
  * The whole answer space at plan level, sampled at strength 2 so it runs on every `npm test`.
  *
- * Strength 2 is 49 cases and milliseconds, and covers every pair of answers -- enough that a partial
- * renamed out of lockstep with its base, or a question dropped from `FEATURE_REGISTRIES`, fails here
- * rather than in someone's generated project. `npm run verify:answer-space` runs the same checks over
- * the entire space; this is the part that is cheap enough to never be skipped.
+ * Strength 2 is a few hundred cases and milliseconds, and covers every pair of answers under each preset -- enough
+ * that a partial renamed out of lockstep with its base, or a question dropped from `FEATURE_REGISTRIES`, fails here
+ * rather than in someone's generated project. `npm run verify:answer-space` runs the same checks over the entire space;
+ * this is the part that is cheap enough to never be skipped.
  */
 describe('the answer space at plan level', () => {
   const SWEEP_STRENGTH = 2;
@@ -65,7 +86,7 @@ describe('the answer space at plan level', () => {
   const failures: string[] = [];
   const signatures = new Set<string>();
 
-  for (const valueIndices of buildCoveringArray({ dimensionSizes: ANSWER_SPACE_DIMENSION_SIZES, strength: SWEEP_STRENGTH })) {
+  for (const valueIndices of sweepCases(SWEEP_STRENGTH)) {
     const answers = answersFromValueIndices(valueIndices);
     const result = checkCase(answers, inventory, usage);
     if (result.dependencySignature !== null) {

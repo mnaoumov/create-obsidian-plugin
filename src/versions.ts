@@ -35,7 +35,7 @@ export interface PinnedVersion {
  */
 export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
   '@babel/core': {
-    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@rollup/plugin-babel/package.json\',\'utf8\')).peerDependencies[\'@babel/core\'])"',
     checkRequires: '@rollup/plugin-babel',
     expect: '^7.0.0',
     manualCheck: null,
@@ -45,7 +45,7 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     why: '@babel/core is only ever added alongside @rollup/plugin-babel, whose newest release still peers on `^7.0.0` while the registry tags 8.x as latest. Resolving latest therefore produced an `npm install` that fails outright with ERESOLVE for rollup with preact, react or solid. The check reads the peer range @rollup/plugin-babel itself declares, so the pin retires itself when that widens to ^8.'
   },
   '@babel/plugin-transform-react-jsx': {
-    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@rollup/plugin-babel/package.json\',\'utf8\')).peerDependencies[\'@babel/core\'])"',
     checkRequires: '@rollup/plugin-babel',
     expect: '^7.0.0',
     manualCheck: null,
@@ -55,7 +55,7 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     why: 'Held on 7.x for the same reason as @babel/core, and it has to move as one set: 8.0.1 peers on `@babel/core@^8.0.0`, so pinning core to 7 without pinning this one just moves the ERESOLVE. Only ever added for rollup + preact, which is exactly where @rollup/plugin-babel forces 7.'
   },
   '@babel/preset-react': {
-    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@rollup/plugin-babel/package.json\',\'utf8\')).peerDependencies[\'@babel/core\'])"',
     checkRequires: '@rollup/plugin-babel',
     expect: '^7.0.0',
     manualCheck: null,
@@ -65,7 +65,7 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     why: 'Held on 7.x for the same reason as @babel/core, and it has to move as one set: 8.0.1 peers on `@babel/core@^8.0.0`. Only ever added for rollup + react, which is exactly where @rollup/plugin-babel forces 7.'
   },
   '@babel/preset-typescript': {
-    check: 'node -e "process.stdout.write(require(\'@rollup/plugin-babel/package.json\').peerDependencies[\'@babel/core\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@rollup/plugin-babel/package.json\',\'utf8\')).peerDependencies[\'@babel/core\'])"',
     checkRequires: '@rollup/plugin-babel',
     expect: '^7.0.0',
     manualCheck: null,

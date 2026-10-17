@@ -319,7 +319,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds webpack files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'webpack' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'webpack', preset: 'standalone' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('webpack');
       expect(depNames).toContain('webpack-cli');
@@ -329,11 +329,47 @@ describe('buildTemplate', () => {
     });
 
     it('adds parcel files and dependencies', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'parcel' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'parcel', preset: 'standalone' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('parcel');
       expect(depNames).toContain('@parcel/config-default');
       expect([...builder.templateFiles]).toContain('.parcelrc');
+    });
+
+    // On the framework presets every bundler but esbuild runs through obsidian-dev-toolkit's adapter: the config holds
+    // Its call and nothing else of the Obsidian layout, and parcel needs no `.parcelrc` or plugin files of the project's.
+    it('builds through obsidian-dev-toolkit\'s adapter on every bundler of the framework presets', () => {
+      const markers: Record<string, [string, string]> = {
+        parcel: ['scripts/build.ts', 'build()'],
+        rollup: ['scripts/rollup.config.ts', 'obsidianPluginRollup()'],
+        vite: ['scripts/vite.config.ts', 'obsidianPluginVite()'],
+        webpack: ['scripts/webpack.config.ts', 'new ObsidianPluginWebpackPlugin()']
+      };
+      for (const [bundler, [file, marker]] of Object.entries(markers)) {
+        const targetDir = mkdtempSync(join(tmpdir(), 'cop-adapter-'));
+        try {
+          // With no option to pass, the adapter is called bare and no options file is emitted, as in every real plugin.
+          copyTemplates(makeAnswers({ bundler, hotReload: 'hot-reload-plugin', preset: 'all-in-one' }), targetDir, '1.0.0', null);
+          expect(readFileSync(join(targetDir, file), 'utf-8'), bundler).toContain(marker);
+          expect(existsSync(join(targetDir, '.parcelrc')), bundler).toBe(false);
+          expect(existsSync(join(targetDir, 'scripts/build-options.ts')), bundler).toBe(false);
+        } finally {
+          rmSync(targetDir, { force: true, recursive: true });
+        }
+      }
+    });
+
+    // The adapters take one option set, and the answers decide it.
+    it('collects the answers into the adapters\' build options', () => {
+      const targetDir = mkdtempSync(join(tmpdir(), 'cop-build-options-'));
+      try {
+        copyTemplates(makeAnswers({ bundler: 'vite', hotReload: 'obsidian-cli', preset: 'all-in-one', styling: 'tailwind', uiFramework: 'solid', wasmSupport: 'wasm' }), targetDir, '1.0.0', null);
+        expect(readFileSync(join(targetDir, 'scripts/build-options.ts'), 'utf-8')).toContain(
+          '= {\n  framework: \'solid\',\n  reload: \'obsidian-cli\',\n  styles: { tailwind: true },\n  wasm: true\n};'
+        );
+      } finally {
+        rmSync(targetDir, { force: true, recursive: true });
+      }
     });
   });
 
@@ -353,7 +389,7 @@ describe('buildTemplate', () => {
     // And calls `svelte/compiler.js`, which Svelte 5 does not ship, so registering it only moved the
     // Failure from "No transformers found" to "Could not resolve module". The project ships its own.
     it('ships its own parcel svelte transformer, because no working package exists', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'parcel', preset: 'standalone', uiFramework: 'svelte' }));
       const packages = builder.dependencies.map((d) => d.packageName);
       expect(packages).not.toContain('parcel-transformer-svelte');
       expect(packages).not.toContain('@parcel/transformer-svelte');
@@ -363,7 +399,7 @@ describe('buildTemplate', () => {
     it('registers that transformer in .parcelrc, which declares none by default', () => {
       const targetDir = mkdtempSync(join(tmpdir(), 'cop-parcelrc-'));
       try {
-        copyTemplates(makeAnswers({ bundler: 'parcel', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
+        copyTemplates(makeAnswers({ bundler: 'parcel', preset: 'standalone', uiFramework: 'svelte' }), targetDir, '1.0.0', null);
         const parcelrc = readFileSync(join(targetDir, '.parcelrc'), 'utf-8');
         expect(parcelrc).toContain('./parcel-transformer-svelte.cjs');
       } finally {
@@ -380,7 +416,7 @@ describe('buildTemplate', () => {
       for (const uiFramework of ['none', 'svelte'] as const) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-parcel-inline-'));
         try {
-          copyTemplates(makeAnswers({ bundler: 'parcel', uiFramework }), targetDir, '1.0.0', null);
+          copyTemplates(makeAnswers({ bundler: 'parcel', preset: 'standalone', uiFramework }), targetDir, '1.0.0', null);
           const parcelrc = JSON.parse(readFileSync(join(targetDir, '.parcelrc'), 'utf-8')) as ParcelRc;
           expect(parcelrc.transformers['*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'], uiFramework).toEqual(['./parcel-transformer-inline-imports.cjs', '...']);
 
@@ -399,8 +435,8 @@ describe('buildTemplate', () => {
     // Build died parsing the TypeScript, or, on `demo`, handed it to the react babel pass instead. Every
     // Preset, because `demo` reaches vue through its override rather than through the answer.
     it('strips the types from vue script blocks on rollup with a babel TypeScript pass', () => {
-      for (const preset of ['standalone', 'all-in-one', 'demo'] as const) {
-        const answers = makeAnswers({ bundler: 'rollup', preset, uiFramework: preset === 'demo' ? 'none' : 'vue' });
+      for (const preset of ['standalone'] as const) {
+        const answers = makeAnswers({ bundler: 'rollup', preset, uiFramework: 'vue' });
         const packages = buildTemplate(answers).dependencies.map((d) => d.packageName);
         expect(packages, preset).toContain('@babel/preset-typescript');
         expect(packages, preset).toContain('@rollup/plugin-babel');
@@ -434,7 +470,7 @@ describe('buildTemplate', () => {
       for (const { expected, uiFramework } of cases) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-babel-'));
         try {
-          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'all-in-one', uiFramework }), targetDir, '1.0.0', null);
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'standalone', uiFramework }), targetDir, '1.0.0', null);
           expect(readFileSync(join(targetDir, 'scripts/babel.config.ts'), 'utf-8'), uiFramework).toBe(expected);
         } finally {
           rmSync(targetDir, { force: true, recursive: true });
@@ -449,7 +485,7 @@ describe('buildTemplate', () => {
       for (const styling of ['css', 'css-modules', 'postcss', 'tailwind'] as const) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-css-'));
         try {
-          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'all-in-one', styling }), targetDir, '1.0.0', null);
+          copyTemplates(makeAnswers({ bundler: 'rollup', preset: 'standalone', styling }), targetDir, '1.0.0', null);
           const config = readFileSync(join(targetDir, 'scripts/rollup.config.ts'), 'utf-8');
           expect(config.match(/postcss\(\{ extract: 'styles\.css' \}\)/gu), styling).toHaveLength(1);
         } finally {
@@ -479,7 +515,7 @@ describe('buildTemplate', () => {
     // TS2416 three times on the codemirror sample. The tsconfig's inline source map printed one more warning
     // On every production build. No tier fails on a build warning, so only this test pins either fix.
     it('keeps the rollup TypeScript plugin warning-free', () => {
-      for (const preset of ['standalone', 'all-in-one'] as const) {
+      for (const preset of ['standalone'] as const) {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-rollup-ts-'));
         try {
           copyTemplates(makeAnswers({ bundler: 'rollup', editorExtensions: 'codemirror', preset }), targetDir, '1.0.0', null);
@@ -518,13 +554,17 @@ describe('buildTemplate', () => {
       expect(depNames).not.toContain('svelte-preprocess');
     });
 
+    // On the framework presets obsidian-dev-toolkit compiles Svelte on every bundler, so none of them declares it.
     it.each([
+      ['esbuild', true],
       ['rollup', true],
       ['webpack', true],
       ['vite', false],
       ['parcel', false]
     ])('declares svelte-preprocess on %s only where its config imports it', (bundler, expected) => {
-      const answers = makeAnswers({ bundler, preset: 'all-in-one', uiFramework: 'svelte' });
+      const frameworkDepNames = buildTemplate(makeAnswers({ bundler, preset: 'all-in-one', uiFramework: 'svelte' })).dependencies.map((d) => d.packageName);
+      expect(frameworkDepNames).not.toContain('svelte-preprocess');
+      const answers = makeAnswers({ bundler, preset: 'standalone', uiFramework: 'svelte' });
       const depNames = buildTemplate(answers).dependencies.map((d) => d.packageName);
       expect(depNames.includes('svelte-preprocess')).toBe(expected);
       const targetDir = mkdtempSync(join(tmpdir(), 'cop-svelte-preprocess-'));
@@ -538,7 +578,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds react packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'react' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', preset: 'standalone', uiFramework: 'react' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('react');
       expect(depNames).toContain('react-dom');
@@ -546,7 +586,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds preact packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'preact' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', preset: 'standalone', uiFramework: 'preact' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('preact');
       expect(depNames).toContain('@preact/preset-vite');
@@ -560,7 +600,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds solid packages and build plugin for vite', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'vite', uiFramework: 'solid' }));
+      const builder = buildTemplate(makeAnswers({ bundler: 'vite', preset: 'standalone', uiFramework: 'solid' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('solid-js');
       expect(depNames).toContain('vite-plugin-solid');
@@ -665,7 +705,7 @@ describe('buildTemplate', () => {
 
     it('registers the wasm sources for every bundler', () => {
       for (const bundler of BUNDLERS) {
-        const files = [...buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).templateFiles];
+        const files = [...buildTemplate(makeAnswers({ bundler, preset: 'standalone', wasmSupport: 'wasm' })).templateFiles];
         expect(files, bundler).toContain('src/wasm.d.ts');
         expect(files, bundler).toContain('src/wasm/answer.ts');
         expect(files, bundler).toContain('src/wasm/sample-command.ts');
@@ -681,8 +721,20 @@ describe('buildTemplate', () => {
     it('has a declaration and a loader on disk for every bundler', () => {
       const templatesDir = join(getScriptDir(), '..', 'templates', 'default', 'src');
       for (const bundler of BUNDLERS) {
-        expect(existsSync(join(templatesDir, `wasm.d.ts_${bundler}.ejs`)), `wasm.d.ts_${bundler}.ejs`).toBe(true);
-        expect(existsSync(join(templatesDir, 'wasm', `answer.ts_${bundler}.ejs`)), `answer.ts_${bundler}.ejs`).toBe(true);
+        expect(existsSync(join(templatesDir, `wasm.d.ts_wasm-${bundler}.ejs`)), `wasm.d.ts_wasm-${bundler}.ejs`).toBe(true);
+        expect(existsSync(join(templatesDir, 'wasm', `answer.ts_wasm-${bundler}.ejs`)), `answer.ts_wasm-${bundler}.ejs`).toBe(true);
+      }
+    });
+
+    // On the framework presets obsidian-dev-toolkit's `wasm` build option makes the import the module's bytes on every
+    // Bundler, so the loader is one file and the declaration is the toolkit's.
+    it('reads the module through the toolkit\'s wasm option on the framework presets', () => {
+      for (const bundler of BUNDLERS) {
+        const builder = buildTemplate(makeAnswers({ bundler, preset: 'all-in-one', wasmSupport: 'wasm' }));
+        expect([...builder.templateFiles], bundler).not.toContain('src/wasm.d.ts');
+        expect(builder.partials.has('wasm-adapter'), bundler).toBe(true);
+        expect(builder.buildOptions, bundler).toContainEqual({ key: 'wasm', value: 'true' });
+        expect(builder.dependencies.map((dependency) => dependency.packageName).filter((name) => name.includes('wasm')), bundler).toEqual([]);
       }
     });
 
@@ -703,7 +755,7 @@ describe('buildTemplate', () => {
     // The `cjs` output Obsidian loads.
     it('adds a bundler plugin only where the bundler needs one', () => {
       function wasmPackages(bundler: string): string[] {
-        return buildTemplate(makeAnswers({ bundler, wasmSupport: 'wasm' })).dependencies
+        return buildTemplate(makeAnswers({ bundler, preset: 'standalone', wasmSupport: 'wasm' })).dependencies
           .map((dependency) => dependency.packageName)
           .filter((name) => name.includes('wasm'));
       }
@@ -778,7 +830,7 @@ describe('buildTemplate', () => {
     });
 
     it('adds tailwind packages and files', () => {
-      const builder = buildTemplate(makeAnswers({ styling: 'tailwind' }));
+      const builder = buildTemplate(makeAnswers({ preset: 'standalone', styling: 'tailwind' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('tailwindcss');
       // Tailwind 4 is compiled by its own CLI, not through PostCSS: PostCSS is unreachable on the
@@ -795,30 +847,19 @@ describe('buildTemplate', () => {
       expect([...builder.templateFiles]).not.toContain('scripts/tailwind.config.ts');
     });
 
-    // The shared ESLint config rejects an unassigned import and a blank line inside one import group, so
-    // The side-effect `build-styles.ts` import carries its directive and sits in the relative group.
-    it('emits the framework esbuild tailwind build and dev imports as one lint-clean relative group', () => {
-      const targetDir = mkdtempSync(join(tmpdir(), 'cop-tailwind-esbuild-'));
-      try {
-        copyTemplates(makeAnswers({ bundler: 'esbuild', preset: 'all-in-one', styling: 'tailwind' }), targetDir, '1.0.0', null);
-        for (const script of ['build', 'dev']) {
-          const text = readFileSync(join(targetDir, `scripts/${script}.ts`), 'utf-8');
-          expect(text, script).toContain([
-            'import { wrapCliTask } from \'@mnaoumov/typescript-dev-toolkit/cli-utils\';',
-            '',
-            '// eslint-disable-next-line import-x/no-unassigned-import -- Importing the module RUNS the style build; there is nothing to bind.',
-            'import \'./build-styles.ts\';',
-            'import { customEsbuildPlugins } from \'./esbuild-plugins.ts\';',
-            ''
-          ].join('\n'));
-        }
-      } finally {
-        rmSync(targetDir, { force: true, recursive: true });
-      }
+    // On the framework presets obsidian-dev-toolkit's `styles.tailwind` runs `@tailwindcss/postcss` inside the build, so
+    // There is no CLI, no pre-build script and no generated stylesheet.
+    it('compiles tailwind inside the build on the framework presets', () => {
+      const builder = buildTemplate(makeAnswers({ preset: 'all-in-one', styling: 'tailwind' }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).toContain('@tailwindcss/postcss');
+      expect(depNames).not.toContain('@tailwindcss/cli');
+      expect([...builder.templateFiles]).not.toContain('scripts/build-styles.ts');
+      expect(builder.scripts['build:styles']).toBeUndefined();
+      expect(builder.buildOptions).toContainEqual({ key: 'styles', value: '{ tailwind: true }' });
     });
-
     it('adds css modules files', () => {
-      const builder = buildTemplate(makeAnswers({ styling: 'css-modules' }));
+      const builder = buildTemplate(makeAnswers({ preset: 'standalone', styling: 'css-modules' }));
       const files = [...builder.templateFiles];
       expect(files).toContain('src/styles/main.module.css');
       expect(files).toContain('src/styles/css-modules.d.ts');
@@ -1020,27 +1061,23 @@ describe('buildTemplate', () => {
     // It does for demo + biome above. Svelte and Vue own no pragma and stay forced beside everything,
     // Which is what keeps the reachable demo case -- `prompts.ts` pins `uiFramework` to `none` for this
     // Preset -- emitting all three.
-    it('drops a forced UI framework that would fight the chosen one for the JSX runtime', () => {
-      const expected = [
-        ['none', true],
-        ['lit', true],
-        ['react', true],
-        ['svelte', true],
-        ['vue', true],
-        ['preact', false],
-        ['solid', false]
-      ] as const;
-
-      for (const [uiFramework, forcesReact] of expected) {
-        const builder = buildTemplate(makeAnswers({ preset: 'demo', uiFramework }));
-        expect(builder.partials.has('react'), `demo + ${uiFramework}`).toBe(forcesReact);
-        expect(builder.partials.has(uiFramework), `demo + ${uiFramework}`).toBe(true);
-        // Neither owns a JSX pragma, so no answer can displace them.
-        expect(builder.partials.has('svelte'), `demo + ${uiFramework}`).toBe(true);
-        expect(builder.partials.has('vue'), `demo + ${uiFramework}`).toBe(true);
+    // Demo forces three frameworks into one project, which only obsidian-dev-toolkit's esbuild builder compiles together:
+    // Svelte and the JSX unasked, Vue through its single `framework` option. So demo holds the bundler and UI framework
+    // Answers the prompt pins for it, whatever it was given.
+    it('builds the demo preset with esbuild and its three forced frameworks, whatever it was given', () => {
+      for (const uiFramework of ['none', 'lit', 'preact', 'react', 'solid', 'svelte', 'vue']) {
+        for (const bundler of ['esbuild', 'webpack']) {
+          const builder = buildTemplate(makeAnswers({ bundler, preset: 'demo', uiFramework }));
+          const label = `demo + ${bundler} + ${uiFramework}`;
+          for (const framework of ['react', 'svelte', 'vue']) {
+            expect(builder.partials.has(framework), label).toBe(true);
+          }
+          expect(builder.partials.has('esbuild'), label).toBe(true);
+          expect(builder.partials.has('webpack'), label).toBe(false);
+          expect(builder.buildOptions, label).toContainEqual({ key: 'framework', value: '\'vue\'' });
+        }
       }
     });
-
     // A forced framework whose view nothing registers is dead code the bundler never compiles -- which
     // Is how the demo preset advertised Vue while rollup could not build it.
     it('registers a view for every framework it forces in', () => {
@@ -1101,7 +1138,14 @@ describe('buildTemplate', () => {
       ['uiFramework', 'vue', './views/sample-vue-view.ts']
     ] as const;
 
-    it.each(['standalone', 'all-in-one', 'demo'].flatMap((preset) => ENTRY_MODULES.map(([key, value, specifier]) => [preset, key, value, specifier])))(
+    // `demo` pins `uiFramework` to `none` and forces react, svelte and vue, so it is asked only about those three.
+    const DEMO_FORCED_FRAMEWORKS = new Set(['react', 'svelte', 'vue']);
+
+    it.each(
+      ['standalone', 'all-in-one', 'demo']
+        .flatMap((preset) => ENTRY_MODULES.map(([key, value, specifier]) => [preset, key, value, specifier]))
+        .filter(([preset, key, value]) => preset !== 'demo' || key !== 'uiFramework' || DEMO_FORCED_FRAMEWORKS.has(value ?? ''))
+    )(
       'imports the %s + %s=%s entry module %s from plugin.ts',
       (preset, key, value, specifier) => {
         const targetDir = mkdtempSync(join(tmpdir(), 'cop-entry-modules-'));
@@ -1943,30 +1987,23 @@ describe('copyTemplates', () => {
   // The rendered half of "drops a forced UI framework that would fight the chosen one". `JSON.parse`
   // Accepts a duplicate key and silently keeps the last, so a tsconfig carrying both frameworks' blocks
   // Is valid JSON describing a project that cannot compile -- assert the emitted bytes, not the parse.
+  // Demo's one JSX runtime is React's, from obsidian-dev-toolkit's tsconfig preset, beside Svelte's.
   it('emits one JSX runtime, whichever framework the demo preset was given', () => {
-    const expected = [
-      ['none', '"jsx": "react-jsx"', true],
-      ['preact', '"jsxImportSource": "preact"', false],
-      ['solid', '"jsxImportSource": "solid-js"', false]
-    ] as const;
-
-    for (const [uiFramework, pragma, hasReactSample] of expected) {
-      // A fresh directory per case: `copyTemplates` writes, it does not prune, so the shared one would
-      // Still hold the previous case's react sample and the absence assertion would never fail.
+    for (const uiFramework of ['none', 'preact', 'solid']) {
+      // A fresh directory per case: `copyTemplates` writes, it does not prune.
       const caseDir = mkdtempSync(join(tmpdir(), 'cop-demo-jsx-'));
       try {
         copyTemplates(makeAnswers({ preset: 'demo', uiFramework }), caseDir, '1.0.0', null);
         const tsconfig = readFileSync(join(caseDir, 'tsconfig.json'), 'utf-8');
-        expect(tsconfig, `demo + ${uiFramework}`).toContain(pragma);
-        expect(tsconfig.match(/"jsx":/g)?.length ?? 0, `demo + ${uiFramework}`).toBe(1);
-        expect(existsSync(join(caseDir, 'src/react-components/sample-react-component.tsx')), `demo + ${uiFramework}`).toBe(hasReactSample);
+        expect(tsconfig, `demo + ${uiFramework}`).toContain('"@mnaoumov/obsidian-dev-toolkit/tsconfig/react.json"');
+        expect(tsconfig, `demo + ${uiFramework}`).not.toContain('"jsx":');
+        expect(existsSync(join(caseDir, 'src/react-components/sample-react-component.tsx')), `demo + ${uiFramework}`).toBe(true);
         expect(existsSync(join(caseDir, 'src/svelte-components/sample-svelte-component.svelte')), `demo + ${uiFramework}`).toBe(true);
       } finally {
         rmSync(caseDir, { force: true, recursive: true });
       }
     }
   });
-
   it('emits no lint script when no linter is chosen and no preset forces one', () => {
     for (const preset of ['standalone', 'all-in-one']) {
       copyTemplates(makeAnswers({ linter: 'none', preset }), targetDir, '1.0.0', null);
@@ -2116,32 +2153,39 @@ describe('copyTemplates', () => {
   it('dev.ts and build.ts pick the same bundler on every preset', () => {
     const presets = ['demo', 'all-in-one', 'standalone'];
     const bundlers = ['esbuild', 'parcel', 'rollup', 'vite', 'webpack'];
-    const frameworkDevImport = '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild';
 
     for (const preset of presets) {
       for (const bundler of bundlers) {
         const caseDir = join(targetDir, `${preset}-${bundler}`);
         copyTemplates(makeAnswers({ bundler, preset }), caseDir, '1.0.0', null);
         const devScript = readFileSync(join(caseDir, 'scripts/dev.ts'), 'utf-8');
+        const buildScript = readFileSync(join(caseDir, 'scripts/build.ts'), 'utf-8');
         const label = `${preset} + ${bundler}`;
 
-        if (preset !== 'standalone' && bundler === 'esbuild') {
-          // The one path that genuinely differs: obsidian-dev-toolkit's `dev()` also watches node_modules
-          // And re-runs build:compile, which its `build()` cannot do and no CLI bundler offers.
-          expect(devScript, label).toContain(`import { dev } from '${frameworkDevImport}'`);
-          expect(devScript, label).toContain('dev({ customEsbuildPlugins })');
+        if (preset === 'standalone') {
+          // `dev` IS `build` in watch mode, so it re-enters build.ts rather than restating the bundler.
+          expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
+          expect(devScript, label).toContain('import(\'./build.ts\')');
+          expect(devScript, label).not.toContain('@mnaoumov/obsidian-dev-toolkit');
           continue;
         }
 
-        // Everywhere else `dev` IS `build` in watch mode, so it re-enters build.ts rather than
-        // Restating the bundler -- and must not reach for the esbuild one it was not asked for.
-        expect(devScript, label).toContain('process.argv[BUILD_MODE_ARGUMENT_INDEX] = \'dev\'');
-        expect(devScript, label).toContain('import(\'./build.ts\')');
-        expect(devScript, label).not.toContain(frameworkDevImport);
+        // Demo is always built with esbuild. Elsewhere esbuild and parcel call the toolkit's `build()` and `dev()`, and
+        // The three command-line bundlers run the same command, `dev` adding `--watch`.
+        const effectiveBundler = preset === 'demo' ? 'esbuild' : bundler;
+        if (effectiveBundler === 'esbuild' || effectiveBundler === 'parcel') {
+          expect(buildScript, label).toContain(`import { build } from '@mnaoumov/obsidian-dev-toolkit/bundlers/${effectiveBundler}'`);
+          expect(devScript, label).toContain(`import { dev } from '@mnaoumov/obsidian-dev-toolkit/bundlers/${effectiveBundler}'`);
+          expect(devScript, label).toMatch(/dev\((?:buildOptions)?\)/u);
+          continue;
+        }
+
+        expect(buildScript, label).toContain(`execFromRoot(['${effectiveBundler}'`);
+        expect(devScript, label).toContain(`execFromRoot(['${effectiveBundler}'`);
+        expect(devScript, label).toContain('\'--watch\'');
       }
     }
   });
-
   it('creates version.ts script', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, 'scripts/version.ts'))).toBe(true);
@@ -2385,7 +2429,7 @@ describe('copyTemplates', () => {
   // Every webpack + solid build failed to resolve it -- and, resolved, could not have parsed it. A babel
   // Pass after ts-loader compiles the JSX, and `extensionAlias` maps the `.jsx` name back.
   it('compiles Solid JSX on webpack, and adds babel for no other framework', () => {
-    for (const preset of ['standalone', 'all-in-one']) {
+    for (const preset of ['standalone']) {
       copyTemplates(makeAnswers({ bundler: 'webpack', preset, uiFramework: 'solid' }), targetDir, '1.0.0', null);
       const config = readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8');
       expect(config, preset).toContain('loader: \'babel-loader\'');
@@ -2397,7 +2441,7 @@ describe('copyTemplates', () => {
       expect(devDependencies, preset).toEqual(expect.arrayContaining(['@babel/core', 'babel-loader', 'babel-preset-solid']));
     }
 
-    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'all-in-one', uiFramework: 'react' }), targetDir, '1.0.0', null);
+    copyTemplates(makeAnswers({ bundler: 'webpack', preset: 'standalone', uiFramework: 'react' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/webpack.config.ts'), 'utf-8')).not.toContain('babel-loader');
   });
 

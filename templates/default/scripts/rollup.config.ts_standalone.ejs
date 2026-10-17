@@ -90,12 +90,12 @@ const EXTERNAL = [
     // Overrides belong here, in the one tool that needs them, exactly as \`jest.config.ts\` overrides
     // \`rootDir\` for the same reason.
     typescript({
-${render('typescript-options')}      // The emitted \`tsconfig.json\` inlines a source map. A production build writes none, and the plugin
+      // The emitted \`tsconfig.json\` inlines a source map. A production build writes none, and the plugin
       // Warns on every such build that it was asked for one that nothing will output.
       inlineSourceMap: !isProduction,
       inlineSources: !isProduction,
       noEmit: false,
-${render('lint-out-dir')}      outDir: distFolder,
+      outDir: distFolder,
       rewriteRelativeImportExtensions: true,
       sourceMap: !isProduction,
       typescript: typescriptWithResolutionModes

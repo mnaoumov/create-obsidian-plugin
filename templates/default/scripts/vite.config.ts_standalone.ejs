@@ -39,7 +39,6 @@ export const config = defineConfig({
     // Every one of them is the only shape that survives that: unconditional rather than tied to any
     // Answer, because which assets a `src/` comes to import is not a property of the answers.
     assetsInlineLimit: Number.MAX_SAFE_INTEGER,
-<%- render('lint-empty-out-dir') -%>
     emptyOutDir: false,
     lib: {
       // Obsidian loads a plugin's stylesheet from `styles.css` and nothing else. Vite's lib mode names
@@ -52,7 +51,6 @@ export const config = defineConfig({
       formats: ['cjs']
     },
     minify: isProduction,
-<%- render('lint-out-dir') -%>
     outDir: distFolder,
     rollupOptions: {
       external: EXTERNAL,

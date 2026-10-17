@@ -39,9 +39,22 @@ export class Wasm extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    const plugin = getWasmPlugin(answers.bundler);
-    if (plugin !== null) {
-      builder.addPackage(plugin);
+    const isFramework = isFrameworkPreset(answers.preset);
+    // On the framework presets obsidian-dev-toolkit's `wasm` build option inlines the module and imports it as its
+    // Bytes on every bundler, so `src/wasm/answer.ts` is one file and the import's type comes from the toolkit.
+    // Standalone reaches the module the way each bundler can, so that file is written per bundler.
+    if (isFramework) {
+      builder
+        .addBuildOption('wasm', 'true')
+        .addPartial('wasm-adapter');
+    } else {
+      const plugin = getWasmPlugin(answers.bundler);
+      if (plugin !== null) {
+        builder.addPackage(plugin);
+      }
+      builder
+        .addFiles(['src/wasm.d.ts'])
+        .addPartial(`wasm-${answers.bundler}`);
     }
 
     // The sample command is named `Sample WASM answer`, and `obsidianmd/ui/sentence-case` asks for
@@ -56,7 +69,6 @@ export class Wasm extends FeatureOption {
       // Its source in WebAssembly text format. Documentation only: nothing in the build reads it, and it
       // Is here so the binary beside it is not opaque.
       'src/wasm/module.wat',
-      'src/wasm.d.ts',
       'src/wasm/answer.ts',
       'src/wasm/sample-command.ts',
       'src/wasm/README.md'
@@ -65,7 +77,7 @@ export class Wasm extends FeatureOption {
     // Only the toolkit presets ship a demo vault. The rows and the button helper the note
     // Needs in `00 Start.md`, `01 Sample commands.md` and `demoSetup.ts` are `wasm` partials, which render
     // Nowhere on `standalone` because those files are never emitted there.
-    if (isFrameworkPreset(answers.preset)) {
+    if (isFramework) {
       builder.addFiles(['demo-vault/03 WebAssembly.md']);
     }
   }

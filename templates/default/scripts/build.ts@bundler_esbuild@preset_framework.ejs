@@ -1,7 +1,5 @@
 import { build } from '@mnaoumov/obsidian-dev-toolkit/bundlers/esbuild';
 import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+<%- _buildOptionsImport -%>
 
-<%- render('framework-pre-build') -%>
-import { customEsbuildPlugins } from './esbuild-plugins.ts';
-
-await wrapCliTask(() => build({ customEsbuildPlugins }));
+await wrapCliTask(() => build(<%- _buildOptionsArgument %>));
