@@ -2,7 +2,9 @@
   "version": "0.2",
   "ignorePaths": [
     "**/*.wasm",
+    ".create-obsidian-plugin.json",
 <%- render('ignore-paths') -%>
+    "coverage",
     "dist",
     "node_modules",
     "tsconfig.tsbuildinfo"
@@ -10,11 +12,14 @@
   "dictionaryDefinitions": [],
   "dictionaries": [],
   "words": [
-    <%- JSON.stringify(authorGitHubName) %>,
+<% _cspellIdentityWords.forEach((word) => { -%>
+    <%- JSON.stringify(word) %>,
+<% }); -%>
     "Invocables",
     "assemblyscript",
     "autoprefixer",
     "biomejs",
+    "churny",
     "codicon",
     "codemirror",
     "collab",
@@ -37,7 +42,6 @@
     "lintstagedrc",
     "lucide",
     "markdownlint",
-    "mnaoumov",
     "obsidianmd",
     "onload",
     "onunload",

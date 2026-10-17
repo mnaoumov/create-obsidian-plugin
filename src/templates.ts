@@ -332,6 +332,7 @@ export function copyTemplates(
     _buildOptionsArgument: hasBuildOptions ? 'buildOptions' : '',
     _buildOptionsImport: hasBuildOptions ? '\nimport { buildOptions } from \'./build-options.ts\';\n' : '',
     _buildOptionsLiteral: toObjectLiteral(builder.buildOptions),
+    _cspellIdentityWords: getCspellIdentityWords(answers),
     _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
       packageName: dependency.packageName,
@@ -703,6 +704,16 @@ function formatWrittenFiles(projectFormatter: null | ProjectFormatter | undefine
   for (const destinationPath of textFiles) {
     config.fileHashes[destinationPath] = sha256(readFileSync(join(targetDir, destinationPath)));
   }
+}
+
+/**
+ * The `cspell.json` words that name people rather than tools: the author's GitHub name, and `mnaoumov`, the scope of
+ * the `@mnaoumov` packages the templates import and link. cspell compares words case-insensitively, so an author named
+ * `mnaoumov` would otherwise list the same word twice.
+ */
+function getCspellIdentityWords(answers: Answers): string[] {
+  const words = [answers.authorGitHubName, 'mnaoumov'];
+  return words.filter((word, index) => words.findIndex((other) => other.toLowerCase() === word.toLowerCase()) === index);
 }
 
 function getFundingTemplateContext(answers: Answers): Record<string, string> {

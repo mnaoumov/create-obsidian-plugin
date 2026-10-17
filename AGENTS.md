@@ -399,7 +399,12 @@ a fresh project red on its own release preflight. The gate tier's `spellcheck` s
 list is one static list, like the framework names already in it, not a per-answer one: a word no file
 of this project uses costs nothing, and a missing one fails the project. GitHub advisory ids
 (`GHSA-xxxx-xxxx-xxxx`) are skipped by `ignoreRegExpList` rather than listed, because their fragments are
-random and change with every advisory `pinned-versions.json` cites. The list was measured by rendering
+random and change with every advisory `pinned-versions.json` cites. The two identity words, the author's
+GitHub name and `mnaoumov` (the `@mnaoumov` package scope), come from `getCspellIdentityWords`
+(`src/templates.ts`), which lists an author named `mnaoumov` once. `ignorePaths` names `coverage`, which
+`test:coverage` writes after the gate's spellcheck, and `.create-obsidian-plugin.json`, which the pre-commit hook
+hands cspell as a staged dotfile although `spellcheck` skips dotfiles. The gate tier re-runs `spellcheck` after
+`test:coverage` and then takes a first commit through the hooks, which is what sees both. The list was measured by rendering
 one case per answer value under each preset and running cspell over all of them, which takes a minute.
 Do that again after adding prose to a template.
 
@@ -438,8 +443,11 @@ under every preset. Both presets' `lint:md` run linkinator from the project root
 and linkinator reads that file by default and merges it under its flags. Its one `skip` pattern
 (`getOwnRepoLinkPattern`, `src/templates.ts`) is anchored, so the `BRAT` install link that carries the repo URL in
 its query is still checked. The author's profile link stays checked too, because it exists for a real author
-and is what catches a mistyped GitHub name. No tier runs `lint:md`: it needs the network, and the fixture author
-`testuser` has no GitHub profile.
+and is what catches a mistyped GitHub name. No tier runs `lint:md` as a step: it needs the network, and the fixture author
+`testuser` has no GitHub profile. The gate tier's `commit` step reaches it anyway, through the pre-commit hook's
+`lint:md:fix`, so that step first adds the author's profile to the generated `linkinator.config.json`'s `skip`
+(`skipAuthorProfileLink`), a harness opt-out like pnpm's `minimumReleaseAge`. The same step fails `committed-output`
+when the commit took in `coverage/`, `dist/` or `node_modules/`.
 
 ### A line that is not really per-answer gets ONE partial, named for what it is
 

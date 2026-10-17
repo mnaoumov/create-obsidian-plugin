@@ -2504,6 +2504,27 @@ describe('copyTemplates', () => {
     expect(spellcheck).toContain('cspell');
   });
 
+  it('lists each cspell identity word once, whoever the author is', () => {
+    for (const authorGitHubName of ['mnaoumov', 'MNaoumov', 'testuser']) {
+      copyTemplates(makeAnswers({ authorGitHubName, spellChecker: 'cspell' }), targetDir, '1.0.0', null);
+      const { words } = JSON.parse(readFileSync(join(targetDir, 'cspell.json'), 'utf-8')) as CspellConfig;
+      const lowered = words.map((word) => word.toLowerCase());
+      expect(new Set(lowered).size, authorGitHubName).toBe(lowered.length);
+      expect(lowered, authorGitHubName).toContain(authorGitHubName.toLowerCase());
+      expect(lowered, authorGitHubName).toContain('mnaoumov');
+    }
+  });
+
+  // The coverage report is written after the gate's spellcheck, so neither the gate nor CI ever sees it.
+  it('keeps the coverage report out of git and out of cspell', () => {
+    copyTemplates(makeAnswers({ spellChecker: 'cspell', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, '.gitignore'), 'utf-8').split('\n')).toContain('coverage');
+    const { ignorePaths } = JSON.parse(readFileSync(join(targetDir, 'cspell.json'), 'utf-8')) as CspellConfig;
+    expect(ignorePaths).toContain('coverage');
+    // The pre-commit hook hands cspell the staged dotfiles, which `spellcheck` skips. This one holds file hashes and paths.
+    expect(ignorePaths).toContain('.create-obsidian-plugin.json');
+  });
+
   it('creates markdownlint scripts', () => {
     copyTemplates(makeAnswers({ markdownLinter: 'markdownlint' }), targetDir, '1.0.0', null);
     const lintMd = readFileSync(join(targetDir, 'scripts/lint-md.ts'), 'utf-8');
@@ -2852,6 +2873,11 @@ describe('sortImportStatements', () => {
     ].join('\n'));
   });
 });
+
+interface CspellConfig {
+  ignorePaths: string[];
+  words: string[];
+}
 
 interface DprintConfig {
   typescript?: Record<string, unknown>;
