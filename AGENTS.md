@@ -36,11 +36,13 @@ esbuild whatever was answered, while still installing the chosen bundler and emi
 nothing to read. `build.ts` was fixed in `9fe2d67` and `dev.ts` was left behind, which is exactly how
 the two came to disagree: `npm run build` ran webpack, `npm run dev` ran esbuild, both green.
 
-Under each, only esbuild splits again by preset — obsidian-dev-toolkit supplies a build and a watcher
-for it, standalone writes its own inline — and the four command-line bundlers share one script. On the
-`dev` side that shared script is two lines: `build.ts` already reads `dev` off `process.argv` and
-derives the watch flag, `dist/dev`, sourcemaps, the `.hotreload` marker and the vault copy from it, so
-`dev` re-enters it rather than restating any of that.
+Under each, the presets split. On the framework presets every bundler is an obsidian-dev-toolkit adapter
+(see "On the framework presets every bundler is an obsidian-dev-toolkit adapter"): esbuild and parcel call the
+toolkit's `build()` / `dev()`, and vite, rollup and webpack run their own command line (`adapter-cli`), `build`
+after `build:compile` and `dev` with `--watch`. On `standalone` esbuild writes its own inline, and the four
+command-line bundlers share one script (`cli-bundler`). On the `dev` side that shared script is two lines:
+`build.ts` already reads `dev` off `process.argv` and derives the watch flag, `dist/dev`, sourcemaps, the
+`.hotreload` marker and the vault copy from it, so `dev` re-enters it rather than restating any of that.
 
 **Standalone deliberately does not gain obsidian-dev-toolkit's `dev()` behavior.** That `dev()` is not
 just a watcher: it also watches `node_modules` recursively and, on a change, disposes the esbuild
@@ -49,13 +51,13 @@ the toolkit's own `build:compile` step, which standalone has not got — and sta
 self-contained script with no framework. Porting it would buy ~25 lines of debounced fs watching and
 process restart for no equivalent benefit. That was asked and answered; do not re-open it.
 
-The two format scripts split on the **formatter** for the same class of reason.
-What `npm run format` runs is decided by the formatter answer, and only dprint has a preset-specific
-runner (framework resolves `dprint.json` from the repo root and falls back to its bundled copy).
-prettier and biome are a plain `execSync`, identical everywhere, so they are one file each shared by
-every preset. Splitting on the preset first is what let the framework half import the dprint runner whatever
-was chosen — installing prettier or biome, emitting its config, then running dprint over it, with
-dprint not even a dependency.
+The two format scripts split on the **formatter** for the same class of reason, and so do the two lint scripts
+on the linter. What `npm run format` runs is decided by the formatter answer, and each formatter then splits by
+preset: the framework presets call the toolkit's runner for it (obsidian-dev-toolkit's for dprint, which falls back
+to its bundled `dprint.json`, and typescript-dev-toolkit's for prettier and biome), each taking the staged paths,
+and `standalone` runs a plain `execSync`. Splitting on the preset first is what let the framework half import the
+dprint runner whatever was chosen — installing prettier or biome, emitting its config, then running dprint over it,
+with dprint not even a dependency.
 
 ### The chosen formatter runs once at generation time
 
@@ -106,6 +108,12 @@ then dies on "Must use import to load ES Module". So the jest answer runs in ESM
 `--experimental-vm-modules` to `NODE_OPTIONS` because jest's ESM loader is built on `vm.SyntheticModule`,
 which Node exposes only under that flag. All four pieces are load-bearing; drop any one and **zero tests run
 while the exit code stays green**, which is why `src/templates.test.ts` asserts each of them.
+
+On the framework presets the toolkits supply those pieces. `jest.config.ts` is
+`defineObsidianPluginJestConfig` (obsidian-dev-toolkit), which turns on ESM for a `"type": "module"` project,
+and `scripts/test.ts` is typescript-dev-toolkit's jest runner, which appends the flag. The config keeps only
+the stub mappings and `tsJestOptions.tsconfig`, which carries `rootDir` and replaces the toolkit's
+`isolatedModules: true`, so it restates that. `standalone` keeps all four pieces inline.
 
 The CommonJS alternative is a dead end, not an untried option: forcing `module: CommonJS` drags
 `moduleResolution` down to `node10`, which TypeScript 6 rejects outright (TS5107, deprecated) and TypeScript 7
@@ -162,7 +170,7 @@ considered and refused, because "as is" is the ask.
 
 **A block that does not compile is a finding, never a silent drop.** It stays in `snippets.json` and in the generated `src/docs/README.md` with its first diagnostic, translated back to its line on the page. Most are genuine against the official sample's compiler options (`noUncheckedIndexedAccess`, uninitialized properties, names defined nowhere in the docs). `--check` re-runs the pinned commit against the pinned `obsidian` version and fails on any difference, so a change to the wrapping rules that is not re-synced is caught.
 
-**The project's own tooling leaves `src/docs/` alone.** Upstream's code would never pass `@tsconfig/strictest` or the shared ESLint config, so the folder carries its own `tsconfig.json` with the official sample plugin's options (`moduleResolution: bundler` in place of its `node`, which TypeScript 6 rejects). The root `tsconfig.json` excludes it, and the `docs-showcase` partials take it out of ESLint, dprint, prettier, biome, cspell and vitest coverage. The plugin reaches it through `src/docs/entry.js` with `entry.d.ts` beside it. A `.js` file is not in the root program, so tsc sees only the declaration, while the bundler follows the import into the `.ts` modules. A plain import of `index.ts` would pull every block into the strict program. `build:compile:typescript` (`scripts/build-compile-typescript.ts`) runs the toolkit's own TypeScript step and then `tsc` over `src/docs/tsconfig.json`, which is how the gate type-checks the showcase. webpack and rollup type-check while they bundle, so each gets a second ts-loader or `@rollup/plugin-typescript` instance for `src/docs/` with that `tsconfig.json`, and the main one excludes the folder. esbuild, vite and parcel only transpile. All five bundle the showcase into one `main.js`: each block's module is a dynamic import, which every bundler is already told to inline.
+**The project's own tooling leaves `src/docs/` alone.** Upstream's code would never pass `@tsconfig/strictest` or the shared ESLint config, so the folder carries its own `tsconfig.json` with the official sample plugin's options (`moduleResolution: bundler` in place of its `node`, which TypeScript 6 rejects). The root `tsconfig.json` excludes it, and the `docs-showcase` partials take it out of ESLint, dprint, prettier, biome, cspell and vitest coverage. The plugin reaches it through `src/docs/entry.js` with `entry.d.ts` beside it. A `.js` file is not in the root program, so tsc sees only the declaration, while the bundler follows the import into the `.ts` modules. A plain import of `index.ts` would pull every block into the strict program. `build:compile:typescript` (`scripts/build-compile-typescript.ts`) runs the toolkit's own TypeScript step and then `tsc` over `src/docs/tsconfig.json`, which is how the gate type-checks the showcase. All five bundlers only transpile here, through obsidian-dev-toolkit's adapters, so `build:compile` is the one type check, and all five bundle the showcase into one `main.js`: each block's module is a dynamic import, which every adapter inlines.
 
 **It runs, not just compiles.** On the vitest answer the preset emits `src/docs-showcase.desktop.integration.test.ts`, which runs every `Docs:` command in a real Obsidian through obsidian-integration-testing and fails on any that throws. The host rethrows after its notice for exactly that. The first run of it found a block the type check could not: a `const` reading `view` under a `@ts-expect-error` had been hoisted as a declaration, so nothing supplied `view`.
 
@@ -214,8 +222,8 @@ is optional decoration, and each piece was found by a combination that failed wi
 - **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
   Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
   `preset: demo` forces svelte in whatever was answered, so its `plugin.ts` always imports the svelte
-  view and this is not a svelte-answer-only concern. The mapping is emitted for every jest project and every framework vitest project
-  rather than through partials: the pattern does not depend on any answer, which keeps the two configs
+  view and this is not a svelte-answer-only concern. The mapping is emitted for every jest project and every vitest project, `standalone` included since its
+  `plugin.ts` registers the answered view, rather than through partials: the pattern does not depend on any answer, which keeps the two configs
   identical across the matrix and avoids the partial-built-list trailing comma trap below.
 - **A vite alias built from a RegExp replaces only what the pattern MATCHED.** `/\.svelte$/` rewrites the
   extension and leaves the rest of the specifier glued to the front of the replacement path — a failure
@@ -271,7 +279,7 @@ The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole
 
 `scripts/eslint-config.ts` re-states four things the shared config does not carry: `dot-notation` with `allowIndexSignaturePropertyAccess` (see "Where the linters and the compiler disagree"), `depend/ban-dependencies` allowing `moment`, the `sentence-case` brands, and the global ignores that `.gitignore` does not cover. It does not re-state the `no-console` / `no-nodejs-modules` exemption outside `src/`. The shared config scopes every obsidianmd rule to `context.sourceFiles`, so those rules never reach `scripts/`.
 
-It also carries three categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the three `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-unresolved` ignores `data-url:` and the generated tailwind stylesheet. The stylesheet does not exist until the first build, so an inline disable would be wrong both before the build and after it. `import-x/no-rename-default` is off for `scripts/rollup.config.ts`, where every plugin is imported as `<name>Module` for `asPluginFactory` to unwrap and which plugins are imported depends on the answers.
+It also carries two categorical exemptions, so that no template needs an inline directive for them. `import-x/no-default-export` is off for `**/*.d.ts`, the three `scripts/*-stub.ts` and typesafe-i18n's locale files, because each of those has its default export dictated from outside. `import-x/no-rename-default` is off for `scripts/rollup.config.ts`, where every plugin is imported as `<name>Module` for `asPluginFactory` to unwrap and which plugins are imported depends on the answers.
 
 ### A lint directive for the shared config goes in an `_framework` section
 
@@ -358,18 +366,19 @@ only some also run commitlint.
 On the framework presets both configs come from typescript-dev-toolkit, as in the real plugins.
 `scripts/commitlint-config.ts` re-exports `commitlintConfig`, which resolves `@commitlint/config-conventional`
 from the toolkit's own dependencies, so only `standalone` declares that package and `@commitlint/types`.
-`scripts/nano-staged-config.ts` is `getNanoStagedConfig()` only when `usesToolkitNanoStagedConfig`
-(`src/features/git-hooks.ts`) holds: a framework preset with eslint, dprint, markdownlint and cspell.
-That function's tasks are fixed (`lint:fix`, `format`, `lint:md:fix`, `spellcheck`, each given the
-staged paths), so any other project would fail a commit on a missing script, or have prettier or biome
-rewrite the whole tree. Those projects get the inline config built from `addLintStagedCommand`.
+`scripts/nano-staged-config.ts` is `getNanoStagedConfig()` on every framework preset
+(`usesToolkitNanoStagedConfig`, `src/features/git-hooks.ts`). Since typescript-dev-toolkit 3.2.0 that
+config leaves out a task whose script the project lacks, and every framework format and lint script is a
+toolkit runner that takes the staged paths, whichever tool it runs. `standalone` gets the inline config
+built from `addLintStagedCommand`.
 
 ### Every answer says whether the toolkits run it
 
 `src/toolkit-parity.test.ts` puts every answer value in exactly one of three tables. `TOOLKIT_BACKED`
-lists the answers a toolkit runs, each with the module the emitted `all-in-one` project imports, and the
-test renders the answer and checks that import. `AWAITING_TOOLKIT` lists the tools the toolkits do not
-run yet, with what each lacks. `NOT_TOOLKIT_CONCERN` lists answers that are not tooling. A new option
+lists the answers a toolkit runs, each with the module the emitted `all-in-one` project imports, or the
+toolkit's reusable workflow one of its workflows calls, and the test renders the answer and checks that
+import or `uses:`. `AWAITING_TOOLKIT` lists the tools the toolkits do not run yet, with what each lacks;
+it is empty since every tool answer switched over in October 2026, and a new tool option starts there. `NOT_TOOLKIT_CONCERN` lists answers that are not tooling. A new option
 fails the test until it is classified. When toolkit support for an awaiting entry ships, switch its
 framework templates to the toolkit, delete the project's own copy, and move the entry to `TOOLKIT_BACKED`.
 
@@ -474,6 +483,13 @@ own single-file components and `lit` uses tagged templates, so none of them clai
 stay forced beside anything. Note this changes nothing a user can reach: `src/prompts.ts` skips the
 `uiFramework` question for `preset: demo` and pins it to `none`, so the demo vault still gets react,
 svelte and vue. It is `buildTemplate` that had to stop emitting a project that cannot compile.
+
+**`buildTemplate` and `copyTemplates` now pin demo the same way the prompt does** (`pinPresetAnswers`):
+`bundler: esbuild` and `uiFramework: none`, whatever they were given. obsidian-dev-toolkit's adapters take ONE
+`framework`, and only its esbuild builder compiles demo's three together: Svelte and the JSX from the tsconfig
+unasked, and Vue through `framework: 'vue'` (`TemplateBuilder.buildOptions` passes the framework that needs the
+option). So the machinery above no longer fires for demo. It stays, because it is what would decide the project's one runtime
+if the pin were ever lifted. The tiers render demo with every bundler answer, and each of those is now an esbuild project.
 
 ### An answer can arrive from four places, and the most specific wins
 
@@ -623,7 +639,13 @@ through the shared `has-e2e` partial, and only when an end-to-end runner was cho
 Putting a directory into the program is not free: it starts being type-checked. That is what exposed
 `wdio.conf.ts` never having compiled, and both sample specs asserting over `app.plugins` /
 `app.commands` regardless of the `apiSubset` answer — so those assertions now sit behind an
-`unofficial` section.
+`unofficial` section. The framework presets' config is `wdio.conf.mts` (obsidian-dev-toolkit's
+`defineWdioObsidianConfig`), which the root `./*.ts` glob misses, so the `wdio-obsidian` answer names it in
+the `include` itself.
+
+The `wdio-obsidian` answer holds `@wdio/*` and `expect-webdriverio` on wdio 9 (`PINNED_VERSIONS`), because
+wdio-obsidian-service 3.3.0 peers on `webdriverio ^9.18.1` and the registry's `latest` is wdio 10, which fails
+`npm install` with ERESOLVE.
 
 ### Where the linters and the compiler disagree, the compiler wins
 
@@ -637,9 +659,13 @@ The biome config is `biome.jsonc` so it can carry those reasons. Biome parses it
 whatever the extension, but it rejects a `"//"` key as unknown, and real comments in a file named
 `.json` would fail the render tier's JSON check. It also turns `noUnusedVariables` off for `.svelte`
 and `.vue`, where biome reads the script block but not the markup and reports every binding the
-template uses as unused.
+template uses as unused. That is `standalone`'s file. The framework presets' `biome.jsonc` extends
+typescript-dev-toolkit's `assets/biome.json`, which makes the same two choices, and keeps only the
+project's excludes; their `prettier.config.mjs` spreads the toolkit's `getPrettierConfig()`.
 
 ### The PostCSS config must be named `postcss.config.cjs`, and Tailwind is v4
+
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
 
 Two silent failures, stacked. Every consumer finds the config through `postcss-load-config`, and the
 copy `esbuild-postcss` bundles is v3, whose search places stop at `postcss.config.cjs`. An `.mjs` name
@@ -656,6 +682,8 @@ own default export is now a stub that warns you reached for the wrong package, a
 compiler pointing at a real fault, not a style complaint.
 
 ### Every bundler has to be told to name the stylesheet `styles.css`
+
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
 
 `src/main.ts` imports the stylesheet purely for its side effect, so the bundler emits one — that is what
 every `src/main.ts@import_*.ejs` comment means by "if you want to have a styles.css file in your build
@@ -698,6 +726,8 @@ rather than from `answers.styling`, for the reason `runScriptStep` gives about s
 forces `styling: 'scss'` on the demo preset whatever was answered.
 
 ### Every bundler has to be told to INLINE the WebAssembly module into `main.js`
+
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
 
 The stylesheet rule's twin, and it cost two of the five bundler plugins their place. `wasmSupport: wasm`
 used to emit a `.d.ts`, a README telling the user to go build a module, and a bundler integration — and
@@ -755,6 +785,8 @@ not exist, jest has no transform for the extension.
 
 ### Every bundler has to resolve the `browser` export condition
 
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
+
 A plugin runs in Obsidian's renderer, but the bundles are built for a Node-shaped target so that builtins
 stay external. Resolving only the `node` condition hands Solid and Svelte their SERVER builds, where
 `render` / `mount` never mount a view, and the build still exits 0. esbuild asks for `conditions:
@@ -782,22 +814,34 @@ untouched and rewrite `./view.tsx` imports to `./view.jsx`. A post-enforced `bab
 (`webpack.config.ts@rule_solid.ejs`, `babel-preset-solid` only) compiles it after ts-loader, and
 `extensionAlias` maps `.jsx` back to `.tsx`.
 
-### The framework presets pass their extra esbuild plugins through `customEsbuildPlugins`
+### On the framework presets every bundler is an obsidian-dev-toolkit adapter
 
-obsidian-dev-toolkit's `build()` and `dev()` both accept `customEsbuildPlugins` and spread them into their
-own plugin list. They already register a svelte wrapper and a sass plugin — which is exactly why svelte
-and SCSS work on these presets untouched — but nothing for Vue, so `esbuild-plugin-vue3` was installed
-and never wired in. `scripts/esbuild-plugins.ts` holds that list, emitted for the framework presets when the
-bundler is esbuild, and both `build.ts` and `dev.ts` pass it.
+esbuild and parcel call the toolkit's `build()` and `dev()` (`bundlers/esbuild`, `bundlers/parcel`). vite, rollup and
+webpack keep their own config file, which holds the toolkit's plugin and little else: `obsidianPluginVite()`,
+`obsidianPluginRollup()` with the rollup command line's `input` and `output.dir`, and
+`new ObsidianPluginWebpackPlugin()` with the TypeScript loader rule. The adapter does the Obsidian layout: the
+externals, one CommonJS `main.js` with every dynamic import inlined, `styles.css`, the banner, the manifest copy and
+the deployment into the vault. So none of the plugin files, `.parcelrc`, `targets` block or bundler-specific workarounds
+in the sections below reach a framework project. Those sections describe `standalone`, which keeps its own config for
+every bundler.
 
-Both import it **unconditionally**, because both live under `@bundler_esbuild` where the answer is
-guaranteed. `dev.ts` used to gate the import and the argument on the `esbuild` partial
-(`dev.ts_framework@import_esbuild`, `dev.ts_framework@options_esbuild`) from a position where the bundler was
-*not* yet decided — so on any other bundler that gate rendered a bare `dev()` with no plugin list at
-all. A partial keyed on the answer its own branch already guarantees is a tautology in the good case
-and a silent hole in the bad one.
+**The answers become one option set, `scripts/build-options.ts`**, which every builder reads: `framework` (react,
+preact, solid, svelte, vue), `styles` (`{}` for plain CSS, plus `postcss`, `tailwind` or `cssModules`), `wasm` and
+`reload` (`false` for `hotReload: none`, `'obsidian-cli'` for that answer). Each answer registers its part through
+`TemplateBuilder.addBuildFramework` / `addBuildStyles` / `addBuildOption`. A project with no option gets no file and
+calls the builders bare, which is exactly what every real plugin's `scripts/build.ts` does. The JSX settings come from
+the toolkit's tsconfig preset (`TemplateBuilder.addTsconfigExtends`, `@mnaoumov/obsidian-dev-toolkit/tsconfig/<name>.json`;
+vue has none, its components carry no TSX), and the stylesheet and `.wasm` import types from its `types/styles` and
+`types/wasm`. Sass is the one styling answer the `styles` option does not compile, so rollup and webpack keep their
+own scss plugin and rule, and the toolkit merges what they emit into `styles.css`.
 
+**The TypeScript step is esbuild-based on rollup and webpack** (`rollup-plugin-esbuild`, `esbuild-loader`), because
+`@rollup/plugin-typescript` and `ts-loader` call TypeScript's JavaScript API, which TypeScript 7 no longer has. So
+neither type-checks, and the vite, rollup and webpack `build` scripts run `build:compile` first, as the toolkit's
+esbuild and parcel builds do.
 ### On rollup, a Vue SFC's TypeScript is stripped by a babel pass of its own
+
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
 
 `rollup-plugin-vue` hands a `<script lang="ts">` block on as a virtual module (`…vue?vue&type=script…lang.ts`)
 and compiles none of it, and `@rollup/plugin-typescript` compiles only files in the tsconfig program, which a
@@ -815,6 +859,8 @@ answered view like `all-in-one` does, and the same test covers both presets over
 `openViewOnLayoutReady` helper both need is one `ui-view` partial per preset, not one copy per framework.
 
 ### On rollup, the TypeScript plugin is handed a TypeScript that knows each file's module format
+
+**This is `standalone`'s.** On the framework presets obsidian-dev-toolkit's adapters do it; see "On the framework presets every bundler is an obsidian-dev-toolkit adapter".
 
 `@rollup/plugin-typescript` (12.3.0, the latest) asks `ts.getModeForResolutionAtIndex` for each import's
 resolution mode without passing the compiler options, and TypeScript answers `undefined` without them. So the
@@ -887,9 +933,12 @@ The platform is asked with the project details, not under Customize. It is a fac
 
 Not always-include, not `<% if`. When `resolveFunding` finds a URL, `buildTemplate` registers `.github/FUNDING.yml`, the funding badge and the `has-funding` partial (`manifest.json@funding_has-funding.ejs`, `README.md@support_has-funding.ejs`). Before this, `FUNDING.yml` was GitHub's stock template with all 13 platforms blank, which GitHub renders as no funding at all. `migrateAnswers` turns an old project's `fundingUrl` into the platform and handle it names, turns any other URL into `custom`, and turns no URL into `none`.
 
+### On the framework presets every workflow calls obsidian-dev-toolkit's
+
+`ci.yml`, `release.yml` and `attest-release-assets.yml` are each one job that `uses:` the toolkit's reusable `obsidian-plugin-ci.yml`, `obsidian-plugin-release.yml` or `obsidian-plugin-attest-release-assets.yml`, pinned to `TOOLKIT_WORKFLOW_REF` (`src/templates.ts`). That is the ref every real plugin's attest workflow pins, so the emitted attest workflow is theirs byte for byte. CI runs the project's `gate`, and the release workflow checks the tag against the manifest, archives `demo-vault/` and attests what it publishes. So `ci-and-release` emits no separate attest workflow, which exists for a release `npm run version` published. `standalone` keeps its own step-by-step workflows, which depend on nothing.
 ### README badges are collected on the builder, not composed from partials
 
-`addBadge` collects them and `README.md.ejs` joins them with a space on line 3, because they must stay on ONE source line (see the hard-wrapped markdown failure mode below). A `render('badges')` seam would end every partial in a newline. The order is the real plugins' order: funding, release, downloads, then the `coverageBadge` answer's `coverage: 100%` badge. `src/templates.test.ts` asserts that line byte for byte against the real plugins' line, which is what covers the content that `verify:plugin-drift` does not compare. `coverageBadge` defaults to `none`, because the badge is a claim drawn from a URL and not a measurement, and a fresh project does not hold 100% coverage. `PLUGIN_SHAPED_ANSWERS` sets it, as every real plugin does.
+`addBadge` collects them and `README.md.ejs` joins them with a space on line 3, because they must stay on ONE source line (see the hard-wrapped markdown failure mode below). A `render('badges')` seam would end every partial in a newline. The order is the real plugins' order: funding, release, downloads, then the `coverageBadge` answer's `coverage: 100%` badge. `src/templates.test.ts` asserts that line byte for byte against the real plugins' line, which is what covers the content that `verify:plugin-drift` does not compare. `coverageBadge` defaults to `none`, because a fresh project does not hold 100% coverage. Where it can be measured, which is a framework preset with a CI workflow and a unit test runner, the badge is obsidian-dev-toolkit's: the CI workflow call passes `coverage-badge: true`, renders the badge from the gate's `test:coverage` report and publishes it to the `badges` branch, and the README links that file. Everywhere else it is the `coverage: 100%` claim the real plugins carry, which shields.io draws from the URL. `PLUGIN_SHAPED_ANSWERS` sets it, as every real plugin does.
 
 ### Logicless templates
 

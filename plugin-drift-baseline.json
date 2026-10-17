@@ -35,9 +35,13 @@
       "pluginCount": 0,
       "why": "Emitted for every project regardless of the package-manager answer, because which tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with ERR_PNPM_IGNORED_BUILDS. The real plugins are installed with npm throughout, so no plugin has one."
     },
-    "demo/layout/extra/scripts/esbuild-plugins.ts": {
+    "demo/framework-modules/extra/scripts/build-options.ts": {
       "pluginCount": 0,
-      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-toolkit does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
+      "why": "The `demo` preset forces vue in beside react and svelte, and obsidian-dev-toolkit compiles vue only through its `framework` build option, which `build()` and `dev()` read from this file. A framework project whose answers need no option calls them bare, as every real plugin does, and emits no such file."
+    },
+    "demo/layout/extra/scripts/build-options.ts": {
+      "pluginCount": 0,
+      "why": "The `demo` preset forces vue in beside react and svelte, and obsidian-dev-toolkit compiles vue only through its `framework` build option, which `build()` and `dev()` read from this file. A framework project whose answers need no option calls them bare, as every real plugin does, and emits no such file."
     },
     "demo/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,
@@ -58,10 +62,6 @@
     "demo/layout/extra/src/modals/sample-suggest-modal.ts": {
       "pluginCount": 0,
       "why": "Content the demo preset forces in; see `layout/extra/src/modals/sample-form-modal.ts`."
-    },
-    "demo/layout/extra/src/styles/styles.d.ts": {
-      "pluginCount": 0,
-      "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The real plugins, being scss throughout, name their copy after the extension."
     },
     "demo/layout/extra/src/views/sample-vue-view.ts": {
       "pluginCount": 0,
@@ -133,7 +133,7 @@
     },
     "demo/layout/partial/src/styles/scss.d.ts": {
       "pluginCount": 20,
-      "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
+      "why": "The real plugins declare their stylesheet imports in this file. The framework presets take the declaration from obsidian-dev-toolkit's `types/styles` instead, named in `compilerOptions.types`."
     },
     "demo/framework-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 30,
@@ -163,10 +163,6 @@
       "pluginCount": 0,
       "why": "Emitted for every project regardless of the package-manager answer, because which tool installs a checkout is not a property of the checkout. Without it `pnpm install` FAILS with ERR_PNPM_IGNORED_BUILDS. The real plugins are installed with npm throughout, so no plugin has one."
     },
-    "all-in-one/layout/extra/scripts/esbuild-plugins.ts": {
-      "pluginCount": 0,
-      "why": "The generator supports UI-framework answers the real plugins do not use, and Vue needs an esbuild plugin obsidian-dev-toolkit does not register itself; the list reaches `build()` and `dev()` through `customEsbuildPlugins`. The real plugins need no such file because svelte and sass are already wired in upstream."
-    },
     "all-in-one/layout/extra/scripts/framework-component-stub.ts": {
       "pluginCount": 0,
       "why": "Single-file components are stubbed rather than compiled in the unit-test runners, because compiling a `.svelte` or a `.vue` needs a plugin that is a dependency only of the chosen bundler. The mapping is emitted for every framework vitest project rather than per answer, which is what keeps one config identical across the matrix -- a constraint the real plugins, being one fixed set of answers, do not have."
@@ -178,10 +174,6 @@
     "all-in-one/layout/extra/scripts/wasm-module-stub.ts": {
       "pluginCount": 0,
       "why": "The unit runners' stand-in for a `.wasm` import, and the sibling of `framework-component-stub.ts` above: loading one is the bundler's job, vitest resolves it through vite's WebAssembly helper and jest has no transform for the extension at all. Emitted for every project with a test runner rather than only for the `wasm` answer, which is what keeps one runner config identical across the matrix. No real plugin imports WebAssembly, so none has one."
-    },
-    "all-in-one/layout/extra/src/styles/styles.d.ts": {
-      "pluginCount": 0,
-      "why": "The ambient declaration for stylesheet imports is named for its role, not for the chosen preprocessor, because the one file serves the css, scss, postcss and tailwind answers. The real plugins, being scss throughout, name their copy after the extension."
     },
     "all-in-one/layout/missing/AGENTS.md": {
       "pluginCount": 32,
@@ -245,7 +237,7 @@
     },
     "all-in-one/layout/partial/src/styles/scss.d.ts": {
       "pluginCount": 20,
-      "why": "The real plugins' side of the stylesheet-declaration naming; see `layout/extra/src/styles/styles.d.ts`."
+      "why": "The real plugins declare their stylesheet imports in this file. The framework presets take the declaration from obsidian-dev-toolkit's `types/styles` instead, named in `compilerOptions.types`."
     },
     "all-in-one/framework-modules/partial/scripts/capture-screenshots.ts": {
       "pluginCount": 30,

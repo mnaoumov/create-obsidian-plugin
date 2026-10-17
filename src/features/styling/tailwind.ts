@@ -2,6 +2,8 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { addToolkitStyles } from './toolkit-styles.ts';
 
 export class Tailwind extends FeatureOption {
   public constructor() {
@@ -10,25 +12,34 @@ export class Tailwind extends FeatureOption {
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
-      // Tailwind 4 is compiled by its own CLI rather than through PostCSS. PostCSS is not reachable on
-      // Every path this generator emits -- the toolkit presets call obsidian-dev-toolkit's esbuild
-      // Build, which has no PostCSS step and registers `esbuild-sass-plugin` (whose default filter
-      // Claims `.css`, not just `.scss`) ahead of the `customEsbuildPlugins` seam a project can add to.
-      // Compiling first means every bundler receives ordinary, already-expanded CSS and the question
-      // Does not arise. It also drops autoprefixer and the JavaScript config v3 needed.
-      .addPackage('@tailwindcss/cli')
-      .addDepcheckIgnore('@tailwindcss/cli', 'run as a CLI by `scripts/build-styles.ts`.')
       .addPackage('tailwindcss')
       .addDepcheckIgnore('tailwindcss', 'imported by `src/styles/main.css` (`@import "tailwindcss"`), which depcheck does not read.')
+      .addFiles(['src/styles/main.css']);
+
+    // The obsidian-dev-toolkit `styles.tailwind` runs every stylesheet through `@tailwindcss/postcss`, on every bundler.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addPackage('@tailwindcss/postcss')
+        .addDepcheckIgnore('@tailwindcss/postcss', 'loaded by obsidian-dev-toolkit for its `styles.tailwind` build option.');
+      addToolkitStyles(builder, answers.bundler, 'tailwind');
+      return;
+    }
+
+    builder
+      // Tailwind 4 is compiled by its own CLI rather than through PostCSS, because the standalone bundlers do not
+      // All reach PostCSS. Compiling first means every bundler receives ordinary, already-expanded CSS. It also drops
+      // Autoprefixer and the JavaScript config v3 needed.
+      .addPackage('@tailwindcss/cli')
+      .addDepcheckIgnore('@tailwindcss/cli', 'run as a CLI by `scripts/build-styles.ts`.')
       .addScript('build:styles')
       .addFiles([
         'scripts/build-styles.ts',
-        'src/styles/main.css',
         'src/styles/styles.d.ts'
-      ]);
-    // What each bundler needs to carry ORDINARY css, which is all it ever sees now: esbuild loads it
-    // Natively, and the other four keep the plumbing that extracts it. No PostCSS anywhere -- the CLI
-    // Has already run by the time any of them look at the file.
+      ])
+      .addPartial('tailwind-cli');
+    // What each bundler needs to carry ORDINARY css, which is all it ever sees: esbuild loads it natively, and the
+    // Other four keep the plumbing that extracts it. No PostCSS anywhere -- the CLI has already run by the time any of
+    // Them look at the file.
     if (answers.bundler === 'rollup') {
       builder
         .addPackage('rollup-plugin-postcss')

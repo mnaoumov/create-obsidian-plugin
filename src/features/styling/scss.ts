@@ -40,7 +40,14 @@ export class Scss extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addFiles(['src/styles/main.scss', 'src/styles/styles.d.ts']);
+    builder.addFiles(['src/styles/main.scss']);
+    // The obsidian-dev-toolkit `styles` option compiles plain stylesheets only, so Sass stays the bundler's own; only the
+    // Import's type comes from the toolkit on the framework presets.
+    if (isFrameworkPreset(answers.preset)) {
+      builder.addPartial('toolkit-styles');
+    } else {
+      builder.addFiles(['src/styles/styles.d.ts']);
+    }
 
     // Obsidian-dev-utils' esbuild build depends on and registers `esbuild-sass-plugin` itself, so the
     // Project's build never names it there.
@@ -63,8 +70,10 @@ export class Scss extends FeatureOption {
         .addDepcheckIgnore('css-loader', 'named as a loader string in `scripts/webpack.config.ts`.')
         .addPackage('mini-css-extract-plugin')
         .addPackage('sass')
-        .addDepcheckIgnore('sass', 'the Sass compiler `sass-loader` resolves by name; nothing imports it directly.')
-        .addPartial('webpack-css-extract');
+        .addDepcheckIgnore('sass', 'the Sass compiler `sass-loader` resolves by name; nothing imports it directly.');
+      if (!isFrameworkPreset(answers.preset)) {
+        builder.addPartial('webpack-css-extract');
+      }
     }
   }
 }

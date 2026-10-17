@@ -98,6 +98,15 @@ export default defineConfig(
     }
   },
   {
+    files: typeScriptFiles,
+    rules: {
+      // The compiler already reports an undefined name, and `no-undef` cannot see ambient types and
+      // Globals a test framework declares (`describe`, `browser`, `WebdriverIO`), so typescript-eslint
+      // Advises turning it off for TypeScript.
+      'no-undef': 'off'
+    }
+  },
+  {
     rules: {
       // `moment` is banned for bundle size, which does not apply here: Obsidian bundles it and
       // Re-exports it, so it is imported from `'obsidian'` and the dependency exists only so

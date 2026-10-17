@@ -10,12 +10,12 @@ export const config: WebdriverIO.Config = {
     browserName: 'obsidian',
     browserVersion: 'latest',
     'wdio:obsidianOptions': {
-      plugins: ['.'],
-    },
+      plugins: ['.']
+    }
   }],
   services: ['obsidian'],
   mochaOpts: {
     timeout: 60_000,
-    ui: 'bdd',
-  },
+    ui: 'bdd'
+  }
 };

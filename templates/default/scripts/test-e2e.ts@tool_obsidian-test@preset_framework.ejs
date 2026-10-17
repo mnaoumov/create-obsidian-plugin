@@ -1,0 +1,4 @@
+import { testEndToEndWithObsidianTest } from '@mnaoumov/obsidian-dev-toolkit/test-runners/obsidian-test-runner';
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+
+await wrapCliTask(() => testEndToEndWithObsidianTest());

@@ -2,6 +2,8 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { addToolkitStyles } from './toolkit-styles.ts';
 
 export class Css extends FeatureOption {
   public constructor() {
@@ -9,7 +11,13 @@ export class Css extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addFiles(['src/styles/main.css', 'src/styles/styles.d.ts']);
+    builder.addFiles(['src/styles/main.css']);
+    if (isFrameworkPreset(answers.preset)) {
+      addToolkitStyles(builder, answers.bundler);
+      return;
+    }
+
+    builder.addFiles(['src/styles/styles.d.ts']);
     // Rollup parses anything without a plugin as JavaScript, so the stylesheet `src/main.ts` imports
     // Failed the build with "Expression expected". rollup-plugin-postcss with no PostCSS plugins passes
     // Plain CSS through and extracts it to `styles.css`, as every other bundler does natively or by loader.

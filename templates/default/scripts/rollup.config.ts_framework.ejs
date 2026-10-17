@@ -1,0 +1,49 @@
+import type { RollupOptions } from 'rollup';
+
+<%- sortImports(`import { obsidianPluginRollup } from '@mnaoumov/obsidian-dev-toolkit/bundlers/rollup';
+import commonjsModule from '@rollup/plugin-commonjs';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import process from 'node:process';
+import esbuildModule from 'rollup-plugin-esbuild';
+${render('import')}`) -%>
+<%- _buildOptionsImport -%>
+
+interface DefaultExported<TDefault> {
+  default: TDefault;
+}
+
+/**
+ * A rollup plugin package's default export, as it arrives at runtime.
+ *
+ * These packages declare `export default` in CommonJS-format types, so under `module: node16` TypeScript models
+ * the default import as the module object, while at runtime it is the plugin factory. The cast follows the runtime.
+ */
+type PluginFactory<TImported> = TImported extends DefaultExported<infer TDefault> ? TDefault : TImported;
+
+function asPluginFactory<TImported>(imported: TImported): PluginFactory<TImported> {
+  return imported as PluginFactory<TImported>;
+}
+
+const commonjs = asPluginFactory(commonjsModule);
+const esbuild = asPluginFactory(esbuildModule);
+<%- render('unwrap') -%>
+
+const isProduction = !process.env['ROLLUP_WATCH'];
+
+// The rollup command line checks `input` and picks the output folder before any plugin runs, so both are named here.
+// The obsidian-dev-toolkit plugin does the rest: Obsidian's modules external, one CommonJS `main.js` with every dynamic
+// Import inlined, the stylesheet named `styles.css`, the banner and the manifest.
+export const config: RollupOptions = {
+  input: 'src/main.ts',
+  // eslint-disable-next-line unicorn/name-replacements -- `dir` is rollup's own option name.
+  output: { dir: isProduction ? 'dist/build' : 'dist/dev' },
+  plugins: [
+    obsidianPluginRollup(<%- _buildOptionsArgument %>),
+    // Strips the types without checking them, which `build:compile` does. `@rollup/plugin-typescript` calls
+    // TypeScript's JavaScript API, which TypeScript 7 no longer has.
+    esbuild({ minify: isProduction }),
+    nodeResolve({ browser: true, extensions: ['.mjs', '.js', '.json', '.ts', '.tsx'] }),
+<%- render('plugin') -%>
+    commonjs()
+  ]
+};

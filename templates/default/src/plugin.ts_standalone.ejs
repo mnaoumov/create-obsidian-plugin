@@ -5,11 +5,13 @@ import {
 
 import type { Editor } from 'obsidian';
 
-import {
+<%# Sorted as one group: the per-answer partials contribute imports in question-registration order, -%>
+<%# which is not the order the formatter's import sorting wants. See `sortImports` in `src/templates.ts`. -%>
+<%- sortImports(`import {
   DEFAULT_SETTINGS,
-  <%= pluginShortName %>SettingTab
+  ${pluginShortName}SettingTab
 } from './settings.ts';
-<%- render('import') -%>
+${render('import')}`) -%>
 
 import type { PluginSettings } from './settings.ts';
 

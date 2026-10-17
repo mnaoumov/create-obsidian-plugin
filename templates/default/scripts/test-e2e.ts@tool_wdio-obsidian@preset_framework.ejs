@@ -1,0 +1,5 @@
+import { testEndToEndWithWdioObsidian } from '@mnaoumov/obsidian-dev-toolkit/test-runners/wdio-obsidian';
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+
+// Builds the plugin first, then runs `wdio.conf.mts`.
+await wrapCliTask(() => testEndToEndWithWdioObsidian());

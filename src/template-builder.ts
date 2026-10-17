@@ -1,3 +1,9 @@
+/** One option of the obsidian-dev-toolkit bundler adapters, with its value as TypeScript source. */
+export interface BuildOption {
+  key: string;
+  value: string;
+}
+
 /** One `.depcheckrc.json` entry: a declared package depcheck cannot see used, and the reference proving it is. */
 export interface DepcheckIgnore {
   packageName: string;
@@ -37,9 +43,38 @@ export class Dependency {
   }
 }
 
+/**
+ * The UI frameworks obsidian-dev-toolkit's esbuild builder compiles without its `framework` option: Svelte always,
+ * and React's and Preact's JSX from the `jsx` settings in `tsconfig.json`, which esbuild reads.
+ */
+const FRAMEWORKS_ESBUILD_COMPILES_UNASKED = new Set(['preact', 'react', 'svelte']);
+
 export class TemplateBuilder {
   public get badges(): string[] {
     return [...this._badges];
+  }
+
+  /**
+   * The options every obsidian-dev-toolkit bundler adapter takes, as `key: <TypeScript literal>` source, sorted by key.
+   *
+   * `framework` is a single value, and only `preset: demo` registers more than one, a set it builds only with esbuild.
+   * There the toolkit compiles Svelte, React and Preact unasked, so the framework that needs the option is the one
+   * passed.
+   */
+  public get buildOptions(): BuildOption[] {
+    const options = new Map(this._buildOptions);
+    const frameworks = [...this._buildFrameworks];
+    const framework = frameworks.length > 1 ? frameworks.find((name) => !FRAMEWORKS_ESBUILD_COMPILES_UNASKED.has(name)) : frameworks[0];
+    if (framework !== undefined) {
+      options.set('framework', `'${framework}'`);
+    }
+    if (this._buildStyles !== null) {
+      const flags = [...this._buildStyles].sort((a, b) => a.localeCompare(b));
+      options.set('styles', flags.length === 0 ? '{}' : `{ ${flags.map((flag) => `${flag}: true`).join(', ')} }`);
+    }
+    return [...options.entries()]
+      .map(([key, value]) => ({ key, value }))
+      .sort((a, b) => a.key.localeCompare(b.key));
   }
 
   public get depcheckIgnores(): DepcheckIgnore[] {
@@ -74,7 +109,20 @@ export class TemplateBuilder {
     return new Set(this._templateFiles);
   }
 
+  /**
+   * The configs the emitted `tsconfig.json` extends after its base, in registration order.
+   */
+  public get tsconfigExtends(): string[] {
+    return [...this._tsconfigExtends];
+  }
+
   private readonly _badges: string[] = [];
+
+  private readonly _buildFrameworks = new Set<string>();
+
+  private readonly _buildOptions = new Map<string, string>();
+
+  private _buildStyles: null | Set<string> = null;
 
   private readonly _depcheckIgnores = new Map<string, string>();
 
@@ -90,6 +138,8 @@ export class TemplateBuilder {
 
   private readonly _templateFiles = new Set<string>();
 
+  private readonly _tsconfigExtends = new Set<string>();
+
   /**
    * Registers a README badge, rendered in registration order on the line under the title.
    *
@@ -99,6 +149,38 @@ export class TemplateBuilder {
    */
   public addBadge(markdown: string): this {
     this._badges.push(markdown);
+    return this;
+  }
+
+  /**
+   * Registers a UI framework the obsidian-dev-toolkit bundler adapters compile, through their `framework` option.
+   */
+  public addBuildFramework(framework: string): this {
+    this._buildFrameworks.add(framework);
+    return this;
+  }
+
+  /**
+   * Registers an obsidian-dev-toolkit bundler adapter option other than `framework` and `styles`.
+   *
+   * @param key - The option name.
+   * @param value - The option's value, as TypeScript source.
+   */
+  public addBuildOption(key: string, value: string): this {
+    this._buildOptions.set(key, value);
+    return this;
+  }
+
+  /**
+   * Turns on the adapters' `styles` option, which compiles the project's plain stylesheets, with a flag of it if given.
+   *
+   * @param flag - `postcss`, `tailwind` or `cssModules`; omitted, the stylesheets are compiled as plain CSS.
+   */
+  public addBuildStyles(flag?: string): this {
+    this._buildStyles ??= new Set();
+    if (flag !== undefined) {
+      this._buildStyles.add(flag);
+    }
     return this;
   }
 
@@ -175,6 +257,17 @@ export class TemplateBuilder {
    */
   public addSentenceCaseBrand(brand: string): this {
     this._sentenceCaseBrands.add(brand);
+    return this;
+  }
+
+  /**
+   * Registers a config the emitted `tsconfig.json` extends after its base, such as a framework's JSX preset.
+   *
+   * Collected here rather than composed from partials for the same reason as {@link addLintStagedCommand}: the
+   * `extends` value is a list whose last entry must not carry a comma, and a single entry is written as a plain string.
+   */
+  public addTsconfigExtends(config: string): this {
+    this._tsconfigExtends.add(config);
     return this;
   }
 }

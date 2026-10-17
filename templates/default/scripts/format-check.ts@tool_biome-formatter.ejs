@@ -1,8 +1,3 @@
-import { execSync } from 'node:child_process';
-import process from 'node:process';
-
-try {
-  execSync('biome format .', { stdio: 'inherit' });
-} catch {
-  process.exit(1);
-}
+<%# The framework presets go through the toolkit runner, which takes the staged paths; standalone has no -%>
+<%# framework and shells out directly. -%>
+<%- render('preset') -%>

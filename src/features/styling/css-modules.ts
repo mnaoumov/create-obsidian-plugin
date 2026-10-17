@@ -2,6 +2,8 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { addToolkitStyles } from './toolkit-styles.ts';
 
 export class CssModules extends FeatureOption {
   public constructor() {
@@ -9,11 +11,13 @@ export class CssModules extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder
-      .addFiles([
-        'src/styles/main.module.css',
-        'src/styles/css-modules.d.ts'
-      ]);
+    builder.addFiles(['src/styles/main.module.css']);
+    if (isFrameworkPreset(answers.preset)) {
+      addToolkitStyles(builder, answers.bundler, 'cssModules');
+      return;
+    }
+
+    builder.addFiles(['src/styles/css-modules.d.ts']);
     // Rollup cannot import a stylesheet at all without a plugin. The emitted `src/main.ts` imports
     // `main.module.css`, and rollup answered with "Expression expected (Note that you need plugins to
     // Import files that are not JavaScript)". rollup-plugin-postcss scopes `*.module.css` by default

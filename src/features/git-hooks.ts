@@ -29,13 +29,13 @@ export function addHusky(builder: TemplateBuilder): void {
  * exactly when {@link TemplateBuilder.lintStagedPatterns} is non-empty, so the hook can never run an
  * empty config.
  *
- * Where the toolkit's `getNanoStagedConfig()` runs exactly the tools the project has, the config is that
- * one call, as in every real plugin: it batches the paths to fit a Windows command line and spellchecks
- * what the writers rewrote. Anywhere else the commands the answers registered are written out inline.
+ * On the framework presets the config is the toolkit's `getNanoStagedConfig()`, as in every real plugin: it
+ * batches the paths to fit a Windows command line and spellchecks what the writers rewrote. `standalone`
+ * writes out the commands the answers registered.
  */
 export function addStagedFilesHook(builder: TemplateBuilder, preset: string): void {
   addHusky(builder);
-  builder.addPartial(usesToolkitNanoStagedConfig(builder, preset) ? 'toolkit-nano-staged' : 'inline-nano-staged');
+  builder.addPartial(usesToolkitNanoStagedConfig(preset) ? 'toolkit-nano-staged' : 'inline-nano-staged');
   builder
     // `nano-staged` rather than `lint-staged`: the reference plugins moved to it, and `depend/ban-dependencies`
     // In the generated ESLint config bans `lint-staged` outright, so a project that installed it
@@ -50,22 +50,15 @@ export function addStagedFilesHook(builder: TemplateBuilder, preset: string): vo
 }
 
 /**
- * The partials whose `npm run` scripts are the ones typescript-dev-toolkit's `getNanoStagedConfig()` calls,
- * each a toolkit runner that takes the staged paths: `lint:fix` (eslint), `format` (dprint),
- * `lint:md:fix` (markdownlint) and `spellcheck` (cspell). Its tasks are fixed, so a project missing any of
- * them would fail its first commit on a missing script, and prettier and biome run over the whole tree
- * whatever paths they are given.
- */
-const TOOLKIT_NANO_STAGED_PARTIALS = ['cspell', 'dprint', 'eslint', 'markdownlint'] as const;
-
-/**
  * Whether the project's staged-files config can be typescript-dev-toolkit's `getNanoStagedConfig()`.
  *
- * @param builder - The builder, after every answer and demo override has configured.
+ * It can on every framework preset: since typescript-dev-toolkit 3.2.0 the config leaves out a task whose
+ * script the project lacks, and every framework format and lint script is a toolkit runner that takes the
+ * staged paths, whichever tool it runs. `standalone` depends on no toolkit, so it writes its commands out.
+ *
  * @param preset - The preset setting value.
- * @returns Whether the toolkit's config runs exactly the tools this project has.
+ * @returns Whether the toolkit's config is the project's.
  */
-export function usesToolkitNanoStagedConfig(builder: TemplateBuilder, preset: string): boolean {
-  const partials = builder.partials;
-  return isFrameworkPreset(preset) && TOOLKIT_NANO_STAGED_PARTIALS.every((partial) => partials.has(partial));
+export function usesToolkitNanoStagedConfig(preset: string): boolean {
+  return isFrameworkPreset(preset);
 }

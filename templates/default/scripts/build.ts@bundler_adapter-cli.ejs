@@ -1,0 +1,11 @@
+<%# vite, rollup and webpack run from their own command line, and obsidian-dev-toolkit's plugin in their config does -%>
+<%# the Obsidian part: the dist folder, the manifest, the stylesheet name and the deployment into the vault. -%>
+import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
+import { npmRun } from '@mnaoumov/typescript-dev-toolkit/npm-run';
+import { execFromRoot } from '@mnaoumov/typescript-dev-toolkit/root';
+
+await wrapCliTask(async () => {
+  // The bundler only strips the types, so the compile step checks them first.
+  await npmRun('build:compile');
+<%- render('run') -%>
+});

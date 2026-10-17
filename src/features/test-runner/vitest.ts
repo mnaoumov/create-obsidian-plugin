@@ -34,10 +34,10 @@ export class Vitest extends FeatureOption {
         'scripts/test.ts',
         'scripts/test-watch.ts',
         // Both presets, not just the framework ones: the emitted `src/plugin.ts` reaches `src/wasm/answer.ts`
-        // On every preset when the `wasm` answer is chosen, so every vitest config aliases `.wasm` to
-        // This stub. `framework-component-stub.ts` is framework-only because only those presets' `plugin.ts`
-        // Reaches a single-file component.
+        // On every preset when the `wasm` answer is chosen, and registers the answered view, which may be a
+        // Single-file component. So every vitest config aliases `.wasm` and `.svelte` / `.vue` to these stubs.
         'scripts/wasm-module-stub.ts',
+        'scripts/framework-component-stub.ts',
         // `src/main.test.ts` imports `src/main.ts`, which imports the stylesheet -- and on `tailwind` that
         // File does not exist until the first build. See the stub's own comment.
         'scripts/stylesheet-stub.ts'
@@ -73,7 +73,6 @@ export class Vitest extends FeatureOption {
         'scripts/test-integration-desktop.ts',
         'scripts/test-integration-desktop-performance.ts',
         'scripts/demo-vault-global-setup.ts',
-        'scripts/framework-component-stub.ts',
         'scripts/test-coverage.ts',
         'scripts/test-integration.ts',
         'scripts/test-integration-demo-vault.ts',

@@ -1,0 +1,5 @@
+import { defineWdioObsidianConfig } from '@mnaoumov/obsidian-dev-toolkit/test-runners/wdio-obsidian';
+
+// Runs `e2e/**/*.spec.ts` against the latest Obsidian, with the built plugin from `dist/build` and the demo
+// Vault when there is one.
+export const config: WebdriverIO.Config = defineWdioObsidianConfig();

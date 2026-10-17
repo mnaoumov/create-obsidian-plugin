@@ -2,6 +2,7 @@ import type { Answers } from '../../answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   rollup: '@rollup/plugin-babel',
@@ -22,6 +23,18 @@ export class Solid extends FeatureOption {
         'src/solid-components/sample-solid-component.tsx',
         'src/views/sample-solid-view.tsx'
       ]);
+
+    // The obsidian-dev-toolkit adapters compile Solid's JSX with `babel-preset-solid`, loaded from the project.
+    if (isFrameworkPreset(answers.preset)) {
+      builder
+        .addBuildFramework('solid')
+        .addTsconfigExtends('@mnaoumov/obsidian-dev-toolkit/tsconfig/solid.json')
+        .addPackage('@babel/core')
+        .addDepcheckIgnore('@babel/core', 'loaded by obsidian-dev-toolkit to compile Solid\'s JSX.')
+        .addPackage('babel-preset-solid')
+        .addDepcheckIgnore('babel-preset-solid', 'loaded by obsidian-dev-toolkit to compile Solid\'s JSX.');
+      return;
+    }
 
     const plugin = BUILD_PLUGINS[answers.bundler];
     if (plugin) {

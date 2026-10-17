@@ -1,0 +1,129 @@
+<%# Sorted as one group: the per-answer partials contribute imports in question-registration order, -%>
+<%# which is not the order an import-sorting lint rule wants. See `sortImports` in `src/templates.ts`. -%>
+<%- sortImports(`import commonjsModule from '@rollup/plugin-commonjs';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import terserModule from '@rollup/plugin-terser';
+import typescriptModule from '@rollup/plugin-typescript';
+import { builtinModules } from 'node:module';
+import process from 'node:process';
+import ts, {
+  getModeForResolutionAtIndex,
+  ModuleKind
+} from 'typescript';
+${render('import')}`) -%>
+
+/**
+ * A module whose types describe the CommonJS shape: the factory hiding under a `default` key.
+ *
+ * Named rather than written inline inside {@link PluginFactory}, because an anonymous object type in a
+ * signature is a type nothing else can refer to.
+ */
+interface DefaultExported<TDefault> {
+  default: TDefault;
+}
+
+/**
+ * Restores the call signature of a plugin whose types describe the CommonJS shape.
+ *
+ * Every `@rollup/plugin-*` ships an ESM build whose default export IS the plugin factory, but declares
+ * its types from one CommonJS-shaped `.d.ts`. Under `moduleResolution: node16` TypeScript therefore
+ * models each default import as the module object and rejects the call, while at runtime the import
+ * really is the factory. Reading `.default` instead type-checks and then crashes, so neither form is
+ * right on its own. This follows the runtime and keeps each plugin's own option types, and it is a
+ * no-op for any plugin whose types are already correct.
+ */
+type PluginFactory<TImported> = TImported extends DefaultExported<infer TDefault> ? TDefault : TImported;
+
+function asPluginFactory<TImported>(imported: TImported): PluginFactory<TImported> {
+  return imported as PluginFactory<TImported>;
+}
+
+const commonjs = asPluginFactory(commonjsModule);
+const terser = asPluginFactory(terserModule);
+const typescript = asPluginFactory(typescriptModule);
+<%- render('unwrap') -%>
+
+/**
+ * TypeScript as `@rollup/plugin-typescript` ought to call it.
+ *
+ * The plugin asks `getModeForResolutionAtIndex` for each import's resolution mode without passing the
+ * compiler options, and without them TypeScript answers `undefined`. So every import in `src/` resolves
+ * under the `require` condition, while a declaration file that pins `resolution-mode: import` gets the
+ * ESM types. A package that ships both, such as `@codemirror/state`, is then loaded twice, and its
+ * classes stop being assignable to themselves: TS2416 against obsidian-lib's `StateFieldSpec`.
+ * Handing over the `module` the emitted `tsconfig.json` declares restores the per-file mode tsc uses.
+ */
+const typescriptWithResolutionModes: typeof ts = {
+  ...ts,
+  getModeForResolutionAtIndex: (file, index) => getModeForResolutionAtIndex(file, index, { module: ModuleKind.Node16 })
+};
+
+const isProduction = process.env['BUILD'] === 'production';
+const distFolder = process.env['DIST_FOLDER'] ?? (isProduction ? 'dist/build' : 'dist/dev');
+
+const EXTERNAL = [
+  'obsidian',
+  'electron',
+  '@codemirror/autocomplete',
+  '@codemirror/collab',
+  '@codemirror/commands',
+  '@codemirror/language',
+  '@codemirror/lint',
+  '@codemirror/search',
+  '@codemirror/state',
+  '@codemirror/view',
+  '@lezer/common',
+  '@lezer/highlight',
+  '@lezer/lr',
+  'esbuild',
+  'eslint',
+  ...builtinModules
+];
+
+<%# Each per-answer plugin partial ends its entry with a comma so two of them concatenate into a valid -%>
+<%# list. The LAST entry of the whole array must not carry one, so the array is assembled here and its -%>
+<%# trailing comma stripped, rather than every partial having to know whether it is last. -%>
+<%
+  const plugins = `${render('pre-plugin')}    // The emitted \`tsconfig.json\` declares \`noEmit: true\` and allows \`.ts\` import specifiers, both right
+    // For the file itself -- more than tsc reads it. This plugin compiles WITH emit, so it rejects that
+    // Config outright (TS5096, and an \`outDir\` it insists must sit inside the output directory). The
+    // Overrides belong here, in the one tool that needs them, exactly as \`jest.config.ts\` overrides
+    // \`rootDir\` for the same reason.
+    typescript({
+      // The emitted \`tsconfig.json\` inlines a source map. A production build writes none, and the plugin
+      // Warns on every such build that it was asked for one that nothing will output.
+      inlineSourceMap: !isProduction,
+      inlineSources: !isProduction,
+      noEmit: false,
+      outDir: distFolder,
+      rewriteRelativeImportExtensions: true,
+      sourceMap: !isProduction,
+      typescript: typescriptWithResolutionModes
+    }),
+    nodeResolve({ browser: true }),
+    commonjs(),
+${render('post-plugin')}    ...(isProduction ? [terser()] : []),
+`;
+-%>
+export const config = {
+  external: EXTERNAL,
+  input: 'src/main.ts',
+  output: {
+    banner: `/*
+THIS IS A GENERATED/BUNDLED FILE BY ROLLUP
+if you want to view the source, please visit the github repository of this plugin
+*/
+`,
+    exports: 'default',
+    file: `${distFolder}/main.js`,
+    format: 'cjs',
+    // An Obsidian plugin is one file: the manifest names `main.js` and nothing loads a second chunk.
+    // Any dynamic import in the sources -- obsidian-lib, which the toolkit presets import, has several -- otherwise
+    // Makes rollup refuse `output.file` and demand `output.dir`.
+    inlineDynamicImports: true,
+    sourcemap: !isProduction && 'inline'
+  },
+  plugins: [
+<%- plugins.replace(/,(?<Trailing>\s*)$/, '$<Trailing>') -%>
+  ]
+};

@@ -1,8 +1,2 @@
-import { wrapCliTask } from '@mnaoumov/typescript-dev-toolkit/cli-utils';
-import { testCoverage } from '@mnaoumov/typescript-dev-toolkit/test-runners/vitest';
-
-await wrapCliTask(() =>
-  testCoverage({
-    projects: ['unit-tests']
-  })
-);
+<%# Only the framework presets register `test:coverage`, so this splits on the test runner alone. -%>
+<%- render('tool') -%>

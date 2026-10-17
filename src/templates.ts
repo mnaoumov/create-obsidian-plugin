@@ -21,6 +21,7 @@ import type {
 import type { FeatureOption } from './feature-option.ts';
 import type { Overlay } from './overlay.ts';
 import type { ProjectFormatter } from './project-formatter.ts';
+import type { BuildOption } from './template-builder.ts';
 
 import {
   CONFIG_FILE_NAME,
@@ -52,6 +53,7 @@ import { PACKAGE_MANAGER_OPTIONS } from './features/package-manager/index.ts';
 import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
 import { DOCS_SHOWCASE_PRESET } from './features/preset/docs-showcase.ts';
 import { PRESET_OPTIONS } from './features/preset/index.ts';
+import { isFrameworkPreset } from './features/preset/is-framework-preset.ts';
 import { SPELL_CHECKER_OPTIONS } from './features/spell-checker/index.ts';
 import { STYLING_OPTIONS } from './features/styling/index.ts';
 import { TEST_RUNNER_OPTIONS } from './features/test-runner/index.ts';
@@ -96,6 +98,11 @@ const JSON_INDENT_SPACES = 2;
 // Only reached when generation runs without a resolution pass -- rendering tests, and `latest` is what the
 // Generator emitted for everything before the pin table existed.
 const UNRESOLVED_VERSION = 'latest';
+
+// The obsidian-dev-toolkit release whose reusable workflows the emitted CI, release and attest callers pin. It is the
+// Ref every real plugin's ttest-release-assets.yml pins, and its three workflows are unchanged through 3.2.0. Raise
+// It with the real plugins when a later release changes a workflow.
+const TOOLKIT_WORKFLOW_REF = '3.0.0';
 
 const BASE_TEMPLATE_FILES = [
   // Never empty: `tslib` and `typescript` below are false positives on every answer set.
@@ -187,7 +194,15 @@ const DEMO_OVERRIDES: DemoOverride[] = [
   { answerKey: 'styling', demoValue: 'scss', options: STYLING_OPTIONS }
 ];
 
-export function buildTemplate(answers: Answers, overlay: null | Overlay = null): TemplateBuilder {
+/**
+ * The answers `preset: demo` holds whatever was given, the same two the prompt pins for it and the CLI refuses beside
+ * it: demo forces react, svelte and vue in together, and obsidian-dev-toolkit's esbuild builder is the one that compiles
+ * that set, Svelte and the JSX unasked and Vue through its single `framework` option.
+ */
+const DEMO_PINNED_ANSWERS: Readonly<Partial<Answers>> = { bundler: 'esbuild', uiFramework: 'none' };
+
+export function buildTemplate(givenAnswers: Answers, overlay: null | Overlay = null): TemplateBuilder {
+  const answers = pinPresetAnswers(givenAnswers);
   const builder = new TemplateBuilder();
 
   builder
@@ -257,6 +272,12 @@ export function buildTemplate(answers: Answers, overlay: null | Overlay = null):
     addStagedFilesHook(builder, answers.preset);
   }
 
+  // After every answer and demo override, which are what register the options. A project with none calls the
+  // Builders with no argument, as every real plugin does.
+  if (isFrameworkPreset(answers.preset) && builder.buildOptions.length > 0) {
+    builder.addFiles(['scripts/build-options.ts']);
+  }
+
   // Last, so an overlay's partials render after the built-in ones at each seam and its badges follow the
   // Built-in badges on the README's badge line.
   if (overlay) {
@@ -267,7 +288,7 @@ export function buildTemplate(answers: Answers, overlay: null | Overlay = null):
 }
 
 export function copyTemplates(
-  answers: Answers,
+  givenAnswers: Answers,
   targetDir: string,
   currentVersion: string,
   existingConfig: GeneratorConfig | null,
@@ -276,6 +297,7 @@ export function copyTemplates(
   overlay: null | Overlay = null,
   projectFormatter?: null | ProjectFormatter
 ): GeneratorConfig {
+  const answers = pinPresetAnswers(givenAnswers);
   const templatesDir = join(getScriptDir(), '..', 'templates', 'default');
 
   /**
@@ -298,6 +320,7 @@ export function copyTemplates(
   const templateFiles = builder.templateFiles;
   const partials = builder.partials;
   const dependencies = builder.dependencies;
+  const hasBuildOptions = templateFiles.has('scripts/build-options.ts');
 
   let currentTemplatePath = '';
   let renderRoot = '';
@@ -306,6 +329,9 @@ export function copyTemplates(
     ...answers,
     ...getFundingTemplateContext(answers),
     _badges: builder.badges,
+    _buildOptionsArgument: hasBuildOptions ? 'buildOptions' : '',
+    _buildOptionsImport: hasBuildOptions ? '\nimport { buildOptions } from \'./build-options.ts\';\n' : '',
+    _buildOptionsLiteral: toObjectLiteral(builder.buildOptions),
     _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
       packageName: dependency.packageName,
@@ -319,6 +345,8 @@ export function copyTemplates(
     _resolutions: Object.entries(buildResolutions(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
     _scripts: builder.scripts,
     _sentenceCaseBrands: builder.sentenceCaseBrands,
+    _toolkitWorkflowRef: TOOLKIT_WORKFLOW_REF,
+    _tsconfigExtendsJson: toTsconfigExtendsJson(builder.tsconfigExtends),
     pluginShortName: getPluginShortName(answers.pluginId),
     render(options?: RenderOptions | string): string {
       const { indentLevel, section } = typeof options === 'string'
@@ -454,6 +482,16 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   const raw = parsed as Record<string, unknown>;
   migrateAnswers(raw);
   return parsed as GeneratorConfig;
+}
+
+/**
+ * Applies the answers a preset pins, so every path that renders a project sees the answers the prompt would have given.
+ *
+ * @param answers - The answers as given.
+ * @returns The answers the project is built from.
+ */
+export function pinPresetAnswers(answers: Answers): Answers {
+  return answers.preset === 'demo' ? { ...answers, ...DEMO_PINNED_ANSWERS } : answers;
 }
 
 /**
@@ -819,4 +857,14 @@ function migrateFundingAnswers(answers: Record<string, unknown>): void {
 
 function sha256(content: Buffer | string): string {
   return createHash('sha256').update(content).digest('hex');
+}
+
+function toObjectLiteral(options: readonly BuildOption[]): string {
+  return options.length === 0 ? '{}' : `{\n${options.map((option) => `  ${option.key}: ${option.value}`).join(',\n')}\n}`;
+}
+
+function toTsconfigExtendsJson(extraConfigs: readonly string[]): string {
+  const base = JSON.stringify('@tsconfig/strictest/tsconfig.json');
+  // One entry per line: dprint keeps a list as it is written, and the base and two presets overflow one line.
+  return extraConfigs.length === 0 ? base : `[\n${[base, ...extraConfigs.map((config) => JSON.stringify(config))].map((config) => `    ${config}`).join(',\n')}\n  ]`;
 }

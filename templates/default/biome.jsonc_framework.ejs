@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["./node_modules/@mnaoumov/typescript-dev-toolkit/assets/biome.json"],
+  "files": {
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/demo-vault", "!**/*-lock.json"<%- render('excludes') %>],
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        // The shared ESLint config's `unicorn/class-reference-in-static-methods` asks for `this` in a static method,
+        // which this rule rejects. The sample code follows the shared config and the real plugins.
+        "noThisInStatic": "off",
+      },
+    },
+  },
+}
