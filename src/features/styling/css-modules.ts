@@ -13,9 +13,8 @@ export class CssModules extends FeatureOption {
   public override configure(builder: TemplateBuilder, answers: Answers): void {
     // The sample command applies a class from the module. A bare side-effect import of a CSS module is
     // Not enough: vite drops an import whose class names nothing reads, and its CSS with it.
-    // `css-modules.d.ts` is emitted on the framework presets too, although obsidian-dev-toolkit's
-    // `types/styles` declares `*.module.css`: that file declares `*.css` first, which wins the pattern
-    // Match and types the module `any`. The file itself says how it gets ahead of the toolkit's.
+    // `css-modules.d.ts` is emitted on every preset. On the framework presets obsidian-dev-toolkit's
+    // `types/styles` declares the same type, and the file says why its pattern does not collide with that.
     builder.addFiles(['src/styles/css-modules.d.ts', 'src/styles/main.module.css', 'src/styles/sample-css-module-command.ts']);
     if (isFrameworkPreset(answers.preset)) {
       addToolkitStyles(builder, answers.bundler, 'cssModules');
