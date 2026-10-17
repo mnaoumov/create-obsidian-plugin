@@ -718,12 +718,30 @@ output name as an option, and Parcel takes a namer — as it takes a resolver wh
 `external` list.
 
 **The gate tier asserts the artifact, not the exit code.** `npm run build` exiting 0 is what let this
-live: `checkStyles` (`src/generated-project-checks.ts`) now runs after `build` and, when the emitted
-`src/main.ts` imports a stylesheet, insists that `dist/build/styles.css` exists, is non-empty, and is
+live: `checkStyles` (`src/generated-project-checks.ts`) now runs after `build` and, when an emitted
+`src/` module imports a stylesheet, insists that `dist/build/styles.css` exists, is non-empty, and is
 the only `.css` in the folder — the last clause being what catches a half-fix that writes `styles.css`
-and leaves the misnamed original beside it. The trigger is read out of the generated `src/main.ts`
-rather than from `answers.styling`, for the reason `runScriptStep` gives about scripts: `DEMO_OVERRIDES`
-forces `styling: 'scss'` on the demo preset whatever was answered.
+and leaves the misnamed original beside it. The trigger is read out of the generated modules, `src/main.ts`
+first and `src/docs/` excluded, rather than from `answers.styling`, for the reason `runScriptStep` gives
+about scripts: `DEMO_OVERRIDES` forces `styling: 'scss'` on the demo preset whatever was answered.
+
+### A CSS module is reached through its class names, never a bare import
+
+**This holds on every preset.** A CSS module is a JavaScript module that exports its scoped class names,
+and vite gives it `moduleSideEffects: false`, so a bare `import './styles/main.module.css'` is dropped
+together with its CSS: vite + css-modules emitted no `styles.css` on `standalone` and `all-in-one`, with
+the build green. So `src/main.ts` imports nothing for `css-modules`. The answer ships
+`src/styles/sample-css-module-command.ts` instead, a `Sample CSS module` command whose Notice carries the
+module's `sampleNotice` class, reached from each preset's `plugin.ts` through its `import` / `onload`
+seams the way the wasm sample is. The rule needs a declaration too: every minifier drops an empty one,
+which is how esbuild emitted an empty `styles.css` before.
+
+**`src/styles/css-modules.d.ts` is emitted on the framework presets too.** obsidian-dev-toolkit's
+`types/styles` declares `*.css` before `*.module.css`, and TypeScript takes the first of two patterns with
+equally long prefixes, so the module came out `any` and the typed lint rules rejected every use of
+its class names. The project's own file is in the program before any `types` entry, and it is spelled
+`*module.css` because the same pattern string would merge with the toolkit's into a duplicate default
+export. It stays harmless once the toolkit reorders its declarations.
 
 ### Every bundler has to be told to INLINE the WebAssembly module into `main.js`
 

@@ -1,0 +1,30 @@
+import type { Plugin } from 'obsidian';
+
+import { Notice } from 'obsidian';
+
+import classNames from './main.module.css';
+
+/**
+ * Registers the command that shows a notice styled by the sample CSS module.
+ *
+ * This is not decoration, and deleting it does more than remove a command. A CSS module is a JavaScript
+ * module that exports its scoped class names, and a bundler drops an import whose names nothing reads --
+ * vite does, together with the CSS -- so with no real use of the class names the build emits no
+ * `styles.css` while staying green. Whatever replaces this sample, keep something in `src/` applying a
+ * class from the module.
+ */
+export function registerSampleCssModuleCommand(plugin: Plugin): void {
+  plugin.addCommand({
+    callback: () => {
+      showStyledNotice();
+    },
+    id: 'sample-css-module',
+    name: 'Sample CSS module'
+  });
+}
+
+function showStyledNotice(): void {
+  new Notice(createFragment((fragment) => {
+    fragment.createSpan({ cls: classNames['sampleNotice'] ?? '', text: 'Styled by a CSS module' });
+  }));
+}

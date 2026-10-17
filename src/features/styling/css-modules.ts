@@ -11,13 +11,17 @@ export class CssModules extends FeatureOption {
   }
 
   public override configure(builder: TemplateBuilder, answers: Answers): void {
-    builder.addFiles(['src/styles/main.module.css']);
+    // The sample command applies a class from the module. A bare side-effect import of a CSS module is
+    // Not enough: vite drops an import whose class names nothing reads, and its CSS with it.
+    // `css-modules.d.ts` is emitted on the framework presets too, although obsidian-dev-toolkit's
+    // `types/styles` declares `*.module.css`: that file declares `*.css` first, which wins the pattern
+    // Match and types the module `any`. The file itself says how it gets ahead of the toolkit's.
+    builder.addFiles(['src/styles/css-modules.d.ts', 'src/styles/main.module.css', 'src/styles/sample-css-module-command.ts']);
     if (isFrameworkPreset(answers.preset)) {
       addToolkitStyles(builder, answers.bundler, 'cssModules');
       return;
     }
 
-    builder.addFiles(['src/styles/css-modules.d.ts']);
     // Rollup cannot import a stylesheet at all without a plugin. The emitted `src/main.ts` imports
     // `main.module.css`, and rollup answered with "Expression expected (Note that you need plugins to
     // Import files that are not JavaScript)". rollup-plugin-postcss scopes `*.module.css` by default

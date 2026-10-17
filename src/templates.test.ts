@@ -1130,6 +1130,7 @@ describe('buildTemplate', () => {
       ['editorExtensions', 'codemirror', './editor-extensions/sample-view-plugin.ts'],
       ['editorExtensions', 'codemirror', './editor-suggests/sample-editor-suggest.ts'],
       ['wasmSupport', 'wasm', './wasm/sample-command.ts'],
+      ['styling', 'css-modules', './styles/sample-css-module-command.ts'],
       ['uiFramework', 'lit', './views/sample-lit-view.ts'],
       ['uiFramework', 'preact', './views/sample-preact-view.tsx'],
       ['uiFramework', 'react', './views/sample-react-view.tsx'],

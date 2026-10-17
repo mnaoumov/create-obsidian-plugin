@@ -100,7 +100,7 @@ const JSON_INDENT_SPACES = 2;
 const UNRESOLVED_VERSION = 'latest';
 
 // The obsidian-dev-toolkit release whose reusable workflows the emitted CI, release and attest callers pin. It is the
-// Ref every real plugin's ttest-release-assets.yml pins, and its three workflows are unchanged through 3.2.0. Raise
+// Ref every real plugin's attest-release-assets.yml pins, and its three workflows are unchanged through 3.2.0. Raise
 // It with the real plugins when a later release changes a workflow.
 const TOOLKIT_WORKFLOW_REF = '3.0.0';
 
