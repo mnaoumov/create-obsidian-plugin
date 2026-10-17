@@ -865,5 +865,6 @@ function toObjectLiteral(options: readonly BuildOption[]): string {
 
 function toTsconfigExtendsJson(extraConfigs: readonly string[]): string {
   const base = JSON.stringify('@tsconfig/strictest/tsconfig.json');
-  return extraConfigs.length === 0 ? base : `[${[base, ...extraConfigs.map((config) => JSON.stringify(config))].join(', ')}]`;
+  // One entry per line: dprint keeps a list as it is written, and the base and two presets overflow one line.
+  return extraConfigs.length === 0 ? base : `[\n${[base, ...extraConfigs.map((config) => JSON.stringify(config))].map((config) => `    ${config}`).join(',\n')}\n  ]`;
 }

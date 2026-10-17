@@ -2096,7 +2096,8 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ formatter: 'biome', linter: 'biome', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, 'scripts/format-check.ts'), 'utf-8')).toContain('from \'@mnaoumov/typescript-dev-toolkit/formatters/biome\'');
     expect(readFileSync(join(targetDir, 'scripts/lint.ts'), 'utf-8')).toContain('from \'@mnaoumov/typescript-dev-toolkit/linters/biome\'');
-    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.jsonc'), 'utf-8')) as Record<string, unknown>;
+    // A `.jsonc` file, so it carries comments and the trailing commas dprint writes there.
+    const biome = JSON.parse(readFileSync(join(targetDir, 'biome.jsonc'), 'utf-8').replaceAll(/^\s*\/\/.*$/gmu, '').replaceAll(/,(?<Closing>\s*[\]}])/gu, '$<Closing>')) as Record<string, unknown>;
     expect(biome['extends']).toStrictEqual(['./node_modules/@mnaoumov/typescript-dev-toolkit/assets/biome.json']);
   });
 

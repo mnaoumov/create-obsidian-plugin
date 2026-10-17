@@ -11,7 +11,7 @@ export class TypedItem {
   public constructor(public readonly name: string) {}
 
   public static deserialize(name: string): TypedItem {
-    const items = [TypedItem.Bar, TypedItem.Baz, TypedItem.Foo];
+    const items = [this.Bar, this.Baz, this.Foo];
     const item = items.find((candidate) => candidate.name === name);
 
     if (item === undefined) {
