@@ -59,7 +59,7 @@ function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInve
  * file needs a triple, which a strength-2 array over the whole space need not hold. Fixing the preset and covering the
  * pairs of the rest holds every one of them, for a few hundred cases.
  */
-function* sweepCases(strength: number): Generator<number[]> {
+function* sweepCases(strength: number): Generator<number[], void> {
   yield* buildCoveringArray({ dimensionSizes: ANSWER_SPACE_DIMENSION_SIZES, strength });
   const presetDimension = ANSWER_SPACE.findIndex((dimension) => dimension.answerKey === 'preset');
   const presetCount = ANSWER_SPACE_DIMENSION_SIZES[presetDimension] ?? 0;
