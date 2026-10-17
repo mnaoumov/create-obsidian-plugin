@@ -222,8 +222,8 @@ is optional decoration, and each piece was found by a combination that failed wi
 - **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
   Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
   `preset: demo` forces svelte in whatever was answered, so its `plugin.ts` always imports the svelte
-  view and this is not a svelte-answer-only concern. The mapping is emitted for every jest project and every framework vitest project
-  rather than through partials: the pattern does not depend on any answer, which keeps the two configs
+  view and this is not a svelte-answer-only concern. The mapping is emitted for every jest project and every vitest project, `standalone` included since its
+  `plugin.ts` registers the answered view, rather than through partials: the pattern does not depend on any answer, which keeps the two configs
   identical across the matrix and avoids the partial-built-list trailing comma trap below.
 - **A vite alias built from a RegExp replaces only what the pattern MATCHED.** `/\.svelte$/` rewrites the
   extension and leaves the rest of the specifier glued to the front of the replacement path — a failure
