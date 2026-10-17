@@ -2534,6 +2534,14 @@ describe('copyTemplates', () => {
     }
   });
 
+  // With blank issues off, the chooser offered only the two forms, so a question had nowhere to go but one of them.
+  it('links the repo Discussions from the issue chooser for questions', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    const config = readFileSync(join(targetDir, '.github/ISSUE_TEMPLATE/config.yml'), 'utf-8');
+    expect(config).toContain('contact_links:');
+    expect(config).toContain('url: https://github.com/testuser/obsidian-my-tool/discussions');
+  });
+
   it('does not create issue template files when gitHubIssueTemplates is none', () => {
     copyTemplates(makeAnswers({ gitHubIssueTemplates: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/ISSUE_TEMPLATE'))).toBe(false);
