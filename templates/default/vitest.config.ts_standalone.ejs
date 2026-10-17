@@ -15,6 +15,13 @@ const WASM_MODULE_STUB_PATH = fileURLToPath(new URL('./scripts/wasm-module-stub.
  */
 const STYLESHEET_STUB_PATH = fileURLToPath(new URL('./scripts/stylesheet-stub.ts', import.meta.url));
 
+/**
+ * Where every `.svelte` / `.vue` single-file component is sent, absolute for the same reason. Compiling one
+ * is the bundler's job, and `src/plugin.ts` registers the answered view, so a unit test that imports the
+ * plugin would otherwise fail on a file vitest cannot transform.
+ */
+const FRAMEWORK_COMPONENT_STUB_PATH = fileURLToPath(new URL('./scripts/framework-component-stub.ts', import.meta.url));
+
 export default defineConfig({
 <%- render('jsx') -%>
   resolve: {
@@ -34,7 +41,9 @@ export default defineConfig({
       // (`./module.wasm?url`) and parcel uses a scheme (`data-url:./module.wasm`).
       { find: /^.+\.wasm(?:\?.*)?$/u, replacement: WASM_MODULE_STUB_PATH },
       { find: /^data-url:.+$/u, replacement: WASM_MODULE_STUB_PATH },
-      { find: /^.+\.(?:css|scss)$/u, replacement: STYLESHEET_STUB_PATH }
+      { find: /^.+\.(?:css|scss)$/u, replacement: STYLESHEET_STUB_PATH },
+      // The pattern covers the whole id, because a vite alias built from a RegExp replaces only what it matched.
+      { find: /^.+\.(?:svelte|vue)$/u, replacement: FRAMEWORK_COMPONENT_STUB_PATH }
     ]
   },
   test: {

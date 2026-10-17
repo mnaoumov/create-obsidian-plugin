@@ -19,14 +19,11 @@ export const config: MarkdownlintCli2Extras & Options = {
     'default': true,
     'MD013': false,
     'MD024': {
-      // eslint-disable-next-line camelcase -- `siblings_only` is markdownlint's own option name.
       siblings_only: true
     },
     'MD052': {
-      /* eslint-disable camelcase -- `ignored_labels` and `shortcut_syntax` are markdownlint's own option names. */
       ignored_labels: ['!note', '!warning'],
       shortcut_syntax: true
-      /* eslint-enable camelcase -- `ignored_labels` and `shortcut_syntax` are markdownlint's own option names. */
     },
     'relative-links': true
   },
