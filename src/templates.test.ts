@@ -2218,7 +2218,7 @@ describe('copyTemplates', () => {
   });
 
   it('runs the chosen formatter on every preset, not just standalone', () => {
-    // The three tests above all run on the default `standalone` preset, which is why the obsidian-dev-utils
+    // The three tests above all run on the default `standalone` preset, which is why the framework
     // Presets could import the dprint runner whatever was chosen -- and install prettier or biome without
     // Ever invoking them, while dprint was not even a dependency.
     const standaloneCommands = new Map([
