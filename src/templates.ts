@@ -112,6 +112,9 @@ const BASE_TEMPLATE_FILES = [
   '.gitattributes',
   '.gitignore',
   '.npmrc',
+  // The same Node major as this repo's own `.nvmrc`. Every CI workflow reads it, the toolkit's reusable ones by
+  // Default, and without it they fall back to the latest LTS, which is not the version the project is developed on.
+  '.nvmrc',
   'CONTRIBUTING.md',
   'LICENSE',
   'README.md',

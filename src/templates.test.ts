@@ -2571,6 +2571,24 @@ describe('copyTemplates', () => {
     expect(ci).toContain('npm test');
   });
 
+  // Without `.nvmrc` the toolkit's reusable workflows fall back to the latest LTS rather than the Node this repo uses.
+  it('emits this repo\'s .nvmrc on every preset and points every CI workflow at it', () => {
+    const ownNvmrc = readFileSync(join(import.meta.dirname, '..', '.nvmrc'), 'utf-8');
+    for (const preset of ['standalone', 'all-in-one', 'demo'] as const) {
+      copyTemplates(makeAnswers({ gitHubActions: 'ci-and-release', preset }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, '.nvmrc'), 'utf-8')).toBe(ownNvmrc);
+      const workflows = join(targetDir, '.github/workflows');
+      for (const workflow of ['ci.yml', 'release.yml']) {
+        const content = readFileSync(join(workflows, workflow), 'utf-8');
+        expect(content).not.toMatch(/node-version:/u);
+        if (preset === 'standalone') {
+          expect(content).toContain('node-version-file: .nvmrc');
+        }
+      }
+      rmSync(targetDir, { force: true, recursive: true });
+    }
+  });
+
   it('creates release.yml for ci-and-release', () => {
     copyTemplates(makeAnswers({ gitHubActions: 'ci-and-release' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/workflows/release.yml'))).toBe(true);
