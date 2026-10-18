@@ -1163,7 +1163,7 @@ real plugins, and re-reporting them would re-litigate a closed decision.
 
 The plugin set is discovered by scanning the parent directory for anything with both a `manifest.json` and a
 `src/main.ts` — the same test `PROJECTS.md` applies, run against the filesystem rather than read out of a
-roster that can drift. It reads the tracked set (`git ls-files`) on the real-plugin side and walks the tree on
+roster that can drift. A plugin this generator scaffolded is left out, recognized by the `.create-obsidian-plugin.json` it carries: it echoes the generator's output back, so counting it measures the generator against itself. The first three such plugins moved every unanimous count and turned 16 baselined extras into traits "the real plugins" had. It reads the tracked set (`git ls-files`) on the real-plugin side and walks the tree on
 the generated side, because a generated project is not a repository yet.
 
 ### Template engine: EJS

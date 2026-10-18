@@ -34,6 +34,7 @@ import {
 import type { Answers } from './answers.ts';
 
 import { makeAnswers } from './answer-space.ts';
+import { CONFIG_FILE_NAME } from './answers.ts';
 
 /** One accepted difference, as recorded in `plugin-drift-baseline.json`. */
 export interface BaselineEntry {
@@ -362,6 +363,11 @@ export function describeFinding(finding: DriftFinding): string {
  * `manifest.json` and a `src/main.ts` in the repo root. Reading the roster instead would tie this repo
  * to a file outside it and inherit whatever that file has drifted into -- it currently says 28 and
  * omits a plugin that is plainly on disk.
+ *
+ * A plugin this generator scaffolded is left out, recognized by the {@link CONFIG_FILE_NAME} it carries.
+ * Such a plugin echoes the generator's own output back, so counting it measures the generator against
+ * itself: the first three moved every unanimous count and turned 16 of the generator's extras into traits
+ * "the real plugins" have.
  */
 export function discoverPlugins(rootDir: string): string[] {
   if (!existsSync(rootDir)) {
@@ -374,7 +380,10 @@ export function discoverPlugins(rootDir: string): string[] {
     if (!statSync(candidate).isDirectory()) {
       continue;
     }
-    if (PLUGIN_MARKER_FILES.every((marker) => existsSync(join(candidate, marker)))) {
+    if (
+      PLUGIN_MARKER_FILES.every((marker) => existsSync(join(candidate, marker)))
+      && !existsSync(join(candidate, CONFIG_FILE_NAME))
+    ) {
       found.push(candidate);
     }
   }

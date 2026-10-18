@@ -1,4 +1,13 @@
 import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  afterAll,
   describe,
   expect,
   it
@@ -11,9 +20,11 @@ import type {
   ProjectProfile
 } from './plugin-drift-checks.ts';
 
+import { CONFIG_FILE_NAME } from './answers.ts';
 import {
   buildConsensus,
   compareToPlugins,
+  discoverPlugins,
   findingKey,
   PLUGIN_SHAPED_ANSWERS,
   pluginShapedAnswers,
@@ -192,6 +203,30 @@ describe('reconcileBaseline', () => {
 
     expect(violations).toHaveLength(1);
     expect(violations[0]?.kind).toBe('stale-baseline-entry');
+  });
+});
+
+describe('discoverPlugins', () => {
+  const rootDir = mkdtempSync(join(tmpdir(), 'cop-plugin-drift-'));
+
+  afterAll(() => {
+    rmSync(rootDir, { force: true, recursive: true });
+  });
+
+  function makeProject(name: string, files: readonly string[]): void {
+    for (const file of files) {
+      const path = join(rootDir, name, file);
+      mkdirSync(join(path, '..'), { recursive: true });
+      writeFileSync(path, '');
+    }
+  }
+
+  makeProject('hand-written', ['manifest.json', 'src/main.ts']);
+  makeProject('scaffolded', ['manifest.json', 'src/main.ts', CONFIG_FILE_NAME]);
+  makeProject('library', ['manifest.json']);
+
+  it('takes a plugin but not one this generator scaffolded, which would measure the generator against itself', () => {
+    expect(discoverPlugins(rootDir)).toEqual([join(rootDir, 'hand-written')]);
   });
 });
 

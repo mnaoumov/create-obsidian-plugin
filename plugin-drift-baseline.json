@@ -19,6 +19,10 @@
       "pluginCount": 0,
       "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No real plugin was made by the generator, so none has one."
     },
+    "demo/layout/extra/.nvmrc": {
+      "pluginCount": 0,
+      "why": "Pins the Node major that obsidian-dev-toolkit's reusable workflows read through `node-version-file: .nvmrc`; see the all-in-one entry."
+    },
     "demo/layout/extra/demo-vault/01 Sample commands.md": {
       "pluginCount": 0,
       "why": "The scaffold's starter demo vault. Each real plugin's vault documents that plugin's own features, so no note title is common across all of them -- the generator ships a starter set instead of copying one plugin's notes."
@@ -146,6 +150,10 @@
     "all-in-one/layout/extra/.create-obsidian-plugin.json": {
       "pluginCount": 0,
       "why": "The generator's own record of the answers a project was created with, which `update` reads back to know what to re-render. No real plugin was made by the generator, so none has one."
+    },
+    "all-in-one/layout/extra/.nvmrc": {
+      "pluginCount": 0,
+      "why": "Pins the Node major that obsidian-dev-toolkit's reusable workflows read through `node-version-file: .nvmrc`. Without it they fall back to the latest LTS, which is what every scaffolded plugin's CI ran before the file was emitted. The real plugins have not adopted it yet, so for now their CI still takes the fallback."
     },
     "all-in-one/layout/extra/demo-vault/01 Sample commands.md": {
       "pluginCount": 0,
