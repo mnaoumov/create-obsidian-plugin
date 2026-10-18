@@ -3,6 +3,14 @@ import type { TemplateBuilder } from '../template-builder.ts';
 import { isFrameworkPreset } from './preset/is-framework-preset.ts';
 
 /**
+ * The message of the scaffold's first commit, which the gate tier's `commit` step takes too.
+ *
+ * A conventional-commits header, because the commit goes through the project's own `commit-msg` hook: the
+ * scaffold runs `prepare` after `git init`, so the hooks are live by then.
+ */
+export const INITIAL_COMMIT_MESSAGE = 'chore: initial commit from create-obsidian-plugin';
+
+/**
  * Registers husky, which installs whatever hooks `.husky/` holds.
  *
  * Shared by the two things that need a hook: the commit-msg hook `conventional-commits` emits, and the
@@ -14,7 +22,8 @@ export function addHusky(builder: TemplateBuilder): void {
     .addPackage('husky')
     .addDepcheckIgnore('husky', 'run as a CLI by `scripts/prepare.ts`; the hooks in `.husky/` are its output.')
     // Husky only writes the hooks into `.git/hooks` when its binary runs, which is what `prepare`
-    // Is for -- npm runs that lifecycle script after every install. Without it the hook files were
+    // Is for -- npm runs that lifecycle script after every install, and the scaffold runs it once more
+    // After its `git init`, which comes after the install. Without it the hook files were
     // Emitted, husky was installed, and no hook ever fired: a linter that silently lints nothing,
     // Which is precisely the class of failure this project's verification is built to refuse.
     .addScript('prepare')

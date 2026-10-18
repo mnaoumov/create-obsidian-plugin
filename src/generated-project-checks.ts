@@ -17,6 +17,7 @@ import { stripVTControlCharacters } from 'node:util';
 import type { Answers } from './answers.ts';
 
 import { needsInitialFormat } from './features/formatter/index.ts';
+import { INITIAL_COMMIT_MESSAGE } from './features/git-hooks.ts';
 import { getInstallCommand } from './features/package-manager/index.ts';
 import { UNPATCHED_ADVISORIES } from './versions.ts';
 
@@ -522,8 +523,8 @@ function checkBundle(targetDir: string, passed: GateStep[], skipped: GateStep[])
 }
 
 /**
- * Takes the project's first commit the way its author would: `git init`, the `prepare` script that installs the
- * hooks, `git add -A`, `git commit`.
+ * Takes the project's first commit the way the interactive scaffold does (`runPostScaffold`, `src/main.ts`):
+ * `git init`, the `prepare` script that installs the hooks, `git add -A`, `git commit` with the same message.
  *
  * Last, so the tree holds everything the other steps wrote. Two failures only show here. The pre-commit hook hands
  * its tools the staged paths, dotfiles included, where the project-wide scripts skip them, so a word in
@@ -536,7 +537,7 @@ function checkCommit(targetDir: string, answers: Answers, scripts: Readonly<Reco
     `git init -b ${answers.defaultBranch}`,
     ...(Object.hasOwn(scripts, 'prepare') ? [runScriptCommand(answers, 'prepare')] : []),
     'git add -A',
-    'git -c user.name=create-obsidian-plugin -c user.email=gate@create-obsidian-plugin.invalid commit -m "chore: initial commit"'
+    `git -c user.name=create-obsidian-plugin -c user.email=gate@create-obsidian-plugin.invalid commit -m "${INITIAL_COMMIT_MESSAGE}"`
   ];
   for (const command of commands) {
     const result = run(command, targetDir);
