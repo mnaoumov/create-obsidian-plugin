@@ -54,6 +54,7 @@ import {
   validatePluginIdIsUnlisted
 } from './directory-registry.ts';
 import { needsInitialFormat } from './features/formatter/index.ts';
+import { INITIAL_COMMIT_MESSAGE } from './features/git-hooks.ts';
 import {
   getInstallCommand,
   getRunCommand
@@ -309,6 +310,11 @@ function execAsync(command: string, cwd: string): Promise<ExecResult> {
 function exitWithUsageError(message: string): never {
   process.stderr.write(`${message}\n`);
   process.exit(1);
+}
+
+function hasPrepareScript(targetDir: string): boolean {
+  const packageJson = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as PackageJson;
+  return Object.hasOwn(packageJson.scripts ?? {}, 'prepare');
 }
 
 /**
@@ -604,11 +610,20 @@ async function runPostScaffold(targetDir: string, answers: Answers): Promise<boo
       // `init.defaultBranch` says, which need not be the branch the generated CI workflow triggers on --
       // A mismatch produces a repo whose CI never fires. Both come from the same answer.
       await execAsync(`git init -b ${answers.defaultBranch}`, targetDir);
+      // The install ran before there was a `.git`, so its `prepare` installed no hooks, and Yarn 2+ never runs a
+      // Root `prepare` on install at all. Running it here is what makes the hooks live from the first commit on.
+      if (isInstalled && hasPrepareScript(targetDir)) {
+        await execAsync(getRunCommand(pm, 'prepare'), targetDir);
+      }
       await execAsync('git add -A', targetDir);
-      await execAsync('git commit -m "Initial commit from create-obsidian-plugin"', targetDir);
+      // A conventional header, because the commit goes through the project's own `commit-msg` hook.
+      await execAsync(`git commit -m "${INITIAL_COMMIT_MESSAGE}"`, targetDir);
       s.stop('Git repository initialized with initial commit.');
-    } catch {
+    } catch (error: unknown) {
       s.stop('Failed to initialize git. Run `git init` manually.');
+      if (error instanceof Error && 'stderr' in error) {
+        log.error(String(error.stderr));
+      }
     }
   }
 

@@ -57,6 +57,7 @@ export interface GeneratorConfig {
 export interface PackageJson {
   description?: string;
   name?: string;
+  scripts?: Record<string, string>;
   version?: string;
 }
 

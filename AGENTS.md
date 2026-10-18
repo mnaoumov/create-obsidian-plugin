@@ -360,7 +360,13 @@ commit MESSAGES. So `conventional-commits` owns only the second. `buildTemplate`
 only when `lintStagedPatterns` is non-empty. That means the hook exists exactly when a tool registered a
 command for it, and it can never run an empty `nano-staged-config.ts`. Both hooks share `addHusky` (husky,
 `prepare`, `scripts/prepare.ts`). A project with no linter, formatter, markdown linter and no commit linting
-gets no husky at all. The real plugins beside this repo split the same way: all of them run nano-staged, and
+gets no husky at all.
+
+**The scaffold runs `prepare` again after its `git init`** (`runPostScaffold`, `src/main.ts`). The install comes
+first and finds no `.git`, so its `prepare` installs no hooks, and Yarn 2+ never runs a root `prepare` on install.
+Moving `git init` ahead of the install was the other fix and was refused for that Yarn reason. The first commit
+therefore goes through both hooks, so its message, `INITIAL_COMMIT_MESSAGE` (`src/features/git-hooks.ts`), is a
+conventional header. The gate tier's `commit` step takes the same message. The real plugins beside this repo split the same way: all of them run nano-staged, and
 only some also run commitlint.
 
 On the framework presets both configs come from typescript-dev-toolkit, as in the real plugins.
