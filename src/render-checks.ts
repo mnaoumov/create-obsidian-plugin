@@ -5,6 +5,7 @@ import type {
   SourceFile
 } from 'typescript';
 
+import ignore from 'ignore';
 import {
   readdirSync,
   readFileSync,
@@ -13,7 +14,8 @@ import {
 import { builtinModules } from 'node:module';
 import {
   extname,
-  join
+  join,
+  posix
 } from 'node:path';
 import {
   canHaveModifiers,
@@ -68,6 +70,7 @@ export interface RenderViolation {
  */
 export type RenderViolationKind =
   | 'await-outside-async'
+  | 'dangling-relative-link'
   | 'duplicate-declaration'
   | 'duplicate-json-key'
   | 'empty-block'
@@ -128,6 +131,12 @@ const NON_PROSE_LINE_PATTERN = /^(?:#{1,6}\s|\||<|(?:-{3,}|\*{3,}|_{3,})\s*$)/;
  * one source line per item, which is what the rule asks for; only a line continuing one is a wrap.
  */
 const BLOCK_OPENER_PATTERN = /^\s*(?:[*+-] |\d+\. |> )/;
+
+/** An inline code span, removed before links are read so a path quoted as code is not taken for one. */
+const INLINE_CODE_PATTERN = /`[^`]*`/g;
+
+/** The destination of an inline link or image, in its `<angled>` or bare form. */
+const MARKDOWN_LINK_PATTERN = /\]\(\s*(?:<(?<Angled>[^>]*)>|(?<Bare>[^)\s]+))/g;
 
 /**
  * Files exempt from the non-empty check.
@@ -375,6 +384,7 @@ function checkFile(targetDir: string, relativePath: string): RenderViolation[] {
   }
 
   violations.push(...checkMarkdownWrapping(relativePath, fileName, content));
+  violations.push(...checkRelativeLinks(targetDir, relativePath, fileName, content));
   violations.push(...checkSyntax(relativePath, fileName, content));
   return violations;
 }
@@ -538,6 +548,59 @@ function checkPackageJsonScripts(targetDir: string, answers: Answers): RenderVio
  * }` on every answer contributing no partial, which the generated ESLint config rejects with `no-empty`.
  * Neither is a syntax error, so the parse pass above sees nothing.
  */
+/**
+ * A relative markdown link in an emitted `.md` file whose target the project does not contain.
+ *
+ * The emitted markdownlint config runs `markdownlint-rule-relative-links`, so such a link fails `lint:md`,
+ * the gate and CI on a fresh clone. The case that shipped: `01 Sample commands.md` linked the scratch note,
+ * which the demo vault's `.gitignore` ignores and the walkthrough creates on first use. It existed in every
+ * vault that had been clicked through and in no clone. No tier runs `lint:md`, because linkinator needs the
+ * network, so this reads the links out of the rendered bytes instead.
+ *
+ * Fenced code and inline code spans are skipped, as are URLs with a scheme and links to a heading only.
+ */
+function checkRelativeLinks(targetDir: string, relativePath: string, fileName: string, content: string): RenderViolation[] {
+  if (!MARKDOWN_EXTENSIONS.some((extension) => fileName.endsWith(extension))) {
+    return [];
+  }
+
+  const violations: RenderViolation[] = [];
+  let openFence: null | string = null;
+  let lineNumber = 0;
+
+  for (const line of content.split('\n')) {
+    lineNumber++;
+    const fence = FENCE_PATTERN.exec(line.trim())?.[0] ?? null;
+
+    if (openFence !== null) {
+      if (fence?.startsWith(openFence)) {
+        openFence = null;
+      }
+      continue;
+    }
+
+    if (fence !== null) {
+      openFence = fence;
+      continue;
+    }
+
+    const prose = line.replaceAll(INLINE_CODE_PATTERN, '');
+    for (const match of prose.matchAll(MARKDOWN_LINK_PATTERN)) {
+      const destination = match.groups?.['Angled'] ?? match.groups?.['Bare'] ?? '';
+      const target = resolveLinkTarget(relativePath, destination);
+      if (target !== null && (target.startsWith('../') || !existsRelative(targetDir, target) || isGitIgnored(targetDir, target))) {
+        violations.push({
+          detail: `Line ${String(lineNumber)} links "${destination}", which a clone of the project does not contain. markdownlint's relative-links rule fails \`lint:md\` on it.`,
+          kind: 'dangling-relative-link',
+          subject: relativePath
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
 function checkStructure(relativePath: string, source: SourceFile): RenderViolation[] {
   const violations: RenderViolation[] = [];
 
@@ -712,6 +775,57 @@ function importedPackages(source: SourceFile): string[] {
   }
 
   return names;
+}
+
+/**
+ * Whether the emitted `.gitignore` files keep a path out of the repository.
+ *
+ * The generator writes some files it also ignores, such as the demo vault's scratch note, so a file being on
+ * disk after a render does not mean a clone has it. Each `.gitignore` from the root down is asked in turn, and
+ * the deepest one with an opinion wins, which is how git lets a nested file re-include a path.
+ */
+function isGitIgnored(targetDir: string, relativePath: string): boolean {
+  const segments = relativePath.split('/');
+  let ignored = false;
+
+  for (let depth = 0; depth < segments.length; depth++) {
+    const directory = segments.slice(0, depth).join('/');
+    const gitignorePath = directory === '' ? '.gitignore' : `${directory}/.gitignore`;
+    if (!existsRelative(targetDir, gitignorePath)) {
+      continue;
+    }
+
+    const result = ignore().add(readFileSync(join(targetDir, gitignorePath), 'utf-8')).test(segments.slice(depth).join('/'));
+    if (result.ignored) {
+      ignored = true;
+    } else if (result.unignored) {
+      ignored = false;
+    }
+  }
+
+  return ignored;
+}
+
+/**
+ * The project-relative path a markdown link destination points at, or `null` when it is not a local file.
+ *
+ * A destination with a scheme is a URL, one starting with `#` is a heading in the same file, and one starting
+ * with `/` is resolved by no tool the project runs the same way, so none of the three is checked.
+ */
+function resolveLinkTarget(relativePath: string, destination: string): null | string {
+  const path = destination.split(/[#?]/)[0] ?? '';
+  if (path === '' || path.startsWith('/') || SCHEME_PATTERN.test(path)) {
+    return null;
+  }
+
+  let decoded = path;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    // A malformed escape is looked up as written.
+  }
+
+  return posix.normalize(posix.join(posix.dirname(relativePath), decoded));
 }
 
 function scriptKindFor(fileName: string): ScriptKind {

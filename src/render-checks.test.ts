@@ -154,6 +154,39 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('README.md')).toEqual([]);
   });
 
+  it('flags a relative link to a file the project does not contain', () => {
+    put('README.md', '# Plugin\n\nSee [the guide](docs/guide.md).\n');
+    expect(kindsFor('README.md')).toContain('dangling-relative-link');
+  });
+
+  // The shape that shipped: the generator emits the demo vault's scratch note and its `.gitignore` ignores it,
+  // So the render has the file and a fresh clone does not, and markdownlint's relative-links rule failed CI.
+  it('flags a relative link to an emitted file that .gitignore keeps out of the repository', () => {
+    put('demo-vault/.gitignore', '.obsidian/plugins/*\nMaterials/01 Sample commands/Scratch note.md\n');
+    put('demo-vault/Materials/01 Sample commands/Scratch note.md', '# Scratch note\n');
+    put('demo-vault/01 Sample commands.md', '# Sample commands\n\nOpens [Scratch note](<./Materials/01 Sample commands/Scratch note.md>) first.\n');
+    expect(kindsFor('demo-vault/01 Sample commands.md')).toContain('dangling-relative-link');
+  });
+
+  it('accepts a link to a path a nested .gitignore re-includes', () => {
+    put('.gitignore', 'docs/*.md\n');
+    put('docs/.gitignore', '!kept.md\n');
+    put('docs/kept.md', '# Kept\n');
+    put('README.md', '# Plugin\n\nSee [kept](docs/kept.md).\n');
+    expect(kindsFor('README.md')).toEqual([]);
+  });
+
+  it('flags a relative link that leaves the project', () => {
+    put('README.md', '# Plugin\n\nSee [the workspace](../AGENTS.md).\n');
+    expect(kindsFor('README.md')).toContain('dangling-relative-link');
+  });
+
+  it('accepts relative links to emitted files, URLs, headings and paths quoted as code', () => {
+    put('demo-vault/Materials/note.md', '# Note\n');
+    put('demo-vault/00 Start.md', '# Start here\n\nRead [the note](<Materials/note.md#Note>), [the site](https://example.com), [below](#start-here), and `[x](missing.md)`.\n\n```md\n[y](missing.md)\n```\n');
+    expect(kindsFor('demo-vault/00 Start.md')).toEqual([]);
+  });
+
   it('flags TypeScript that does not parse', () => {
     put('src/plugin.ts', 'export class Broken {\n  onload(): void {\n');
     expect(kindsFor('src/plugin.ts')).toContain('invalid-typescript');

@@ -1073,6 +1073,8 @@ A fourth, `foreign-lint-directive`, is about which preset a line reaches. On a `
 it fails any inline directive naming a rule that only obsidian-dev-toolkit's shared config turns on. See
 "A lint directive for the shared config goes in an `_framework` section".
 
+A fifth, `dangling-relative-link`, reads every relative link in an emitted `.md` file and fails one whose target a clone would not have: missing, outside the project, or emitted but kept out by an emitted `.gitignore`. The last is the case that shipped. The generator writes the demo vault's scratch note and its `.gitignore` ignores it, so `01 Sample commands.md` linked a file every render had and no clone did, and markdownlint's relative-links rule failed CI on the first push of two new plugins. No tier runs `lint:md`, which is why this reads the bytes.
+
 Three rules that are easy to get wrong and were:
 
 - **Enumerate questions from the feature option arrays, never from `FEATURE_REGISTRIES`.** That list is
