@@ -49,11 +49,11 @@ import {
   buildReadme,
   buildShowcaseEntries
 } from '../src/docs-showcase/showcase-tree.ts';
+import { describeUpstreamLicense } from '../src/docs-showcase/upstream-license.ts';
 import {
   getPackageRoot,
   getUpstreamsPath
 } from '../src/official-sample.ts';
-import { describeUpstreamLicense } from '../src/docs-showcase/upstream-license.ts';
 import { readUpstream } from '../src/upstream-snapshot.ts';
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
