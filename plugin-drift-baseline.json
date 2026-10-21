@@ -136,7 +136,7 @@
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/styles/scss.d.ts": {
-      "pluginCount": 20,
+      "pluginCount": 21,
       "why": "The real plugins declare their stylesheet imports in this file. The framework presets take the declaration from obsidian-dev-toolkit's `types/styles` instead, named in `compilerOptions.types`."
     },
     "demo/framework-modules/partial/scripts/capture-screenshots.ts": {
@@ -244,7 +244,7 @@
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "all-in-one/layout/partial/src/styles/scss.d.ts": {
-      "pluginCount": 20,
+      "pluginCount": 21,
       "why": "The real plugins declare their stylesheet imports in this file. The framework presets take the declaration from obsidian-dev-toolkit's `types/styles` instead, named in `compilerOptions.types`."
     },
     "all-in-one/framework-modules/partial/scripts/capture-screenshots.ts": {
