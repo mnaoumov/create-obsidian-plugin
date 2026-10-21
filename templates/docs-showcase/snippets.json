@@ -1,5 +1,5 @@
 {
-  "commit": "c56c7e770ba25dd0ea392aacf4588f9425970d36",
+  "commit": "1c26772ac13d6e9870c865936d389fdfe694e742",
   "entries": [
     {
       "diagnostics": [],
@@ -32,7 +32,7 @@
     },
     {
       "diagnostics": [
-        "23:15 TS2339: Property 'addPointerToSelection' does not exist on type 'ExamplePlugin'."
+        "24:15 TS2339: Property 'addPointerToSelection' does not exist on type 'ExamplePlugin'."
       ],
       "file": "plugins/editor/communicating-with-editor-extensions/02-view-plugin.ts",
       "headings": [
@@ -144,7 +144,7 @@
     },
     {
       "diagnostics": [
-        "19:50 TS2304: Cannot find name 'exampleField'."
+        "20:50 TS2304: Cannot find name 'exampleField'."
       ],
       "file": "plugins/editor/editor-extensions/01-registering-editor-extensions.ts",
       "headings": [
@@ -174,7 +174,7 @@
     },
     {
       "diagnostics": [
-        "17:11 TS2349: This expression is not callable."
+        "18:11 TS2349: This expression is not callable."
       ],
       "file": "plugins/editor/editor/02-insert-text-at-cursor-position.ts",
       "headings": [
@@ -249,7 +249,7 @@
     },
     {
       "diagnostics": [
-        "19:22 TS2532: Object is possibly 'undefined'."
+        "20:22 TS2532: Object is possibly 'undefined'."
       ],
       "file": "plugins/editor/markdown-post-processing/04-post-process-markdown-code-blocks.ts",
       "headings": [
@@ -296,7 +296,7 @@
     },
     {
       "diagnostics": [
-        "14:30 TS2304: Cannot find name 'num'."
+        "15:30 TS2304: Cannot find name 'num'."
       ],
       "file": "plugins/editor/state-fields/03-dispatching-state-effects.ts",
       "headings": [
@@ -358,8 +358,8 @@
     },
     {
       "diagnostics": [
-        "14:17 TS2552: Cannot find name 'selectionStart'. Did you mean 'onselectstart'?",
-        "15:17 TS2552: Cannot find name 'selectionEnd'. Did you mean 'Selection'?"
+        "15:17 TS2552: Cannot find name 'selectionStart'. Did you mean 'onselectstart'?",
+        "16:17 TS2552: Cannot find name 'selectionEnd'. Did you mean 'Selection'?"
       ],
       "file": "plugins/editor/state-management/03-transactions.ts",
       "headings": [
@@ -404,8 +404,8 @@
     },
     {
       "diagnostics": [
-        "11:3 TS2564: Property 'statusBar' has no initializer and is not definitely assigned in the constructor.",
-        "24:28 TS2349: This expression is not callable."
+        "12:3 TS2564: Property 'statusBar' has no initializer and is not definitely assigned in the constructor.",
+        "25:28 TS2349: This expression is not callable."
       ],
       "file": "plugins/events/02-timing-events.ts",
       "headings": [
@@ -555,7 +555,7 @@
     },
     {
       "diagnostics": [
-        "11:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
+        "12:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
       ],
       "file": "plugins/getting-started/mobile-development/01-emulate-mobile-device-on-desktop.ts",
       "headings": [
@@ -572,7 +572,7 @@
     },
     {
       "diagnostics": [
-        "11:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
+        "12:14 TS2339: Property 'emulateMobile' does not exist on type 'App'."
       ],
       "file": "plugins/getting-started/mobile-development/02-emulate-mobile-device-on-desktop.ts",
       "headings": [
@@ -829,8 +829,8 @@
     },
     {
       "diagnostics": [
-        "9:21 TS2307: Cannot find module './Counter.svelte' or its corresponding type declarations.",
-        "10:32 TS2307: Cannot find module 'svelte' or its corresponding type declarations."
+        "10:21 TS2307: Cannot find module './Counter.svelte' or its corresponding type declarations.",
+        "11:32 TS2307: Cannot find module 'svelte' or its corresponding type declarations."
       ],
       "file": "plugins/getting-started/use-svelte-in-your-plugin/07-mount-the-svelte-component.ts",
       "headings": [
@@ -876,9 +876,7 @@
       "status": "runnable"
     },
     {
-      "diagnostics": [
-        "17:7 TS2322: Type '(controller: QueryController, containerEl: HTMLElement) => void' is not assignable to type 'BasesViewFactory'."
-      ],
+      "diagnostics": [],
       "file": "plugins/guides/build-a-bases-view/03-step-3-add-configuration.ts",
       "headings": [
         "Step 3: Add configuration"
@@ -889,18 +887,18 @@
       "line": 91,
       "name": "Build a Bases view > Step 3: Add configuration",
       "page": "Plugins/Guides/Build a Bases view",
-      "reason": "`TS2322: Type '(controller: QueryController, containerEl: HTMLElement) => void' is not assignable to type 'BasesViewFactory'.`, at line 7 of the block (line 98 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [
-        "11:14 TS2515: Non-abstract class 'MyBasesView' does not implement inherited abstract member type from class 'BasesView'.",
-        "13:3 TS2564: Property 'hoverPopover' has no initializer and is not definitely assigned in the constructor.",
-        "25:10 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
-        "34:28 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
-        "40:57 TS7006: Parameter 'el' implicitly has an 'any' type.",
-        "68:36 TS7006: Parameter 'evt' implicitly has an 'any' type.",
-        "76:53 TS7006: Parameter 'evt' implicitly has an 'any' type."
+        "12:14 TS2515: Non-abstract class 'MyBasesView' does not implement inherited abstract member type from class 'BasesView'.",
+        "14:3 TS2564: Property 'hoverPopover' has no initializer and is not definitely assigned in the constructor.",
+        "26:10 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
+        "35:28 TS2339: Property 'containerEl' does not exist on type 'MyBasesView'.",
+        "41:57 TS7006: Parameter 'el' implicitly has an 'any' type.",
+        "69:36 TS7006: Parameter 'evt' implicitly has an 'any' type.",
+        "77:53 TS7006: Parameter 'evt' implicitly has an 'any' type."
       ],
       "file": "plugins/guides/build-a-bases-view/04-step-4-display-list-items.ts",
       "headings": [
@@ -947,7 +945,7 @@
     },
     {
       "diagnostics": [
-        "15:31 TS2304: Cannot find name 'MyCustomView'."
+        "16:31 TS2304: Cannot find name 'MyCustomView'."
       ],
       "file": "plugins/guides/defer-views/03-accessing-your-customview-anywhere-in-th.ts",
       "headings": [
@@ -1072,8 +1070,8 @@
     },
     {
       "diagnostics": [
-        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.",
-        "17:36 TS2304: Cannot find name 'onButtonClick'."
+        "11:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'.",
+        "18:36 TS2304: Cannot find name 'onButtonClick'."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/07-understanding-the-lifecycle-of-objects.ts",
       "headings": [
@@ -1105,7 +1103,7 @@
     },
     {
       "diagnostics": [
-        "14:71 TS2304: Cannot find name 'COMPONENT'."
+        "15:71 TS2304: Cannot find name 'COMPONENT'."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/09-passing-components-to-other-apis.ts",
       "headings": [
@@ -1122,7 +1120,7 @@
     },
     {
       "diagnostics": [
-        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
+        "11:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/10-common-pitfall-orphaned-components.ts",
       "headings": [
@@ -1140,7 +1138,7 @@
     },
     {
       "diagnostics": [
-        "10:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
+        "11:7 TS2654: Non-abstract class 'MyView' is missing implementations for the following members of 'ItemView': 'getViewType', 'getDisplayText'."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/11-solution-add-or-use-an-existing-componen.ts",
       "headings": [
@@ -1158,7 +1156,7 @@
     },
     {
       "diagnostics": [
-        "9:25 TS2307: Cannot find module 'some-library' or its corresponding type declarations."
+        "10:25 TS2307: Cannot find module 'some-library' or its corresponding type declarations."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/12-creating-your-own-components.ts",
       "headings": [
@@ -1175,8 +1173,7 @@
     },
     {
       "diagnostics": [
-        "14:34 TS2304: Cannot find name 'PLuginManifest'.",
-        "15:3 TS2554: Expected 2 arguments, but got 0."
+        "10:26 TS2307: Cannot find module './12-creating-your-own-components.ts' or its corresponding type declarations."
       ],
       "file": "plugins/guides/manage-plugin-lifecycle/13-creating-your-own-components.ts",
       "headings": [
@@ -1188,13 +1185,11 @@
       "line": 317,
       "name": "Manage plugin lifecycle > Creating Your Own Components (2)",
       "page": "Plugins/Guides/Manage plugin lifecycle",
-      "reason": "`TS2304: Cannot find name 'PLuginManifest'.`, at line 4 of the block (line 321 of the page)",
+      "reason": "it imports from the block at line 273 of Plugins/Guides/Manage plugin lifecycle, which does not compile",
       "status": "type-error"
     },
     {
-      "diagnostics": [
-        "28:8 TS2339: Property 'removeChild' does not exist on type 'MyModal'."
-      ],
+      "diagnostics": [],
       "file": "plugins/guides/manage-plugin-lifecycle/14-componentized-modal-example.ts",
       "headings": [
         "Creating Your Own Components",
@@ -1206,18 +1201,18 @@
       "line": 349,
       "name": "Manage plugin lifecycle > Creating Your Own Components > Componentized Modal Example",
       "page": "Plugins/Guides/Manage plugin lifecycle",
-      "reason": "`TS2339: Property 'removeChild' does not exist on type 'MyModal'.`, at line 19 of the block (line 368 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [
-        "33:19 TS2571: Object is of type 'unknown'.",
-        "35:11 TS2571: Object is of type 'unknown'.",
-        "44:19 TS2571: Object is of type 'unknown'.",
-        "46:11 TS2571: Object is of type 'unknown'.",
-        "54:19 TS2571: Object is of type 'unknown'.",
-        "58:11 TS2571: Object is of type 'unknown'.",
-        "68:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+        "34:19 TS2571: Object is of type 'unknown'.",
+        "36:11 TS2571: Object is of type 'unknown'.",
+        "45:19 TS2571: Object is of type 'unknown'.",
+        "47:11 TS2571: Object is of type 'unknown'.",
+        "55:19 TS2571: Object is of type 'unknown'.",
+        "59:11 TS2571: Object is of type 'unknown'.",
+        "69:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
       ],
       "file": "plugins/guides/migrate-to-declarative-settings/01-the-starting-point.ts",
       "headings": [
@@ -1234,9 +1229,9 @@
     },
     {
       "diagnostics": [
-        "25:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "60:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
-        "60:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+        "26:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "61:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
+        "61:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
       ],
       "file": "plugins/guides/migrate-to-declarative-settings/02-after.ts",
       "headings": [
@@ -1255,11 +1250,11 @@
     },
     {
       "diagnostics": [
-        "27:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "66:19 TS2571: Object is of type 'unknown'.",
-        "68:11 TS2571: Object is of type 'unknown'.",
-        "80:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
-        "80:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
+        "28:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "67:19 TS2571: Object is of type 'unknown'.",
+        "69:11 TS2571: Object is of type 'unknown'.",
+        "81:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'.",
+        "81:71 TS2345: Argument of type 'DocsPlugin' is not assignable to parameter of type 'MyPlugin'."
       ],
       "file": "plugins/guides/migrate-to-declarative-settings/03-path-b-dual-support.ts",
       "headings": [
@@ -1276,11 +1271,7 @@
       "status": "type-error"
     },
     {
-      "diagnostics": [
-        "11:5 TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.",
-        "12:6 TS2337: Super calls are not permitted outside constructors or in nested functions inside constructors.",
-        "28:35 TS2345: Argument of type 'typeof MyPlugin' is not assignable to parameter of type 'new (...args: any[]) => Plugin'."
-      ],
+      "diagnostics": [],
       "file": "plugins/guides/optimize-plugin-load-time/01-option-a-check-if-the-layout-is-ready.ts",
       "headings": [
         "Pitfalls",
@@ -1293,15 +1284,11 @@
       "line": 36,
       "name": "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option A. Check if the layout is ready",
       "page": "Plugins/Guides/Optimize plugin load time",
-      "reason": "`TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.`, at line 2 of the block (line 38 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
-      "diagnostics": [
-        "11:5 TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.",
-        "12:6 TS2337: Super calls are not permitted outside constructors or in nested functions inside constructors.",
-        "26:35 TS2345: Argument of type 'typeof MyPlugin' is not assignable to parameter of type 'new (...args: any[]) => Plugin'."
-      ],
+      "diagnostics": [],
       "file": "plugins/guides/optimize-plugin-load-time/02-option-b-register-the-handler-once-the-l.ts",
       "headings": [
         "Pitfalls",
@@ -1311,15 +1298,15 @@
       "id": "plugins-guides-optimize-plugin-load-time-02",
       "kind": "plugin-class",
       "lang": "ts",
-      "line": 55,
+      "line": 54,
       "name": "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option B. Register the handler once the layout is ready",
       "page": "Plugins/Guides/Optimize plugin load time",
-      "reason": "`TS2416: Property 'onload' in type 'MyPlugin' is not assignable to the same property in base type 'Plugin'.`, at line 2 of the block (line 57 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [
-        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+        "10:22 TS2307: Cannot find module './main' or its corresponding type declarations."
       ],
       "file": "plugins/guides/store-secrets/01-step-1-update-your-settings-interface.ts",
       "headings": [
@@ -1336,7 +1323,7 @@
     },
     {
       "diagnostics": [
-        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+        "10:22 TS2307: Cannot find module './main' or its corresponding type declarations."
       ],
       "file": "plugins/guides/store-secrets/02-step-2-add-the-secretcomponent-to-your-s.ts",
       "headings": [
@@ -1368,7 +1355,7 @@
     },
     {
       "diagnostics": [
-        "9:22 TS2307: Cannot find module './main' or its corresponding type declarations."
+        "10:22 TS2307: Cannot find module './main' or its corresponding type declarations."
       ],
       "file": "plugins/guides/store-secrets/04-complete-example.ts",
       "headings": [
@@ -1427,7 +1414,7 @@
     },
     {
       "diagnostics": [
-        "12:3 TS18047: 'containerElement' is possibly 'null'."
+        "13:3 TS18047: 'containerElement' is possibly 'null'."
       ],
       "file": "plugins/releasing/plugin-guidelines/02-avoid-innerhtml-outerhtml-and-insertadja.ts",
       "headings": [
@@ -1444,9 +1431,7 @@
       "status": "type-error"
     },
     {
-      "diagnostics": [
-        "15:3 TS2564: Property 'onCreate' has no initializer and is not definitely assigned in the constructor."
-      ],
+      "diagnostics": [],
       "file": "plugins/releasing/plugin-guidelines/03-clean-up-resources-when-plugin-unloads.ts",
       "headings": [
         "Resource management",
@@ -1458,8 +1443,8 @@
       "line": 104,
       "name": "Plugin guidelines > Resource management > Clean up resources when plugin unloads",
       "page": "Plugins/Releasing/Plugin guidelines",
-      "reason": "`TS2564: Property 'onCreate' has no initializer and is not definitely assigned in the constructor.`, at line 6 of the block (line 110 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [],
@@ -1495,9 +1480,9 @@
     },
     {
       "diagnostics": [
-        "11:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
-        "11:48 TS2339: Property 'view' does not exist on type 'DocsThis'.",
-        "11:59 TS2304: Cannot find name 'MyCustomView'."
+        "12:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "12:48 TS2339: Property 'view' does not exist on type 'DocsThis'.",
+        "12:59 TS2304: Cannot find name 'MyCustomView'."
       ],
       "file": "plugins/releasing/plugin-guidelines/06-avoid-managing-references-to-custom-view.ts",
       "headings": [
@@ -1515,8 +1500,8 @@
     },
     {
       "diagnostics": [
-        "11:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
-        "11:47 TS2304: Cannot find name 'MyCustomView'."
+        "12:23 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "12:47 TS2304: Cannot find name 'MyCustomView'."
       ],
       "file": "plugins/releasing/plugin-guidelines/07-avoid-managing-references-to-custom-view.ts",
       "headings": [
@@ -1534,9 +1519,8 @@
     },
     {
       "diagnostics": [
-        "12:36 TS2551: Property 'getActiveLeavesOfType' does not exist on type 'Workspace'. Did you mean 'getLeavesOfType'?",
-        "12:58 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
-        "14:27 TS2304: Cannot find name 'MyCustomView'."
+        "13:52 TS2304: Cannot find name 'MY_VIEW_TYPE'.",
+        "15:27 TS2304: Cannot find name 'MyCustomView'."
       ],
       "file": "plugins/releasing/plugin-guidelines/08-avoid-managing-references-to-custom-view.ts",
       "headings": [
@@ -1549,12 +1533,12 @@
       "line": 183,
       "name": "Plugin guidelines > Workspace > Avoid managing references to custom views (3)",
       "page": "Plugins/Releasing/Plugin guidelines",
-      "reason": "`TS2551: Property 'getActiveLeavesOfType' does not exist on type 'Workspace'. Did you mean 'getLeavesOfType'?`, at line 1 of the block (line 184 of the page)",
+      "reason": "`TS2304: Cannot find name 'MY_VIEW_TYPE'.`, at line 1 of the block (line 184 of the page)",
       "status": "type-error"
     },
     {
       "diagnostics": [
-        "11:58 TS2304: Cannot find name 'filePath'."
+        "12:58 TS2304: Cannot find name 'filePath'."
       ],
       "file": "plugins/releasing/plugin-guidelines/09-avoid-iterating-all-files-to-find-a-file.ts",
       "headings": [
@@ -1604,7 +1588,7 @@
     },
     {
       "diagnostics": [
-        "13:63 TS2304: Cannot find name 'filePath'."
+        "14:63 TS2304: Cannot find name 'filePath'."
       ],
       "file": "plugins/releasing/plugin-guidelines/12-avoid-iterating-all-files-to-find-a-file.ts",
       "headings": [
@@ -1638,7 +1622,7 @@
     },
     {
       "diagnostics": [
-        "26:31 TS2551: Property 'createEditorExtension' does not exist on type 'MyPlugin'. Did you mean 'editorExtension'?"
+        "27:31 TS2551: Property 'createEditorExtension' does not exist on type 'MyPlugin'. Did you mean 'editorExtension'?"
       ],
       "file": "plugins/releasing/plugin-guidelines/14-change-or-reconfigure-editor-extensions.ts",
       "headings": [
@@ -1704,24 +1688,22 @@
     },
     {
       "diagnostics": [],
-      "file": "",
+      "file": "plugins/releasing/plugin-guidelines/18-prefer-async-await-over-promise.ts",
       "headings": [
         "TypeScript",
         "Prefer async/await over Promise"
       ],
       "id": "plugins-releasing-plugin-guidelines-18",
-      "kind": "not-runnable",
+      "kind": "declarations",
       "lang": "ts",
       "line": 353,
       "name": "Plugin guidelines > TypeScript > Prefer async/await over Promise",
       "page": "Plugins/Releasing/Plugin guidelines",
-      "reason": "does not parse as TypeScript: ')' expected. (line 7 of the block)",
-      "status": "not-runnable"
+      "reason": "",
+      "status": "runnable"
     },
     {
-      "diagnostics": [
-        "13:22 TS2304: Cannot find name 'r'."
-      ],
+      "diagnostics": [],
       "file": "plugins/releasing/plugin-guidelines/19-prefer-async-await-over-promise.ts",
       "headings": [
         "TypeScript",
@@ -1733,8 +1715,8 @@
       "line": 366,
       "name": "Plugin guidelines > TypeScript > Prefer async/await over Promise (2)",
       "page": "Plugins/Releasing/Plugin guidelines",
-      "reason": "`TS2304: Cannot find name 'r'.`, at line 4 of the block (line 370 of the page)",
-      "status": "type-error"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [],
@@ -1790,8 +1772,8 @@
     },
     {
       "diagnostics": [
-        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
-        "20:13 TS2304: Cannot find name 'doCommand'."
+        "17:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "21:13 TS2304: Cannot find name 'doCommand'."
       ],
       "file": "plugins/user-interface/commands/02-conditional-commands.ts",
       "headings": [
@@ -1808,24 +1790,23 @@
     },
     {
       "diagnostics": [],
-      "file": "",
+      "file": "plugins/user-interface/commands/03-editor-commands.ts",
       "headings": [
         "Editor commands"
       ],
       "id": "plugins-user-interface-commands-03",
-      "kind": "not-runnable",
+      "kind": "statements",
       "lang": "ts",
       "line": 63,
       "name": "Commands > Editor commands",
       "page": "Plugins/User interface/Commands",
-      "reason": "does not parse as TypeScript: ')' expected. (line 9 of the block)",
-      "status": "not-runnable"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [
-        "15:7 TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.",
-        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
-        "20:13 TS2304: Cannot find name 'doCommand'."
+        "17:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "21:13 TS2304: Cannot find name 'doCommand'."
       ],
       "file": "plugins/user-interface/commands/04-editor-commands.ts",
       "headings": [
@@ -1837,7 +1818,7 @@
       "line": 80,
       "name": "Commands > Editor commands (2)",
       "page": "Plugins/User interface/Commands",
-      "reason": "`TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.`, at line 4 of the block (line 84 of the page)",
+      "reason": "`TS2304: Cannot find name 'getRequiredValue'.`, at line 5 of the block (line 85 of the page)",
       "status": "type-error"
     },
     {
@@ -1870,7 +1851,7 @@
     },
     {
       "diagnostics": [
-        "32:26 TS18047: 'view.file' is possibly 'null'."
+        "33:26 TS18047: 'view.file' is possibly 'null'."
       ],
       "file": "plugins/user-interface/context-menus/02-intro.ts",
       "headings": [],
@@ -1885,8 +1866,8 @@
     },
     {
       "diagnostics": [
-        "11:11 TS2304: Cannot find name 'ExamplePlugin'.",
-        "13:33 TS2304: Cannot find name 'ExamplePlugin'."
+        "12:11 TS2304: Cannot find name 'ExamplePlugin'.",
+        "14:33 TS2304: Cannot find name 'ExamplePlugin'."
       ],
       "file": "plugins/user-interface/html-elements/01-intro.ts",
       "headings": [],
@@ -2187,8 +2168,8 @@
     },
     {
       "diagnostics": [
-        "20:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.",
-        "25:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
+        "21:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.",
+        "26:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/01-intro.ts",
       "headings": [],
@@ -2203,7 +2184,7 @@
     },
     {
       "diagnostics": [
-        "15:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor."
+        "16:3 TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor."
       ],
       "file": "plugins/user-interface/settings/02-create-a-settings-definition.ts",
       "headings": [
@@ -2220,7 +2201,7 @@
     },
     {
       "diagnostics": [
-        "8:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
+        "9:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
       ],
       "file": "plugins/user-interface/settings/03-save-and-load-the-settings-object.ts",
       "headings": [
@@ -2237,7 +2218,7 @@
     },
     {
       "diagnostics": [
-        "18:16 TS2551: Property 'loadSettings' does not exist on type 'DocsSnippetPlugin'. Did you mean 'settings'?"
+        "19:16 TS2551: Property 'loadSettings' does not exist on type 'DocsSnippetPlugin'. Did you mean 'settings'?"
       ],
       "file": "plugins/user-interface/settings/04-save-and-load-the-settings-object.ts",
       "headings": [
@@ -2254,7 +2235,7 @@
     },
     {
       "diagnostics": [
-        "8:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
+        "9:34 TS2307: Cannot find module './01-intro.ts' or its corresponding type declarations."
       ],
       "file": "plugins/user-interface/settings/05-provide-default-values.ts",
       "headings": [
@@ -2271,7 +2252,7 @@
     },
     {
       "diagnostics": [
-        "8:39 TS2307: Cannot find module './02-create-a-settings-definition.ts' or its corresponding type declarations."
+        "9:39 TS2307: Cannot find module './02-create-a-settings-definition.ts' or its corresponding type declarations."
       ],
       "file": "plugins/user-interface/settings/06-provide-default-values.ts",
       "headings": [
@@ -2288,7 +2269,7 @@
     },
     {
       "diagnostics": [
-        "12:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
+        "13:24 TS2345: Argument of type 'ExampleSettingTab' is not assignable to parameter of type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/07-register-a-settings-tab.ts",
       "headings": [
@@ -2305,9 +2286,9 @@
     },
     {
       "diagnostics": [
-        "8:27 TS2307: Cannot find module './main' or its corresponding type declarations.",
-        "19:3 TS2416: Property 'getSettingDefinitions' in type 'ExampleSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "34:49 TS2322: Type 'ExampleSettingTab' is not assignable to type 'PluginSettingTab'."
+        "9:27 TS2307: Cannot find module './main' or its corresponding type declarations.",
+        "20:3 TS2416: Property 'getSettingDefinitions' in type 'ExampleSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "35:49 TS2322: Type 'ExampleSettingTab' is not assignable to type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/08-register-a-settings-tab.ts",
       "headings": [
@@ -2483,8 +2464,8 @@
     },
     {
       "diagnostics": [
-        "13:3 TS2416: Property 'getSettingDefinitions' in type 'DocsSnippetSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "44:49 TS2322: Type 'DocsSnippetSettingTab' is not assignable to type 'PluginSettingTab'."
+        "14:3 TS2416: Property 'getSettingDefinitions' in type 'DocsSnippetSettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "45:49 TS2322: Type 'DocsSnippetSettingTab' is not assignable to type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/19-conditional-visibility-and-enabling.ts",
       "headings": [
@@ -2501,10 +2482,10 @@
     },
     {
       "diagnostics": [
-        "11:11 TS2304: Cannot find name 'MyPlugin'.",
-        "13:33 TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.",
-        "22:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "28:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
+        "12:11 TS2304: Cannot find name 'MyPlugin'.",
+        "14:33 TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.",
+        "23:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "29:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/20-custom-settings-storage.ts",
       "headings": [
@@ -2521,10 +2502,10 @@
     },
     {
       "diagnostics": [
-        "40:11 TS2304: Cannot find name 'MyPlugin'.",
-        "42:33 TS2304: Cannot find name 'MyPlugin'.",
-        "56:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
-        "86:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
+        "41:11 TS2304: Cannot find name 'MyPlugin'.",
+        "43:33 TS2304: Cannot find name 'MyPlugin'.",
+        "57:3 TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.",
+        "87:49 TS2322: Type 'MySettingTab' is not assignable to type 'PluginSettingTab'."
       ],
       "file": "plugins/user-interface/settings/21-advanced-nested-settings-with-dot-notati.ts",
       "headings": [
@@ -2542,8 +2523,8 @@
     },
     {
       "diagnostics": [
-        "11:11 TS2304: Cannot find name 'MyPlugin'.",
-        "13:33 TS2304: Cannot find name 'MyPlugin'."
+        "12:11 TS2304: Cannot find name 'MyPlugin'.",
+        "14:33 TS2304: Cannot find name 'MyPlugin'."
       ],
       "file": "plugins/user-interface/settings/22-reacting-to-changes-outside-the-settings.ts",
       "headings": [
@@ -2575,8 +2556,8 @@
     },
     {
       "diagnostics": [
-        "18:28 TS2339: Property 'openAddFolderModal' does not exist on type 'DocsThis'.",
-        "31:48 TS7006: Parameter 'path' implicitly has an 'any' type."
+        "19:28 TS2339: Property 'openAddFolderModal' does not exist on type 'DocsThis'.",
+        "32:48 TS7006: Parameter 'path' implicitly has an 'any' type."
       ],
       "file": "plugins/user-interface/settings/24-lists.ts",
       "headings": [
@@ -2608,9 +2589,9 @@
     },
     {
       "diagnostics": [
-        "15:46 TS7006: Parameter 'item' implicitly has an 'any' type.",
-        "18:18 TS7006: Parameter 'index' implicitly has an 'any' type.",
-        "18:40 TS2339: Property 'doSomething' does not exist on type 'DocsPlugin'."
+        "16:46 TS7006: Parameter 'item' implicitly has an 'any' type.",
+        "19:18 TS7006: Parameter 'index' implicitly has an 'any' type.",
+        "19:40 TS2339: Property 'doSomething' does not exist on type 'DocsPlugin'."
       ],
       "file": "plugins/user-interface/settings/26-lists.ts",
       "headings": [
@@ -2627,9 +2608,9 @@
     },
     {
       "diagnostics": [
-        "14:11 TS2304: Cannot find name 'AddEntryModal'.",
-        "14:44 TS7006: Parameter 'entry' implicitly has an 'any' type.",
-        "30:20 TS7006: Parameter 'idx' implicitly has an 'any' type."
+        "15:11 TS2304: Cannot find name 'AddEntryModal'.",
+        "15:44 TS7006: Parameter 'entry' implicitly has an 'any' type.",
+        "31:20 TS7006: Parameter 'idx' implicitly has an 'any' type."
       ],
       "file": "plugins/user-interface/settings/27-lists-with-a-form-modal.ts",
       "headings": [
@@ -2647,7 +2628,7 @@
     },
     {
       "diagnostics": [
-        "24:62 TS2339: Property 'clearCache' does not exist on type 'DocsPlugin'."
+        "25:62 TS2339: Property 'clearCache' does not exist on type 'DocsPlugin'."
       ],
       "file": "plugins/user-interface/settings/28-declarative-pages.ts",
       "headings": [
@@ -2681,7 +2662,7 @@
     },
     {
       "diagnostics": [
-        "11:11 TS2564: Property 'timer' has no initializer and is not definitely assigned in the constructor."
+        "12:11 TS2564: Property 'timer' has no initializer and is not definitely assigned in the constructor."
       ],
       "file": "plugins/user-interface/settings/30-imperative-pages.ts",
       "headings": [
@@ -2699,7 +2680,7 @@
     },
     {
       "diagnostics": [
-        "19:25 TS2339: Property 'applyFeatureX' does not exist on type 'DocsPlugin'."
+        "20:25 TS2339: Property 'applyFeatureX' does not exist on type 'DocsPlugin'."
       ],
       "file": "plugins/user-interface/settings/31-render-callback.ts",
       "headings": [
@@ -2764,7 +2745,7 @@
     },
     {
       "diagnostics": [
-        "8:27 TS2307: Cannot find module './main' or its corresponding type declarations."
+        "9:27 TS2307: Cannot find module './main' or its corresponding type declarations."
       ],
       "file": "plugins/user-interface/settings/35-legacy-imperative-display-approach.ts",
       "headings": [
@@ -2798,7 +2779,7 @@
     },
     {
       "diagnostics": [
-        "22:13 TS2304: Cannot find name 'IconSuggest'."
+        "23:13 TS2304: Cannot find name 'IconSuggest'."
       ],
       "file": "plugins/user-interface/settings/37-search-with-suggestions.ts",
       "headings": [
@@ -2924,9 +2905,9 @@
     },
     {
       "diagnostics": [
-        "34:7 TS2322: Type 'WorkspaceLeaf | undefined' is not assignable to type 'WorkspaceLeaf | null'.",
-        "39:13 TS18047: 'leaf' is possibly 'null'.",
-        "43:26 TS2345: Argument of type 'WorkspaceLeaf | null' is not assignable to parameter of type 'WorkspaceLeaf'."
+        "35:7 TS2322: Type 'WorkspaceLeaf | undefined' is not assignable to type 'WorkspaceLeaf | null'.",
+        "40:13 TS18047: 'leaf' is possibly 'null'.",
+        "44:26 TS2345: Argument of type 'WorkspaceLeaf | null' is not assignable to parameter of type 'WorkspaceLeaf'."
       ],
       "file": "plugins/user-interface/views/02-intro.ts",
       "headings": [],
@@ -3012,22 +2993,22 @@
     },
     {
       "diagnostics": [],
-      "file": "",
+      "file": "plugins/user-interface/workspace/06-leaf-groups.ts",
       "headings": [
         "Leaf groups"
       ],
       "id": "plugins-user-interface-workspace-06",
-      "kind": "not-runnable",
+      "kind": "statements",
       "lang": "ts",
       "line": 132,
       "name": "Workspace > Leaf groups",
       "page": "Plugins/User interface/Workspace",
-      "reason": "does not parse as TypeScript: ')' expected. (line 1 of the block)",
-      "status": "not-runnable"
+      "reason": "",
+      "status": "runnable"
     },
     {
       "diagnostics": [
-        "14:19 TS2532: Object is possibly 'undefined'."
+        "15:19 TS2532: Object is possibly 'undefined'."
       ],
       "file": "plugins/vault/01-intro.ts",
       "headings": [],
@@ -3205,8 +3186,8 @@
     },
     {
       "diagnostics": [
-        "15:23 TS2304: Cannot find name 'getRequiredValue'.",
-        "19:13 TS2304: Cannot find name 'doCommand'."
+        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "20:13 TS2304: Cannot find name 'doCommand'."
       ],
       "file": "reference/typescript-api/command/checkcallback/01-example.ts",
       "headings": [
@@ -3223,7 +3204,7 @@
     },
     {
       "diagnostics": [
-        "15:7 TS2322: Type '(editor: Editor, view: MarkdownView) => void' is not assignable to type '(editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any'."
+        "16:7 TS2322: Type '(editor: Editor, view: MarkdownView) => void' is not assignable to type '(editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any'."
       ],
       "file": "reference/typescript-api/command/editorcallback/01-example.ts",
       "headings": [
@@ -3240,9 +3221,9 @@
     },
     {
       "diagnostics": [
-        "15:7 TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.",
-        "16:23 TS2304: Cannot find name 'getRequiredValue'.",
-        "20:13 TS2304: Cannot find name 'doCommand'."
+        "16:7 TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.",
+        "17:23 TS2304: Cannot find name 'getRequiredValue'.",
+        "21:13 TS2304: Cannot find name 'doCommand'."
       ],
       "file": "reference/typescript-api/command/editorcheckcallback/01-example.ts",
       "headings": [
@@ -3274,7 +3255,7 @@
     },
     {
       "diagnostics": [
-        "14:31 TS2304: Cannot find name 'value'."
+        "15:31 TS2304: Cannot find name 'value'."
       ],
       "file": "reference/typescript-api/filemanager/processfrontmatter/01-example.ts",
       "headings": [
@@ -3306,7 +3287,7 @@
     },
     {
       "diagnostics": [
-        "12:10 TS2339: Property 'scope' does not exist on type 'DocsThis'."
+        "13:10 TS2339: Property 'scope' does not exist on type 'DocsThis'."
       ],
       "file": "reference/typescript-api/view/scope/01-example.ts",
       "headings": [
