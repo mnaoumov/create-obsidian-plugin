@@ -1,6 +1,6 @@
 # WebAssembly
 
-<%= pluginName %> ships a working WebAssembly module and a command that calls into it. WebAssembly is how a plugin uses code compiled from Rust, C, Go or AssemblyScript — and unlike a native Node binary it runs on mobile too, so it is the portable route.
+`<%- pluginName %>` ships a working WebAssembly module and a command that calls into it. WebAssembly is how a plugin uses code compiled from Rust, C, Go or AssemblyScript — and unlike a native Node binary it runs on mobile too, so it is the portable route.
 
 ```code-button
 ---
@@ -11,7 +11,7 @@ require('/demoSetup.ts').runSampleWasmAnswerCommand(app);
 
 A notice saying `WebAssembly says: 42` should have appeared. The number was not computed in JavaScript: the command loaded the module, called its exported `answer()` function, and showed what it returned.
 
-Manual equivalent: open the Command Palette (`Ctrl+P` / `Cmd+P`) and run **<%= pluginName %>: Sample WASM answer**.
+Manual equivalent: open the Command Palette (`Ctrl+P` / `Cmd+P`) and run **`<%- pluginName %>`: Sample WASM answer**.
 
 ## The module
 
