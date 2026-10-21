@@ -28,6 +28,12 @@ export interface CommandResult {
 
 /** What one project's gate came to, and how long each step took. */
 export interface GateResult {
+  /**
+   * Why the gate could not start at all, when it could not: the case's package manager is not installed on this
+   * machine. Nothing about the project was tried then, so `violations` stays empty and a report says "could not run"
+   * rather than reading a missing tool as a broken case.
+   */
+  couldNotRun?: string;
   durationMs: number;
   /** Steps that ran and passed, for a report that can say what was actually proven. */
   passed: GateStep[];
@@ -366,6 +372,18 @@ export function runGate(targetDir: string, answers: Answers): GateResult {
   const violations: GateViolation[] = [];
   const passed: GateStep[] = [];
   const skipped: GateStep[] = [];
+
+  // Probed first because a missing manager otherwise fails `install` with a bare `bun: not found`, which reads as the
+  // Case being broken. That is how the docs-showcase sync PR reported a runner that simply had no bun.
+  if (!run(`${answers.packageManager} --version`, targetDir).ok) {
+    return {
+      couldNotRun: `${answers.packageManager} not installed`,
+      durationMs: Date.now() - started,
+      passed,
+      skipped,
+      violations
+    };
+  }
 
   const install = run(installCommand(answers.packageManager), targetDir);
   if (!install.ok) {

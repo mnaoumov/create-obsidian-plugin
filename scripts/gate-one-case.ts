@@ -69,6 +69,9 @@ async function main(): Promise<void> {
 
   const result = runGate(target, answers);
 
+  if (result.couldNotRun !== undefined) {
+    process.stdout.write(`could not run: ${result.couldNotRun}\n`);
+  }
   process.stdout.write(`passed:  ${result.passed.join(', ') || '(none)'}\n`);
   process.stdout.write(`skipped: ${result.skipped.join(', ') || '(none)'}\n`);
   for (const violation of result.violations) {
@@ -81,7 +84,8 @@ async function main(): Promise<void> {
     rmSync(target, { force: true, recursive: true });
   }
 
-  process.exitCode = result.violations.length > 0 ? 1 : 0;
+  // A case that could not run proved nothing, so it fails too, and the line above says why.
+  process.exitCode = result.violations.length > 0 || result.couldNotRun !== undefined ? 1 : 0;
 }
 
 function parseOptions(argv: readonly string[]): Options {
