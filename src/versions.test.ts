@@ -111,12 +111,14 @@ describe('buildOverrides', () => {
     expect(overrides).not.toHaveProperty('deepmerge-ts');
   });
 
-  it('forces smol-toml wherever markdownlint-cli2 is reached, directly or through the toolkit', () => {
+  it('forces smol-toml wherever the toolkit\'s markdownlint-cli2 is reached', () => {
     // The toolkit presets reach markdownlint-cli2 through @mnaoumov/typescript-dev-toolkit even on
-    // `markdownLinter: none`, so naming only the markdownlint answer's package left those red.
-    for (const packageName of ['markdownlint-cli2', '@mnaoumov/typescript-dev-toolkit', '@mnaoumov/obsidian-dev-toolkit']) {
+    // `markdownLinter: none`, and its `^0.23.2` stops below 0.24.0, the first release pinning 1.9.1.
+    for (const packageName of ['@mnaoumov/typescript-dev-toolkit', '@mnaoumov/obsidian-dev-toolkit']) {
       expect(buildOverrides([new Dependency(packageName)])['smol-toml'], packageName).toBe('^1.9.1');
     }
+    // The markdownlint answer's own markdownlint-cli2 resolves to 0.24.0 or later, so standalone needs none.
+    expect(buildOverrides([new Dependency('markdownlint-cli2')])).not.toHaveProperty('smol-toml');
     expect(buildOverrides([new Dependency('typescript')])).not.toHaveProperty('smol-toml');
   });
 
@@ -170,11 +172,11 @@ describe('buildPinnedVersionsJson', () => {
     }
   });
 
-  it('documents the smol-toml override against the range markdownlint-cli2 pins', () => {
-    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('markdownlint-cli2')])) as ParsedPinnedVersions;
+  it('documents the smol-toml override against the version the toolkit\'s markdownlint-cli2 pins', () => {
+    const parsed = JSON.parse(buildPinnedVersionsJson([new Dependency('@mnaoumov/typescript-dev-toolkit')])) as ParsedPinnedVersions;
     const pin = parsed.pins['smol-toml'];
     expect(pin?.section).toBe('overrides');
     expect(pin?.why).toContain('GHSA-r4xh-jqrq-34v2');
-    expect(pin?.check).toContain('markdownlint-cli2');
+    expect(pin?.check).toContain('typescript-dev-toolkit/node_modules/markdownlint-cli2');
   });
 });
