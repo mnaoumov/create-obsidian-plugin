@@ -53,6 +53,7 @@ import {
   getPackageRoot,
   getUpstreamsPath
 } from '../src/official-sample.ts';
+import { describeUpstreamLicense } from '../src/docs-showcase/upstream-license.ts';
 import { readUpstream } from '../src/upstream-snapshot.ts';
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
@@ -63,12 +64,6 @@ const KNOWN_MODULES = ['obsidian', '@codemirror/view', '@codemirror/state', '@co
 
 /** A type check that keeps failing new files is a cascade through same-page imports; it settles well before this. */
 const MAX_TYPE_CHECK_ROUNDS = 10;
-
-/** Licenses recognized by a phrase of their text, so the notice names the license rather than its first line. */
-const KNOWN_LICENSES: readonly (readonly [string, string])[] = [
-  ['0BSD', 'Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.'],
-  ['MIT', 'Permission is hereby granted, free of charge, to any person obtaining a copy']
-];
 
 const DIAGNOSTIC_PATTERN = /^(?<File>.+?)\((?<Line>\d+),(?<Column>\d+)\): error (?<Code>TS\d+): (?<Message>.*)$/;
 
@@ -112,7 +107,7 @@ async function main(): Promise<void> {
 
     const source: ShowcaseSource = {
       commit,
-      license: readLicense(docsDir),
+      license: readLicense(docsDir, upstream.repo),
       repo: upstream.repo
     };
     const pages = readPages(join(docsDir, DOCS_CONTENT_DIR));
@@ -321,15 +316,12 @@ function readKnownModules(checkDir: string): KnownModuleExports {
   return known;
 }
 
-function readLicense(docsDir: string): string {
+function readLicense(docsDir: string, repo: string): string {
   const licensePath = join(docsDir, 'LICENSE');
   if (!existsSync(licensePath)) {
     return '';
   }
-  const text = readFileSync(licensePath, 'utf-8');
-  const copyright = text.split(/\r?\n/).find((line) => /^Copyright\b/i.test(line.trim()))?.trim() ?? '';
-  const name = KNOWN_LICENSES.find(([, phrase]) => text.replaceAll(/\s+/g, ' ').includes(phrase))?.[0] ?? text.split(/\r?\n/).find((line) => line.trim() !== '')?.trim() ?? '';
-  return copyright === '' || name === copyright ? name : `${name} (${copyright})`;
+  return describeUpstreamLicense(readFileSync(licensePath, 'utf-8'), repo);
 }
 
 function readPages(contentDir: string): Map<string, string> {
