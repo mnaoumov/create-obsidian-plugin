@@ -1,3 +1,4 @@
+import { appendCodeBlock } from '@mnaoumov/obsidian-lib/html-element';
 import { ItemView } from 'obsidian';
 
 export const SAMPLE_VIEW_TYPE = '<%= pluginShortName %>-SampleView';
@@ -14,7 +15,7 @@ export class SampleView extends ItemView {
   public override onOpen(): Promise<void> {
     const container = this.contentEl;
     container.empty();
-    container.createEl('h4', { text: '<%= pluginName %>' });
+    appendCodeBlock(container.createEl('h4'), '<%= pluginName %>');
 
     const vaultName = this.app.vault.getName();
     container.createEl('p', { text: `Vault: ${vaultName}` });
