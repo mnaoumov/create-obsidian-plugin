@@ -41,7 +41,7 @@ export interface ShowcaseReportEntry {
 /** The upstream commit the snippets were read at, and its license notice, which every module's header repeats. */
 export interface ShowcaseSource {
   commit: string;
-  /** The first line of upstream's `LICENSE`, or empty when it has none. */
+  /** The license notice `describeUpstreamLicense` reads from upstream's `LICENSE`, or empty when it has none. */
   license: string;
   repo: string;
 }
@@ -131,7 +131,7 @@ export function buildReadme(entries: readonly ShowcaseEntry[], source: ShowcaseS
     ''
   ];
   if (source.license !== '') {
-    lines.push(`The code blocks are licensed by their authors under ${source.license}, the license of [${source.repo}](https://github.com/${source.repo}).`, '');
+    lines.push(`The code blocks are licensed under ${source.license}. See the [LICENSE](https://github.com/${source.repo}/blob/${source.commit}/LICENSE).`, '');
   }
 
   let page = '';
@@ -255,7 +255,7 @@ function moduleHeader(snippet: DocsSnippet, name: string, source: ShowcaseSource
     `// Source: ${upstreamUrl(snippet, source)}`
   ];
   if (source.license !== '') {
-    lines.push(`// The code block is licensed under ${source.license}, the license of ${source.repo}.`);
+    lines.push(`// The code block is licensed under ${source.license}.`);
   }
   lines.push(
     '// The code block is upstream\'s, as the docs show it. create-obsidian-plugin generated the rest: the imports it',
