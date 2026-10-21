@@ -1,15 +1,23 @@
 import {
+  mkdtempSync,
+  rmSync
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
   describe,
   expect,
   it
 } from 'vitest';
 
+import { makeAnswers } from './answer-space.ts';
 import {
   findBlockingAdvisories,
   findStalePins,
   findUnbundledRequires,
   findUnshippedFiles,
-  readCollectedTestCount
+  readCollectedTestCount,
+  runGate
 } from './generated-project-checks.ts';
 import { Dependency } from './template-builder.ts';
 import {
@@ -168,5 +176,20 @@ describe('findUnbundledRequires', () => {
   it('ignores a specifier that interpolates', () => {
     // eslint-disable-next-line no-template-curly-in-string -- The string IS generated code; that is what is under test.
     expect(findUnbundledRequires('const code = `require("${l}")`;')).toEqual([]);
+  });
+});
+
+describe('runGate', () => {
+  it('reports a package manager this machine lacks as could-not-run, not as a failed install', () => {
+    const targetDir = mkdtempSync(join(tmpdir(), 'cop-gate-missing-'));
+    try {
+      const answers = { ...makeAnswers(), packageManager: 'no-such-package-manager' };
+      const result = runGate(targetDir, answers);
+      expect(result.couldNotRun).toBe('no-such-package-manager not installed');
+      expect(result.violations).toEqual([]);
+      expect(result.passed).toEqual([]);
+    } finally {
+      rmSync(targetDir, { force: true, recursive: true });
+    }
   });
 });

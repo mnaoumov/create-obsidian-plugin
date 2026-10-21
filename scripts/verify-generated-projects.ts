@@ -174,8 +174,12 @@ function parseOptions(argv: readonly string[]): Options {
 
 function reportOutcomes(outcomes: readonly CaseOutcome[]): void {
   const failed = outcomes.filter((outcome) => outcome.result.violations.length > 0);
+  const notRun = outcomes.filter((outcome) => outcome.result.couldNotRun !== undefined);
 
-  write(`\n${String(outcomes.length - failed.length)} of ${String(outcomes.length)} cases passed every gate their answers emit.`);
+  write(`\n${String(outcomes.length - failed.length - notRun.length)} of ${String(outcomes.length)} cases passed every gate their answers emit.`);
+  for (const outcome of notRun) {
+    write(`  case ${String(outcome.index)} could not run: ${outcome.result.couldNotRun ?? ''}`);
+  }
 
   const stepCounts = new Map<string, number>();
   for (const outcome of outcomes) {
@@ -267,7 +271,7 @@ async function runCoordinator(options: Options): Promise<void> {
     write(`\nFull report written to ${options.report}`);
   }
 
-  if (outcomes.some((outcome) => outcome.result.violations.length > 0)) {
+  if (outcomes.some((outcome) => outcome.result.violations.length > 0 || outcome.result.couldNotRun !== undefined)) {
     process.exitCode = 1;
   }
 }
@@ -302,7 +306,8 @@ function runShard(options: Options, shard: ShardSpec): void {
     appendFileSync(join(options.outRoot, `shard-${String(shard.index)}.jsonl`), `${JSON.stringify({ answers, index, result } satisfies CaseOutcome)}\n`);
 
     outcomes.push({ answers, index, result });
-    process.stderr.write(`  case ${String(index)}: ${failed ? `${String(result.violations.length)} violation(s)` : 'ok'}\n`);
+    const status = failed ? `${String(result.violations.length)} violation(s)` : 'ok';
+    process.stderr.write(`  case ${String(index)}: ${result.couldNotRun === undefined ? status : `could not run: ${result.couldNotRun}`}\n`);
 
     // A failing project is worth keeping only when asked for -- it carries a full `node_modules`, and
     // Fifty of those fill a disk faster than anyone reads the report.
