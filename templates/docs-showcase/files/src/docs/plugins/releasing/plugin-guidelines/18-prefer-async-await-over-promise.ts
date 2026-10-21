@@ -1,0 +1,24 @@
+// Docs: Plugin guidelines > TypeScript > Prefer async/await over Promise
+// https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Prefer+async%2Fawait+over+Promise
+// Source: https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Plugin%20guidelines.md?plain=1#L353
+// The code block is licensed under 0BSD (Copyright (c) 2020–2026 Dynalist Inc. All rights reserved.), the license of obsidianmd/obsidian-developer-docs.
+// The code block is upstream's, as the docs show it. create-obsidian-plugin generated the rest: the imports it
+// leaves out, the exports later blocks on the page take, and the `run(context)` host the command calls.
+
+import type { DocsContext } from '../../../host.ts';
+import { requestUrl } from 'obsidian';
+
+function test(): Promise<string | null> {
+  return requestUrl('https://example.com')
+    .then(res => res.text)
+    .catch(e => {
+      console.log(e);
+      return null;
+    });
+}
+
+export { test };
+
+export async function run(context: DocsContext): Promise<void> {
+  await context.showResult(await test(), 'test()');
+}

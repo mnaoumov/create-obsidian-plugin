@@ -153,6 +153,12 @@ const ENTRIES: DocsEntry[] = [
     source: "https://docs.obsidian.md/Plugins/Guides/Build+a+Bases+view#Step+2%3A+Create+and+register+the+Bases+view"
   },
   {
+    id: "plugins-guides-build-a-bases-view-03",
+    load: () => import("./plugins/guides/build-a-bases-view/03-step-3-add-configuration.ts"),
+    name: "Build a Bases view > Step 3: Add configuration",
+    source: "https://docs.obsidian.md/Plugins/Guides/Build+a+Bases+view#Step+3%3A+Add+configuration"
+  },
+  {
     id: "plugins-guides-defer-views-04",
     load: () => import("./plugins/guides/defer-views/04-accessing-your-customview-without-reveal.ts"),
     name: "Defer views > Accessing your CustomView without reveal (Advanced)",
@@ -201,6 +207,24 @@ const ENTRIES: DocsEntry[] = [
     source: "https://docs.obsidian.md/Plugins/Guides/Manage+plugin+lifecycle#Understanding+The+Lifecycle+of+Objects"
   },
   {
+    id: "plugins-guides-manage-plugin-lifecycle-14",
+    load: () => import("./plugins/guides/manage-plugin-lifecycle/14-componentized-modal-example.ts"),
+    name: "Manage plugin lifecycle > Creating Your Own Components > Componentized Modal Example",
+    source: "https://docs.obsidian.md/Plugins/Guides/Manage+plugin+lifecycle#Componentized+Modal+Example"
+  },
+  {
+    id: "plugins-guides-optimize-plugin-load-time-01",
+    load: () => import("./plugins/guides/optimize-plugin-load-time/01-option-a-check-if-the-layout-is-ready.ts"),
+    name: "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option A. Check if the layout is ready",
+    source: "https://docs.obsidian.md/Plugins/Guides/Optimize+plugin+load+time#Option+A.+Check+if+the+layout+is+ready"
+  },
+  {
+    id: "plugins-guides-optimize-plugin-load-time-02",
+    load: () => import("./plugins/guides/optimize-plugin-load-time/02-option-b-register-the-handler-once-the-l.ts"),
+    name: "Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option B. Register the handler once the layout is ready",
+    source: "https://docs.obsidian.md/Plugins/Guides/Optimize+plugin+load+time#Option+B.+Register+the+handler+once+the+layout+is+ready"
+  },
+  {
     id: "plugins-guides-store-secrets-03",
     load: () => import("./plugins/guides/store-secrets/03-step-3-retrieve-the-secret-value.ts"),
     name: "Store secrets > Step 3: Retrieve the secret value",
@@ -211,6 +235,12 @@ const ENTRIES: DocsEntry[] = [
     load: () => import("./plugins/releasing/plugin-guidelines/01-use-setheading-instead-of-a-h1-h2.ts"),
     name: "Plugin guidelines > UI text > Use setHeading instead of a <h1>, <h2>",
     source: "https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Use+%60setHeading%60+instead+of+a+%60%3Ch1%3E%60%2C+%60%3Ch2%3E%60"
+  },
+  {
+    id: "plugins-releasing-plugin-guidelines-03",
+    load: () => import("./plugins/releasing/plugin-guidelines/03-clean-up-resources-when-plugin-unloads.ts"),
+    name: "Plugin guidelines > Resource management > Clean up resources when plugin unloads",
+    source: "https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Clean+up+resources+when+plugin+unloads"
   },
   {
     id: "plugins-releasing-plugin-guidelines-04",
@@ -261,10 +291,28 @@ const ENTRIES: DocsEntry[] = [
     source: "https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#No+hardcoded+styling"
   },
   {
+    id: "plugins-releasing-plugin-guidelines-18",
+    load: () => import("./plugins/releasing/plugin-guidelines/18-prefer-async-await-over-promise.ts"),
+    name: "Plugin guidelines > TypeScript > Prefer async/await over Promise",
+    source: "https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Prefer+async%2Fawait+over+Promise"
+  },
+  {
+    id: "plugins-releasing-plugin-guidelines-19",
+    load: () => import("./plugins/releasing/plugin-guidelines/19-prefer-async-await-over-promise.ts"),
+    name: "Plugin guidelines > TypeScript > Prefer async/await over Promise (2)",
+    source: "https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Prefer+async%2Fawait+over+Promise"
+  },
+  {
     id: "plugins-user-interface-commands-01",
     load: () => import("./plugins/user-interface/commands/01-intro.ts"),
     name: "Commands",
     source: "https://docs.obsidian.md/Plugins/User+interface/Commands"
+  },
+  {
+    id: "plugins-user-interface-commands-03",
+    load: () => import("./plugins/user-interface/commands/03-editor-commands.ts"),
+    name: "Commands > Editor commands",
+    source: "https://docs.obsidian.md/Plugins/User+interface/Commands#Editor+commands"
   },
   {
     id: "plugins-user-interface-commands-05",
@@ -529,6 +577,12 @@ const ENTRIES: DocsEntry[] = [
     load: () => import("./plugins/user-interface/workspace/05-inspect-the-workspace.ts"),
     name: "Workspace > Inspect the workspace",
     source: "https://docs.obsidian.md/Plugins/User+interface/Workspace#Inspect+the+workspace"
+  },
+  {
+    id: "plugins-user-interface-workspace-06",
+    load: () => import("./plugins/user-interface/workspace/06-leaf-groups.ts"),
+    name: "Workspace > Leaf groups",
+    source: "https://docs.obsidian.md/Plugins/User+interface/Workspace#Leaf+groups"
   },
   {
     id: "plugins-vault-02",
