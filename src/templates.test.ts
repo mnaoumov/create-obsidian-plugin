@@ -541,7 +541,7 @@ describe('buildTemplate', () => {
       expect(depNames).toContain('esbuild-svelte');
     });
 
-    // Obsidian-dev-utils' esbuild build compiles Svelte with its own copies of these two, so a declaration
+    // Obsidian-dev-toolkit's esbuild build compiles Svelte through `svelte/compiler` itself, so a declaration of these two
     // Here is one depcheck reports as unused. `svelte-check` is the opposite: its `build:compile` refuses to
     // Build unless package.json declares it.
     it.each(['all-in-one', 'demo'])('declares only svelte-check of the svelte build tooling on %s + esbuild', (preset) => {
@@ -833,8 +833,8 @@ describe('buildTemplate', () => {
       const builder = buildTemplate(makeAnswers({ preset: 'standalone', styling: 'tailwind' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('tailwindcss');
-      // Tailwind 4 is compiled by its own CLI, not through PostCSS: PostCSS is unreachable on the
-      // Obsidian-dev-utils esbuild path, whose sass plugin claims `.css` ahead of the seam a project can
+      // Tailwind 4 is compiled by its own CLI, not through PostCSS: PostCSS was unreachable on the
+      // Esbuild path of obsidian-dev-utils (the toolkits' predecessor), whose sass plugin claimed `.css` ahead of the seam a project can
       // Add plugins to. Compiling first means every bundler receives ordinary CSS.
       expect(depNames).toContain('@tailwindcss/cli');
       expect(depNames).not.toContain('@tailwindcss/postcss');
@@ -1185,7 +1185,7 @@ describe('buildTemplate', () => {
   // Registering one beside the wrong `addPackage` branch is exactly how it would happen. Every value of
   // Every question, under each preset, since several ignores depend on the preset as well.
   // Each of these was declared and reached by nothing in the project, which depcheck reports as unused:
-  // Obsidian-dev-utils depends on its own copy of the first two, and no sample imports the last two.
+  // Obsidian-dev-toolkit depends on its own esbuild-sass-plugin, and no sample imports type-fest or @codemirror/language.
   describe('packages nothing in the project reaches', () => {
     it.each(['all-in-one', 'demo'])('declares no esbuild-sass-plugin on %s + esbuild', (preset) => {
       const depNames = buildTemplate(makeAnswers({ bundler: 'esbuild', preset, styling: 'scss' })).dependencies.map((d) => d.packageName);
@@ -1947,7 +1947,7 @@ describe('copyTemplates', () => {
   });
 
   // `lint.ts_framework.ejs` used to be a whole-file partial keyed on the preset, so it emitted the
-  // Obsidian-dev-utils ESLint runner whatever the linter answer said: `linter: biome` installed biome,
+  // ESLint runner of obsidian-dev-utils (the toolkits' predecessor) whatever the linter answer said: `linter: biome` installed biome,
   // Wrote `biome.json`, and then ran eslint, which died looking for a config nobody had written. Now
   // Keyed on the tool first, exactly as the format scripts already were.
   //

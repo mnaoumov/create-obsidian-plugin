@@ -19,7 +19,7 @@
 
 ### No obsidian ecosystem dependencies in the generator
 
-The generator project itself must NOT depend on `obsidian`, `obsidian-typings`, `obsidian-dev-utils` or the `@mnaoumov/obsidian-*` packages. These are only used in the *generated* plugin projects.
+The generator project itself must NOT depend on `obsidian`, `obsidian-typings` or the `@mnaoumov/obsidian-*` packages (nor on `obsidian-dev-utils`, which they replaced). These are only used in the *generated* plugin projects.
 
 ### Two-tier script strategy
 
@@ -392,10 +392,9 @@ framework templates to the toolkit, delete the project's own copy, and move the 
 
 `scripts/gate.ts` is the one-line wrapper over typescript-dev-toolkit's `gate()` that every real plugin ships
 byte for byte: the release preflight's checks, reachable before committing. Both framework presets register
-it beside `version`, and its `CONTRIBUTING.md` line is a `framework` partial. Since obsidian-dev-utils 107, and so in the toolkit that
-replaced it, `gate()` requires only `build`, which every preset registers, and runs `format:check`, `spellcheck`,
+it beside `version`, and its `CONTRIBUTING.md` line is a `framework` partial. The toolkit's `gate()` requires only `build`, which every preset registers, and runs `format:check`, `spellcheck`,
 `lint:md` and `lint` through `npmRunOptional`, so a project that answered `none` for any of those tools
-still gets a gate that passes. Before that release all five were required, and the gate was emitted only
+still gets a gate that passes. Its predecessor in the retired obsidian-dev-utils required all five before its 107 release, and the gate was emitted only
 where the answers had registered every one of them.
 
 ### The emitted `cspell.json` knows every word the scaffold writes
@@ -1109,7 +1108,7 @@ templates' style. And no tier runs `lint:md`, which let the funding `<a>` reach 
 
 ### A link into obsidian-lib's source is checked against its git tree, before every publish
 
-The stylesheet templates cite obsidian-lib source files for the user to read. obsidian-dev-utils, which they cited
+The stylesheet templates cite obsidian-lib source files for the user to read. The retired obsidian-dev-utils, which they cited
 before obsidian-lib replaced it, renamed every file to kebab-case in `77c2bac1`, and `src/CssClass.ts` stayed in the templates as a 404 emitted into every generated
 plugin for seven months, with every tier green. `npm run verify:upstream-links` (`src/upstream-links.ts`) finds
 every literal `blob` / `raw` / `tree` link into that repository in this repo's tracked files, test files excepted,

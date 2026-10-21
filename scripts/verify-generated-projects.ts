@@ -215,7 +215,7 @@ function reportOutcomes(outcomes: readonly CaseOutcome[]): void {
  * It does NOT make the cases comparable, and this comment used to claim it did. What is resolved once
  * is a caret RANGE (`^96.5.1`), and `npm install` re-resolves that range per case -- so a package
  * published mid-run reaches the later cases and not the earlier ones. Only the exact pins are actually
- * frozen. Measured on 2026-08-31: obsidian-dev-utils 96.5.2 was published while the tier was running
+ * frozen. Measured on 2026-08-31: obsidian-dev-utils 96.5.2 (since retired for the toolkits) was published while the tier was running
  * and widened a peer range, and every case after the publish failed at `install` while every case
  * before it had passed. **A sudden cluster of install failures across unrelated answers is that, not a
  * template defect.**
