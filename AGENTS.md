@@ -311,8 +311,7 @@ call it ~60 times and must not touch the network.
 advisory in a package the project never declares. The pin table cannot express those: there is no
 declared spec for npm's `$<name>` shorthand to reuse. Each entry names the direct dependencies whose
 subtree carries the advisory, so a project gets only the entries its tree needs. `standalone` never
-reaches webdriverio, and never gets the `smol-toml` entry, which only typescript-dev-toolkit's own
-`markdownlint-cli2` needs. Each entry still
+reaches webdriverio. Each entry still
 emits a `pinned-versions.json` entry with a runnable check. An advisory left un-overridden on purpose
 (`braces`, `katex`, `moment`) is recorded with its reason in the doc comment above the table, so the next
 sweep does not re-measure it. The gate fails `npm audit` only at `high`, and `braces` stays the one
