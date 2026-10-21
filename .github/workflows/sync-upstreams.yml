@@ -29,7 +29,11 @@ jobs:
       # A verify's `gate:case` fills every unset answer with that question's first value, and the first package
       # manager is bun, so a gate run here needs every manager the generator offers. Pinning the verify to npm was the
       # other fix and was refused: it would stop the gate from ever proving the bun, pnpm and yarn projects. The reusable
-      # workflow takes no extra steps, so the managers come from their own npm packages rather than setup actions.
-      setup-command: npm install --global bun pnpm yarn
+      # workflow takes no extra steps, so the managers come from their own npm packages rather than setup actions. npm
+      # 11 skips a package's install scripts unless allowed, and bun's postinstall is what fetches its binary. The
+      # version probes fail the run here, rather than in a verify, if any of the three is still unusable.
+      setup-command: >-
+        npm install --global --allow-scripts=bun,pnpm,yarn bun pnpm yarn
+        && bun --version && pnpm --version && yarn --version
       only: ${{ inputs.only }}
       dry-run: ${{ inputs.dry-run || false }}
