@@ -1,7 +1,7 @@
 /**
  * Finds the links this repo cites into obsidian-lib's source tree, and which of them name nothing.
  *
- * The defect class is an upstream rename that silently breaks a downstream link. obsidian-dev-utils, which the
+ * The defect class is an upstream rename that silently breaks a downstream link. The retired obsidian-dev-utils, which the
  * templates cited before obsidian-lib replaced it, renamed every file to kebab-case in `77c2bac1`, and the stylesheet templates went on citing `src/CssClass.ts` for
  * seven months, emitting a 404 into every generated plugin. A link cannot be checked against the published
  * package -- it ships `dist/` and no `src/` -- so it is resolved against the git tree of a checkout, which

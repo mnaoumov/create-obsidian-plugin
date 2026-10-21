@@ -49,7 +49,7 @@ export class Scss extends FeatureOption {
       builder.addFiles(['src/styles/styles.d.ts']);
     }
 
-    // Obsidian-dev-utils' esbuild build depends on and registers `esbuild-sass-plugin` itself, so the
+    // Obsidian-dev-toolkit's esbuild build depends on and registers `esbuild-sass-plugin` itself, so the
     // Project's build never names it there.
     const plugin = isFrameworkPreset(answers.preset) && answers.bundler === 'esbuild' ? undefined : SCSS_PLUGINS[answers.bundler];
     if (plugin) {
