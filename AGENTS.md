@@ -427,7 +427,7 @@ package that IS used where depcheck cannot see it — never to quiet a package n
 measured, not copied: generate and install a case, run `npx depcheck` in it, and read what is left.
 The same measurement decides what is declared at all: a package depcheck reports and nothing in the
 project reaches is removed from that path, not ignored. So on the framework presets' esbuild build, where
-the toolkits depend on and register their own copies, `esbuild-sass-plugin`, `esbuild-svelte` and
+the toolkits depend on and register their own copies, `esbuild` itself, `esbuild-sass-plugin`, `esbuild-svelte` and
 `svelte-preprocess` are not declared. `svelte-preprocess` is also declared only on the bundlers whose
 config imports it. `svelte-check` looks like the same case and is not: typescript-dev-toolkit's `build:compile`
 refuses to build a project with `.svelte` files unless package.json declares it, so it stays declared

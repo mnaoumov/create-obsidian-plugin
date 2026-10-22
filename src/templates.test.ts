@@ -297,10 +297,16 @@ describe('buildTemplate', () => {
   });
 
   describe('bundler feature', () => {
-    it('adds esbuild dependency for esbuild', () => {
-      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild' }));
+    it('adds esbuild dependency for esbuild on standalone, whose build script imports it', () => {
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', preset: 'standalone' }));
       const depNames = builder.dependencies.map((d) => d.packageName);
       expect(depNames).toContain('esbuild');
+    });
+
+    it.each(['all-in-one', 'demo', 'docs-showcase'] as const)('leaves esbuild to obsidian-dev-toolkit on %s', (preset) => {
+      const builder = buildTemplate(makeAnswers({ bundler: 'esbuild', preset }));
+      const depNames = builder.dependencies.map((d) => d.packageName);
+      expect(depNames).not.toContain('esbuild');
     });
 
     it('adds rollup files and dependencies', () => {
