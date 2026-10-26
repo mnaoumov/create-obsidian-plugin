@@ -1706,9 +1706,10 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor', preset: 'all-in-one' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     const sections = [...readme.matchAll(/^## (?<Title>.+)$/gm)].map((match) => match.groups?.['Title']);
-    // The skeleton puts `Demo vault` first, before any feature section.
+    // The skeleton puts `Demo vault` first, before any feature section, and `Similar plugins` after the last one.
     expect(sections).toStrictEqual([
       'Demo vault',
+      'Similar plugins',
       'Installation',
       'Debugging',
       'Contributing',
