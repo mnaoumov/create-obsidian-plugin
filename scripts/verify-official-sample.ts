@@ -43,6 +43,26 @@ interface EslintMessage {
 
 await main();
 
+/** Installs and builds the project, then returns its lint findings, each as one comparable line. */
+function buildAndLint(projectDir: string): string[] {
+  run('npm ci --no-audit --no-fund', projectDir);
+  run('npm run build', projectDir);
+
+  const reportPath = join(projectDir, 'eslint-report.json');
+  // The exit code is not the verdict here: upstream's own lint fails, and the findings are what is compared.
+  process.stdout.write(`\n> npx eslint . --format json  (in ${projectDir})\n`);
+  spawnSync(`npx eslint . --format json --output-file "${reportPath}"`, { cwd: projectDir, shell: true, stdio: 'inherit' });
+  const report = JSON.parse(readFileSync(reportPath, 'utf-8')) as EslintFileResult[];
+  rmSync(reportPath);
+
+  return report.flatMap((file) => file.messages.map((message) => `${relative(projectDir, file.filePath).replaceAll('\\', '/')}:${String(message.line)}:${String(message.column)} ${message.ruleId ?? '(no rule)'} ${message.message}`)).sort();
+}
+
+async function fetchLatest(): Promise<UpstreamSnapshot> {
+  const upstream = readUpstream(getUpstreamsPath(), OFFICIAL_SAMPLE_UPSTREAM_NAME);
+  return await fetchUpstreamSnapshot(upstream.repo, upstream.ref);
+}
+
 /**
  * Holds the official sample to upstream's own scripts: a generated project and a pristine copy of the same upstream
  * tree each run `npm ci`, `npm run build` and `npm run lint`.
@@ -106,26 +126,6 @@ async function main(): Promise<void> {
   }
 
   process.exitCode = failed ? 1 : 0;
-}
-
-/** Installs and builds the project, then returns its lint findings, each as one comparable line. */
-function buildAndLint(projectDir: string): string[] {
-  run('npm ci --no-audit --no-fund', projectDir);
-  run('npm run build', projectDir);
-
-  const reportPath = join(projectDir, 'eslint-report.json');
-  // The exit code is not the verdict here: upstream's own lint fails, and the findings are what is compared.
-  process.stdout.write(`\n> npx eslint . --format json  (in ${projectDir})\n`);
-  spawnSync(`npx eslint . --format json --output-file "${reportPath}"`, { cwd: projectDir, shell: true, stdio: 'inherit' });
-  const report = JSON.parse(readFileSync(reportPath, 'utf-8')) as EslintFileResult[];
-  rmSync(reportPath);
-
-  return report.flatMap((file) => file.messages.map((message) => `${relative(projectDir, file.filePath).replaceAll('\\', '/')}:${String(message.line)}:${String(message.column)} ${message.ruleId ?? '(no rule)'} ${message.message}`)).sort();
-}
-
-async function fetchLatest(): Promise<UpstreamSnapshot> {
-  const upstream = readUpstream(getUpstreamsPath(), OFFICIAL_SAMPLE_UPSTREAM_NAME);
-  return await fetchUpstreamSnapshot(upstream.repo, upstream.ref);
 }
 
 function run(command: string, cwd: string): void {

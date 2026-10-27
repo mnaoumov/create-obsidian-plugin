@@ -18,10 +18,12 @@ import {
   findUpstreamLinks
 } from '../src/verification/upstream-links.ts';
 
+const CLI_ARGUMENT_OFFSET = 2;
+
 /** Where CI puts its checkout, since a runner has no sibling directory to find one in. */
 const LIB_DIR_ENV = 'OBSIDIAN_LIB_DIR';
 
-const MAX_GIT_OUTPUT = 64 * 1024 * 1024;
+const MAX_GIT_OUTPUT = 67_108_864;
 
 main();
 
@@ -53,7 +55,7 @@ function listOwnFiles(repoRoot: string): string[] {
 
 function main(): void {
   const repoRoot = join(getScriptDir(), '..');
-  const libDir = parseLibDir(process.argv.slice(2), repoRoot);
+  const libDir = parseLibDir(process.argv.slice(CLI_ARGUMENT_OFFSET), repoRoot);
 
   if (!existsSync(join(libDir, '.git'))) {
     // Not a pass. A check with nothing to check against is exactly how a dead link survived seven months.

@@ -23,6 +23,15 @@ import {
   VENDORED_SUFFIX
 } from '../src/upstream-snapshot.ts';
 
+interface UpstreamEntry {
+  commit: string;
+  name: string;
+}
+
+interface UpstreamsFile {
+  upstreams: UpstreamEntry[];
+}
+
 const JSON_INDENT_SPACES = 2;
 
 await main();
@@ -74,7 +83,7 @@ async function main(): Promise<void> {
     rmSync(join(filesDir, `${path}${VENDORED_SUFFIX}`));
   }
 
-  const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as { upstreams: { commit: string; name: string }[] };
+  const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as UpstreamsFile;
   for (const entry of upstreams.upstreams) {
     if (entry.name === OFFICIAL_SAMPLE_UPSTREAM_NAME) {
       entry.commit = snapshot.commit;

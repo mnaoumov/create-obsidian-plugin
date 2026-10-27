@@ -1,6 +1,6 @@
 /* eslint-disable no-magic-numbers -- A covering array is defined by small integers: dimension sizes, value
    indices and combination counts. Naming each one would replace the arithmetic that makes an expectation
-   checkable (`2 * 3 + 2 * 4 + 3 * 4`) with opaque identifiers. Same call as `scripts/eslint.config.ts`. */
+   checkable (`2 * 3 + 2 * 4 + 3 * 4`) with opaque identifiers. Same call as `scripts/eslint-config.ts`. */
 
 import {
   describe,

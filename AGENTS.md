@@ -266,6 +266,8 @@ provisioned Obsidian or emulator, so a fresh project would ship tests nothing ca
 
 ### Root configs are thin wrappers
 
+The generator's ESLint helper is `scripts/eslint-config.ts`. Keep helper names outside ESLint's `eslint.config.*` discovery pattern: under ESLint 10 a nested helper with that name shadows the root config and silently excludes scripts from linting. `scripts/eslint-config.test.ts` checks discovery for every script and requires a deliberate script violation to be reported.
+
 All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `commitlint.config.ts`, `vitest.config.ts`) are minimal re-exports from `scripts/`. Root `package.json` scripts all use `jiti scripts/*.ts`.
 
 The one exception is `standalone`'s `eslint.config.mts`, which inlines the whole config. That preset may not depend on anything from the ecosystem, so it has no shared config to wrap. The framework presets emit a one-line root `eslint.config.mts` that re-exports `scripts/eslint-config.ts`, and that file wraps obsidian-dev-toolkit's `defineEslintConfigs` the way every real plugin does.

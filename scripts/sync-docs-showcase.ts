@@ -26,6 +26,7 @@ import {
   ScriptTarget
 } from 'typescript';
 
+import type { DocsShowcaseReport } from '../src/docs-showcase/docs-showcase-files.ts';
 import type {
   ShowcaseEntry,
   ShowcaseSource
@@ -37,8 +38,7 @@ import {
   DOCS_SHOWCASE_HOST_DIR,
   DOCS_SHOWCASE_REPORT_PATH,
   DOCS_SHOWCASE_TREE_DIR,
-  DOCS_SHOWCASE_UPSTREAM_NAME,
-  type DocsShowcaseReport
+  DOCS_SHOWCASE_UPSTREAM_NAME
 } from '../src/docs-showcase/docs-showcase-files.ts';
 import {
   DOCS_CONTENT_DIR,
@@ -57,6 +57,23 @@ import {
 import { readUpstream } from '../src/upstream-snapshot.ts';
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
+interface PackageManifest {
+  devDependencies: Record<string, string>;
+}
+
+interface TypeCheckError {
+  stdout?: string;
+}
+
+interface UpstreamEntry {
+  commit: string;
+  name: string;
+}
+
+interface UpstreamsFile {
+  upstreams: UpstreamEntry[];
+}
+
 const JSON_INDENT_SPACES = 2;
 
 /** The packages a snippet's missing name is imported from, in priority order. */
@@ -67,7 +84,82 @@ const MAX_TYPE_CHECK_ROUNDS = 10;
 
 const DIAGNOSTIC_PATTERN = /^(?<File>.+?)\((?<Line>\d+),(?<Column>\d+)\): error (?<Code>TS\d+): (?<Message>.*)$/;
 
-await main();
+main();
+
+/**
+ * Says why a module failed, in terms of the block rather than the wrapper: the first diagnostic, with its line
+ * translated back to the block's, and a failure caused only by importing another failed block named as such.
+ */
+function describeFailure(entry: ShowcaseEntry, entries: readonly ShowcaseEntry[]): string {
+  const first = entry.diagnostics[0] ?? 'the type check failed';
+  const missingModule = /Cannot find module '(?<Specifier>\.\.?\/[^']+)'/.exec(first)?.groups?.['Specifier'];
+  if (missingModule) {
+    const missingFile = posix.join(posix.dirname(entry.file), missingModule);
+    const provider = entries.find((candidate) => candidate.file === missingFile);
+    if (provider) {
+      return `it imports from the block at line ${String(provider.line)} of ${provider.page}, which does not compile`;
+    }
+  }
+  return `\`${first.replace(/^\d+:\d+ /, '')}\`, ${locateInBlock(first, entry)}`;
+}
+
+function fetchCommit(repo: string, ref: string, dir: string): string {
+  if (!existsSync(join(dir, '.git'))) {
+    mkdirSync(dir, { recursive: true });
+    git(dir, 'init', '--quiet');
+    git(dir, 'remote', 'add', 'origin', `https://github.com/${repo}.git`);
+  }
+  git(dir, 'fetch', '--quiet', '--depth', '1', 'origin', ref);
+  git(dir, 'checkout', '--quiet', '--force', 'FETCH_HEAD');
+  return git(dir, 'rev-parse', 'HEAD').trim();
+}
+
+function git(cwd: string, ...args: string[]): string {
+  return execFileSync('git', args, { cwd, encoding: 'utf-8' });
+}
+
+function installCheckPackages(dir: string, obsidianVersion: string): void {
+  mkdirSync(dir, { recursive: true });
+  const language = PINNED_VERSIONS['@codemirror/language']?.version ?? 'latest';
+  const typescriptVersion = (JSON.parse(readFileSync(join(getPackageRoot(), 'package.json'), 'utf-8')) as PackageManifest).devDependencies['typescript'] ?? 'latest';
+  writeFileSync(
+    join(dir, 'package.json'),
+    `${
+      JSON.stringify(
+        {
+          dependencies: {
+            '@codemirror/language': language,
+            'obsidian': obsidianVersion,
+            'typescript': typescriptVersion
+          },
+          name: 'docs-showcase-check',
+          private: true,
+          type: 'module'
+        },
+        null,
+        JSON_INDENT_SPACES
+      )
+    }\n`
+  );
+  execFileSync('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: dir, shell: true, stdio: 'inherit' });
+}
+
+/** Translates a diagnostic's line in the wrapped module back to the block, and to the docs page. */
+function locateInBlock(diagnostic: string, entry: ShowcaseEntry): string {
+  const moduleLine = Number(/^(?<Line>\d+):/.exec(diagnostic)?.groups?.['Line'] ?? 0);
+  const codeLines = entry.code.split('\n');
+  const firstCodeIndex = codeLines.findIndex((line) => line.trim() !== '');
+  const firstCodeLine = codeLines[firstCodeIndex]?.trim() ?? '';
+  const moduleLines = entry.module.split('\n');
+  const headerEnd = moduleLines.indexOf('');
+  const blockStart = moduleLines.findIndex((line, index) => index > headerEnd && line.trim() === firstCodeLine);
+  const blockLine = moduleLine - blockStart + firstCodeIndex;
+  if (blockStart === -1 || blockLine < 1 || blockLine > codeLines.length) {
+    return 'in the code generated around the block';
+  }
+  // The fence is the page's line `entry.line`, so the block's first line is the one after it.
+  return `at line ${String(blockLine)} of the block (line ${String(entry.line + blockLine)} of the page)`;
+}
 
 /**
  * Regenerates the Developer docs showcase from obsidianmd/obsidian-developer-docs.
@@ -83,7 +175,7 @@ await main();
  * latest `obsidian`, which is what the `obsidian` entry's handler runs when a new `obsidian` is released, so that PR
  * carries the API change alone and leaves the docs to their own entry.
  */
-async function main(): Promise<void> {
+function main(): void {
   const isCheck = process.argv.includes('--check');
   const isPinnedDocs = process.argv.includes('--pinned-docs');
   const packageRoot = getPackageRoot();
@@ -122,26 +214,7 @@ async function main(): Promise<void> {
       }
     }
 
-    for (let round = 0; round < MAX_TYPE_CHECK_ROUNDS; round++) {
-      const failures = typeCheck(checkDir);
-      if (failures.size === 0) {
-        break;
-      }
-      for (const entry of entries) {
-        const diagnostics = failures.get(entry.file);
-        if (entry.status !== 'runnable' || !diagnostics) {
-          continue;
-        }
-        entry.status = 'type-error';
-        entry.diagnostics = diagnostics;
-        entry.reason = describeFailure(entry, entries);
-        rmSync(join(treeDir, entry.file));
-      }
-      const hostFailure = [...failures.keys()].find((file) => !entries.some((entry) => entry.file === file));
-      if (hostFailure !== undefined) {
-        throw new Error(`The showcase's own ${hostFailure} does not compile: ${(failures.get(hostFailure) ?? []).join('; ')}`);
-      }
-    }
+    removeFailingEntries(checkDir, treeDir, entries);
 
     writeFile(join(treeDir, 'index.ts'), buildIndexModule(entries));
     writeFile(join(treeDir, 'README.md'), buildReadme(entries, source));
@@ -175,16 +248,7 @@ async function main(): Promise<void> {
       if (!isPinCurrent) {
         process.stdout.write(`${upstream.repo}@${upstream.ref} moved: pinned ${upstream.commit}, upstream ${headCommit}.\n`);
       }
-      for (const path of changed) {
-        process.stdout.write(`  ${committedFiles.has(path) ? 'changed' : 'added'}: ${path}\n`);
-      }
-      for (const path of removed) {
-        process.stdout.write(`  removed: ${path}\n`);
-      }
-      if (!isReportCurrent) {
-        process.stdout.write(`  changed: ${DOCS_SHOWCASE_REPORT_PATH}\n`);
-      }
-      process.stdout.write('Run `npm run sync:docs-showcase` to regenerate the showcase.\n');
+      reportSnapshotChanges(changed, removed, isReportCurrent, committedFiles);
       process.exitCode = 1;
       return;
     }
@@ -195,7 +259,7 @@ async function main(): Promise<void> {
     }
     writeFileSync(reportPath, reportText);
 
-    const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as { upstreams: { commit: string; name: string }[] };
+    const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as UpstreamsFile;
     for (const entry of upstreams.upstreams) {
       if (entry.name === DOCS_SHOWCASE_UPSTREAM_NAME) {
         entry.commit = commit;
@@ -206,81 +270,6 @@ async function main(): Promise<void> {
   } finally {
     rmSync(workDir, { force: true, recursive: true });
   }
-}
-
-/**
- * Says why a module failed, in terms of the block rather than the wrapper: the first diagnostic, with its line
- * translated back to the block's, and a failure caused only by importing another failed block named as such.
- */
-function describeFailure(entry: ShowcaseEntry, entries: readonly ShowcaseEntry[]): string {
-  const first = entry.diagnostics[0] ?? 'the type check failed';
-  const missingModule = /Cannot find module '(?<Specifier>\.\.?\/[^']+)'/.exec(first)?.groups?.['Specifier'];
-  if (missingModule) {
-    const missingFile = posix.join(posix.dirname(entry.file), missingModule);
-    const provider = entries.find((candidate) => candidate.file === missingFile);
-    if (provider) {
-      return `it imports from the block at line ${String(provider.line)} of ${provider.page}, which does not compile`;
-    }
-  }
-  return `\`${first.replace(/^\d+:\d+ /, '')}\`, ${locateInBlock(first, entry)}`;
-}
-
-/** Translates a diagnostic's line in the wrapped module back to the block, and to the docs page. */
-function locateInBlock(diagnostic: string, entry: ShowcaseEntry): string {
-  const moduleLine = Number(/^(?<Line>\d+):/.exec(diagnostic)?.groups?.['Line'] ?? 0);
-  const codeLines = entry.code.split('\n');
-  const firstCodeIndex = codeLines.findIndex((line) => line.trim() !== '');
-  const firstCodeLine = codeLines[firstCodeIndex]?.trim() ?? '';
-  const moduleLines = entry.module.split('\n');
-  const headerEnd = moduleLines.indexOf('');
-  const blockStart = moduleLines.findIndex((line, index) => index > headerEnd && line.trim() === firstCodeLine);
-  const blockLine = moduleLine - blockStart + firstCodeIndex;
-  if (blockStart === -1 || blockLine < 1 || blockLine > codeLines.length) {
-    return 'in the code generated around the block';
-  }
-  // The fence is the page's line `entry.line`, so the block's first line is the one after it.
-  return `at line ${String(blockLine)} of the block (line ${String(entry.line + blockLine)} of the page)`;
-}
-
-function fetchCommit(repo: string, ref: string, dir: string): string {
-  if (!existsSync(join(dir, '.git'))) {
-    mkdirSync(dir, { recursive: true });
-    git(dir, 'init', '--quiet');
-    git(dir, 'remote', 'add', 'origin', `https://github.com/${repo}.git`);
-  }
-  git(dir, 'fetch', '--quiet', '--depth', '1', 'origin', ref);
-  git(dir, 'checkout', '--quiet', '--force', 'FETCH_HEAD');
-  return git(dir, 'rev-parse', 'HEAD').trim();
-}
-
-function git(cwd: string, ...args: string[]): string {
-  return execFileSync('git', args, { cwd, encoding: 'utf-8' });
-}
-
-function installCheckPackages(dir: string, obsidianVersion: string): void {
-  mkdirSync(dir, { recursive: true });
-  const language = PINNED_VERSIONS['@codemirror/language']?.version ?? 'latest';
-  const typescriptVersion = (JSON.parse(readFileSync(join(getPackageRoot(), 'package.json'), 'utf-8')) as { devDependencies: Record<string, string> }).devDependencies['typescript'] ?? 'latest';
-  writeFileSync(
-    join(dir, 'package.json'),
-    `${
-      JSON.stringify(
-        {
-          dependencies: {
-            '@codemirror/language': language,
-            obsidian: obsidianVersion,
-            typescript: typescriptVersion
-          },
-          name: 'docs-showcase-check',
-          private: true,
-          type: 'module'
-        },
-        null,
-        JSON_INDENT_SPACES
-      )
-    }\n`
-  );
-  execFileSync('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: dir, shell: true, stdio: 'inherit' });
 }
 
 function printSummary(report: DocsShowcaseReport): void {
@@ -349,6 +338,42 @@ function readTree(dir: string): Map<string, string> {
   return new Map([...files].sort(([a], [b]) => a.localeCompare(b)));
 }
 
+function removeFailingEntries(checkDir: string, treeDir: string, entries: readonly ShowcaseEntry[]): void {
+  for (let round = 0; round < MAX_TYPE_CHECK_ROUNDS; round++) {
+    const failures = typeCheck(checkDir);
+    if (failures.size === 0) {
+      break;
+    }
+    for (const entry of entries) {
+      const diagnostics = failures.get(entry.file);
+      if (entry.status !== 'runnable' || !diagnostics) {
+        continue;
+      }
+      entry.status = 'type-error';
+      entry.diagnostics = diagnostics;
+      entry.reason = describeFailure(entry, entries);
+      rmSync(join(treeDir, entry.file));
+    }
+    const hostFailure = [...failures.keys()].find((file) => !entries.some((entry) => entry.file === file));
+    if (hostFailure !== undefined) {
+      throw new Error(`The showcase's own ${hostFailure} does not compile: ${(failures.get(hostFailure) ?? []).join('; ')}`);
+    }
+  }
+}
+
+function reportSnapshotChanges(changed: readonly string[], removed: readonly string[], isReportCurrent: boolean, committedFiles: ReadonlyMap<string, string>): void {
+  for (const path of changed) {
+    process.stdout.write(`  ${committedFiles.has(path) ? 'changed' : 'added'}: ${path}\n`);
+  }
+  for (const path of removed) {
+    process.stdout.write(`  removed: ${path}\n`);
+  }
+  if (!isReportCurrent) {
+    process.stdout.write(`  changed: ${DOCS_SHOWCASE_REPORT_PATH}\n`);
+  }
+  process.stdout.write('Run `npm run sync:docs-showcase` to regenerate the showcase.\n');
+}
+
 function resolveLatestVersion(packageName: string): string {
   return execFileSync('npm', ['view', packageName, 'version'], { encoding: 'utf-8', shell: true }).trim();
 }
@@ -363,7 +388,7 @@ function typeCheck(checkDir: string): Map<string, string[]> {
       encoding: 'utf-8'
     });
   } catch (error) {
-    output = String((error as { stdout?: string }).stdout ?? '');
+    output = (error as TypeCheckError).stdout ?? '';
   }
 
   const failures = new Map<string, string[]>();
