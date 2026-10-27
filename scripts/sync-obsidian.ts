@@ -16,6 +16,15 @@ import {
 } from '../src/official-sample.ts';
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
+interface UpstreamEntry {
+  name: string;
+  version?: string;
+}
+
+interface UpstreamsFile {
+  upstreams: UpstreamEntry[];
+}
+
 const JSON_INDENT_SPACES = 2;
 
 /** The `upstreams.json` entry that follows the `obsidian` package. */
@@ -64,7 +73,7 @@ async function main(): Promise<void> {
   execSync('npm run sync:docs-showcase -- --pinned-docs', { cwd: getPackageRoot(), stdio: 'inherit' });
 
   const upstreamsPath = getUpstreamsPath();
-  const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as { upstreams: { name: string; version?: string }[] };
+  const upstreams = JSON.parse(readFileSync(upstreamsPath, 'utf-8')) as UpstreamsFile;
   for (const entry of upstreams.upstreams) {
     if (entry.name === OBSIDIAN_UPSTREAM_NAME) {
       entry.version = manifest.version;

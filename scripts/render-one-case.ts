@@ -12,10 +12,7 @@ import {
 } from 'node:path';
 import process from 'node:process';
 
-import type {
-  Answers,
-  StringAnswerKey
-} from '../src/answers/answers.ts';
+import type { StringAnswerKey } from '../src/answers/answers.ts';
 
 import {
   describeCase,
@@ -27,6 +24,8 @@ import {
 } from '../src/answers/cli-args.ts';
 import { copyTemplates } from '../src/templates.ts';
 import { listGeneratedFiles } from '../src/verification/plugin-drift-checks.ts';
+
+const CLI_ARGUMENT_OFFSET = 2;
 
 /**
  * The version stamped into the render.
@@ -55,8 +54,8 @@ main();
  * that scratch file, kept.
  */
 function main(): void {
-  const options = parseOptions(process.argv.slice(2));
-  const answers = makeAnswers(options.overrides as Partial<Answers>);
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET));
+  const answers = makeAnswers(options.overrides);
 
   const target = options.outRoot ?? mkdtempSync(join(tmpdir(), 'cop-case-'));
   if (options.outRoot) {
