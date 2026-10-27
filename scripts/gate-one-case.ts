@@ -20,11 +20,11 @@ import {
   resolveAnswer,
   toAnswerKey
 } from '../src/answers/cli-args.ts';
-import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   buildTemplate,
   copyTemplates
 } from '../src/templates.ts';
+import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   fetchLatestObsidianVersion,
   resolveVersions

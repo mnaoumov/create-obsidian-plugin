@@ -14,6 +14,7 @@ import {
   answersFromValueIndices,
   describeCase
 } from '../src/answers/answer-space.ts';
+import { buildTemplate } from '../src/templates.ts';
 import { buildCoveringArray } from '../src/verification/covering-array.ts';
 import {
   checkCase,
@@ -21,7 +22,6 @@ import {
   loadTemplateInventory,
   newUsage
 } from '../src/verification/plan-checks.ts';
-import { buildTemplate } from '../src/templates.ts';
 import { findMissingPackages } from '../src/versions.ts';
 
 /**

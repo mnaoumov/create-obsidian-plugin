@@ -19,6 +19,10 @@ import type {
 } from '../src/verification/plugin-drift-checks.ts';
 
 import {
+  copyTemplates,
+  getScriptDir
+} from '../src/templates.ts';
+import {
   buildConsensus,
   compareToPlugins,
   describeFinding,
@@ -30,10 +34,6 @@ import {
   pluginShapedAnswers,
   reconcileBaseline
 } from '../src/verification/plugin-drift-checks.ts';
-import {
-  copyTemplates,
-  getScriptDir
-} from '../src/templates.ts';
 
 /** Where the accepted differences are recorded, relative to the repo root. */
 const BASELINE_FILE_NAME = 'plugin-drift-baseline.json';

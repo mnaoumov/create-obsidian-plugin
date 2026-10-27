@@ -25,8 +25,8 @@ import {
   resolveAnswer,
   toAnswerKey
 } from '../src/answers/cli-args.ts';
-import { listGeneratedFiles } from '../src/verification/plugin-drift-checks.ts';
 import { copyTemplates } from '../src/templates.ts';
+import { listGeneratedFiles } from '../src/verification/plugin-drift-checks.ts';
 
 /**
  * The version stamped into the render.

@@ -25,12 +25,12 @@ import {
   findDimension,
   makeAnswers
 } from '../src/answers/answer-space.ts';
-import { buildCoveringArray } from '../src/verification/covering-array.ts';
-import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   buildTemplate,
   copyTemplates
 } from '../src/templates.ts';
+import { buildCoveringArray } from '../src/verification/covering-array.ts';
+import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   fetchLatestObsidianVersion,
   resolveVersions
