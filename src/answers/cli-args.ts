@@ -29,26 +29,26 @@ import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 
 export interface CliArgs {
   /** Every answer supplied on the command line or in `--answersFile`, with the flags winning. */
-  answers: Partial<Answers>;
+  readonly answers: Partial<Answers>;
   /**
    * `--customTemplate=<dir>`: `undefined` when not given, `''` to drop the overlay an existing project
    * recorded, otherwise the directory as typed.
    */
-  customTemplate: string | undefined;
+  readonly customTemplate: string | undefined;
   /** `--force`: scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. */
-  force: boolean;
+  readonly force: boolean;
   /**
    * `--latest`: copy obsidianmd/obsidian-sample-plugin as it is upstream today, rather than the snapshot this
    * release vendored. Only `preset=official-sample` reads it.
    */
-  latest: boolean;
+  readonly latest: boolean;
   /**
    * `--mode=create|update`: `undefined` when not given, which means asking when a project is detected in the
    * current directory -- or, under `--yes`, refusing, because neither answer is safe to assume.
    */
-  mode: Mode | undefined;
-  showHelp: boolean;
-  useDefaults: boolean;
+  readonly mode: Mode | undefined;
+  readonly showHelp: boolean;
+  readonly useDefaults: boolean;
 }
 
 /**

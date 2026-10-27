@@ -32,16 +32,16 @@
 
 /** One answer the directory would reject, named by the key that sets it. */
 export interface ManifestAnswerProblem {
-  key: string;
-  message: string;
-  value: string;
+  readonly key: string;
+  readonly message: string;
+  readonly value: string;
 }
 
 /** The three answers that become `manifest.json`'s listed fields. */
 export interface ManifestAnswers {
-  pluginDescription: string;
-  pluginId: string;
-  pluginName: string;
+  readonly pluginDescription: string;
+  readonly pluginId: string;
+  readonly pluginName: string;
 }
 
 /**

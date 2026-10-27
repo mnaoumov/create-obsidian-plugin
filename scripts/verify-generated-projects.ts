@@ -74,34 +74,34 @@ const SECONDS_PER_MINUTE = 60;
 const RESULT_MARKER = '__SHARD_RESULT__ ';
 
 interface CaseOutcome {
-  answers: Answers;
-  index: number;
-  result: GateResult;
+  readonly answers: Answers;
+  readonly index: number;
+  readonly result: GateResult;
 }
 
 interface Options {
-  keepFailures: boolean;
-  limit: number;
-  outRoot: string;
-  report: null | string;
-  resolvedPath: string;
-  shard: null | ShardSpec;
-  strength: number;
-  workers: number;
+  readonly keepFailures: boolean;
+  readonly limit: number;
+  readonly outRoot: string;
+  readonly report: null | string;
+  readonly resolvedPath: string;
+  readonly shard: null | ShardSpec;
+  readonly strength: number;
+  readonly workers: number;
 }
 
 interface ResolvedExternals {
-  minAppVersion: string;
-  versions: Record<string, string>;
+  readonly minAppVersion: string;
+  readonly versions: Record<string, string>;
 }
 
 interface ShardResult {
-  outcomes: CaseOutcome[];
+  readonly outcomes: CaseOutcome[];
 }
 
 interface ShardSpec {
-  index: number;
-  total: number;
+  readonly index: number;
+  readonly total: number;
 }
 
 await main();

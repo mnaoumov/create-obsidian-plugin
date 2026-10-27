@@ -16,7 +16,7 @@ const UNSET_APP: unknown = undefined;
 export const AppContext = createContext<App>(UNSET_APP as App);
 
 export interface SampleReactComponentProps {
-  startCount: number;
+  readonly startCount: number;
 }
 
 export function SampleReactComponent(props: SampleReactComponentProps): JSX.Element {

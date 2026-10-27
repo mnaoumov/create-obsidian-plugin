@@ -4,6 +4,7 @@ import type { Linter } from 'eslint';
 
 import commentsConfigs from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import eslint from '@eslint/js';
+import { inHouseEslintPlugin } from '@mnaoumov/typescript-dev-toolkit/linters/eslint-rules/in-house-plugin';
 // eslint-disable-next-line import-x/no-rename-default -- The default export name `plugin` is too generic.
 import stylistic from '@stylistic/eslint-plugin';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
@@ -34,6 +35,11 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
       'dist/**',
       'templates/**'
     ]),
+    {
+      files: typeScriptFiles,
+      plugins: { 'typescript-dev-toolkit': inHouseEslintPlugin },
+      rules: { 'typescript-dev-toolkit/readonly-interface-members': 'error' }
+    },
     ...getEslintConfigs(),
     ...getTseslintConfigs(tsconfigRootDir),
     ...getStylisticConfigs(),
@@ -274,10 +280,10 @@ function getImportXConfigs(): Linter.Config[] {
   return defineConfig([
     {
       extends: [
-        eslintPluginImportXFlatConfigs.recommended as Linter.Config,
-        eslintPluginImportXFlatConfigs.typescript as Linter.Config,
-        eslintPluginImportXFlatConfigs.errors as Linter.Config,
-        eslintPluginImportXFlatConfigs.warnings as Linter.Config
+        eslintPluginImportXFlatConfigs.recommended,
+        eslintPluginImportXFlatConfigs.typescript,
+        eslintPluginImportXFlatConfigs.errors,
+        eslintPluginImportXFlatConfigs.warnings
       ],
       files: typeScriptFiles,
       rules: {

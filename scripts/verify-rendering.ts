@@ -39,21 +39,21 @@ const MILLISECONDS_PER_SECOND = 1000;
 const RESULT_MARKER = '__SHARD_RESULT__ ';
 
 interface Options {
-  keepFailures: boolean;
-  outRoot: string;
-  shard: null | ShardSpec;
-  strength: number;
-  workers: number;
+  readonly keepFailures: boolean;
+  readonly outRoot: string;
+  readonly shard: null | ShardSpec;
+  readonly strength: number;
+  readonly workers: number;
 }
 
 interface ShardResult {
-  casesChecked: number;
-  violations: RenderViolation[];
+  readonly casesChecked: number;
+  readonly violations: RenderViolation[];
 }
 
 interface ShardSpec {
-  index: number;
-  total: number;
+  readonly index: number;
+  readonly total: number;
 }
 
 await main();

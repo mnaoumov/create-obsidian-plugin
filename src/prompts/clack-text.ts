@@ -19,10 +19,10 @@ import {
 } from './clack-utils.ts';
 
 interface TextWithCompletionOptions {
-  defaultValue?: string | undefined;
-  message: string;
-  placeholder?: string | undefined;
-  validate?: ((value: string | undefined) => Error | string | undefined) | undefined;
+  readonly defaultValue?: string | undefined;
+  readonly message: string;
+  readonly placeholder?: string | undefined;
+  readonly validate?: ((value: string | undefined) => Error | string | undefined) | undefined;
 }
 
 class TextPromptWithCompletion extends TextPrompt {

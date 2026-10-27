@@ -22,11 +22,11 @@ import { getPackageRoot } from '../../official-sample.ts';
 import { copyTemplates } from '../../templates.ts';
 
 interface PackageJson {
-  scripts: Record<string, string>;
+  readonly scripts: Record<string, string>;
 }
 
 interface TsConfigJson {
-  exclude?: string[];
+  readonly exclude?: string[];
 }
 
 describe('the docs-showcase preset', () => {

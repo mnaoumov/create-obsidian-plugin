@@ -14,24 +14,24 @@ export interface FeatureOptionConfig {
    * emit no JSX at all, and `svelte` / `vue` compile their own single-file components, which is what
    * lets them coexist with any of the three that do.
    */
-  jsxImportSource?: string | undefined;
+  readonly jsxImportSource?: string | undefined;
   /**
    * Name this option's template partials are keyed on. Defaults to {@link settingValue}, which is right
    * for all but the options whose value is claimed by more than one question -- `biome` answers both
    * `linter` and `formatter`, and partial names are one flat namespace, so a shared name concatenates
    * the other question's partial into the same file.
    */
-  partialName?: string | undefined;
-  promptHint: string;
-  promptLabel: string;
-  settingValue: string;
+  readonly partialName?: string | undefined;
+  readonly promptHint: string;
+  readonly promptLabel: string;
+  readonly settingValue: string;
 }
 
 export interface PromptFeatureParams {
-  defaultOption: FeatureOption;
-  message: string;
-  options: readonly FeatureOption[];
-  savedValue?: string | undefined;
+  readonly defaultOption: FeatureOption;
+  readonly message: string;
+  readonly options: readonly FeatureOption[];
+  readonly savedValue?: string | undefined;
 }
 
 export abstract class FeatureOption {

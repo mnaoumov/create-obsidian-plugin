@@ -107,33 +107,33 @@ import { GoBackError } from './clack-utils.ts';
  * The answer every question behind the `Tooling` question takes on "Use recommended defaults".
  */
 interface DefaultTooling {
-  apiSubset: string;
-  bundler: string;
-  commitLinting: string;
-  coverageBadge: string;
-  e2eTestRunner: string;
-  editorExtensions: string;
-  formatter: string;
-  gitHubActions: string;
-  gitHubIssueTemplates: string;
-  hotReload: string;
-  internationalization: string;
-  linter: string;
-  markdownLinter: string;
-  packageManager: string;
-  platformSupport: string;
-  spellChecker: string;
-  styling: string;
-  testRunner: string;
-  uiFramework: string;
-  wasmSupport: string;
+  readonly apiSubset: string;
+  readonly bundler: string;
+  readonly commitLinting: string;
+  readonly coverageBadge: string;
+  readonly e2eTestRunner: string;
+  readonly editorExtensions: string;
+  readonly formatter: string;
+  readonly gitHubActions: string;
+  readonly gitHubIssueTemplates: string;
+  readonly hotReload: string;
+  readonly internationalization: string;
+  readonly linter: string;
+  readonly markdownLinter: string;
+  readonly packageManager: string;
+  readonly platformSupport: string;
+  readonly spellChecker: string;
+  readonly styling: string;
+  readonly testRunner: string;
+  readonly uiFramework: string;
+  readonly wasmSupport: string;
 }
 
 interface PromptStep {
-  defaultValue: (answers: StepAnswers) => string;
-  key: string;
-  prompt: (savedValue: string, answers: StepAnswers) => Promise<string>;
-  skip?: (answers: StepAnswers) => boolean;
+  readonly defaultValue: (answers: StepAnswers) => string;
+  readonly key: string;
+  readonly prompt: (savedValue: string, answers: StepAnswers) => Promise<string>;
+  readonly skip?: (answers: StepAnswers) => boolean;
 }
 
 type StepAnswers = Map<string, string>;
@@ -142,16 +142,16 @@ type StepAnswers = Map<string, string>;
  * A question behind `Tooling` whose saved answer differs from the recommended one.
  */
 interface ToolingChange {
-  question: string;
-  recommended: string;
-  saved: string;
+  readonly question: string;
+  readonly recommended: string;
+  readonly saved: string;
 }
 
 type ToolingKey = keyof DefaultTooling;
 
 interface ToolingQuestion {
-  message: string;
-  options: readonly FeatureOption[];
+  readonly message: string;
+  readonly options: readonly FeatureOption[];
 }
 
 /**

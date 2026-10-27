@@ -21,27 +21,27 @@ import {
 /** What one case's plan came to: what is wrong with it, and the dependency set it declared. */
 export interface CaseCheckResult {
   /** `null` when the plan could not be built at all, so the case declares no dependency set. */
-  dependencySignature: null | string;
-  violations: PlanViolation[];
+  readonly dependencySignature: null | string;
+  readonly violations: PlanViolation[];
 }
 
 /** One partial file on disk, parsed into the three things the composition system keys it on. */
 export interface PartialFile {
   /** The template this partial contributes to -- itself a partial path when the composition is nested. */
-  basePath: string;
+  readonly basePath: string;
   /** The partial name a case has to contribute for this file to be included. */
-  partialName: string;
+  readonly partialName: string;
   /** Path relative to the templates directory, `.ejs` included. */
-  path: string;
+  readonly path: string;
   /** The `render(section)` this file answers, or `null` for the whole-file form. */
-  section: null | string;
+  readonly section: null | string;
 }
 
 /** What a plan-level check found, in a form a sweep can print without re-deriving anything. */
 export interface PlanViolation {
-  detail: string;
-  kind: PlanViolationKind;
-  subject: string;
+  readonly detail: string;
+  readonly kind: PlanViolationKind;
+  readonly subject: string;
 }
 
 /**
@@ -63,8 +63,8 @@ export type PlanViolationKind =
 
 /** One `<%- render(...) %>` call site, and the template whose partials it composes. */
 export interface RenderSite {
-  basePath: string;
-  section: string;
+  readonly basePath: string;
+  readonly section: string;
 }
 
 /** Everything the checks need to know about `templates/default`, read from disk once. */
@@ -77,13 +77,13 @@ export interface TemplateInventory {
    * file with neither its own template nor any partial, and every case that registers it reports
    * `empty-emitted-file`.
    */
-  assetTemplates: Set<string>;
+  readonly assetTemplates: Set<string>;
   /** Registered paths that have their own `.ejs` and so are not composed from partials. */
-  directTemplates: Set<string>;
+  readonly directTemplates: Set<string>;
   /** Direct templates whose `.ejs` is byte-empty, which no case can render into anything. */
-  emptyTemplates: Set<string>;
-  partials: PartialFile[];
-  renderSites: RenderSite[];
+  readonly emptyTemplates: Set<string>;
+  readonly partials: PartialFile[];
+  readonly renderSites: RenderSite[];
   /**
    * Whole-file partial names, indexed by the file they compose.
    *
@@ -91,7 +91,7 @@ export interface TemplateInventory {
    * sweep runs it billions of times. Scanning all 242 partials per question made that ~15,000 string
    * comparisons per case and dominated the tier's whole cost; this index makes it a map lookup.
    */
-  wholeFilePartialsByBase: Map<string, string[]>;
+  readonly wholeFilePartialsByBase: Map<string, string[]>;
 }
 
 /**
@@ -102,8 +102,8 @@ export interface TemplateInventory {
  * reached it. {@link checkUsage} is the same code either way; the caller owns the claim.
  */
 export interface TemplateUsage {
-  partialNames: Set<string>;
-  registeredPaths: Set<string>;
+  readonly partialNames: Set<string>;
+  readonly registeredPaths: Set<string>;
 }
 
 const EJS_SUFFIX = '.ejs';

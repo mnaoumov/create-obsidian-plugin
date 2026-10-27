@@ -22,8 +22,8 @@ const JSON_INDENT_SPACES = 2;
 const OBSIDIAN_UPSTREAM_NAME = 'obsidian';
 
 interface NpmVersionManifest {
-  peerDependencies?: Record<string, string>;
-  version: string;
+  readonly peerDependencies?: Record<string, string>;
+  readonly version: string;
 }
 
 await main();

@@ -50,14 +50,14 @@ const JSON_INDENT_SPACES = 2;
 const PRESETS = ['all-in-one', 'demo'];
 
 interface Baseline {
-  accepted: Record<string, BaselineEntry>;
-  comment?: string[];
+  readonly accepted: Record<string, BaselineEntry>;
+  readonly comment?: string[];
 }
 
 interface Options {
-  pluginsRoot: string;
-  json: boolean;
-  printBaseline: boolean;
+  readonly pluginsRoot: string;
+  readonly json: boolean;
+  readonly printBaseline: boolean;
 }
 
 await main();

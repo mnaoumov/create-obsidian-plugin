@@ -21,15 +21,15 @@ import {
 } from './clack-utils.ts';
 
 interface SelectOption {
-  hint?: string;
-  label: string;
-  value: string;
+  readonly hint?: string;
+  readonly label: string;
+  readonly value: string;
 }
 
 interface SelectWithGoBackOptions {
-  initialValue?: string;
-  message: string;
-  options: SelectOption[];
+  readonly initialValue?: string;
+  readonly message: string;
+  readonly options: SelectOption[];
 }
 
 export async function select(opts: SelectWithGoBackOptions): Promise<string> {

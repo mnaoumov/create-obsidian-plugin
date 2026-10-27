@@ -14,16 +14,16 @@ import {
 } from './prompts.ts';
 
 interface SeededPromptOptions {
-  defaultValue?: string;
-  initialValue?: string;
-  message: string;
-  options?: SelectOption[];
+  readonly defaultValue?: string;
+  readonly initialValue?: string;
+  readonly message: string;
+  readonly options?: SelectOption[];
 }
 
 interface SelectOption {
-  hint?: string;
-  label: string;
-  value: string;
+  readonly hint?: string;
+  readonly label: string;
+  readonly value: string;
 }
 
 const PLUGIN_ID_MESSAGE = 'Plugin id (lowercase, hyphens allowed)';

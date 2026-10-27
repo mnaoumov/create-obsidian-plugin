@@ -69,9 +69,9 @@ export type KnownModuleExports = ReadonlyMap<string, ReadonlySet<string>>;
 
 /** Another snippet on the same page, whose exported names a later snippet may take. */
 export interface PageModule {
-  exports: readonly string[];
+  readonly exports: readonly string[];
   /** The module's specifier relative to the importing module: `./01-vault.ts`. */
-  specifier: string;
+  readonly specifier: string;
 }
 
 /**
@@ -94,12 +94,12 @@ export type SnippetKind = 'css' | 'declarations' | 'expression' | 'members' | 'n
 /** A snippet, classified and, when runnable, wrapped into the module the generated plugin compiles. */
 export interface WrappedSnippet {
   /** The names the module exports, for the same-page imports of the snippets after it. */
-  exports: readonly string[];
-  kind: SnippetKind;
+  readonly exports: readonly string[];
+  readonly kind: SnippetKind;
   /** The module's TypeScript source. Empty when the snippet is not runnable. */
-  module: string;
+  readonly module: string;
   /** Why the snippet is not runnable. Empty when it is. */
-  reason: string;
+  readonly reason: string;
 }
 
 /** The names a statements or expression snippet uses without declaring, and how the host supplies each. */
@@ -170,39 +170,39 @@ const NOT_PLUGIN_CODE: Readonly<Record<string, string>> = {
 
 /** The names a snippet's `export` list carries, and the list itself. */
 interface ExportList {
-  exports: string[];
-  line: string;
+  readonly exports: string[];
+  readonly line: string;
 }
 
 /** A snippet parsed on its own, with the syntax errors the parse found. */
 interface ParseResult {
-  diagnostics: readonly DiagnosticWithLocation[];
-  sourceFile: SourceFile;
+  readonly diagnostics: readonly DiagnosticWithLocation[];
+  readonly sourceFile: SourceFile;
 }
 
 interface SourceFileWithParseDiagnostics extends SourceFile {
-  parseDiagnostics: readonly DiagnosticWithLocation[];
+  readonly parseDiagnostics: readonly DiagnosticWithLocation[];
 }
 
 /** A snippet's body with its `import` statements taken out, and those statements. */
 interface StrippedImports {
-  body: string;
-  imports: string[];
+  readonly body: string;
+  readonly imports: string[];
 }
 
 interface TextRange {
-  end: number;
-  start: number;
+  readonly end: number;
+  readonly start: number;
 }
 
 /** The indentation the host code nests a snippet by. */
 const INDENT_SPACES = 2;
 
 interface Analysis {
-  declared: Set<string>;
-  free: Set<string>;
-  usesThis: boolean;
-  viewIsEditorView: boolean;
+  readonly declared: Set<string>;
+  readonly free: Set<string>;
+  readonly usesThis: boolean;
+  readonly viewIsEditorView: boolean;
 }
 
 /**

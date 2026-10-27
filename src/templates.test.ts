@@ -1266,31 +1266,31 @@ describe('buildTemplate', () => {
 
 describe('copyTemplates', () => {
   interface ParsedDepcheckRc {
-    comment: string[];
-    ignores: string[];
+    readonly comment: string[];
+    readonly ignores: string[];
   }
 
   interface ParsedPackageJson {
-    devDependencies?: Record<string, string>;
-    scripts: Record<string, string>;
+    readonly devDependencies?: Record<string, string>;
+    readonly scripts: Record<string, string>;
   }
 
   interface ParcelResolverConfig {
-    packageExports?: boolean;
+    readonly packageExports?: boolean;
   }
 
   interface ParcelTarget {
-    context?: string;
-    includeNodeModules?: boolean;
+    readonly context?: string;
+    readonly includeNodeModules?: boolean;
   }
 
   interface ParcelTargets {
-    obsidianPlugin?: ParcelTarget;
+    readonly obsidianPlugin?: ParcelTarget;
   }
 
   interface ParcelPackageJson {
-    '@parcel/resolver-default'?: ParcelResolverConfig;
-    'targets'?: ParcelTargets;
+    readonly '@parcel/resolver-default'?: ParcelResolverConfig;
+    readonly 'targets'?: ParcelTargets;
   }
 
   const CURRENT_YEAR = 2026;
@@ -1742,7 +1742,7 @@ describe('copyTemplates', () => {
   // `lint:md`, `gate` and `version` for a reason nothing local could fix.
   it('skips exactly the plugin\'s own repository links in the linkinator config, on every preset', () => {
     interface ParsedLinkinatorConfig {
-      skip: string[];
+      readonly skip: string[];
     }
 
     function createSkipMatcher(skip: string[]): (url: string) => boolean {
@@ -2900,16 +2900,16 @@ describe('sortImportStatements', () => {
 });
 
 interface CspellConfig {
-  ignorePaths: string[];
-  words: string[];
+  readonly ignorePaths: string[];
+  readonly words: string[];
 }
 
 interface DprintConfig {
-  typescript?: Record<string, unknown>;
+  readonly typescript?: Record<string, unknown>;
 }
 
 interface ParcelRc {
-  transformers: Record<string, string[]>;
+  readonly transformers: Record<string, string[]>;
 }
 
 interface StubAsset {
@@ -2918,7 +2918,7 @@ interface StubAsset {
 }
 
 interface StubModule {
-  exports: null | ParcelTransformerStub;
+  readonly exports: null | ParcelTransformerStub;
 }
 
 interface StubTransformerOptions {
@@ -2926,7 +2926,7 @@ interface StubTransformerOptions {
 }
 
 interface StubTransformParams {
-  asset: StubAsset;
+  readonly asset: StubAsset;
 }
 
 /**

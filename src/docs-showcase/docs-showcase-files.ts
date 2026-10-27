@@ -31,10 +31,10 @@ export const DOCS_SHOWCASE_REPORT_PATH = join('templates', 'docs-showcase', 'sni
 
 /** `snippets.json`: the upstream commit and `obsidian` version the showcase was built and checked against, and every block. */
 export interface DocsShowcaseReport {
-  commit: string;
-  entries: ShowcaseReportEntry[];
-  obsidianVersion: string;
-  repo: string;
+  readonly commit: string;
+  readonly entries: ShowcaseReportEntry[];
+  readonly obsidianVersion: string;
+  readonly repo: string;
 }
 
 /**

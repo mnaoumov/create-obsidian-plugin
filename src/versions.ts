@@ -10,21 +10,21 @@ import type { Dependency } from './template-builder.ts';
  */
 export interface PinnedVersion {
   /** Command whose trimmed stdout is compared against `expect`, or `null` when no mechanical test exists. */
-  check: null | string;
+  readonly check: null | string;
   /** The package `check` reads from. When it is absent from the project, `manualCheck` is emitted instead. */
-  checkRequires: null | string;
+  readonly checkRequires: null | string;
   /** The value `check` is expected to print while the pin is still required. */
-  expect: null | string;
+  readonly expect: null | string;
   /** How to settle the pin by hand when `check` cannot run. */
-  manualCheck: null | string;
+  readonly manualCheck: null | string;
   /** Whether the pin also needs an `overrides` entry to reach nested copies in the tree. */
-  needsOverride: boolean;
+  readonly needsOverride: boolean;
   /** The `package.json` section the pin lives in. */
-  section: string;
+  readonly section: string;
   /** The exact version to pin to. */
-  version: string;
+  readonly version: string;
   /** The condition that justifies the pin, in enough detail to judge whether it still holds. */
-  why: string;
+  readonly why: string;
 }
 
 /**
@@ -183,11 +183,11 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
  */
 export interface AdvisoryOverride {
   /** Command whose trimmed stdout is compared against `expect`, or `null` when no mechanical test exists. */
-  check: null | string;
+  readonly check: null | string;
   /** The value `check` is expected to print while the override is still required. */
-  expect: null | string;
+  readonly expect: null | string;
   /** How to read the `check` result, and what would make the override droppable. */
-  manualCheck: null | string;
+  readonly manualCheck: null | string;
   /**
    * The direct dependencies whose subtree carries the advisory; the override is emitted when the project
    * declares ANY of them, and omitted entirely when it declares none.
@@ -197,17 +197,17 @@ export interface AdvisoryOverride {
    * answer's own `wdio-obsidian-service`. Naming only the first left every `standalone` + wdio project
    * with no overrides at all and a permanently red `npm audit`.
    */
-  requires: readonly string[];
+  readonly requires: readonly string[];
   /** The spec to force every copy in the tree onto. */
-  spec: string;
+  readonly spec: string;
   /** The advisory, why it cannot be fixed by bumping a direct dependency, and why this spec is safe. */
-  why: string;
+  readonly why: string;
 }
 
 /** A package name the registry does not serve, and what came back when it was asked for. */
 export interface MissingPackage {
-  packageName: string;
-  reason: string;
+  readonly packageName: string;
+  readonly reason: string;
 }
 
 /**
@@ -288,11 +288,11 @@ const REGISTRY_CONCURRENCY = 10;
 const NOT_FOUND = 404;
 
 interface DesktopReleasesJson {
-  latestVersion?: string;
+  readonly latestVersion?: string;
 }
 
 interface LatestPackument {
-  version: string;
+  readonly version: string;
 }
 
 /**

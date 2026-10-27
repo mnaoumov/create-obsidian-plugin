@@ -11,41 +11,41 @@ import {
 /** One upstream repository the scaffolder mirrors, as `upstreams.json` records it. */
 export interface Upstream {
   /** The pinned commit the vendored snapshot was taken at. */
-  commit: string;
+  readonly commit: string;
   /** The command that refreshes the vendored copy from a newer upstream state. */
-  handler: string;
-  name: string;
+  readonly handler: string;
+  readonly name: string;
   /** The paths watched upstream, as globs relative to the repository root. */
-  paths: readonly string[];
+  readonly paths: readonly string[];
   /** The branch or tag followed. */
-  ref: string;
+  readonly ref: string;
   /** `<owner>/<repo>` on GitHub. */
-  repo: string;
+  readonly repo: string;
 }
 
 /** A tree of files at one upstream commit, keyed by the path relative to the repository root. */
 export interface UpstreamSnapshot {
-  commit: string;
-  files: ReadonlyMap<string, Buffer>;
+  readonly commit: string;
+  readonly files: ReadonlyMap<string, Buffer>;
 }
 
 interface GitHubCommitResponse {
-  sha: string;
+  readonly sha: string;
 }
 
 interface GitHubTreeEntry {
-  mode: string;
-  path: string;
-  type: string;
+  readonly mode: string;
+  readonly path: string;
+  readonly type: string;
 }
 
 interface GitHubTreeResponse {
-  tree: readonly GitHubTreeEntry[];
-  truncated: boolean;
+  readonly tree: readonly GitHubTreeEntry[];
+  readonly truncated: boolean;
 }
 
 interface UpstreamsFile {
-  upstreams: readonly Upstream[];
+  readonly upstreams: readonly Upstream[];
 }
 
 /**
