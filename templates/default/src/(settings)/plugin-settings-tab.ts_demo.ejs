@@ -155,8 +155,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
     new SettingEx(this.containerEl)
       .setName('Number setting name')
       .setDesc('Number setting description.')
-      .addNumber((number) => {
-        this.bind({ propertyName: 'numberSetting', valueComponent: number });
+      .addNumber((numberComponent) => {
+        this.bind({ propertyName: 'numberSetting', valueComponent: numberComponent });
       });
 
     new SettingEx(this.containerEl)

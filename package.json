@@ -52,6 +52,7 @@
   "overrides": {
     "eslint": "$eslint",
     "eslint-plugin-import": "npm:eslint-plugin-import-x@^4.17.1",
+    "katex": "^0.18.2",
     "typescript": "$typescript"
   },
   "dependencies": {
