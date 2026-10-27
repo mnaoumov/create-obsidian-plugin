@@ -16,7 +16,7 @@ import {
 
 import type { DocsShowcaseReport } from '../../docs-showcase/docs-showcase-files.ts';
 
-import { makeAnswers } from '../../answer-space.ts';
+import { makeAnswers } from '../../answers/answer-space.ts';
 import { DOCS_SHOWCASE_REPORT_PATH } from '../../docs-showcase/docs-showcase-files.ts';
 import { getPackageRoot } from '../../official-sample.ts';
 import { copyTemplates } from '../../templates.ts';

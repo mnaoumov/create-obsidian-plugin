@@ -16,8 +16,12 @@ import type {
   BaselineEntry,
   BaselineViolation,
   DriftFinding
-} from '../src/plugin-drift-checks.ts';
+} from '../src/verification/plugin-drift-checks.ts';
 
+import {
+  copyTemplates,
+  getScriptDir
+} from '../src/templates.ts';
 import {
   buildConsensus,
   compareToPlugins,
@@ -29,11 +33,7 @@ import {
   listTrackedFiles,
   pluginShapedAnswers,
   reconcileBaseline
-} from '../src/plugin-drift-checks.ts';
-import {
-  copyTemplates,
-  getScriptDir
-} from '../src/templates.ts';
+} from '../src/verification/plugin-drift-checks.ts';
 
 /** Where the accepted differences are recorded, relative to the repo root. */
 const BASELINE_FILE_NAME = 'plugin-drift-baseline.json';

@@ -18,18 +18,18 @@ import {
   it
 } from 'vitest';
 
-import type { GeneratorConfig } from './answers.ts';
+import type { GeneratorConfig } from './answers/answers.ts';
 
-import { makeAnswers } from './answer-space.ts';
+import { makeAnswers } from './answers/answer-space.ts';
 import {
   loadOverlay,
   toRecordedOverlayPath
 } from './overlay.ts';
-import { loadTemplateInventory } from './plan-checks.ts';
 import {
   buildTemplate,
   copyTemplates
 } from './templates.ts';
+import { loadTemplateInventory } from './verification/plan-checks.ts';
 
 /** The README's third line, which holds every badge. */
 const BADGE_LINE_INDEX = 2;
@@ -151,6 +151,12 @@ describe('an overlay applied by copyTemplates', () => {
     writeOverlay({ 'README.md@support_has-funding.ejs': '\n## Support me elsewhere\n' });
     copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl: 'https://example.com' }), targetDir, '1.0.0', null, new Map(), undefined, loadOverlay(overlayDir, BUILT_IN));
     expect(readEmitted('README.md')).toContain('## Support me elsewhere');
+  });
+
+  it('finds an override inside a group folder, as the built-in templates are found', () => {
+    writeOverlay({ '(readme)/README.md@support_has-funding.ejs': '\n## Support me in a group\n' });
+    copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl: 'https://example.com' }), targetDir, '1.0.0', null, new Map(), undefined, loadOverlay(overlayDir, BUILT_IN));
+    expect(readEmitted('README.md')).toContain('## Support me in a group');
   });
 
   it('does not emit an override whose built-in the answers do not register', () => {

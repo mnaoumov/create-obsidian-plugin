@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import type {
   Answers,
   GeneratorConfig
-} from './answers.ts';
+} from './answers/answers.ts';
 import type { UpstreamSnapshot } from './upstream-snapshot.ts';
 
 import { resolveFunding } from './features/funding-platform/index.ts';

@@ -102,6 +102,7 @@ my-obsidian-template/
 ```
 
 - A template at a built-in's path replaces it, but only when your answers emit that file: a `vite.config.ts.ejs` does nothing on an esbuild project.
+- A folder whose name is in parentheses, such as the built-ins' `scripts/(build)/`, only groups templates and is not part of their path. So `scripts/build.ts.ejs` and `scripts/(build)/build.ts.ejs` are the same template, and you may group your own files the same way or not at all.
 - `partials` names what your partial files contribute. The names share one namespace with the built-in partials, so a name the generator already uses is refused. Your partials render after the built-in ones at every seam.
 - `files` lists the paths you add, without `.ejs`. A built-in path is refused there; to replace one, just place its template.
 - `packages` are added to `devDependencies`, and their versions are resolved when you generate, as the built-in ones are.

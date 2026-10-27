@@ -11,15 +11,15 @@ import {
 import { join } from 'node:path';
 import process from 'node:process';
 
-import type { RenderViolation } from '../src/render-checks.ts';
+import type { RenderViolation } from '../src/verification/render-checks.ts';
 
 import {
   ANSWER_SPACE_DIMENSION_SIZES,
   answersFromValueIndices,
   describeCase
-} from '../src/answer-space.ts';
-import { buildCoveringArray } from '../src/covering-array.ts';
-import { renderAndCheck } from '../src/render-checks.ts';
+} from '../src/answers/answer-space.ts';
+import { buildCoveringArray } from '../src/verification/covering-array.ts';
+import { renderAndCheck } from '../src/verification/render-checks.ts';
 
 /**
  * How strongly the rendered sweep covers the space by default.

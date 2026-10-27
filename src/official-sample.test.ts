@@ -14,11 +14,11 @@ import {
   it
 } from 'vitest';
 
-import type { Answers } from './answers.ts';
+import type { Answers } from './answers/answers.ts';
 
-import { formatAnswersJson } from './answers-export.ts';
-import { CONFIG_FILE_NAME } from './answers.ts';
-import { parseCliArgs } from './cli-args.ts';
+import { formatAnswersJson } from './answers/answers-export.ts';
+import { CONFIG_FILE_NAME } from './answers/answers.ts';
+import { parseCliArgs } from './answers/cli-args.ts';
 import { OFFICIAL_SAMPLE_PRESET } from './features/preset/official-sample.ts';
 import {
   applyOfficialSampleIdentity,
@@ -28,7 +28,7 @@ import {
   OFFICIAL_SAMPLE_IDENTITY_FILES,
   OFFICIAL_SAMPLE_UPSTREAM_NAME
 } from './official-sample.ts';
-import { getDefaultAnswers } from './prompts.ts';
+import { getDefaultAnswers } from './prompts/prompts.ts';
 import { readUpstream } from './upstream-snapshot.ts';
 
 type JsonObject = Record<string, unknown>;

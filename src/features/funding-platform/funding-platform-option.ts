@@ -1,4 +1,4 @@
-import type { Answers } from '../../answers.ts';
+import type { Answers } from '../../answers/answers.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 

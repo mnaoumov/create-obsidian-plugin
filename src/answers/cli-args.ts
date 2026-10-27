@@ -1,0 +1,420 @@
+import {
+  existsSync,
+  readFileSync
+} from 'node:fs';
+
+import type {
+  Answers,
+  StringAnswerKey
+} from './answers.ts';
+
+import {
+  validatePluginDescription,
+  validatePluginId,
+  validatePluginName
+} from '../directory/directory-constraints.ts';
+import { validateFundingUsername } from '../features/funding-platform/index.ts';
+import {
+  isOfficialSamplePreset,
+  OFFICIAL_SAMPLE_ANSWER_KEYS,
+  OFFICIAL_SAMPLE_PRESET
+} from '../features/preset/official-sample.ts';
+import {
+  getDefaultAnswers,
+  validateNotEmpty
+} from '../prompts/prompts.ts';
+import { ANSWER_SPACE } from './answer-space.ts';
+import { Mode } from './answers.ts';
+import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
+
+export interface CliArgs {
+  /** Every answer supplied on the command line or in `--answersFile`, with the flags winning. */
+  answers: Partial<Answers>;
+  /**
+   * `--customTemplate=<dir>`: `undefined` when not given, `''` to drop the overlay an existing project
+   * recorded, otherwise the directory as typed.
+   */
+  customTemplate: string | undefined;
+  /** `--force`: scaffold into an `obsidian-<pluginId>` directory that already exists, instead of being asked. */
+  force: boolean;
+  /**
+   * `--latest`: copy obsidianmd/obsidian-sample-plugin as it is upstream today, rather than the snapshot this
+   * release vendored. Only `preset=official-sample` reads it.
+   */
+  latest: boolean;
+  /**
+   * `--mode=create|update`: `undefined` when not given, which means asking when a project is detected in the
+   * current directory -- or, under `--yes`, refusing, because neither answer is safe to assume.
+   */
+  mode: Mode | undefined;
+  showHelp: boolean;
+  useDefaults: boolean;
+}
+
+/**
+ * The {@link Answers} keys the generator computes rather than asks for, and which therefore cannot be
+ * supplied.
+ *
+ * `currentYear` is `new Date().getFullYear()` and is the one numeric field. Naming it is refused rather
+ * than ignored, because a flag that is silently dropped is the same defect class as a question missing
+ * from `FEATURE_REGISTRIES` -- the user states an intention and nothing carries it.
+ */
+export const COMPUTED_ANSWER_KEYS: readonly string[] = ['currentYear'];
+
+/**
+ * Template-context values derived at render time, which are not {@link Answers} keys at all.
+ *
+ * `pluginShortName` is derived from `pluginId`. It used to be an answer, so it is refused as a flag for the
+ * same reason as {@link COMPUTED_ANSWER_KEYS}, and skipped in an answers file older configs still carry it in.
+ */
+const DERIVED_TEMPLATE_KEYS: readonly string[] = ['pluginShortName'];
+
+const REFUSED_KEYS: readonly string[] = [...COMPUTED_ANSWER_KEYS, ...DERIVED_TEMPLATE_KEYS];
+
+const ANSWERS_FILE_PREFIX = '--answersFile=';
+
+const CUSTOM_TEMPLATE_PREFIX = '--customTemplate=';
+
+const MODE_PREFIX = '--mode=';
+
+const MODES: readonly Mode[] = [Mode.Create, Mode.Update];
+
+const MODE_BY_VALUE = new Map<string, Mode>(MODES.map((mode) => [mode, mode]));
+
+/** The length of the leading `--` a flag name sits behind. */
+const FLAG_PREFIX_LENGTH = 2;
+
+/**
+ * The validator each free-text answer has to pass, mirroring what its prompt already enforces.
+ *
+ * These run only inside the clack `text()` prompt today, so an answer that arrives any other way is
+ * unchecked. Sharing them here is what stops the non-interactive path accepting a plugin id the
+ * interactive path would have refused -- and, since the three manifest answers are validated against the
+ * Community directory's constraints, what stops a flag or an answers file generating a plugin that
+ * cannot be listed.
+ *
+ * `fundingUrl` and `obsidianConfigFolder` are deliberately absent: both are legitimately empty, and
+ * their prompts declare no validator either.
+ */
+const FREE_TEXT_VALIDATORS: Partial<Record<StringAnswerKey, (value: string) => string | undefined>> = {
+  authorGitHubName: validateNotEmpty,
+  authorName: validateNotEmpty,
+  defaultBranch: validateNotEmpty,
+  fundingUsername: validateFundingUsername,
+  pluginDescription: validatePluginDescription,
+  pluginId: validatePluginId,
+  pluginName: validatePluginName
+};
+
+/**
+ * The two answers `preset: demo` pins in a way that DISCARDS a supplied value.
+ *
+ * Every other question honours one even when its prompt is skipped, because the skip branch writes
+ * `defaultValue()` and each of those reads the supplied answer first. These two do not: their
+ * `defaultValue` is `answers.get('preset') === 'demo' ? '<literal>' : (supplied ?? '<literal>')`.
+ */
+export const DEMO_PINNED_ANSWER_KEYS: readonly string[] = ['bundler', 'uiFramework'];
+
+/**
+ * Answer values accepted beside the ones {@link ANSWER_SPACE} sweeps.
+ *
+ * `preset=official-sample` copies upstream instead of rendering the templates, so it is no point in the answer
+ * space the verification tiers cover -- and it is still an answer the CLI has to take.
+ */
+const VALUES_OUTSIDE_ANSWER_SPACE: Partial<Record<StringAnswerKey, readonly string[]>> = {
+  preset: [OFFICIAL_SAMPLE_PRESET]
+};
+
+/**
+ * Refuses an answer the generator cannot honour, naming what it accepts.
+ *
+ * Exported so `render:case` and `gate:case` validate exactly as the CLI does. They each carried their own
+ * copy, and the two disagreed -- `gate-one-case.ts` checked the key and let any value through.
+ */
+export function assertValidAnswer(key: StringAnswerKey, value: string): void {
+  const dimension = findChoiceDimension(key);
+  if (dimension) {
+    if (!dimension.values.includes(value)) {
+      throw new Error(`"${value}" is not an answer to ${key}. It accepts: ${dimension.values.join(', ')}.`);
+    }
+    return;
+  }
+
+  const message = FREE_TEXT_VALIDATORS[key]?.(value);
+  if (message !== undefined) {
+    throw new Error(`"${value}" is not a valid ${key}. ${message}.`);
+  }
+}
+
+/**
+ * Every answer that can be supplied non-interactively, sorted.
+ *
+ * Read off a real {@link Answers} object rather than a hand-written list, so a question added later is
+ * settable the day it lands. TypeScript forces `getDefaultAnswers` to return every key, which is what
+ * makes this derivation total.
+ */
+export function getAnswerableKeys(): StringAnswerKey[] {
+  return Object.keys(getDefaultAnswers())
+    .filter((key) => !COMPUTED_ANSWER_KEYS.includes(key))
+    .sort() as StringAnswerKey[];
+}
+
+/** The `--help` body, built from the same tables that validate, so it cannot describe a stale CLI. */
+export function getHelpText(): string {
+  const lines = [
+    'Usage: npm create @mnaoumov/obsidian-plugin [-- <options>]',
+    '',
+    'Options:',
+    '  -y, --yes                 Take every default and skip the post-scaffold prompts. Never asks:',
+    '                            a question no flag answers stops the run and names the flag.',
+    '  -h, --help                Show this help.',
+    `      --mode=${MODES.join('|')}  Create a new plugin, or update the project in the current`,
+    '                            directory, without being asked which.',
+    '      --force               Scaffold into an obsidian-<pluginId> directory that already exists.',
+    '      --answersFile=<path>  Read answers from a JSON file. Accepts a bare answers object or a',
+    '                            `.create-obsidian-plugin.json`. Individual flags override it.',
+    '      --customTemplate=<dir> Layer your own templates over the built-in ones: a directory',
+    '                            mirroring templates/default, plus an overlay.json. Recorded in the',
+    '                            project and re-applied on update; pass it empty to drop it.',
+    '      --latest              With --preset=official-sample: copy obsidianmd/obsidian-sample-plugin',
+    '                            as it is upstream today, not the snapshot this release vendored.',
+    '',
+    'Answers (any of these may be given as --<key>=<value>):'
+  ];
+
+  for (const key of getAnswerableKeys()) {
+    const dimension = findChoiceDimension(key);
+    lines.push(dimension ? `  --${key}=${dimension.values.join('|')}` : `  --${key}=<text>`);
+  }
+
+  return lines.join('\n');
+}
+
+export function parseCliArgs(argv: readonly string[]): CliArgs {
+  const flagAnswers: Partial<Record<StringAnswerKey, string>> = {};
+  let answersFilePath: null | string = null;
+  let customTemplate: string | undefined;
+  let force = false;
+  let latest = false;
+  let mode: Mode | undefined;
+  let showHelp = false;
+  let useDefaults = false;
+
+  for (const argument of argv) {
+    if (argument === '--yes' || argument === '-y') {
+      useDefaults = true;
+      continue;
+    }
+
+    if (argument === '--help' || argument === '-h') {
+      showHelp = true;
+      continue;
+    }
+
+    if (argument.startsWith(ANSWERS_FILE_PREFIX)) {
+      answersFilePath = argument.slice(ANSWERS_FILE_PREFIX.length);
+      continue;
+    }
+
+    if (argument.startsWith(CUSTOM_TEMPLATE_PREFIX)) {
+      customTemplate = argument.slice(CUSTOM_TEMPLATE_PREFIX.length);
+      continue;
+    }
+
+    if (argument === '--force') {
+      force = true;
+      continue;
+    }
+
+    if (argument === '--latest') {
+      latest = true;
+      continue;
+    }
+
+    if (argument.startsWith(MODE_PREFIX)) {
+      mode = toMode(argument.slice(MODE_PREFIX.length));
+      continue;
+    }
+
+    const [rawKey, rawValue] = splitFlag(argument);
+    const key = toAnswerKey(rawKey);
+    flagAnswers[key] = resolveAnswer(key, rawValue, `--${key}`);
+  }
+
+  const fileAnswers = answersFilePath === null ? {} : readAnswersFile(answersFilePath);
+  const isOfficialSample = isOfficialSamplePreset(flagAnswers.preset ?? fileAnswers.preset);
+  if (isOfficialSample) {
+    assertNoOfficialSampleConflict(flagAnswers);
+  }
+  // A saved official-sample project records every answer, tooling included, so pointing `--answersFile` at its
+  // Config must not trip the refusal above: those answers were never the user's choice, and they are dropped.
+  const answers = { ...isOfficialSample ? pickOfficialSampleAnswers(fileAnswers) : fileAnswers, ...flagAnswers };
+  assertNoDemoConflict(answers);
+
+  return {
+    answers,
+    customTemplate,
+    force,
+    latest,
+    mode,
+    showHelp,
+    useDefaults
+  };
+}
+
+/**
+ * The value to use for a supplied answer: a deprecated alias mapped to its replacement, then validated.
+ *
+ * Exported for the same reason as {@link assertValidAnswer}, so `render:case` and `gate:case` accept
+ * exactly what the CLI accepts, old values included.
+ *
+ * @param key - The answer key.
+ * @param value - The answer value as supplied.
+ * @param source - Where the value came from, named in a deprecation warning.
+ * @returns The value to use.
+ */
+export function resolveAnswer(key: StringAnswerKey, value: string, source: string): string {
+  const resolved = resolveDeprecatedAnswer(key, value, source);
+  assertValidAnswer(key, resolved);
+  return resolved;
+}
+
+/**
+ * The typed answer key for a name, refusing one the generator does not ask for.
+ *
+ * A returned key rather than a TypeScript assertion, because an assertion function has to be declared
+ * with an explicit type annotation at every call site that imports it, and `render:case` / `gate:case`
+ * both consume this.
+ */
+export function toAnswerKey(key: string): StringAnswerKey {
+  if (REFUSED_KEYS.includes(key)) {
+    throw new Error(`${key} is computed by the generator, not answered, so it cannot be set.`);
+  }
+
+  const answerable = getAnswerableKeys();
+  if (!answerable.includes(key as StringAnswerKey)) {
+    throw new Error(`Unknown answer "${key}". The answers are: ${answerable.join(', ')}.`);
+  }
+
+  return key as StringAnswerKey;
+}
+
+/**
+ * Refuses `preset=demo` alongside an answer demo pins, instead of accepting a flag it would then drop.
+ *
+ * Letting the flag through would be worse than dropping it: it is established that demo emits a
+ * project that CANNOT BUILD when a second JSX runtime is forced in beside react, and closed that on the
+ * grounds that the combination is unreachable from every CLI path. A `--uiFramework` flag reaching it
+ * would re-open exactly that defect.
+ */
+function assertNoDemoConflict(answers: Partial<Record<StringAnswerKey, string>>): void {
+  if (answers.preset !== 'demo') {
+    return;
+  }
+
+  for (const key of DEMO_PINNED_ANSWER_KEYS) {
+    if (answers[key as StringAnswerKey] !== undefined) {
+      throw new Error(`preset=demo pins ${key}, so the two cannot be given together. Drop --${key}, or choose another preset.`);
+    }
+  }
+}
+
+/**
+ * Refuses `preset=official-sample` alongside any tooling answer: upstream has made every one of those choices, so
+ * the flag would be dropped -- the defect class {@link assertNoDemoConflict} refuses for demo.
+ */
+function assertNoOfficialSampleConflict(answers: Partial<Record<StringAnswerKey, string>>): void {
+  const conflicting = Object.keys(answers).filter((key) => answers[key as StringAnswerKey] !== undefined && !OFFICIAL_SAMPLE_ANSWER_KEYS.includes(key));
+  if (conflicting.length > 0) {
+    const flags = conflicting.map((key) => `--${key}`).join(', ');
+    throw new Error(`preset=official-sample copies obsidianmd/obsidian-sample-plugin as it is, so it takes no ${conflicting.join(', ')}. Drop ${flags}, or choose another preset.`);
+  }
+}
+
+/**
+ * The dimension for a key whose answers are a closed set, or `null` where the answer is free text.
+ *
+ * A dimension carrying `''` is a presence branch -- `fundingUrl` and `obsidianConfigFolder` are free text
+ * modelled with one empty and one sample value purely so the sweeps reach both partials. Holding a caller
+ * to those two literals would enforce an artefact of the modelling rather than a real constraint.
+ */
+function findChoiceDimension(key: StringAnswerKey): null | typeof ANSWER_SPACE[number] {
+  const dimension = ANSWER_SPACE.find((candidate) => candidate.answerKey === key);
+  if (!dimension || dimension.values.includes('')) {
+    return null;
+  }
+  const extraValues = VALUES_OUTSIDE_ANSWER_SPACE[key];
+  return extraValues ? { ...dimension, values: [...dimension.values, ...extraValues] } : dimension;
+}
+
+function pickOfficialSampleAnswers(answers: Partial<Record<StringAnswerKey, string>>): Partial<Record<StringAnswerKey, string>> {
+  return Object.fromEntries(Object.entries(answers).filter(([key]) => OFFICIAL_SAMPLE_ANSWER_KEYS.includes(key)));
+}
+
+/**
+ * Reads `--answersFile`, accepting either a bare answers object or a whole `.create-obsidian-plugin.json`.
+ *
+ * Taking the wrapped form too means the file can be pointed straight at an existing project to scaffold
+ * another one like it. That file records `currentYear` (and, before it was derived, `pluginShortName`), so
+ * such a key found HERE is skipped rather than refused -- unlike a flag, which is something the user typed
+ * on purpose.
+ */
+function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>> {
+  if (!existsSync(path)) {
+    throw new Error(`Answers file not found: ${path}`);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(path, 'utf-8'));
+  } catch {
+    throw new Error(`Answers file is not valid JSON: ${path}`);
+  }
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`Answers file should contain a JSON object: ${path}`);
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const wrapped = record['answers'];
+  const source = typeof wrapped === 'object' && wrapped !== null ? wrapped as Record<string, unknown> : record;
+
+  const answers: Partial<Record<StringAnswerKey, string>> = {};
+  for (const [rawKey, value] of Object.entries(source)) {
+    if (REFUSED_KEYS.includes(rawKey)) {
+      continue;
+    }
+
+    if (typeof value !== 'string') {
+      throw new Error(`${rawKey} in ${path} should be a string, got ${typeof value}.`);
+    }
+
+    const key = toAnswerKey(rawKey);
+    answers[key] = resolveAnswer(key, value, path);
+  }
+
+  return answers;
+}
+
+function splitFlag(argument: string): [string, string] {
+  if (!argument.startsWith('--')) {
+    throw new Error(`Expected --<answer>=<value>, got "${argument}".`);
+  }
+
+  const separatorIndex = argument.indexOf('=');
+  if (separatorIndex === -1) {
+    throw new Error(`Expected --<answer>=<value>, got "${argument}".`);
+  }
+
+  // `indexOf` rather than `split`, so a value containing `=` survives -- a funding URL can carry a query
+  // String.
+  return [argument.slice(FLAG_PREFIX_LENGTH, separatorIndex), argument.slice(separatorIndex + 1)];
+}
+
+function toMode(value: string): Mode {
+  const mode = MODE_BY_VALUE.get(value);
+  if (mode === undefined) {
+    throw new Error(`"${value}" is not a mode. It accepts: ${MODES.join(', ')}.`);
+  }
+  return mode;
+}

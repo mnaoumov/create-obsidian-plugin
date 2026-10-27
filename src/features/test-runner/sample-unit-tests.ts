@@ -1,4 +1,4 @@
-import type { Answers } from '../../answers.ts';
+import type { Answers } from '../../answers/answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';

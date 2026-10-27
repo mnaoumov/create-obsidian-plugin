@@ -10,21 +10,21 @@ import process from 'node:process';
 import type {
   Answers,
   StringAnswerKey
-} from '../src/answers.ts';
+} from '../src/answers/answers.ts';
 
 import {
   describeCase,
   makeAnswers
-} from '../src/answer-space.ts';
+} from '../src/answers/answer-space.ts';
 import {
   resolveAnswer,
   toAnswerKey
-} from '../src/cli-args.ts';
-import { runGate } from '../src/generated-project-checks.ts';
+} from '../src/answers/cli-args.ts';
 import {
   buildTemplate,
   copyTemplates
 } from '../src/templates.ts';
+import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   fetchLatestObsidianVersion,
   resolveVersions
@@ -109,7 +109,7 @@ function parseOptions(argv: readonly string[]): Options {
       throw new Error(`Expected <question>=<answer>, got "${argument}".`);
     }
 
-    // The CLI's own checks (`src/cli-args.ts`), not a second copy. This parser used to validate the key
+    // The CLI's own checks (`src/answers/cli-args.ts`), not a second copy. This parser used to validate the key
     // And let ANY value through, so a misspelt ANSWER gated a case it had silently renamed.
     const key = toAnswerKey(rawKey);
     overrides[key] = resolveAnswer(key, rest.join('='), argument);

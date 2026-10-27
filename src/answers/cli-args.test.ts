@@ -1,0 +1,248 @@
+import {
+  mkdtempSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  afterAll,
+  describe,
+  expect,
+  it
+} from 'vitest';
+
+import { getDefaultAnswers } from '../prompts/prompts.ts';
+import { ANSWER_SPACE } from './answer-space.ts';
+import { Mode } from './answers.ts';
+import {
+  COMPUTED_ANSWER_KEYS,
+  getAnswerableKeys,
+  getHelpText,
+  parseCliArgs
+} from './cli-args.ts';
+
+const PRESENCE_BRANCH_KEYS = ['fundingUrl', 'obsidianConfigFolder'];
+
+/** A `currentYear` as a saved config records it -- the value a computed key is skipped rather than read from. */
+const SAVED_CURRENT_YEAR = 2026;
+
+/** Any non-string, to prove an answers file is refused rather than coerced. */
+const NOT_A_STRING = 42;
+
+/** A JSON array, to prove the answers file has to be an object. */
+const NOT_AN_OBJECT = ['linter', 'biome'];
+
+const tempDir = mkdtempSync(join(tmpdir(), 'cop-cli-args-'));
+
+afterAll(() => {
+  rmSync(tempDir, { force: true, recursive: true });
+});
+
+function writeAnswersFile(name: string, content: unknown): string {
+  const path = join(tempDir, name);
+  writeFileSync(path, typeof content === 'string' ? content : JSON.stringify(content) ?? '');
+  return path;
+}
+
+describe('the answerable-key surface', () => {
+  // The defect this pins is the one `platformSupport` shipped: a question the user is asked whose answer
+  // Is then discarded. A hand-written key list would silently stop covering a question added later, so
+  // The set is read off a real `Answers` and every key has to be accounted for on one side or the other.
+  it('accounts for every Answers key as either answerable or computed', () => {
+    const allKeys = Object.keys(getDefaultAnswers()).sort();
+    const covered = [...getAnswerableKeys(), ...COMPUTED_ANSWER_KEYS].sort();
+    expect(covered).toStrictEqual(allKeys);
+  });
+
+  it('treats exactly the two presence branches as free text, not as closed choices', () => {
+    const withEmptyValue = ANSWER_SPACE
+      .filter((dimension) => dimension.values.includes(''))
+      .map((dimension) => dimension.answerKey)
+      .sort();
+    expect(withEmptyValue).toStrictEqual(PRESENCE_BRANCH_KEYS);
+  });
+
+  it('lists every answerable key in --help, with the closed sets spelled out', () => {
+    const help = getHelpText();
+    for (const key of getAnswerableKeys()) {
+      expect(help).toContain(`--${key}=`);
+    }
+    expect(help).toContain('--bundler=esbuild|parcel|rollup|vite|webpack');
+    expect(help).toContain('--pluginId=<text>');
+  });
+});
+
+describe('parsing flags', () => {
+  it('reads --yes and -y', () => {
+    expect(parseCliArgs(['--yes']).useDefaults).toBe(true);
+    expect(parseCliArgs(['-y']).useDefaults).toBe(true);
+    expect(parseCliArgs([]).useDefaults).toBe(false);
+  });
+
+  it('reads --force', () => {
+    expect(parseCliArgs(['--force']).force).toBe(true);
+    expect(parseCliArgs([]).force).toBe(false);
+  });
+
+  // The two answers to "Existing project detected. Would you like to update it?", which `--yes` cannot ask.
+  it('reads --mode, and leaves it unset when not given', () => {
+    expect(parseCliArgs(['--mode=create']).mode).toBe(Mode.Create);
+    expect(parseCliArgs(['--mode=update']).mode).toBe(Mode.Update);
+    expect(parseCliArgs([]).mode).toBeUndefined();
+    expect(parseCliArgs(['--mode=update']).answers).toStrictEqual({});
+  });
+
+  it('refuses a mode it does not know, naming the ones it does', () => {
+    expect(() => parseCliArgs(['--mode=upgrade'])).toThrow('"upgrade" is not a mode. It accepts: create, update.');
+  });
+
+  it('lists --mode and --force in --help', () => {
+    const help = getHelpText();
+    expect(help).toContain('--mode=create|update');
+    expect(help).toContain('--force');
+  });
+
+  it('reads --help and -h', () => {
+    expect(parseCliArgs(['--help']).showHelp).toBe(true);
+    expect(parseCliArgs(['-h']).showHelp).toBe(true);
+  });
+
+  it('reads a choice answer', () => {
+    expect(parseCliArgs(['--packageManager=yarn']).answers).toStrictEqual({ packageManager: 'yarn' });
+  });
+
+  it('reads a free-text answer', () => {
+    expect(parseCliArgs(['--pluginName=My Tool']).answers).toStrictEqual({ pluginName: 'My Tool' });
+  });
+
+  // A funding URL can carry a query string, so the split is on the FIRST `=` only.
+  it('keeps a value containing =', () => {
+    const { answers } = parseCliArgs(['--fundingUrl=https://example.com/pay?a=1&b=2']);
+    expect(answers.fundingUrl).toBe('https://example.com/pay?a=1&b=2');
+  });
+
+  it('accepts an empty value for a presence branch', () => {
+    expect(parseCliArgs(['--fundingUrl=']).answers).toStrictEqual({ fundingUrl: '' });
+  });
+
+  // Empty is not "absent": on an update it is how a recorded overlay is dropped.
+  it('reads --customTemplate, keeping an empty one distinct from none', () => {
+    expect(parseCliArgs(['--customTemplate=../mine']).customTemplate).toBe('../mine');
+    expect(parseCliArgs(['--customTemplate=']).customTemplate).toBe('');
+    expect(parseCliArgs([]).customTemplate).toBeUndefined();
+    expect(parseCliArgs(['--customTemplate=../mine']).answers).toStrictEqual({});
+  });
+
+  it('refuses an unknown answer, naming the ones it takes', () => {
+    expect(() => parseCliArgs(['--nonsense=1'])).toThrow(/Unknown answer "nonsense"/);
+    expect(() => parseCliArgs(['--nonsense=1'])).toThrow(/packageManager/);
+  });
+
+  it('refuses a value outside a closed set, listing that set', () => {
+    expect(() => parseCliArgs(['--bundler=grunt'])).toThrow(/"grunt" is not an answer to bundler/);
+    expect(() => parseCliArgs(['--bundler=grunt'])).toThrow(/esbuild, parcel, rollup, vite, webpack/);
+  });
+
+  it('refuses a computed key rather than dropping it', () => {
+    expect(() => parseCliArgs(['--currentYear=2026'])).toThrow(/computed by the generator/);
+    expect(() => parseCliArgs(['--pluginShortName=X'])).toThrow(/computed by the generator/);
+  });
+
+  it('refuses an argument that is not --<answer>=<value>', () => {
+    expect(() => parseCliArgs(['bundler=esbuild'])).toThrow(/Expected --<answer>=<value>/);
+    expect(() => parseCliArgs(['--bundler'])).toThrow(/Expected --<answer>=<value>/);
+  });
+
+  // These ran only inside the clack prompt, so an answer arriving any other way was unchecked.
+  it('applies the free-text validators the prompts use', () => {
+    expect(() => parseCliArgs(['--pluginId=obsidian-thing'])).toThrow(/not contain "obsidian"/);
+    expect(() => parseCliArgs(['--pluginId=My_Plugin'])).toThrow(/lowercase English letters/);
+    expect(() => parseCliArgs(['--pluginDescription=No trailing dot'])).toThrow(/end with a dot/);
+    expect(() => parseCliArgs(['--authorName='])).toThrow(/Should not be empty/);
+  });
+
+  // The three manifest answers carry the Community directory's constraints, so a flag that would produce
+  // An unlistable plugin is refused here rather than at the review -- an id cannot be changed at all once
+  // The plugin is published.
+  it('refuses a flag the Community directory would reject', () => {
+    expect(() => parseCliArgs(['--pluginId=my-obsidian-helper'])).toThrow(/not contain "obsidian"/);
+    expect(() => parseCliArgs(['--pluginId=my-plugin'])).toThrow(/not end with "plugin"/);
+    expect(() => parseCliArgs(['--pluginName=My Plugin'])).toThrow(/not contain "Plugin"/);
+    expect(() => parseCliArgs(['--pluginName=Bases'])).toThrow(/core plugin or core feature/);
+    expect(() => parseCliArgs(['--pluginDescription=This plugin does things.'])).toThrow(/refer to itself/);
+    expect(() => parseCliArgs(['--pluginDescription=Indexes Obsidian notes.'])).toThrow(/not contain the word "Obsidian"/);
+  });
+});
+
+describe('the demo pin', () => {
+  // Demo emits a project that cannot build when a second JSX runtime is forced in beside
+  // React, and was closed on the grounds that the combination is unreachable from every CLI path.
+  it('refuses preset=demo alongside an answer demo discards', () => {
+    expect(() => parseCliArgs(['--preset=demo', '--uiFramework=solid'])).toThrow(/preset=demo pins uiFramework/);
+    expect(() => parseCliArgs(['--preset=demo', '--bundler=rollup'])).toThrow(/preset=demo pins bundler/);
+  });
+
+  it('allows the same answers under another preset', () => {
+    expect(() => parseCliArgs(['--preset=all-in-one', '--uiFramework=solid'])).not.toThrow();
+  });
+
+  it('allows demo alongside an answer it honours', () => {
+    expect(() => parseCliArgs(['--preset=demo', '--linter=biome'])).not.toThrow();
+  });
+});
+
+describe('the deprecated preset "enhanced"', () => {
+  it('is read as "all-in-one" from a flag', () => {
+    expect(parseCliArgs(['--preset=enhanced']).answers).toStrictEqual({ preset: 'all-in-one' });
+  });
+
+  it('is read as "all-in-one" from an answers file', () => {
+    const path = writeAnswersFile('deprecated.json', { preset: 'enhanced' });
+    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ preset: 'all-in-one' });
+  });
+});
+
+describe('the answers file', () => {
+  it('reads a bare answers object', () => {
+    const path = writeAnswersFile('bare.json', { linter: 'biome', packageManager: 'pnpm' });
+    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ linter: 'biome', packageManager: 'pnpm' });
+  });
+
+  // So the file can be pointed straight at an existing project to scaffold another one like it.
+  it('reads a whole .create-obsidian-plugin.json, ignoring the computed keys it records', () => {
+    const path = writeAnswersFile('config.json', {
+      answers: { currentYear: SAVED_CURRENT_YEAR, packageManager: 'bun', pluginShortName: 'Thing' },
+      fileHashes: { 'README.md': 'abc' },
+      generatorVersion: '1.2.3'
+    });
+    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ packageManager: 'bun' });
+  });
+
+  it('validates its values exactly as a flag would', () => {
+    const path = writeAnswersFile('bad-value.json', { bundler: 'grunt' });
+    expect(() => parseCliArgs([`--answersFile=${path}`])).toThrow(/"grunt" is not an answer to bundler/);
+  });
+
+  it('refuses an unknown key', () => {
+    const path = writeAnswersFile('bad-key.json', { nonsense: 'x' });
+    expect(() => parseCliArgs([`--answersFile=${path}`])).toThrow(/Unknown answer "nonsense"/);
+  });
+
+  it('refuses a non-string value', () => {
+    const path = writeAnswersFile('bad-type.json', { linter: NOT_A_STRING });
+    expect(() => parseCliArgs([`--answersFile=${path}`])).toThrow(/should be a string, got number/);
+  });
+
+  it('refuses a missing file, malformed JSON, and a non-object', () => {
+    expect(() => parseCliArgs([`--answersFile=${join(tempDir, 'nope.json')}`])).toThrow(/not found/);
+    expect(() => parseCliArgs([`--answersFile=${writeAnswersFile('broken.json', '{oops')}`])).toThrow(/not valid JSON/);
+    expect(() => parseCliArgs([`--answersFile=${writeAnswersFile('array.json', NOT_AN_OBJECT)}`])).toThrow(/should contain a JSON object/);
+  });
+
+  it('lets an individual flag override the file', () => {
+    const path = writeAnswersFile('override.json', { linter: 'biome', packageManager: 'pnpm' });
+    const { answers } = parseCliArgs([`--answersFile=${path}`, '--packageManager=yarn']);
+    expect(answers).toStrictEqual({ linter: 'biome', packageManager: 'yarn' });
+  });
+});
