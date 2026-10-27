@@ -35,10 +35,11 @@ import {
   reconcileBaseline
 } from '../src/verification/plugin-drift-checks.ts';
 
+const CLI_ARGUMENT_OFFSET = 2;
+const JSON_INDENT_SPACES = 2;
+
 /** Where the accepted differences are recorded, relative to the repo root. */
 const BASELINE_FILE_NAME = 'plugin-drift-baseline.json';
-
-const JSON_INDENT_SPACES = 2;
 
 /**
  * The presets compared, and the scope each one's findings are filed under.
@@ -55,12 +56,25 @@ interface Baseline {
 }
 
 interface Options {
-  readonly pluginsRoot: string;
   readonly json: boolean;
+  readonly pluginsRoot: string;
   readonly printBaseline: boolean;
 }
 
-await main();
+main();
+
+/** Generates one preset the way the compared plugins are shaped, and compares what comes out. */
+function findingsFor(preset: string, consensus: ReturnType<typeof buildConsensus>): DriftFinding[] {
+  const target = mkdtempSync(join(tmpdir(), `cop-plugin-drift-${preset}-`));
+  try {
+    // No resolved versions and no fetched `minAppVersion`: `copyTemplates` stays synchronous and offline,
+    // And neither a dependency spec nor an app version is a trait this tier compares.
+    copyTemplates(pluginShapedAnswers(preset), target, '0.0.0', null);
+    return compareToPlugins(consensus, extractProfile(target, listGeneratedFiles(target)));
+  } finally {
+    rmSync(target, { force: true, recursive: true });
+  }
+}
 
 function loadBaseline(repoRoot: string): Baseline {
   const path = join(repoRoot, BASELINE_FILE_NAME);
@@ -71,9 +85,9 @@ function loadBaseline(repoRoot: string): Baseline {
   return JSON.parse(readFileSync(path, 'utf-8')) as Baseline;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const repoRoot = join(getScriptDir(), '..');
-  const options = parseOptions(process.argv.slice(2), repoRoot);
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET), repoRoot);
 
   const pluginDirs = discoverPlugins(options.pluginsRoot);
   if (pluginDirs.length === 0) {
@@ -97,7 +111,7 @@ async function main(): Promise<void> {
   if (notRepositories.length > 0) {
     // Averaging a plugin that reported no files into the consensus would quietly lower every count,
     // Which is the one input every judgement in the baseline rests on.
-    process.stderr.write(`These plugin directories reported no tracked files, so the consensus would be wrong:\n`);
+    process.stderr.write('These plugin directories reported no tracked files, so the consensus would be wrong:\n');
     for (const dir of notRepositories) {
       process.stderr.write(`  ${dir}\n`);
     }
@@ -128,19 +142,6 @@ async function main(): Promise<void> {
   process.exit(violations.length === 0 ? 0 : 1);
 }
 
-/** Generates one preset the way the compared plugins are shaped, and compares what comes out. */
-function findingsFor(preset: string, consensus: ReturnType<typeof buildConsensus>): DriftFinding[] {
-  const target = mkdtempSync(join(tmpdir(), `cop-plugin-drift-${preset}-`));
-  try {
-    // No resolved versions and no fetched `minAppVersion`: `copyTemplates` stays synchronous and offline,
-    // And neither a dependency spec nor an app version is a trait this tier compares.
-    copyTemplates(pluginShapedAnswers(preset), target, '0.0.0', null);
-    return compareToPlugins(consensus, extractProfile(target, listGeneratedFiles(target)));
-  } finally {
-    rmSync(target, { force: true, recursive: true });
-  }
-}
-
 function parseOptions(argv: readonly string[], repoRoot: string): Options {
   // The workspace that holds the plugins is this repo's own parent, because that is where they live --
   // Each plugin is a sibling checkout. `--plugins-dir` is for anyone whose layout differs.
@@ -166,7 +167,7 @@ function parseOptions(argv: readonly string[], repoRoot: string): Options {
     }
   }
 
-  return { pluginsRoot, json, printBaseline };
+  return { json, pluginsRoot, printBaseline };
 }
 
 /**
@@ -205,5 +206,5 @@ function report(findingsByScope: ReadonlyMap<string, readonly DriftFinding[]>, v
     process.stdout.write(`  [${violation.kind}] ${violation.key}\n      ${violation.detail}\n`);
   }
   process.stdout.write(`\nEither fix the generator, or record the difference in ${BASELINE_FILE_NAME} with the reason it is deliberate.\n`);
-  process.stdout.write(`\`npm run verify:plugin-drift -- --print-baseline\` prints a skeleton to fill in.\n`);
+  process.stdout.write('`npm run verify:plugin-drift -- --print-baseline` prints a skeleton to fill in.\n');
 }

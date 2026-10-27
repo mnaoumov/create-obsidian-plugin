@@ -21,6 +21,9 @@ import {
 import { buildCoveringArray } from '../src/verification/covering-array.ts';
 import { renderAndCheck } from '../src/verification/render-checks.ts';
 
+const CLI_ARGUMENT_OFFSET = 2;
+const RESERVED_CORES = 2;
+
 /**
  * How strongly the rendered sweep covers the space by default.
  *
@@ -75,7 +78,7 @@ function formatSeconds(milliseconds: number): string {
 }
 
 async function main(): Promise<void> {
-  const options = parseOptions(process.argv.slice(2));
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET));
   mkdirSync(options.outRoot, { recursive: true });
 
   if (options.shard) {
@@ -98,7 +101,7 @@ function parseOptions(argv: readonly string[]): Options {
     outRoot: flag('out') ?? defaultOutRoot(),
     shard: shardParts ? { index: shardParts[0] ?? 0, total: shardParts[1] ?? 1 } : null,
     strength: Number(flag('strength') ?? DEFAULT_STRENGTH),
-    workers: Number(flag('workers') ?? Math.max(1, availableParallelism() - 2))
+    workers: Number(flag('workers') ?? Math.max(1, availableParallelism() - RESERVED_CORES))
   };
 }
 

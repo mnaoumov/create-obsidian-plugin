@@ -24,6 +24,10 @@ import {
 } from '../src/verification/plan-checks.ts';
 import { findMissingPackages } from '../src/versions.ts';
 
+const CLI_ARGUMENT_OFFSET = 2;
+const RESERVED_CORES = 2;
+const RATE_DECIMAL_PLACES = 4;
+
 /**
  * Step between successive visited ordinals.
  *
@@ -60,17 +64,6 @@ const PROGRESS_INTERVAL = 2_000_000;
 /** The line a shard prints its result on, so the coordinator can ignore everything else it writes. */
 const RESULT_MARKER = '__SHARD_RESULT__ ';
 
-interface ShardResult {
-  readonly casesChecked: number;
-  readonly partialNames: string[];
-  readonly registeredPaths: string[];
-  readonly signatureCount: number;
-  /** Whether this shard stopped collecting signatures at the cap, so the reported count is a floor. */
-  readonly signaturesTruncated: boolean;
-  readonly signatures: string[];
-  readonly violations: PlanViolation[];
-}
-
 interface Options {
   readonly checkRegistry: boolean;
   readonly exhaustive: boolean;
@@ -78,6 +71,17 @@ interface Options {
   readonly shard: null | ShardSpec;
   readonly strength: number;
   readonly workers: number;
+}
+
+interface ShardResult {
+  readonly casesChecked: number;
+  readonly partialNames: string[];
+  readonly registeredPaths: string[];
+  readonly signatureCount: number;
+  readonly signatures: string[];
+  /** Whether this shard stopped collecting signatures at the cap, so the reported count is a floor. */
+  readonly signaturesTruncated: boolean;
+  readonly violations: PlanViolation[];
 }
 
 interface ShardSpec {
@@ -133,7 +137,7 @@ function formatDuration(milliseconds: number): string {
 }
 
 async function main(): Promise<void> {
-  const options = parseOptions(process.argv.slice(2));
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET));
 
   if (options.shard) {
     runShard(options, options.shard);
@@ -141,6 +145,15 @@ async function main(): Promise<void> {
   }
 
   await runCoordinator(options);
+}
+
+/** The package names one case declares, or none when its plan cannot be built. */
+function packagesFor(answers: Answers): string[] {
+  try {
+    return buildTemplate(answers).dependencies.map((dependency) => dependency.packageName);
+  } catch {
+    return [];
+  }
 }
 
 function parseOptions(argv: readonly string[]): Options {
@@ -158,7 +171,7 @@ function parseOptions(argv: readonly string[]): Options {
     sampleSize: exhaustive ? ANSWER_SPACE_SIZE : Number(flag('sample') ?? DEFAULT_SAMPLE_SIZE),
     shard: shardParts ? { index: shardParts[0] ?? 0, total: shardParts[1] ?? 1 } : null,
     strength: Number(flag('strength') ?? DEFAULT_STRENGTH),
-    workers: Number(flag('workers') ?? Math.max(1, availableParallelism() - 2))
+    workers: Number(flag('workers') ?? Math.max(1, availableParallelism() - RESERVED_CORES))
   };
 }
 
@@ -224,7 +237,7 @@ async function runCoordinator(options: Options): Promise<void> {
   if (options.exhaustive) {
     warnAboutExhaustiveCost(options.workers);
   } else {
-    write(`Sampling ${options.sampleSize.toLocaleString('en-US')} of them (${(options.sampleSize / ANSWER_SPACE_SIZE * PERCENT).toFixed(4)}%) on ${String(options.workers)} workers.`);
+    write(`Sampling ${options.sampleSize.toLocaleString('en-US')} of them (${(options.sampleSize / ANSWER_SPACE_SIZE * PERCENT).toFixed(RATE_DECIMAL_PLACES)}%) on ${String(options.workers)} workers.`);
     write('Pass --exhaustive to check every combination instead; it prints its projected cost first.');
   }
 
@@ -273,7 +286,7 @@ async function runCoordinator(options: Options): Promise<void> {
   const elapsed = Date.now() - started;
 
   write(`\nChecked ${casesChecked.toLocaleString('en-US')} combinations in ${formatDuration(elapsed)}.`);
-  write(`  coverage                    ${options.exhaustive ? 'EXHAUSTIVE -- every combination' : `${(casesChecked / ANSWER_SPACE_SIZE * PERCENT).toFixed(4)}% of the space`}`);
+  write(`  coverage                    ${options.exhaustive ? 'EXHAUSTIVE -- every combination' : `${(casesChecked / ANSWER_SPACE_SIZE * PERCENT).toFixed(RATE_DECIMAL_PLACES)}% of the space`}`);
   // Said as a floor when a shard hit the cap, because a count that quietly stopped rising reads as a
   // Finding about the generator rather than about the collector.
   write(`  distinct dependency sets    ${truncated ? 'at least ' : ''}${String(signatures.size)}${signatureTotal > signatures.size ? ` (from ${String(signatureTotal)} collected)` : ''}`);
@@ -335,20 +348,11 @@ function runShard(options: Options, shard: ShardSpec): void {
     partialNames: [...usage.partialNames],
     registeredPaths: [...usage.registeredPaths],
     signatureCount: signatures.size,
-    signaturesTruncated: signatures.size >= MAX_SIGNATURES,
     signatures: [...signatures],
+    signaturesTruncated: signatures.size >= MAX_SIGNATURES,
     violations
   };
   process.stdout.write(`${RESULT_MARKER}${JSON.stringify(result)}\n`);
-}
-
-/** The package names one case declares, or none when its plan cannot be built. */
-function packagesFor(answers: Answers): string[] {
-  try {
-    return buildTemplate(answers).dependencies.map((dependency) => dependency.packageName);
-  } catch {
-    return [];
-  }
 }
 
 /** Builds one case's dependency key, treating a plan that cannot be built as its own distinct outcome. */

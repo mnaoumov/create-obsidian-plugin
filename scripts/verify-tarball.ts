@@ -18,7 +18,15 @@ interface PackResult {
   readonly filename: string;
 }
 
-await main();
+main();
+
+function capture(command: string, cwd: string): string {
+  const result = spawnSync(command, { cwd, encoding: 'utf-8', shell: true, stdio: ['ignore', 'pipe', 'inherit'] });
+  if (result.status !== 0) {
+    throw new Error(`Failed (${String(result.status)}): ${command}`);
+  }
+  return result.stdout;
+}
 
 /**
  * Scaffolds the default answers from a packed tarball, exactly as a user's `npm create` would, and holds the
@@ -32,7 +40,7 @@ await main();
  *
  * Needs the network, and takes a few minutes. Run it before every release; `prepublishOnly` does.
  */
-async function main(): Promise<void> {
+function main(): void {
   const keep = process.argv.includes('--keep');
   const root = mkdtempSync(join(tmpdir(), 'cop-tarball-'));
   const repoDir = process.cwd();
@@ -73,7 +81,7 @@ async function main(): Promise<void> {
     run('npm run gate', projectDir);
 
     failed = false;
-    process.stdout.write(`\nThe packed tarball scaffolds a project that installs, builds and passes its own gate.\n`);
+    process.stdout.write('\nThe packed tarball scaffolds a project that installs, builds and passes its own gate.\n');
   } catch (error: unknown) {
     process.stderr.write(`\n${error instanceof Error ? error.message : String(error)}\n`);
   } finally {
@@ -85,14 +93,6 @@ async function main(): Promise<void> {
   }
 
   process.exitCode = failed ? 1 : 0;
-}
-
-function capture(command: string, cwd: string): string {
-  const result = spawnSync(command, { cwd, encoding: 'utf-8', shell: true, stdio: ['ignore', 'pipe', 'inherit'] });
-  if (result.status !== 0) {
-    throw new Error(`Failed (${String(result.status)}): ${command}`);
-  }
-  return result.stdout;
 }
 
 /**

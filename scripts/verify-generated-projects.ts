@@ -36,6 +36,12 @@ import {
   resolveVersions
 } from '../src/versions.ts';
 
+const CLI_ARGUMENT_OFFSET = 2;
+const RESERVED_CORES = 2;
+const DIAGNOSTIC_LINES = 12;
+const JSON_INDENT_SPACES = 2;
+const STEP_COLUMN_WIDTH = 10;
+
 /**
  * The package manager the matrix runs under.
  *
@@ -141,7 +147,7 @@ function formatMinutes(milliseconds: number): string {
 }
 
 async function main(): Promise<void> {
-  const options = parseOptions(process.argv.slice(2));
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET));
   mkdirSync(options.outRoot, { recursive: true });
 
   if (options.shard) {
@@ -168,7 +174,7 @@ function parseOptions(argv: readonly string[]): Options {
     resolvedPath: flag('resolved') ?? join(outRoot, 'resolved-versions.json'),
     shard: shardParts ? { index: shardParts[0] ?? 0, total: shardParts[1] ?? 1 } : null,
     strength: Number(flag('strength') ?? DEFAULT_STRENGTH),
-    workers: Number(flag('workers') ?? Math.min(DEFAULT_WORKERS, Math.max(1, availableParallelism() - 2)))
+    workers: Number(flag('workers') ?? Math.min(DEFAULT_WORKERS, Math.max(1, availableParallelism() - RESERVED_CORES)))
   };
 }
 
@@ -189,7 +195,7 @@ function reportOutcomes(outcomes: readonly CaseOutcome[]): void {
   }
   write('\nGate steps that ran and passed:');
   for (const [step, count] of [...stepCounts].sort(([a], [b]) => a.localeCompare(b))) {
-    write(`  ${step.padEnd(10)} ${String(count)}`);
+    write(`  ${step.padEnd(STEP_COLUMN_WIDTH)} ${String(count)}`);
   }
 
   if (failed.length === 0) {
@@ -202,7 +208,7 @@ function reportOutcomes(outcomes: readonly CaseOutcome[]): void {
     write(`\n  case ${String(outcome.index)} -- ${describeCase(outcome.answers)}`);
     for (const violation of outcome.result.violations) {
       write(`    [${violation.step}] ${violation.kind}`);
-      for (const line of violation.detail.split('\n').slice(0, 12)) {
+      for (const line of violation.detail.split('\n').slice(0, DIAGNOSTIC_LINES)) {
         write(`      ${line}`);
       }
     }
@@ -267,7 +273,7 @@ async function runCoordinator(options: Options): Promise<void> {
   reportOutcomes(outcomes);
 
   if (options.report !== null) {
-    writeFileSync(options.report, JSON.stringify(outcomes, null, 2));
+    writeFileSync(options.report, JSON.stringify(outcomes, null, JSON_INDENT_SPACES));
     write(`\nFull report written to ${options.report}`);
   }
 

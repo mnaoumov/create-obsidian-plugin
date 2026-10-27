@@ -7,10 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 
-import type {
-  Answers,
-  StringAnswerKey
-} from '../src/answers/answers.ts';
+import type { StringAnswerKey } from '../src/answers/answers.ts';
 
 import {
   describeCase,
@@ -29,6 +26,8 @@ import {
   fetchLatestObsidianVersion,
   resolveVersions
 } from '../src/versions.ts';
+
+const CLI_ARGUMENT_OFFSET = 2;
 
 /**
  * The version stamped into the generated project. Nothing the gate asks depends on it.
@@ -52,8 +51,8 @@ await main();
  * runs the identical {@link runGate} against a single case, in the minute or two one case costs.
  */
 async function main(): Promise<void> {
-  const options = parseOptions(process.argv.slice(2));
-  const answers = makeAnswers(options.overrides as Partial<Answers>);
+  const options = parseOptions(process.argv.slice(CLI_ARGUMENT_OFFSET));
+  const answers = makeAnswers(options.overrides);
   process.stdout.write(`${describeCase(answers)}\n\n`);
 
   const versions = await resolveVersions(buildTemplate(answers).dependencies);

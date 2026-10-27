@@ -38,7 +38,10 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
     {
       files: typeScriptFiles,
       plugins: { 'typescript-dev-toolkit': inHouseEslintPlugin },
-      rules: { 'typescript-dev-toolkit/readonly-interface-members': 'error' }
+      rules: {
+        'typescript-dev-toolkit/no-keyword-identifiers': 'error',
+        'typescript-dev-toolkit/readonly-interface-members': 'error'
+      }
     },
     ...getEslintConfigs(),
     ...getTseslintConfigs(tsconfigRootDir),
@@ -321,7 +324,8 @@ function getImportXConfigs(): Linter.Config[] {
             ]
           }
         ],
-        'import-x/no-unused-modules': 'error',
+        // Cross-module unused exports are intentionally outside this config's scope; see AGENTS.md.
+        // The import-x/no-unused-modules rule is a no-op on ESLint 10 (upstream #457).
         'import-x/no-useless-path-segments': 'error',
         'import-x/no-webpack-loader-syntax': 'error'
       }
@@ -338,7 +342,11 @@ function getImportXConfigs(): Linter.Config[] {
 function getPerfectionistConfigs(): Linter.Config[] {
   return defineConfig([{
     extends: [perfectionistConfigs['recommended-alphabetical']],
-    files: typeScriptFiles
+    files: typeScriptFiles,
+    rules: {
+      // Match dprint's ordering by the imported name, including keyword aliases.
+      'perfectionist/sort-named-imports': ['error', { ignoreAlias: true }]
+    }
   }]);
 }
 
