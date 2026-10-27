@@ -367,7 +367,7 @@ Contributions are welcome — see [CONTRIBUTING](./CONTRIBUTING.md) to get set u
 
 ## My other Obsidian resources
 
-[See my other Obsidian resources](https://github.com/mnaoumov/obsidian-resources).
+[My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
 
 ## License
 
