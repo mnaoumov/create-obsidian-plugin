@@ -101,8 +101,8 @@ export function registerDocsEntries(plugin: Plugin, entries: readonly DocsEntry[
       callback: async () => {
         const context = new HostContext(plugin, entry, editorExtensions, children);
         try {
-          const module = await entry.load();
-          await module.run(context);
+          const $module = await entry.load();
+          await $module.run(context);
         } catch (error) {
           console.error(`Docs snippet "${entry.name}" (${entry.source}) threw`, error);
           showDocsNotice(entry, `${entry.name} threw: ${error instanceof Error ? error.message : String(error)}. The developer console has the details.`);

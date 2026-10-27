@@ -298,8 +298,8 @@ function readKnownModules(checkDir: string): KnownModuleExports {
     if (!isImportDeclaration(statement) || !isStringLiteral(statement.moduleSpecifier)) {
       continue;
     }
-    const symbol = checker.getSymbolAtLocation(statement.moduleSpecifier);
-    known.set(statement.moduleSpecifier.text, new Set(symbol ? checker.getExportsOfModule(symbol).map((exported) => exported.name) : []));
+    const $symbol = checker.getSymbolAtLocation(statement.moduleSpecifier);
+    known.set(statement.moduleSpecifier.text, new Set($symbol ? checker.getExportsOfModule($symbol).map((exported) => exported.name) : []));
   }
   rmSync(probePath);
   return known;
