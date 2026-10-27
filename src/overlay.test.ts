@@ -153,6 +153,12 @@ describe('an overlay applied by copyTemplates', () => {
     expect(readEmitted('README.md')).toContain('## Support me elsewhere');
   });
 
+  it('finds an override inside a group folder, as the built-in templates are found', () => {
+    writeOverlay({ '(readme)/README.md@support_has-funding.ejs': '\n## Support me in a group\n' });
+    copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl: 'https://example.com' }), targetDir, '1.0.0', null, new Map(), undefined, loadOverlay(overlayDir, BUILT_IN));
+    expect(readEmitted('README.md')).toContain('## Support me in a group');
+  });
+
   it('does not emit an override whose built-in the answers do not register', () => {
     writeOverlay({ 'vite.config.ts.ejs': 'export default {};\n' });
     const config = copyTemplates(makeAnswers({ bundler: 'esbuild' }), targetDir, '1.0.0', null, new Map(), undefined, loadOverlay(overlayDir, BUILT_IN));

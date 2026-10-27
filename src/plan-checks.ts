@@ -1,10 +1,5 @@
 import { createHash } from 'node:crypto';
-import {
-  existsSync,
-  readdirSync,
-  readFileSync,
-  statSync
-} from 'node:fs';
+import { readFileSync } from 'node:fs';
 import {
   extname,
   join
@@ -14,6 +9,7 @@ import type { Answers } from './answers.ts';
 import type { TemplateBuilder } from './template-builder.ts';
 
 import { describeCase } from './answer-space.ts';
+import { indexTemplateDir } from './template-index.ts';
 import {
   ASSET_EXTENSIONS,
   buildTemplate,
@@ -286,7 +282,7 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
   const partials: PartialFile[] = [];
   const renderSites: RenderSite[] = [];
 
-  for (const relativePath of walkTemplates(templatesDir, '')) {
+  for (const [relativePath, physicalPath] of indexTemplateDir(templatesDir)) {
     if (ASSET_EXTENSIONS.has(extname(relativePath))) {
       assetTemplates.add(relativePath);
       continue;
@@ -297,7 +293,7 @@ export function loadTemplateInventory(templatesDir: string = defaultTemplatesDir
     }
 
     const withoutSuffix = relativePath.slice(0, -EJS_SUFFIX.length);
-    const body = readFileSync(join(templatesDir, relativePath), 'utf-8');
+    const body = readFileSync(join(templatesDir, physicalPath), 'utf-8');
 
     if (isPartialTemplatePath(relativePath)) {
       partials.push(parsePartialPath(relativePath));
@@ -514,22 +510,4 @@ function getRenderBase(templatePath: string): string {
 
 function getRenderSiteKey(basePath: string, section: string): string {
   return `${basePath}@${section}`;
-}
-
-function walkTemplates(templatesDir: string, relativeDir: string): string[] {
-  const absoluteDir = join(templatesDir, relativeDir);
-  if (!existsSync(absoluteDir)) {
-    return [];
-  }
-
-  const found: string[] = [];
-  for (const entry of readdirSync(absoluteDir)) {
-    const relativePath = relativeDir === '' ? entry : `${relativeDir}/${entry}`;
-    if (statSync(join(templatesDir, relativePath)).isDirectory()) {
-      found.push(...walkTemplates(templatesDir, relativePath));
-    } else {
-      found.push(relativePath);
-    }
-  }
-  return found;
 }

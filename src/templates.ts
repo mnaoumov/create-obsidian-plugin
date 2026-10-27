@@ -63,6 +63,7 @@ import {
   PARTIAL_NAME_PATTERN,
   TemplateBuilder
 } from './template-builder.ts';
+import { indexTemplateDir } from './template-index.ts';
 import {
   buildOverrides,
   buildPinnedVersionsJson,
@@ -308,15 +309,15 @@ export function copyTemplates(
    * goes through it -- whole files, partials at any depth, and assets -- so an overlay overrides a partial
    * file exactly as it overrides a whole one.
    */
+  const overlayIndex = overlay ? indexTemplateDir(overlay.dir) : null;
+  const builtInIndex = getBuiltInTemplateIndex(templatesDir);
   function findTemplate(relativePath: string): null | string {
-    if (overlay) {
-      const overlayPath = join(overlay.dir, relativePath);
-      if (existsSync(overlayPath)) {
-        return overlayPath;
-      }
+    const overlayPath = overlayIndex?.get(relativePath);
+    if (overlay && overlayPath !== undefined) {
+      return join(overlay.dir, overlayPath);
     }
-    const builtInPath = join(templatesDir, relativePath);
-    return existsSync(builtInPath) ? builtInPath : null;
+    const builtInPath = builtInIndex.get(relativePath);
+    return builtInPath === undefined ? null : join(templatesDir, builtInPath);
   }
 
   const builder = buildTemplate(answers, overlay);
@@ -453,6 +454,9 @@ export function copyTemplates(
 export function getDestinationPath(templatePath: string, answers: Answers): string {
   return templatePath.replace(/%= (?<AnswerKey>.+?) %/g, (_match: string, ...args: unknown[]) => String(answers[String(args[0]) as keyof Answers]));
 }
+
+/** `templates/default` never changes under a running generator, so it is walked once rather than once per project. */
+const builtInTemplateIndexes = new Map<string, ReadonlyMap<string, string>>();
 
 export function getScriptDir(): string {
   return dirname(fileURLToPath(import.meta.url));
@@ -707,6 +711,15 @@ function formatWrittenFiles(projectFormatter: null | ProjectFormatter | undefine
   for (const destinationPath of textFiles) {
     config.fileHashes[destinationPath] = sha256(readFileSync(join(targetDir, destinationPath)));
   }
+}
+
+function getBuiltInTemplateIndex(templatesDir: string): ReadonlyMap<string, string> {
+  let index = builtInTemplateIndexes.get(templatesDir);
+  if (index === undefined) {
+    index = indexTemplateDir(templatesDir);
+    builtInTemplateIndexes.set(templatesDir, index);
+  }
+  return index;
 }
 
 /**

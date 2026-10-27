@@ -1,6 +1,5 @@
 import {
   existsSync,
-  readdirSync,
   readFileSync,
   statSync
 } from 'node:fs';
@@ -18,6 +17,7 @@ import type {
 
 import { loadTemplateInventory } from './plan-checks.ts';
 import { PARTIAL_NAME_PATTERN } from './template-builder.ts';
+import { indexTemplateDir } from './template-index.ts';
 
 /**
  * A user's own customization, layered over `templates/default`.
@@ -215,7 +215,7 @@ function listStrayFiles(dir: string, own: TemplateInventory): string[] {
     OVERLAY_MANIFEST_FILE_NAME,
     OVERLAY_README_FILE_NAME
   ]);
-  return walkFiles(dir, '').filter((path) => !accounted.has(path));
+  return [...indexTemplateDir(dir)].filter(([logicalPath]) => !accounted.has(logicalPath)).map(([, physicalPath]) => physicalPath);
 }
 
 function readManifest(manifestPath: string): OverlayManifest {
@@ -251,17 +251,4 @@ function readManifest(manifestPath: string): OverlayManifest {
     packages: readList('packages'),
     partials: readList('partials')
   };
-}
-
-function walkFiles(root: string, relativeDir: string): string[] {
-  const found: string[] = [];
-  for (const entry of readdirSync(join(root, relativeDir))) {
-    const relativePath = relativeDir === '' ? entry : `${relativeDir}/${entry}`;
-    if (statSync(join(root, relativePath)).isDirectory()) {
-      found.push(...walkFiles(root, relativePath));
-    } else {
-      found.push(relativePath);
-    }
-  }
-  return found;
 }
