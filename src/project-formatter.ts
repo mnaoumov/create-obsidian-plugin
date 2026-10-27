@@ -32,7 +32,7 @@ export interface ProjectFormatter {
 }
 
 interface BinPackageJson {
-  bin?: Record<string, string> | string;
+  readonly bin?: Record<string, string> | string;
 }
 
 interface FormatterCli {

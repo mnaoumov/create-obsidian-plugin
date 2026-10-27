@@ -5,18 +5,18 @@ import { FeatureOption } from '../../feature-option.ts';
 /** How one funding platform is written into `FUNDING.yml` and drawn as a README badge. */
 export interface FundingPlatformConfig {
   /** The badge's background color, as shields.io takes it: a hex code without the `#`. */
-  badgeColor: string;
+  readonly badgeColor: string;
   /** The badge's text, which is also its alt text. */
-  badgeLabel: string;
+  readonly badgeLabel: string;
   /** The simple-icons slug shields.io draws beside the label, where the icon set has one. */
-  badgeLogo?: string;
+  readonly badgeLogo?: string;
   /** The shields.io `logoColor`, which only means something beside {@link badgeLogo}. */
-  badgeLogoColor?: string;
+  readonly badgeLogoColor?: string;
   /** The key GitHub reads this platform from in `.github/FUNDING.yml`. */
-  fundingYmlKey: string;
-  promptHint: string;
-  promptLabel: string;
-  settingValue: string;
+  readonly fundingYmlKey: string;
+  readonly promptHint: string;
+  readonly promptLabel: string;
+  readonly settingValue: string;
 }
 
 /**

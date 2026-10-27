@@ -36,9 +36,9 @@ const CLI_ARGUMENT_OFFSET = 2;
 const RENDER_VERSION = '0.0.0';
 
 interface Options {
-  outRoot: null | string;
-  overrides: Partial<Record<StringAnswerKey, string>>;
-  show: readonly string[];
+  readonly outRoot: null | string;
+  readonly overrides: Partial<Record<StringAnswerKey, string>>;
+  readonly show: readonly string[];
 }
 
 main();

@@ -55,10 +55,10 @@ import {
 
 /** What a rendering check found in one emitted project. */
 export interface RenderViolation {
-  detail: string;
-  kind: RenderViolationKind;
+  readonly detail: string;
+  readonly kind: RenderViolationKind;
   /** Path relative to the emitted project, or the case description when the render itself failed. */
-  subject: string;
+  readonly subject: string;
 }
 
 /**
@@ -89,7 +89,7 @@ export type RenderViolationKind =
   | 'unrendered-ejs';
 
 interface PackageJsonScripts {
-  scripts?: Record<string, string>;
+  readonly scripts?: Record<string, string>;
 }
 
 /**
@@ -101,7 +101,7 @@ interface PackageJsonScripts {
  * framework types to resolve against: syntax is the whole question here.
  */
 interface ParsedSourceFile extends SourceFile {
-  parseDiagnostics?: readonly Diagnostic[];
+  readonly parseDiagnostics?: readonly Diagnostic[];
 }
 
 /** Extensions parsed as TypeScript. `.mts` is here for the emitted `eslint.config.mts`. */

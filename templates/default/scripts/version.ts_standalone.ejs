@@ -21,7 +21,7 @@ interface PackageJson {
 }
 
 interface PackageLockJson {
-  packages?: Record<string, { version?: string }>;
+  readonly packages?: Record<string, { version?: string }>;
   version?: string;
 }
 
@@ -74,14 +74,14 @@ function checkRepoClean(): void {
 }
 
 function runScript(name: string): void {
-  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { scripts?: Record<string, string> };
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { readonly scripts?: Record<string, string> };
   if (pkg.scripts?.[name]) {
     execSync(`npm run ${name}`, { stdio: 'inherit' });
   }
 }
 
 function runScriptOptional(name: string): void {
-  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { scripts?: Record<string, string> };
+  const pkg = JSON.parse(readFileSync('package.json', 'utf-8')) as { readonly scripts?: Record<string, string> };
   if (pkg.scripts?.[name]) {
     execSync(`npm run ${name}`, { stdio: 'inherit' });
   }
@@ -162,7 +162,7 @@ function updateVersionInFilesForPlugin(version: string): void {
     });
   } else {
     const response = fetchSync('https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest');
-    const latestObsidianVersion = (JSON.parse(response) as { name?: string }).name;
+    const latestObsidianVersion = (JSON.parse(response) as { readonly name?: string }).name;
 
     editJson<Manifest>('manifest.json', (m) => {
       if (latestObsidianVersion) {

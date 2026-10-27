@@ -1,24 +1,24 @@
 /** One fenced code block found in a page of obsidianmd/obsidian-developer-docs. */
 export interface DocsSnippet {
   /** The block's content, with the fence's own indentation removed from every line. */
-  code: string;
+  readonly code: string;
   /** The headings the block sits under, outermost first. A page with no heading above the block gives none. */
-  headings: readonly string[];
+  readonly headings: readonly string[];
   /** The fence's info string language, lowercased. Empty when the fence names none. */
-  lang: string;
+  readonly lang: string;
   /** The 1-based line of the opening fence in the page. */
-  line: number;
+  readonly line: number;
   /** The page's path below `en/`, without `.md`: `Plugins/Vault`. */
-  page: string;
+  readonly page: string;
   /** The `title="..."` attribute of the fence, when it has one: the file name the docs give the block. */
-  title: string;
+  readonly title: string;
 }
 
 /** A fenced block as read from its lines, before the page and the headings above it are attached. */
 interface FencedBlock {
   /** The index of the closing fence's line, or of the last line when the block is never closed. */
-  endIndex: number;
-  snippet: Pick<DocsSnippet, 'code' | 'lang' | 'line' | 'title'>;
+  readonly endIndex: number;
+  readonly snippet: Pick<DocsSnippet, 'code' | 'lang' | 'line' | 'title'>;
 }
 
 /** The pages the snippets are read from: everything below this folder of the upstream repository. */

@@ -30,9 +30,9 @@ import { WASM_SUPPORT_OPTIONS } from '../features/wasm-support/index.ts';
 /** One question of the generator's answer space: the answer it fills in, and every value it accepts. */
 export interface AnswerDimension {
   /** The {@link Answers} key this question writes. */
-  answerKey: StringAnswerKey;
+  readonly answerKey: StringAnswerKey;
   /** Every `settingValue` the question accepts, in the order the option array declares them. */
-  values: readonly string[];
+  readonly values: readonly string[];
 }
 
 /** A funding URL that is present, for the dimension that branches on whether one was given at all. */

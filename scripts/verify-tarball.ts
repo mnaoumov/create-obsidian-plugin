@@ -15,7 +15,7 @@ import { findStalePins } from '../src/verification/generated-project-checks.ts';
 const PLUGIN_ID = 'smoke-test';
 
 interface PackResult {
-  filename: string;
+  readonly filename: string;
 }
 
 main();

@@ -4,7 +4,7 @@ import type { Linter } from 'eslint';
 
 import commentsConfigs from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import eslint from '@eslint/js';
-import { noKeywordIdentifiers } from '@mnaoumov/typescript-dev-toolkit/linters/eslint-rules/no-keyword-identifiers';
+import { inHouseEslintPlugin } from '@mnaoumov/typescript-dev-toolkit/linters/eslint-rules/in-house-plugin';
 // eslint-disable-next-line import-x/no-rename-default -- The default export name `plugin` is too generic.
 import stylistic from '@stylistic/eslint-plugin';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
@@ -35,20 +35,15 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
       'dist/**',
       'templates/**'
     ]),
-    ...getEslintConfigs(),
     {
       files: typeScriptFiles,
-      plugins: {
-        'typescript-dev-toolkit': {
-          rules: {
-            'no-keyword-identifiers': noKeywordIdentifiers
-          }
-        }
-      },
+      plugins: { 'typescript-dev-toolkit': inHouseEslintPlugin },
       rules: {
-        'typescript-dev-toolkit/no-keyword-identifiers': 'error'
+        'typescript-dev-toolkit/no-keyword-identifiers': 'error',
+        'typescript-dev-toolkit/readonly-interface-members': 'error'
       }
     },
+    ...getEslintConfigs(),
     ...getTseslintConfigs(tsconfigRootDir),
     ...getStylisticConfigs(),
     ...getImportXConfigs(),

@@ -95,21 +95,22 @@ import {
 } from './versions.ts';
 
 interface ExecError extends Error {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The command wrapper attaches captured stderr to the thrown error.
   stderr: string;
 }
 
 interface ExecResult {
-  stderr: string;
-  stdout: string;
+  readonly stderr: string;
+  readonly stdout: string;
 }
 
 interface ResolvedExternalVersions {
-  minAppVersion: string;
-  resolvedVersions: ReadonlyMap<string, string>;
+  readonly minAppVersion: string;
+  readonly resolvedVersions: ReadonlyMap<string, string>;
 }
 
 interface SavedConfig {
-  answers?: Answers;
+  readonly answers?: Answers;
 }
 
 /** Where this process's own arguments start: `node` and the script path come first. */

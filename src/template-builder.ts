@@ -1,19 +1,19 @@
 /** One option of the obsidian-dev-toolkit bundler adapters, with its value as TypeScript source. */
 export interface BuildOption {
-  key: string;
-  value: string;
+  readonly key: string;
+  readonly value: string;
 }
 
 /** One `.depcheckrc.json` entry: a declared package depcheck cannot see used, and the reference proving it is. */
 export interface DepcheckIgnore {
-  packageName: string;
-  reason: string;
+  readonly packageName: string;
+  readonly reason: string;
 }
 
 /** One `.lintstagedrc` entry: the glob and the commands registered against it, in registration order. */
 export interface LintStagedPattern {
-  commands: string[];
-  pattern: string;
+  readonly commands: string[];
+  readonly pattern: string;
 }
 
 /**

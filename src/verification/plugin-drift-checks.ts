@@ -39,17 +39,17 @@ import { CONFIG_FILE_NAME } from '../answers/answers.ts';
 /** One accepted difference, as recorded in `plugin-drift-baseline.json`. */
 export interface BaselineEntry {
   /** How many plugins carried the trait when the entry was written, so a moved count is re-reported. */
-  pluginCount: number;
+  readonly pluginCount: number;
   /** The condition that makes the difference deliberate, in enough detail to re-judge it later. */
-  why: string;
+  readonly why: string;
 }
 
 /** One way the recorded baseline and the findings fail to correspond. */
 export interface BaselineViolation {
-  detail: string;
+  readonly detail: string;
   /** The `<dimension>/<kind>/<key>` the entry is filed under. */
-  key: string;
-  kind: BaselineViolationKind;
+  readonly key: string;
+  readonly kind: BaselineViolationKind;
 }
 
 /**
@@ -81,17 +81,17 @@ export type DriftDimension =
 
 /** One way the generated project and the real plugins disagree. */
 export interface DriftFinding {
-  dimension: DriftDimension;
+  readonly dimension: DriftDimension;
   /** The generated project's value, or `null` when it does not carry the trait at all. */
-  generatedValue: null | string;
-  key: string;
-  kind: DriftKind;
+  readonly generatedValue: null | string;
+  readonly key: string;
+  readonly kind: DriftKind;
   /** How many of the real plugins carry this trait. */
-  pluginCount: number;
+  readonly pluginCount: number;
   /** How many plugins were compared, so `pluginCount` can be read as a proportion. */
-  pluginTotal: number;
+  readonly pluginTotal: number;
   /** The real plugins' consensus value, or `''` when the trait is presence-only. */
-  pluginValue: string;
+  readonly pluginValue: string;
 }
 
 /**
@@ -110,16 +110,16 @@ export type DriftKind =
 /** What the real plugins agree on, and how strongly. */
 export interface PluginConsensus {
   /** How many plugins were profiled. */
-  total: number;
-  traits: ReadonlyMap<DriftDimension, ReadonlyMap<string, PluginTrait>>;
+  readonly total: number;
+  readonly traits: ReadonlyMap<DriftDimension, ReadonlyMap<string, PluginTrait>>;
 }
 
 /** One trait as the real plugins hold it. */
 export interface PluginTrait {
   /** How many plugins carry the trait at all. */
-  count: number;
+  readonly count: number;
   /** The most common value among the plugins that carry it. */
-  value: string;
+  readonly value: string;
 }
 
 /** A project reduced to the traits this tier compares: dimension, then trait key, then trait value. */
@@ -127,7 +127,7 @@ export type ProjectProfile = ReadonlyMap<DriftDimension, ReadonlyMap<string, str
 
 /** The one field this tier reads out of a `package.json`. */
 interface PackageJsonScripts {
-  scripts?: Record<string, string>;
+  readonly scripts?: Record<string, string>;
 }
 
 /**

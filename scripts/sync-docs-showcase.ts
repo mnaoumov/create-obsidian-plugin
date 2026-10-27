@@ -58,20 +58,21 @@ import { readUpstream } from '../src/upstream-snapshot.ts';
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
 interface PackageManifest {
-  devDependencies: Record<string, string>;
+  readonly devDependencies: Record<string, string>;
 }
 
 interface TypeCheckError {
-  stdout?: string;
+  readonly stdout?: string;
 }
 
 interface UpstreamEntry {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates this upstream pin before writing upstreams.json.
   commit: string;
-  name: string;
+  readonly name: string;
 }
 
 interface UpstreamsFile {
-  upstreams: UpstreamEntry[];
+  readonly upstreams: UpstreamEntry[];
 }
 
 const JSON_INDENT_SPACES = 2;

@@ -16,15 +16,15 @@ import {
 } from './versions.ts';
 
 interface ParsedPin {
-  check: null | string;
-  expect?: string;
-  manualCheck?: string;
-  section: string;
-  why: string;
+  readonly check: null | string;
+  readonly expect?: string;
+  readonly manualCheck?: string;
+  readonly section: string;
+  readonly why: string;
 }
 
 interface ParsedPinnedVersions {
-  pins: Record<string, ParsedPin>;
+  readonly pins: Record<string, ParsedPin>;
 }
 
 function stubRegistry(versions: Record<string, string>): void {

@@ -24,12 +24,13 @@ import {
 } from '../src/upstream-snapshot.ts';
 
 interface UpstreamEntry {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates this upstream pin before writing upstreams.json.
   commit: string;
-  name: string;
+  readonly name: string;
 }
 
 interface UpstreamsFile {
-  upstreams: UpstreamEntry[];
+  readonly upstreams: UpstreamEntry[];
 }
 
 const JSON_INDENT_SPACES = 2;

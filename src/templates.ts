@@ -90,8 +90,8 @@ export const ASSET_EXTENSIONS: ReadonlySet<string> = new Set(['.wasm']);
 /** One file the generator writes: its path in the project, and its content. */
 export interface GeneratedFile {
   /** Text is written as UTF-8; a `Buffer` is compared and written byte for byte. */
-  content: Buffer | string;
-  destinationPath: string;
+  readonly content: Buffer | string;
+  readonly destinationPath: string;
 }
 
 const JSON_INDENT_SPACES = 2;
@@ -134,13 +134,13 @@ const BASE_TEMPLATE_FILES = [
 ];
 
 interface FeatureRegistry {
-  answerKey: keyof Answers;
-  options: readonly FeatureOption[];
+  readonly answerKey: keyof Answers;
+  readonly options: readonly FeatureOption[];
 }
 
 interface RenderOptions {
-  indentLevel?: number;
-  section?: string;
+  readonly indentLevel?: number;
+  readonly section?: string;
 }
 
 const FEATURE_REGISTRIES: FeatureRegistry[] = [
@@ -176,15 +176,15 @@ const FEATURE_REGISTRIES: FeatureRegistry[] = [
 ];
 
 interface DemoOverride {
-  answerKey: keyof Answers;
-  demoValue: string;
+  readonly answerKey: keyof Answers;
+  readonly demoValue: string;
   /**
    * The question names the ONE tool a script runs, so the demo value is forced only when the answer was
    * `none`. `npm run lint` runs one linter: forcing eslint in beside `biome` composed both runners into
    * `scripts/lint.ts`, so the explicit answer wins, as it does for the JSX runtime.
    */
-  exclusive?: true;
-  options: readonly FeatureOption[];
+  readonly exclusive?: true;
+  readonly options: readonly FeatureOption[];
 }
 
 const DEMO_OVERRIDES: DemoOverride[] = [

@@ -3,39 +3,37 @@
  * The config above, narrowed to the one field this file writes through.
  */
 interface ConfigWithProjects {
-  test: ProjectsSection;
+  readonly test: ProjectsSection;
 }
 
 /**
  * The shape of a project entry this file reaches into, which vitest's own union type does not narrow to.
  */
 interface JsxProject {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The Solid test configuration assigns the JSX transform to each project.
   oxc?: OxcSection;
 }
 
 /**
  * The JSX transform a test project is given.
- *
- * Deliberately not named `…Options`: the shared lint config requires every member of a `Params` /
- * `Options` / `Result` interface to be `readonly`, and this one is assigned to.
  */
 interface JsxRuntimeSpec {
-  importSource: string;
-  runtime: string;
+  readonly importSource: string;
+  readonly runtime: string;
 }
 
 /**
  * The `oxc` section of a project entry.
  */
 interface OxcSection {
-  jsx: JsxRuntimeSpec;
+  readonly jsx: JsxRuntimeSpec;
 }
 
 /**
  * The `test` section of the config above.
  */
 interface ProjectsSection {
-  projects: JsxProject[];
+  readonly projects: JsxProject[];
 }
 
 /*

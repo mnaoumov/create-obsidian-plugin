@@ -51,14 +51,14 @@ const BASELINE_FILE_NAME = 'plugin-drift-baseline.json';
 const PRESETS = ['all-in-one', 'demo'];
 
 interface Baseline {
-  accepted: Record<string, BaselineEntry>;
-  comment?: string[];
+  readonly accepted: Record<string, BaselineEntry>;
+  readonly comment?: string[];
 }
 
 interface Options {
-  json: boolean;
-  pluginsRoot: string;
-  printBaseline: boolean;
+  readonly json: boolean;
+  readonly pluginsRoot: string;
+  readonly printBaseline: boolean;
 }
 
 main();

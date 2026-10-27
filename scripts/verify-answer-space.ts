@@ -65,28 +65,28 @@ const PROGRESS_INTERVAL = 2_000_000;
 const RESULT_MARKER = '__SHARD_RESULT__ ';
 
 interface Options {
-  checkRegistry: boolean;
-  exhaustive: boolean;
-  sampleSize: number;
-  shard: null | ShardSpec;
-  strength: number;
-  workers: number;
+  readonly checkRegistry: boolean;
+  readonly exhaustive: boolean;
+  readonly sampleSize: number;
+  readonly shard: null | ShardSpec;
+  readonly strength: number;
+  readonly workers: number;
 }
 
 interface ShardResult {
-  casesChecked: number;
-  partialNames: string[];
-  registeredPaths: string[];
-  signatureCount: number;
-  signatures: string[];
+  readonly casesChecked: number;
+  readonly partialNames: string[];
+  readonly registeredPaths: string[];
+  readonly signatureCount: number;
+  readonly signatures: string[];
   /** Whether this shard stopped collecting signatures at the cap, so the reported count is a floor. */
-  signaturesTruncated: boolean;
-  violations: PlanViolation[];
+  readonly signaturesTruncated: boolean;
+  readonly violations: PlanViolation[];
 }
 
 interface ShardSpec {
-  index: number;
-  total: number;
+  readonly index: number;
+  readonly total: number;
 }
 
 await main();

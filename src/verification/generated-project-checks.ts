@@ -22,8 +22,8 @@ import { getInstallCommand } from '../features/package-manager/index.ts';
 import { UNPATCHED_ADVISORIES } from '../versions.ts';
 
 export interface CommandResult {
-  ok: boolean;
-  output: string;
+  readonly ok: boolean;
+  readonly output: string;
 }
 
 /** What one project's gate came to, and how long each step took. */
@@ -33,13 +33,13 @@ export interface GateResult {
    * machine. Nothing about the project was tried then, so `violations` stays empty and a report says "could not run"
    * rather than reading a missing tool as a broken case.
    */
-  couldNotRun?: string;
-  durationMs: number;
+  readonly couldNotRun?: string;
+  readonly durationMs: number;
   /** Steps that ran and passed, for a report that can say what was actually proven. */
-  passed: GateStep[];
+  readonly passed: GateStep[];
   /** Steps not run because the answers do not emit them. */
-  skipped: GateStep[];
-  violations: GateViolation[];
+  readonly skipped: GateStep[];
+  readonly violations: GateViolation[];
 }
 
 /** The gate steps, in the order they run. Each one's failure means something different. */
@@ -63,10 +63,10 @@ export type GateStep =
 
 /** One gate step's verdict on one generated project. */
 export interface GateViolation {
-  detail: string;
-  kind: GateViolationKind;
+  readonly detail: string;
+  readonly kind: GateViolationKind;
   /** The gate step this came from, so a report can be read by step rather than by case. */
-  step: GateStep;
+  readonly step: GateStep;
 }
 
 /**
@@ -99,20 +99,21 @@ export type GateViolationKind =
   | 'unshipped-file';
 
 interface LinkinatorConfig {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The gate adds its generated-project exclusions to the link checker configuration.
   skip?: string[];
 }
 
 interface PackageJsonScripts {
-  scripts?: Record<string, string>;
+  readonly scripts?: Record<string, string>;
 }
 
 interface PinEntry {
-  check?: null | string;
-  expect?: null | string;
+  readonly check?: null | string;
+  readonly expect?: null | string;
 }
 
 interface PinnedVersionsFile {
-  pins?: unknown;
+  readonly pins?: unknown;
 }
 
 /**
@@ -127,18 +128,18 @@ const AUDIT_LEVEL = 'high';
 
 /** An advisory as `npm audit --json` lists it in a package's `via`. */
 interface AuditAdvisory {
-  severity?: string;
-  url?: string;
+  readonly severity?: string;
+  readonly url?: string;
 }
 
 /** The part of an `npm audit --json` report the gate reads. */
 interface AuditReport {
-  vulnerabilities?: Record<string, AuditVulnerability>;
+  readonly vulnerabilities?: Record<string, AuditVulnerability>;
 }
 
 /** One package in an `npm audit --json` report: an advisory object, or the name of the package it came through. */
 interface AuditVulnerability {
-  via?: (AuditAdvisory | string)[];
+  readonly via?: (AuditAdvisory | string)[];
 }
 
 /** The severities at or above {@link AUDIT_LEVEL}. */

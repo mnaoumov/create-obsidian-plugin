@@ -35,9 +35,9 @@ const CLI_ARGUMENT_OFFSET = 2;
 const GATE_VERSION = '0.0.0';
 
 interface Options {
-  keep: boolean;
-  outRoot: null | string;
-  overrides: Partial<Record<StringAnswerKey, string>>;
+  readonly keep: boolean;
+  readonly outRoot: null | string;
+  readonly overrides: Partial<Record<StringAnswerKey, string>>;
 }
 
 await main();

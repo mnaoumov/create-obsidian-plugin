@@ -30,15 +30,15 @@ import {
 } from '../src/upstream-snapshot.ts';
 
 interface EslintFileResult {
-  filePath: string;
-  messages: readonly EslintMessage[];
+  readonly filePath: string;
+  readonly messages: readonly EslintMessage[];
 }
 
 interface EslintMessage {
-  column: number;
-  line: number;
-  message: string;
-  ruleId: null | string;
+  readonly column: number;
+  readonly line: number;
+  readonly message: string;
+  readonly ruleId: null | string;
 }
 
 await main();

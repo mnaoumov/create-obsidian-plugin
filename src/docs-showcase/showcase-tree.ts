@@ -13,37 +13,40 @@ import {
 /** One snippet as the showcase builds it: the report's record, plus the code and module the sync works with. */
 export interface ShowcaseEntry extends ShowcaseReportEntry {
   /** The block's code. Not written to the report. */
-  code: string;
+  readonly code: string;
   /** The wrapped module, before the type check decides whether it ships. Not written to the report. */
-  module: string;
+  readonly module: string;
 }
 
 /** One snippet as `snippets.json` records it: where it came from, what it is, and whether it made it in. */
 export interface ShowcaseReportEntry {
   /** The TypeScript diagnostics that kept it out, as `line:column code: message`, against its module. */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates the report after type-checking each snippet.
   diagnostics: string[];
   /** The module's path below `src/docs/`, or empty when it has none. */
-  file: string;
-  headings: readonly string[];
+  readonly file: string;
+  readonly headings: readonly string[];
   /** Unique within the showcase: the page's slug and the block's position on the page. */
-  id: string;
-  kind: SnippetKind;
-  lang: string;
-  line: number;
+  readonly id: string;
+  readonly kind: SnippetKind;
+  readonly lang: string;
+  readonly line: number;
   /** The command name. */
-  name: string;
-  page: string;
+  readonly name: string;
+  readonly page: string;
   /** Why it is not runnable or why it failed. Empty when it is runnable. */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates the report after type-checking each snippet.
   reason: string;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates the report after type-checking each snippet.
   status: SnippetStatus;
 }
 
 /** The upstream commit the snippets were read at, and its license notice, which every module's header repeats. */
 export interface ShowcaseSource {
-  commit: string;
+  readonly commit: string;
   /** The license notice `describeUpstreamLicense` reads from upstream's `LICENSE`, or empty when it has none. */
-  license: string;
-  repo: string;
+  readonly license: string;
+  readonly repo: string;
 }
 
 /** Where a snippet ended up. */
@@ -51,9 +54,9 @@ export type SnippetStatus = 'not-runnable' | 'runnable' | 'type-error';
 
 /** A snippet with the module path and id it is given. */
 interface PlacedSnippet {
-  file: string;
-  id: string;
-  snippet: DocsSnippet;
+  readonly file: string;
+  readonly id: string;
+  readonly snippet: DocsSnippet;
 }
 
 const DOCS_SITE = 'https://docs.obsidian.md';

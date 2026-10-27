@@ -2,9 +2,9 @@ import type { PinnedVersion } from './versions.ts';
 
 /** The pin and the peer range `obsidian` now declares for one package, where the two disagree. */
 export interface StalePeerPin {
-  name: string;
-  peer: string;
-  pinned: string;
+  readonly name: string;
+  readonly peer: string;
+  readonly pinned: string;
 }
 
 const PEER_CHECK_PATTERN = /require\('obsidian\/package\.json'\)\.peerDependencies\['(?<Name>[^']+)'\]/;

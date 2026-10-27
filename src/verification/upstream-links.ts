@@ -14,16 +14,16 @@ export const UPSTREAM_REPOSITORY_URL = 'https://github.com/mnaoumov/obsidian-lib
 /** One cited location in obsidian-lib. */
 export interface UpstreamLink {
   /** The file of this repo that cites it, relative to the repo root. */
-  file: string;
+  readonly file: string;
   /** `blob` / `raw` name a file, `tree` names a directory. */
-  kind: 'blob' | 'raw' | 'tree';
+  readonly kind: 'blob' | 'raw' | 'tree';
   /** One-based. */
-  line: number;
+  readonly line: number;
   /** The path inside the repository, with no leading or trailing slash. */
-  path: string;
+  readonly path: string;
   /** The branch, tag or commit the link reads from. */
-  ref: string;
-  url: string;
+  readonly ref: string;
+  readonly url: string;
 }
 
 /**
@@ -38,8 +38,8 @@ const TRAILING_PUNCTUATION = /[.,;:!]+$/;
 
 /** A cited location with nothing at it. */
 export interface DeadUpstreamLink {
-  link: UpstreamLink;
-  reason: string;
+  readonly link: UpstreamLink;
+  readonly reason: string;
 }
 
 /**

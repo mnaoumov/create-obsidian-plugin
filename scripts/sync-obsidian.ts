@@ -17,12 +17,13 @@ import {
 import { PINNED_VERSIONS } from '../src/versions.ts';
 
 interface UpstreamEntry {
-  name: string;
+  readonly name: string;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The sync updates this upstream pin before writing upstreams.json.
   version?: string;
 }
 
 interface UpstreamsFile {
-  upstreams: UpstreamEntry[];
+  readonly upstreams: UpstreamEntry[];
 }
 
 const JSON_INDENT_SPACES = 2;
@@ -31,8 +32,8 @@ const JSON_INDENT_SPACES = 2;
 const OBSIDIAN_UPSTREAM_NAME = 'obsidian';
 
 interface NpmVersionManifest {
-  peerDependencies?: Record<string, string>;
-  version: string;
+  readonly peerDependencies?: Record<string, string>;
+  readonly version: string;
 }
 
 await main();

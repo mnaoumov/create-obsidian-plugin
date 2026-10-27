@@ -17,7 +17,7 @@
 import { validatePluginId } from './directory-constraints.ts';
 
 interface CommunityPluginEntry {
-  id?: unknown;
+  readonly id?: unknown;
 }
 
 /**

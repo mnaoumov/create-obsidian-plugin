@@ -8,9 +8,9 @@ import relativeLinksRule from 'markdownlint-rule-relative-links';
  * nothing else can refer to -- and an intersection is exactly where a reader wants to look one up.
  */
 interface MarkdownlintCli2Extras {
-  customRules?: unknown[];
-  globs?: string[];
-  ignores?: string[];
+  readonly customRules?: unknown[];
+  readonly globs?: string[];
+  readonly ignores?: string[];
 }
 
 export const config: MarkdownlintCli2Extras & Options = {

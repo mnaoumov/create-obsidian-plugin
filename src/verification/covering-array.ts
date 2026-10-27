@@ -1,22 +1,22 @@
 /** A combination of one value per named dimension -- what a covering array has to place in some case. */
 export interface CombinationConstraint {
-  dimensions: number[];
-  values: number[];
+  readonly dimensions: number[];
+  readonly values: number[];
 }
 
 /** What {@link buildCoveringArray} needs: the shape of the space, and how strongly to cover it. */
 export interface CoveringArrayParams {
   /** How many values each dimension has, in dimension order. */
-  dimensionSizes: readonly number[];
+  readonly dimensionSizes: readonly number[];
   /** Cases that must appear in the result, each one value index per dimension. */
-  requiredCases?: readonly (readonly number[])[] | undefined;
+  readonly requiredCases?: readonly (readonly number[])[] | undefined;
   /** Every combination of this many dimensions' values appears in at least one returned case. */
-  strength: number;
+  readonly strength: number;
 }
 
 interface Candidate {
-  newlyCovered: number;
-  values: number[];
+  readonly newlyCovered: number;
+  readonly values: number[];
 }
 
 /**
@@ -26,8 +26,8 @@ interface Candidate {
  * each dimension they contain, because scoring a value only ever looks at subsets containing it.
  */
 interface CombinationIndex {
-  byDimension: number[][][];
-  subsets: number[][];
+  readonly byDimension: number[][][];
+  readonly subsets: number[][];
 }
 
 /**

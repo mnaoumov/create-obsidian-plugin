@@ -27,15 +27,15 @@ import { loadTemplateInventory } from './verification/plan-checks.ts';
  */
 export interface Overlay {
   /** README badges, appended after the built-in ones on the same line. */
-  badges: readonly string[];
+  readonly badges: readonly string[];
   /** Absolute path of the overlay directory. */
-  dir: string;
+  readonly dir: string;
   /** Paths the overlay adds to every project, which no built-in template registers. */
-  files: readonly string[];
+  readonly files: readonly string[];
   /** Packages added to `devDependencies`, their versions resolved like any built-in one. */
-  packages: readonly string[];
+  readonly packages: readonly string[];
   /** Partial names the overlay contributes, rendered after every built-in partial at each seam. */
-  partials: readonly string[];
+  readonly partials: readonly string[];
 }
 
 export const OVERLAY_MANIFEST_FILE_NAME = 'overlay.json';
