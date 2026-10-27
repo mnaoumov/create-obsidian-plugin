@@ -6,9 +6,9 @@
 
 ## Architecture
 
-- `src/` — Core generator logic (TemplateBuilder, features, prompts, templates), with the vitest unit tests co-located as `foo.test.ts` beside what they test
+- `src/` — Core generator logic (`main.ts`, `templates.ts`, `TemplateBuilder`, versions, overlay), with the vitest unit tests co-located as `foo.test.ts` beside what they test. Grouped by subject: `answers/` (the `Answers` type, the answer space, CLI flags, the exporter, deprecated values), `prompts/` (the interactive questions and their clack wrappers), `directory/` (the Community directory checks) and `verification/` (the plan, render, gate and drift tiers, the covering arrays they sweep, toolkit parity and upstream links)
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
-- `templates/default/` — EJS template files (all must have `.ejs` extension), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
+- `templates/default/` — EJS template files (all must have `.ejs` extension), sorted into group folders such as `scripts/(build)/(esbuild)/` that the engine drops from every path (see "A parenthesized folder groups templates and is not part of their path"), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
 - `templates/official-sample/files/` — the vendored snapshot the `official-sample` preset copies, pinned in `upstreams.json` (see "`official-sample` copies upstream")
 - `templates/docs-showcase/` — the `docs-showcase` preset's `src/docs/`: `host/` is hand-written, `files/` and `snippets.json` are what `npm run sync:docs-showcase` generated from the pinned obsidian-developer-docs commit (see "`docs-showcase` is the All-in-one Framework project plus the developer docs' code blocks")
 - `scripts/` — All build/lint/test logic lives here
@@ -569,7 +569,7 @@ not installed, the update warns that it cannot tell the formatter's work from ha
 ### A user's own templates are an overlay searched ahead of `templates/default`
 
 `--customTemplate=<dir>` (`src/overlay.ts`) is for what the answers cannot say. The directory mirrors
-`templates/default`, and `copyTemplates` resolves every template path through one `findTemplate` that looks
+`templates/default` (group folders allowed), and `copyTemplates` resolves every template path through one `findTemplate` that looks
 there first: whole files, partials at any depth and assets. So a template at a built-in's path replaces it, and it
 uses the same grammar rather than a second one. `overlay.json` declares only what a path cannot carry:
 `partials`, `files`, `packages` and `badges`. `buildTemplate(answers, overlay)` applies them LAST, after
@@ -910,6 +910,14 @@ The same `typescript({...})` block also overrides `inlineSourceMap` / `inlineSou
 The emitted `tsconfig.json` inlines a source map, and a production build writes none, so every production build
 warned that nothing would output the map. No tier fails on a build warning, so `src/templates.test.ts` is what
 pins both fixes.
+
+### A parenthesized folder groups templates and is not part of their path
+
+A partial is found by its name beside the file it composes, so `templates/default/scripts` once held 216 variants of some 60 target files side by side, and `src` and the root over 100 each. A folder whose whole name is in parentheses, such as `scripts/(build)/(esbuild)/`, is a **group folder**: `getLogicalTemplatePath` (`src/template-index.ts`) drops it, so `scripts/(build)/(esbuild)/build.ts@bundler_esbuild.ejs` is still the partial `scripts/build.ts@bundler_esbuild.ejs`. It is the route-group convention of Next.js and SvelteKit. `indexTemplateDir` maps every logical path to its file once per root, and every reader goes through it: `copyTemplates`' `findTemplate`, the plan tier's inventory and the overlay's stray-file check. Two files at one logical path are refused rather than resolved by walk order. An overlay may use group folders too, or none: it is indexed the same way.
+
+The groups are by subject (build, rollup, webpack, vite, format, lint, test, plugin per preset, settings, tsconfig per preset, contributing, ...), and a subject over about 20 files splits by its next variant axis. A real folder (`src/wasm/`, `.github/workflows/`) stays a real folder, because it is a folder of the emitted project. A new template goes into the group of its target file, or stays at the top when no group fits.
+
+**The emitted project's `scripts/` stays flat** (decided on 2026-10-26): one file per npm script, named by the script, so `package.json` is the index a reader looks it up in, and a folder whose files a tool names is not one a reader browses. This repo's own `scripts/` follows the same rule.
 
 ### addFiles uses array syntax, no .ejs suffix
 
