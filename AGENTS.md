@@ -1197,7 +1197,7 @@ Researched all major `create-*` packages. Only create-vue and create-nuxt-app us
 
 ## Code Style
 
-Interface and object type alias properties are readonly by default, enforced by typescript-dev-toolkit 4.0.0's `readonly-interface-members` rule. A property reassigned by the implementation keeps an explained per-property exception; readonly properties do not make their arrays immutable.
+Interface and object type alias properties are readonly by default, enforced by typescript-dev-toolkit's `readonly-interface-members` rule. A property reassigned by the implementation keeps an explained per-property exception; readonly properties do not make their arrays immutable.
 
 - TypeScript strict mode
 - ESLint with `@eslint/js` + `typescript-eslint`
