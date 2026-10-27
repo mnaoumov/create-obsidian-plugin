@@ -329,7 +329,8 @@ function getImportXConfigs(): Linter.Config[] {
             ]
           }
         ],
-        'import-x/no-unused-modules': 'error',
+        // Cross-module unused exports are intentionally outside this config's scope; see AGENTS.md.
+        // The import-x/no-unused-modules rule is a no-op on ESLint 10 (upstream #457).
         'import-x/no-useless-path-segments': 'error',
         'import-x/no-webpack-loader-syntax': 'error'
       }

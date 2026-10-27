@@ -268,6 +268,16 @@ provisioned Obsidian or emulator, so a fresh project would ship tests nothing ca
 
 The generator's ESLint helper is `scripts/eslint-config.ts`. Keep helper names outside ESLint's `eslint.config.*` discovery pattern: under ESLint 10 a nested helper with that name shadows the root config and silently excludes scripts from linting. `scripts/eslint-config.test.ts` checks discovery for every script and requires a deliberate script violation to be reported.
 
+The generator checks unused local bindings and imports with `@typescript-eslint/no-unused-vars`;
+it intentionally does not check cross-module unused exports. `import-x/no-unused-modules` is omitted:
+[upstream #457](https://github.com/un-ts/eslint-plugin-import-x/pull/457) makes it a no-op on ESLint 10
+because `FileEnumerator` was removed, including in the current 4.17.1 release. The former bare
+`error` setting enabled neither `missingExports` nor `unusedExports`, so it provided no such check
+before ESLint 10 either. Do not add the warning-suppression option and mistake it for validation.
+The config suite verifies the unsupported rule stays absent and unused bindings still fail while used
+bindings pass. A future whole-program export check needs an explicit entry-point policy for the CLI,
+config files and scripts, rather than treating this binding check as an equivalent.
+
 The generator registers `typescript-dev-toolkit/no-keyword-identifiers` from the generic toolkit in that local config. Owned bindings use the `$`-prefixed spelling while import names and property keys keep their contracts. The docs showcase's upstream code blocks remain verbatim under the existing template exclusion; its hand-written host follows the rule in both `host/` and the synchronized `files/` copy.
 
 All actual logic lives in `scripts/`. Root config files (`eslint.config.mts`, `commitlint.config.ts`, `vitest.config.ts`) are minimal re-exports from `scripts/`. Root `package.json` scripts all use `jiti scripts/*.ts`.

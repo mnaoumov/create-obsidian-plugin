@@ -34,3 +34,20 @@ it('rejects keyword bindings while preserving imported names and property keys',
   expect(messages).toHaveLength(1);
   expect(messages[0]?.message).toContain('event');
 });
+
+it('checks unused bindings without enabling the unsupported module graph rule', async () => {
+  const eslint = new ESLint();
+  const filePath = join(import.meta.dirname, 'lint.ts');
+  const config = await eslint.calculateConfigForFile(filePath) as Linter.Config | undefined;
+  expect(config?.rules?.['import-x/no-unused-modules']).toBeUndefined();
+
+  const results = await eslint.lintText('const unusedBinding = 1;\nexport {};\n', { filePath });
+  const messages = results.flatMap((result) => result.messages);
+  expect(messages.some((message) => message.ruleId === '@typescript-eslint/no-unused-vars')).toBe(true);
+
+  const usedResults = await eslint.lintText('const usedBinding = 1;\nconsole.error(usedBinding);\nexport {};\n', { filePath });
+  expect(
+    usedResults.flatMap((result) => result.messages)
+      .filter((message) => message.ruleId === '@typescript-eslint/no-unused-vars')
+  ).toHaveLength(0);
+});
