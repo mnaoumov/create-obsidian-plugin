@@ -4,7 +4,8 @@ import {
   it
 } from 'vitest';
 
-import { answersAtOrdinal } from './answer-space.ts';
+import { answersAtOrdinal } from '../answers/answer-space.ts';
+import { getDefaultAnswers } from '../prompts/prompts.ts';
 import {
   CORE_FEATURE_NAMES,
   findUnlistableManifestAnswers,
@@ -13,7 +14,6 @@ import {
   validatePluginId,
   validatePluginName
 } from './directory-constraints.ts';
-import { getDefaultAnswers } from './prompts.ts';
 
 /** A description one character past the cap, built rather than typed out. */
 const OVER_LONG_DESCRIPTION = `Does ${'a'.repeat(MAX_DESCRIPTION_LENGTH)}.`;

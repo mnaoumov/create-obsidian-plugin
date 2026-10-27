@@ -24,7 +24,7 @@ import {
   answersFromValueIndices,
   describeCase,
   makeAnswers
-} from './answer-space.ts';
+} from '../answers/answer-space.ts';
 import { buildCoveringArray } from './covering-array.ts';
 import {
   checkRenderedProject,

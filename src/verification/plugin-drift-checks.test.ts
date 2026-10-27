@@ -20,7 +20,7 @@ import type {
   ProjectProfile
 } from './plugin-drift-checks.ts';
 
-import { CONFIG_FILE_NAME } from './answers.ts';
+import { CONFIG_FILE_NAME } from '../answers/answers.ts';
 import {
   buildConsensus,
   compareToPlugins,

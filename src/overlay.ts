@@ -13,11 +13,11 @@ import {
 import type {
   RenderSite,
   TemplateInventory
-} from './plan-checks.ts';
+} from './verification/plan-checks.ts';
 
-import { loadTemplateInventory } from './plan-checks.ts';
 import { PARTIAL_NAME_PATTERN } from './template-builder.ts';
 import { indexTemplateDir } from './template-index.ts';
+import { loadTemplateInventory } from './verification/plan-checks.ts';
 
 /**
  * A user's own customization, layered over `templates/default`.

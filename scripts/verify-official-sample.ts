@@ -23,7 +23,7 @@ import {
   loadOfficialSampleSnapshot,
   OFFICIAL_SAMPLE_UPSTREAM_NAME
 } from '../src/official-sample.ts';
-import { getDefaultAnswers } from '../src/prompts.ts';
+import { getDefaultAnswers } from '../src/prompts/prompts.ts';
 import {
   fetchUpstreamSnapshot,
   readUpstream

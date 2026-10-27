@@ -14,8 +14,8 @@ import {
 import { join } from 'node:path';
 import process from 'node:process';
 
-import type { Answers } from '../src/answers.ts';
-import type { GateResult } from '../src/generated-project-checks.ts';
+import type { Answers } from '../src/answers/answers.ts';
+import type { GateResult } from '../src/verification/generated-project-checks.ts';
 
 import {
   ANSWER_SPACE,
@@ -24,9 +24,9 @@ import {
   describeCase,
   findDimension,
   makeAnswers
-} from '../src/answer-space.ts';
-import { buildCoveringArray } from '../src/covering-array.ts';
-import { runGate } from '../src/generated-project-checks.ts';
+} from '../src/answers/answer-space.ts';
+import { buildCoveringArray } from '../src/verification/covering-array.ts';
+import { runGate } from '../src/verification/generated-project-checks.ts';
 import {
   buildTemplate,
   copyTemplates

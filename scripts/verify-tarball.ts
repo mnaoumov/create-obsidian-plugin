@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 
-import { findStalePins } from '../src/generated-project-checks.ts';
+import { findStalePins } from '../src/verification/generated-project-checks.ts';
 
 const PLUGIN_ID = 'smoke-test';
 

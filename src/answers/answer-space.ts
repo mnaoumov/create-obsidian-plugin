@@ -1,31 +1,31 @@
+import type { FeatureOption } from '../feature-option.ts';
 import type {
   Answers,
   StringAnswerKey
 } from './answers.ts';
-import type { FeatureOption } from './feature-option.ts';
 
-import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
-import { BUNDLER_OPTIONS } from './features/bundler/index.ts';
-import { COMMIT_LINTING_OPTIONS } from './features/commit-linting/index.ts';
-import { COVERAGE_BADGE_OPTIONS } from './features/coverage-badge/index.ts';
-import { E2E_TEST_RUNNER_OPTIONS } from './features/e2e-test-runner/index.ts';
-import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts';
-import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
-import { FUNDING_PLATFORM_OPTIONS } from './features/funding-platform/index.ts';
-import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
-import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
-import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
-import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
-import { LINTER_OPTIONS } from './features/linter/index.ts';
-import { MARKDOWN_LINTER_OPTIONS } from './features/markdown-linter/index.ts';
-import { PACKAGE_MANAGER_OPTIONS } from './features/package-manager/index.ts';
-import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
-import { PRESET_OPTIONS } from './features/preset/index.ts';
-import { SPELL_CHECKER_OPTIONS } from './features/spell-checker/index.ts';
-import { STYLING_OPTIONS } from './features/styling/index.ts';
-import { TEST_RUNNER_OPTIONS } from './features/test-runner/index.ts';
-import { UI_FRAMEWORK_OPTIONS } from './features/ui-framework/index.ts';
-import { WASM_SUPPORT_OPTIONS } from './features/wasm-support/index.ts';
+import { API_SUBSET_OPTIONS } from '../features/api-subset/index.ts';
+import { BUNDLER_OPTIONS } from '../features/bundler/index.ts';
+import { COMMIT_LINTING_OPTIONS } from '../features/commit-linting/index.ts';
+import { COVERAGE_BADGE_OPTIONS } from '../features/coverage-badge/index.ts';
+import { E2E_TEST_RUNNER_OPTIONS } from '../features/e2e-test-runner/index.ts';
+import { EDITOR_EXTENSIONS_OPTIONS } from '../features/editor-extensions/index.ts';
+import { FORMATTER_OPTIONS } from '../features/formatter/index.ts';
+import { FUNDING_PLATFORM_OPTIONS } from '../features/funding-platform/index.ts';
+import { GITHUB_ACTIONS_OPTIONS } from '../features/git-hub-actions/index.ts';
+import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from '../features/git-hub-issue-templates/index.ts';
+import { HOT_RELOAD_OPTIONS } from '../features/hot-reload/index.ts';
+import { INTERNATIONALIZATION_OPTIONS } from '../features/internationalization/index.ts';
+import { LINTER_OPTIONS } from '../features/linter/index.ts';
+import { MARKDOWN_LINTER_OPTIONS } from '../features/markdown-linter/index.ts';
+import { PACKAGE_MANAGER_OPTIONS } from '../features/package-manager/index.ts';
+import { PLATFORM_SUPPORT_OPTIONS } from '../features/platform-support/index.ts';
+import { PRESET_OPTIONS } from '../features/preset/index.ts';
+import { SPELL_CHECKER_OPTIONS } from '../features/spell-checker/index.ts';
+import { STYLING_OPTIONS } from '../features/styling/index.ts';
+import { TEST_RUNNER_OPTIONS } from '../features/test-runner/index.ts';
+import { UI_FRAMEWORK_OPTIONS } from '../features/ui-framework/index.ts';
+import { WASM_SUPPORT_OPTIONS } from '../features/wasm-support/index.ts';
 
 /** One question of the generator's answer space: the answer it fills in, and every value it accepts. */
 export interface AnswerDimension {

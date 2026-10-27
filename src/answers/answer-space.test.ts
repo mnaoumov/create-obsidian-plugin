@@ -4,6 +4,7 @@ import {
   it
 } from 'vitest';
 
+import { PLATFORM_SUPPORT_OPTIONS } from '../features/platform-support/index.ts';
 import {
   ANSWER_SPACE,
   ANSWER_SPACE_DIMENSION_SIZES,
@@ -14,7 +15,6 @@ import {
   findDimension,
   makeAnswers
 } from './answer-space.ts';
-import { PLATFORM_SUPPORT_OPTIONS } from './features/platform-support/index.ts';
 
 describe('ANSWER_SPACE', () => {
   const DIMENSION_COUNT = 24;

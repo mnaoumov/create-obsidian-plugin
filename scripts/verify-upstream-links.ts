@@ -10,13 +10,13 @@ import {
 } from 'node:path';
 import process from 'node:process';
 
-import type { UpstreamLink } from '../src/upstream-links.ts';
+import type { UpstreamLink } from '../src/verification/upstream-links.ts';
 
 import { getScriptDir } from '../src/templates.ts';
 import {
   findDeadUpstreamLinks,
   findUpstreamLinks
-} from '../src/upstream-links.ts';
+} from '../src/verification/upstream-links.ts';
 
 /** Where CI puts its checkout, since a runner has no sibling directory to find one in. */
 const LIB_DIR_ENV = 'OBSIDIAN_LIB_DIR';

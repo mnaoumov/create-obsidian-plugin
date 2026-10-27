@@ -15,6 +15,7 @@ import {
 import type { Shell } from './answers-export.ts';
 import type { Answers } from './answers.ts';
 
+import { getDefaultAnswers } from '../prompts/prompts.ts';
 import {
   formatAnswersJson,
   formatCreateCommand,
@@ -24,7 +25,6 @@ import {
   getShellForPlatform
 } from './answers-export.ts';
 import { parseCliArgs } from './cli-args.ts';
-import { getDefaultAnswers } from './prompts.ts';
 
 /**
  * A value carrying every character the two quoting schemes have to survive.

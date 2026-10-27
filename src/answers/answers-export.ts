@@ -1,13 +1,13 @@
 import type { Answers } from './answers.ts';
 
 import {
+  isOfficialSamplePreset,
+  OFFICIAL_SAMPLE_ANSWER_KEYS
+} from '../features/preset/official-sample.ts';
+import {
   DEMO_PINNED_ANSWER_KEYS,
   getAnswerableKeys
 } from './cli-args.ts';
-import {
-  isOfficialSamplePreset,
-  OFFICIAL_SAMPLE_ANSWER_KEYS
-} from './features/preset/official-sample.ts';
 
 /** Which shell an exported create-script is written for. */
 export type Shell = 'cmd' | 'sh';

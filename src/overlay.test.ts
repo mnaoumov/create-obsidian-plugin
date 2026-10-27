@@ -18,18 +18,18 @@ import {
   it
 } from 'vitest';
 
-import type { GeneratorConfig } from './answers.ts';
+import type { GeneratorConfig } from './answers/answers.ts';
 
-import { makeAnswers } from './answer-space.ts';
+import { makeAnswers } from './answers/answer-space.ts';
 import {
   loadOverlay,
   toRecordedOverlayPath
 } from './overlay.ts';
-import { loadTemplateInventory } from './plan-checks.ts';
 import {
   buildTemplate,
   copyTemplates
 } from './templates.ts';
+import { loadTemplateInventory } from './verification/plan-checks.ts';
 
 /** The README's third line, which holds every badge. */
 const BADGE_LINE_INDEX = 2;

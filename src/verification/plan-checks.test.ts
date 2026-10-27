@@ -15,7 +15,8 @@ import {
   answersFromValueIndices,
   describeCase,
   makeAnswers
-} from './answer-space.ts';
+} from '../answers/answer-space.ts';
+import { TemplateBuilder } from '../template-builder.ts';
 import { buildCoveringArray } from './covering-array.ts';
 import {
   checkCase,
@@ -28,7 +29,6 @@ import {
   newUsage,
   parsePartialPath
 } from './plan-checks.ts';
-import { TemplateBuilder } from './template-builder.ts';
 
 /** Builds a fixture inventory, deriving the whole-file index so it can never disagree with `partials`. */
 function makeInventory(overrides: Partial<TemplateInventory> = {}): TemplateInventory {

@@ -11,14 +11,14 @@ import {
   it
 } from 'vitest';
 
-import type { Answers } from './answers.ts';
+import type { Answers } from '../answers/answers.ts';
 
 import {
   ANSWER_SPACE,
   makeAnswers
-} from './answer-space.ts';
+} from '../answers/answer-space.ts';
+import { copyTemplates } from '../templates.ts';
 import { listGeneratedFiles } from './plugin-drift-checks.ts';
-import { copyTemplates } from './templates.ts';
 
 /**
  * The goal these tables measure: on a framework preset, every tool the generator offers is run by

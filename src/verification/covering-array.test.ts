@@ -8,7 +8,7 @@ import {
   it
 } from 'vitest';
 
-import { ANSWER_SPACE_DIMENSION_SIZES } from './answer-space.ts';
+import { ANSWER_SPACE_DIMENSION_SIZES } from '../answers/answer-space.ts';
 import {
   buildCoveringArray,
   countCombinations,

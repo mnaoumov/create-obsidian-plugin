@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process';
 import { availableParallelism } from 'node:os';
 import process from 'node:process';
 
-import type { Answers } from '../src/answers.ts';
-import type { PlanViolation } from '../src/plan-checks.ts';
+import type { Answers } from '../src/answers/answers.ts';
+import type { PlanViolation } from '../src/verification/plan-checks.ts';
 import type { MissingPackage } from '../src/versions.ts';
 
 import {
@@ -13,14 +13,14 @@ import {
   answersAtOrdinal,
   answersFromValueIndices,
   describeCase
-} from '../src/answer-space.ts';
-import { buildCoveringArray } from '../src/covering-array.ts';
+} from '../src/answers/answer-space.ts';
+import { buildCoveringArray } from '../src/verification/covering-array.ts';
 import {
   checkCase,
   checkUsage,
   loadTemplateInventory,
   newUsage
-} from '../src/plan-checks.ts';
+} from '../src/verification/plan-checks.ts';
 import { buildTemplate } from '../src/templates.ts';
 import { findMissingPackages } from '../src/versions.ts';
 

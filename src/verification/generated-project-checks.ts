@@ -14,12 +14,12 @@ import {
 } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
 
-import type { Answers } from './answers.ts';
+import type { Answers } from '../answers/answers.ts';
 
-import { needsInitialFormat } from './features/formatter/index.ts';
-import { INITIAL_COMMIT_MESSAGE } from './features/git-hooks.ts';
-import { getInstallCommand } from './features/package-manager/index.ts';
-import { UNPATCHED_ADVISORIES } from './versions.ts';
+import { needsInitialFormat } from '../features/formatter/index.ts';
+import { INITIAL_COMMIT_MESSAGE } from '../features/git-hooks.ts';
+import { getInstallCommand } from '../features/package-manager/index.ts';
+import { UNPATCHED_ADVISORIES } from '../versions.ts';
 
 export interface CommandResult {
   ok: boolean;

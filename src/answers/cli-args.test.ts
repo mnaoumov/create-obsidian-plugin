@@ -12,6 +12,7 @@ import {
   it
 } from 'vitest';
 
+import { getDefaultAnswers } from '../prompts/prompts.ts';
 import { ANSWER_SPACE } from './answer-space.ts';
 import { Mode } from './answers.ts';
 import {
@@ -20,7 +21,6 @@ import {
   getHelpText,
   parseCliArgs
 } from './cli-args.ts';
-import { getDefaultAnswers } from './prompts.ts';
 
 const PRESENCE_BRANCH_KEYS = ['fundingUrl', 'obsidianConfigFolder'];
 

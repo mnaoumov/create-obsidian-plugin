@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import type {
   Answers,
   GeneratorConfig
-} from './answers.ts';
+} from './answers/answers.ts';
 import type { FeatureOption } from './feature-option.ts';
 import type { Overlay } from './overlay.ts';
 import type { ProjectFormatter } from './project-formatter.ts';
@@ -26,8 +26,8 @@ import type { BuildOption } from './template-builder.ts';
 import {
   CONFIG_FILE_NAME,
   getPluginShortName
-} from './answers.ts';
-import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
+} from './answers/answers.ts';
+import { resolveDeprecatedAnswer } from './answers/deprecated-answers.ts';
 import { readDocsShowcaseFiles } from './docs-showcase/docs-showcase-files.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';

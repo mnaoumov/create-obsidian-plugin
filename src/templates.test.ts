@@ -21,13 +21,13 @@ import {
 import type {
   Answers,
   GeneratorConfig
-} from './answers.ts';
+} from './answers/answers.ts';
 import type { ProjectFormatter } from './project-formatter.ts';
 
 import {
   ANSWER_SPACE,
   makeAnswers as makeSpaceAnswers
-} from './answer-space.ts';
+} from './answers/answer-space.ts';
 import {
   buildTemplate,
   copyTemplates,

@@ -6,7 +6,7 @@ import {
   it
 } from 'vitest';
 
-import { getScriptDir } from './templates.ts';
+import { getScriptDir } from '../templates.ts';
 import {
   findDeadUpstreamLinks,
   findUpstreamLinks

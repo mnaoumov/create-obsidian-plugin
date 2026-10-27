@@ -43,15 +43,15 @@ import {
 } from 'typescript';
 import { parse as parseYaml } from 'yaml';
 
-import type { Answers } from './answers.ts';
+import type { Answers } from '../answers/answers.ts';
 
-import { describeCase } from './answer-space.ts';
-import { DOCS_SHOWCASE_PRESET } from './features/preset/docs-showcase.ts';
+import { describeCase } from '../answers/answer-space.ts';
+import { DOCS_SHOWCASE_PRESET } from '../features/preset/docs-showcase.ts';
 import {
   ASSET_EXTENSIONS,
   buildTemplate,
   copyTemplates
-} from './templates.ts';
+} from '../templates.ts';
 
 /** What a rendering check found in one emitted project. */
 export interface RenderViolation {

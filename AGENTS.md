@@ -129,7 +129,7 @@ They must NOT share a partial for anything either one overrides. A registered fi
 
 ### `all-in-one` was `enhanced`, and the old value is an alias
 
-The preset's label is **All-in-one Framework** and its value `all-in-one`; until 1.1.0 it was `Enhanced` / `enhanced`, and the shared partial and its predicate were `dev-utils` / `isDevUtilsPreset`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters. `enhanced` still works wherever an answer can arrive — a flag, an answers file, a saved `.create-obsidian-plugin.json` — through the one table in `src/deprecated-answers.ts`, which logs a deprecation warning and hands on `all-in-one`, so nothing downstream ever sees the old value. A future rename of an answer value goes in the same table.
+The preset's label is **All-in-one Framework** and its value `all-in-one`; until 1.1.0 it was `Enhanced` / `enhanced`, and the shared partial and its predicate were `dev-utils` / `isDevUtilsPreset`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters. `enhanced` still works wherever an answer can arrive — a flag, an answers file, a saved `.create-obsidian-plugin.json` — through the one table in `src/answers/deprecated-answers.ts`, which logs a deprecation warning and hands on `all-in-one`, so nothing downstream ever sees the old value. A future rename of an answer value goes in the same table.
 
 ### `official-sample` copies upstream; it is not a template preset
 
@@ -141,7 +141,7 @@ Everything else is upstream's committed bytes.
 **It never reaches `buildTemplate`.** `PRESET_OPTIONS` stays the three template presets, which is what
 `FEATURE_REGISTRIES` and `ANSWER_SPACE` read, so none of the tiers sweeps it: there is nothing of ours to compose. The
 prompt offers `PRESET_PROMPT_OPTIONS`, and the CLI accepts the value through `VALUES_OUTSIDE_ANSWER_SPACE`
-(`src/cli-args.ts`). Every tooling question is skipped, a tooling flag beside it is refused (the same reasoning as
+(`src/answers/cli-args.ts`). Every tooling question is skipped, a tooling flag beside it is refused (the same reasoning as
 demo's pinned keys), the exporter writes only `OFFICIAL_SAMPLE_ANSWER_KEYS`, and `--customTemplate` is refused because
 there are no templates to overlay. `formatter` and `packageManager` are pinned to `none` and `npm`, the two tooling
 answers `main.ts` reads after scaffolding.
@@ -166,7 +166,7 @@ considered and refused, because "as is" is the ask.
 
 `preset: docs-showcase` (**Developer docs showcase**) adds `src/docs/` to the All-in-one Framework project: every code block of obsidianmd/obsidian-developer-docs, each one a command (`Docs: <page> > <heading>`). `DocsShowcase.configure` runs `AllInOne.configure` and adds the `all-in-one` partial, so the project is that preset's byte for byte apart from the `docs-showcase` partials. It never also carries `demo`, which is what keeps it clear of the rule above.
 
-**The blocks are not templates.** `npm run sync:docs-showcase` (`scripts/sync-docs-showcase.ts`, the `obsidian-developer-docs` entry's `handler` in `upstreams.json`) fetches `en/**/*.md` at the tracked branch and takes every fenced block, except the ~1200 `**Signature:**` declarations API Documenter writes on the reference pages (`src/docs-showcase/extract-snippets.ts`). It classifies each one with the TypeScript parser and wraps it in a host module (`src/docs-showcase/wrap-snippet.ts`): a plugin class is loaded as a child plugin, statements run with `this` bound and the names the docs leave implicit (`app`, `file`, `editor`, `view`, `containerEl`) supplied, class members go in a plugin or settings tab, a declarative setting definition is shown in a settings tab, a modal or view the block declares is opened, an editor extension or a stylesheet is toggled. The block's own code is kept verbatim. Only its missing imports, an export list, and `run(context)` are added. A name the block takes from another block is imported from it, looked for on the same page first, then in the same docs section. The sync then type-checks every module with `tsc` against the latest `obsidian` and writes the ones that compile into `templates/docs-showcase/files/`, plus the fate of every block into `templates/docs-showcase/snippets.json`. `copyTemplates` appends that folder as it is, so no EJS touches upstream's code, and the render tier skips it (`DOCS_SHOWCASE_PREFIX`, `src/render-checks.ts`): its composition checks would only report the docs' own empty blocks.
+**The blocks are not templates.** `npm run sync:docs-showcase` (`scripts/sync-docs-showcase.ts`, the `obsidian-developer-docs` entry's `handler` in `upstreams.json`) fetches `en/**/*.md` at the tracked branch and takes every fenced block, except the ~1200 `**Signature:**` declarations API Documenter writes on the reference pages (`src/docs-showcase/extract-snippets.ts`). It classifies each one with the TypeScript parser and wraps it in a host module (`src/docs-showcase/wrap-snippet.ts`): a plugin class is loaded as a child plugin, statements run with `this` bound and the names the docs leave implicit (`app`, `file`, `editor`, `view`, `containerEl`) supplied, class members go in a plugin or settings tab, a declarative setting definition is shown in a settings tab, a modal or view the block declares is opened, an editor extension or a stylesheet is toggled. The block's own code is kept verbatim. Only its missing imports, an export list, and `run(context)` are added. A name the block takes from another block is imported from it, looked for on the same page first, then in the same docs section. The sync then type-checks every module with `tsc` against the latest `obsidian` and writes the ones that compile into `templates/docs-showcase/files/`, plus the fate of every block into `templates/docs-showcase/snippets.json`. `copyTemplates` appends that folder as it is, so no EJS touches upstream's code, and the render tier skips it (`DOCS_SHOWCASE_PREFIX`, `src/verification/render-checks.ts`): its composition checks would only report the docs' own empty blocks.
 
 **A block that does not compile is a finding, never a silent drop.** It stays in `snippets.json` and in the generated `src/docs/README.md` with its first diagnostic, translated back to its line on the page. Most are genuine against the official sample's compiler options (`noUncheckedIndexedAccess`, uninitialized properties, names defined nowhere in the docs). `--check` re-runs the pinned commit against the pinned `obsidian` version and fails on any difference, so a change to the wrapping rules that is not re-synced is caught.
 
@@ -380,7 +380,7 @@ built from `addLintStagedCommand`.
 
 ### Every answer says whether the toolkits run it
 
-`src/toolkit-parity.test.ts` puts every answer value in exactly one of three tables. `TOOLKIT_BACKED`
+`src/verification/toolkit-parity.test.ts` puts every answer value in exactly one of three tables. `TOOLKIT_BACKED`
 lists the answers a toolkit runs, each with the module the emitted `all-in-one` project imports, or the
 toolkit's reusable workflow one of its workflows calls, and the test renders the answer and checks that
 import or `uses:`. `AWAITING_TOOLKIT` lists the tools the toolkits do not run yet, with what each lacks;
@@ -493,7 +493,7 @@ global by construction. So a generated project demonstrates exactly ONE JSX runt
 answer wins**, which is the same call the demo + biome linter case makes: that override is `exclusive`, so
 eslint is forced in only when no linter was answered, because `npm run lint` runs one tool. `svelte` and `vue` compile their
 own single-file components and `lit` uses tagged templates, so none of them claims a runtime and all three
-stay forced beside anything. Note this changes nothing a user can reach: `src/prompts.ts` skips the
+stay forced beside anything. Note this changes nothing a user can reach: `src/prompts/prompts.ts` skips the
 `uiFramework` question for `preset: demo` and pins it to `none`, so the demo vault still gets react,
 svelte and vue. It is `buildTemplate` that had to stop emitting a project that cannot compile.
 
@@ -506,11 +506,11 @@ if the pin were ever lifted. The tiers render demo with every bundler answer, an
 
 ### An answer can arrive from four places, and the most specific wins
 
-`src/cli-args.ts` parses `--<answerKey>=<value>` and `--answersFile=<json>`; `src/answers-export.ts` writes both forms back out. The order is built-in defaults, then the answers saved in an existing project, then the answers file, then individual flags.
+`src/answers/cli-args.ts` parses `--<answerKey>=<value>` and `--answersFile=<json>`; `src/answers/answers-export.ts` writes both forms back out. The order is built-in defaults, then the answers saved in an existing project, then the answers file, then individual flags.
 
 Three things about it are load-bearing.
 
-**The accepted values come from `ANSWER_SPACE`, not from a list in the CLI.** That is derived from the `*_OPTIONS` arrays, so an option added to a feature is settable the day it lands. The answerable KEYS are read off a real `Answers` object (`Object.keys(getDefaultAnswers())`) for the same reason — TypeScript forces that object to carry every key, so the derivation is total. `src/cli-args.test.ts` asserts every key is either answerable or explicitly computed, which is the `platformSupport` defect class again: a question the user is asked whose answer is then discarded.
+**The accepted values come from `ANSWER_SPACE`, not from a list in the CLI.** That is derived from the `*_OPTIONS` arrays, so an option added to a feature is settable the day it lands. The answerable KEYS are read off a real `Answers` object (`Object.keys(getDefaultAnswers())`) for the same reason — TypeScript forces that object to carry every key, so the derivation is total. `src/answers/cli-args.test.ts` asserts every key is either answerable or explicitly computed, which is the `platformSupport` defect class again: a question the user is asked whose answer is then discarded.
 
 **Only the `skip` predicate needed composing.** `runPromptSteps` already writes `defaultValue(answers)` for a skipped step, and every step's `defaultValue` already reads the supplied answer before its own fallback — so a supplied answer lands by the path that was already there. This is why the 19 `skipUnlessCustomize` steps honour a flag even under `preset: demo`, where they are all skipped.
 
@@ -602,7 +602,7 @@ Deferred: an overlay published as an npm package (what would make one shareable)
 
 ### The three manifest answers are checked against the Community directory, at the prompt
 
-`src/directory-constraints.ts` holds what the directory's automated review enforces on `id`, `name` and
+`src/directory/directory-constraints.ts` holds what the directory's automated review enforces on `id`, `name` and
 `description`. It is reached from two places and needs no third: the prompts pass each validator to clack,
 and `cli-args.ts`'s `FREE_TEXT_VALIDATORS` is the same table, so a flag, an answers file, `render:case` and
 `gate:case` are all held to it.
@@ -625,12 +625,12 @@ opposite provenance: `Obsidian` is banned from a description by the review and b
 **The generator's own answers have to pass too, and did not.** The default id was `my-awesome-plugin` and
 the verification fixture `my-plugin`, both of which the directory rejects for ending with `plugin`; their
 names carried `Plugin` for the same reason. So the `--yes` path shipped an unlistable plugin and every
-verified case generated one. `src/directory-constraints.test.ts` asserts both sets pass, which is what
+verified case generated one. `src/directory/directory-constraints.test.ts` asserts both sets pass, which is what
 stops either drifting back.
 
 **Uniqueness is the one constraint the prompt cannot check, so it is checked once the answers are in.**
 The directory also requires the `id` to be absent from `community-plugins.json`, a fact about the world
-that a synchronous clack `validate` cannot fetch. `src/directory-registry.ts` fetches the list, and
+that a synchronous clack `validate` cannot fetch. `src/directory/directory-registry.ts` fetches the list, and
 `ensurePluginIdIsUnlisted` (`src/main.ts`) checks it between the answers and the answers export, so an
 exported script carries the corrected id. A failed fetch is a warning naming what went unchecked, never a
 refusal, for the reason `resolveVersions()` falls back to `latest`. A collision under `--yes` is a usage
@@ -731,7 +731,7 @@ output name as an option, and Parcel takes a namer — as it takes a resolver wh
 `external` list.
 
 **The gate tier asserts the artifact, not the exit code.** `npm run build` exiting 0 is what let this
-live: `checkStyles` (`src/generated-project-checks.ts`) now runs after `build` and, when an emitted
+live: `checkStyles` (`src/verification/generated-project-checks.ts`) now runs after `build` and, when an emitted
 `src/` module imports a stylesheet, insists that `dist/build/styles.css` exists, is non-empty, and is
 the only `.css` in the folder — the last clause being what catches a half-fix that writes `styles.css`
 and leaves the misnamed original beside it. The trigger is read out of the generated modules, `src/main.ts`
@@ -991,9 +991,9 @@ three, each covering as much as its per-case cost allows.
 
 | tier | per case | what runs it | coverage it can afford |
 | --- | --- | --- | --- |
-| plan (`src/plan-checks.ts`) | ~32 us | strength-2 in `npm test`; `npm run verify:answer-space` | 5M-case stride sample + a strength-3 interaction pass, ~35 s |
-| render (`src/render-checks.ts`) | ~215 ms | strength-2 in `npm test`; `npm run verify:rendering` | strength 3, 265 cases, ~40 s across processes |
-| install and gate (`src/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under npm, ~50 cases, plus one case each for bun/pnpm/yarn |
+| plan (`src/verification/plan-checks.ts`) | ~32 us | strength-2 in `npm test`; `npm run verify:answer-space` | 5M-case stride sample + a strength-3 interaction pass, ~35 s |
+| render (`src/verification/render-checks.ts`) | ~215 ms | strength-2 in `npm test`; `npm run verify:rendering` | strength 3, 265 cases, ~40 s across processes |
+| install and gate (`src/verification/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under npm, ~50 cases, plus one case each for bun/pnpm/yarn |
 
 None of them answers the question asked while actually editing a template — *what does this one
 combination emit?* — because all three sweep. `npm run render:case -- <question>=<answer> …
@@ -1110,7 +1110,7 @@ templates' style. And no tier runs `lint:md`, which let the funding `<a>` reach 
 
 The stylesheet templates cite obsidian-lib source files for the user to read. The retired obsidian-dev-utils, which they cited
 before obsidian-lib replaced it, renamed every file to kebab-case in `77c2bac1`, and `src/CssClass.ts` stayed in the templates as a 404 emitted into every generated
-plugin for seven months, with every tier green. `npm run verify:upstream-links` (`src/upstream-links.ts`) finds
+plugin for seven months, with every tier green. `npm run verify:upstream-links` (`src/verification/upstream-links.ts`) finds
 every literal `blob` / `raw` / `tree` link into that repository in this repo's tracked files, test files excepted,
 and resolves each against `git ls-tree` of the link's ref in a checkout: `origin/<ref>` first, then `<ref>`.
 
@@ -1127,7 +1127,7 @@ the generated project.
 ### A fourth check asks whether the output looks like a real plugin
 
 The three tiers above all ask the same question — is the output valid? — over as much of the answer space
-as each can afford. `verify:plugin-drift` (`src/plugin-drift-checks.ts`) asks a different one, over a single
+as each can afford. `verify:plugin-drift` (`src/verification/plugin-drift-checks.ts`) asks a different one, over a single
 point in that space: does what the toolkit presets emit actually look like the 29 plugins
 checked out beside this repo? The README advertises `obsidian-sample-plugin-extended` as the "Sample
 output", so a divergence there is a documented promise being broken, and nothing measured it until this

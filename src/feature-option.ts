@@ -1,7 +1,7 @@
-import type { Answers } from './answers.ts';
+import type { Answers } from './answers/answers.ts';
 import type { TemplateBuilder } from './template-builder.ts';
 
-import { select } from './clack-select.ts';
+import { select } from './prompts/clack-select.ts';
 
 export interface FeatureOptionConfig {
   /**

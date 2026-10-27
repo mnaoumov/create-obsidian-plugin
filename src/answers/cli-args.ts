@@ -8,24 +8,24 @@ import type {
   StringAnswerKey
 } from './answers.ts';
 
-import { ANSWER_SPACE } from './answer-space.ts';
-import { Mode } from './answers.ts';
-import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 import {
   validatePluginDescription,
   validatePluginId,
   validatePluginName
-} from './directory-constraints.ts';
-import { validateFundingUsername } from './features/funding-platform/index.ts';
+} from '../directory/directory-constraints.ts';
+import { validateFundingUsername } from '../features/funding-platform/index.ts';
 import {
   isOfficialSamplePreset,
   OFFICIAL_SAMPLE_ANSWER_KEYS,
   OFFICIAL_SAMPLE_PRESET
-} from './features/preset/official-sample.ts';
+} from '../features/preset/official-sample.ts';
 import {
   getDefaultAnswers,
   validateNotEmpty
-} from './prompts.ts';
+} from '../prompts/prompts.ts';
+import { ANSWER_SPACE } from './answer-space.ts';
+import { Mode } from './answers.ts';
+import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 
 export interface CliArgs {
   /** Every answer supplied on the command line or in `--answersFile`, with the flags winning. */

@@ -10,7 +10,12 @@ import {
   it
 } from 'vitest';
 
-import { makeAnswers } from './answer-space.ts';
+import { makeAnswers } from '../answers/answer-space.ts';
+import { Dependency } from '../template-builder.ts';
+import {
+  buildPinnedVersionsJson,
+  PINNED_VERSIONS
+} from '../versions.ts';
 import {
   findBlockingAdvisories,
   findStalePins,
@@ -19,11 +24,6 @@ import {
   readCollectedTestCount,
   runGate
 } from './generated-project-checks.ts';
-import { Dependency } from './template-builder.ts';
-import {
-  buildPinnedVersionsJson,
-  PINNED_VERSIONS
-} from './versions.ts';
 
 describe('findBlockingAdvisories', () => {
   const braces = { severity: 'high', url: 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm' };

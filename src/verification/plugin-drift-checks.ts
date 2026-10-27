@@ -31,10 +31,10 @@ import {
   SyntaxKind
 } from 'typescript';
 
-import type { Answers } from './answers.ts';
+import type { Answers } from '../answers/answers.ts';
 
-import { makeAnswers } from './answer-space.ts';
-import { CONFIG_FILE_NAME } from './answers.ts';
+import { makeAnswers } from '../answers/answer-space.ts';
+import { CONFIG_FILE_NAME } from '../answers/answers.ts';
 
 /** One accepted difference, as recorded in `plugin-drift-baseline.json`. */
 export interface BaselineEntry {

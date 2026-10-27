@@ -16,7 +16,7 @@ import type {
   BaselineEntry,
   BaselineViolation,
   DriftFinding
-} from '../src/plugin-drift-checks.ts';
+} from '../src/verification/plugin-drift-checks.ts';
 
 import {
   buildConsensus,
@@ -29,7 +29,7 @@ import {
   listTrackedFiles,
   pluginShapedAnswers,
   reconcileBaseline
-} from '../src/plugin-drift-checks.ts';
+} from '../src/verification/plugin-drift-checks.ts';
 import {
   copyTemplates,
   getScriptDir

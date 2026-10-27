@@ -4,104 +4,104 @@ import {
 } from '@clack/prompts';
 import { styleText } from 'node:util';
 
-import type { Answers } from './answers.ts';
-import type { FeatureOption } from './feature-option.ts';
+import type { Answers } from '../answers/answers.ts';
+import type { FeatureOption } from '../feature-option.ts';
 
-import { select } from './clack-select.ts';
-import { text } from './clack-text.ts';
-import { GoBackError } from './clack-utils.ts';
 import {
   validatePluginDescription,
   validatePluginId,
   validatePluginName
-} from './directory-constraints.ts';
+} from '../directory/directory-constraints.ts';
 import {
   API_SUBSET_OPTIONS,
   promptApiSubset
-} from './features/api-subset/index.ts';
+} from '../features/api-subset/index.ts';
 import {
   BUNDLER_OPTIONS,
   promptBundler
-} from './features/bundler/index.ts';
+} from '../features/bundler/index.ts';
 import {
   COMMIT_LINTING_OPTIONS,
   promptCommitLinting
-} from './features/commit-linting/index.ts';
+} from '../features/commit-linting/index.ts';
 import {
   COVERAGE_BADGE_OPTIONS,
   promptCoverageBadge
-} from './features/coverage-badge/index.ts';
+} from '../features/coverage-badge/index.ts';
 import {
   E2E_TEST_RUNNER_OPTIONS,
   promptE2eTestRunner
-} from './features/e2e-test-runner/index.ts';
+} from '../features/e2e-test-runner/index.ts';
 import {
   EDITOR_EXTENSIONS_OPTIONS,
   promptEditorExtensions
-} from './features/editor-extensions/index.ts';
+} from '../features/editor-extensions/index.ts';
 import {
   FORMATTER_OPTIONS,
   promptFormatter
-} from './features/formatter/index.ts';
+} from '../features/formatter/index.ts';
 import {
   asksFundingUsername,
   promptFundingPlatform,
   validateFundingUsername
-} from './features/funding-platform/index.ts';
+} from '../features/funding-platform/index.ts';
 import {
   GITHUB_ACTIONS_OPTIONS,
   promptGitHubActions
-} from './features/git-hub-actions/index.ts';
+} from '../features/git-hub-actions/index.ts';
 import {
   GITHUB_ISSUE_TEMPLATES_OPTIONS,
   promptGitHubIssueTemplates
-} from './features/git-hub-issue-templates/index.ts';
+} from '../features/git-hub-issue-templates/index.ts';
 import {
   HOT_RELOAD_OPTIONS,
   promptHotReload
-} from './features/hot-reload/index.ts';
+} from '../features/hot-reload/index.ts';
 import {
   INTERNATIONALIZATION_OPTIONS,
   promptInternationalization
-} from './features/internationalization/index.ts';
+} from '../features/internationalization/index.ts';
 import {
   LINTER_OPTIONS,
   promptLinter
-} from './features/linter/index.ts';
+} from '../features/linter/index.ts';
 import {
   MARKDOWN_LINTER_OPTIONS,
   promptMarkdownLinter
-} from './features/markdown-linter/index.ts';
+} from '../features/markdown-linter/index.ts';
 import {
   PACKAGE_MANAGER_OPTIONS,
   promptPackageManager
-} from './features/package-manager/index.ts';
+} from '../features/package-manager/index.ts';
 import {
   PLATFORM_SUPPORT_OPTIONS,
   promptPlatformSupport
-} from './features/platform-support/index.ts';
-import { promptPreset } from './features/preset/index.ts';
-import { isOfficialSamplePreset } from './features/preset/official-sample.ts';
+} from '../features/platform-support/index.ts';
+import { promptPreset } from '../features/preset/index.ts';
+import { isOfficialSamplePreset } from '../features/preset/official-sample.ts';
 import {
   promptSpellChecker,
   SPELL_CHECKER_OPTIONS
-} from './features/spell-checker/index.ts';
+} from '../features/spell-checker/index.ts';
 import {
   promptStyling,
   STYLING_OPTIONS
-} from './features/styling/index.ts';
+} from '../features/styling/index.ts';
 import {
   promptTestRunner,
   TEST_RUNNER_OPTIONS
-} from './features/test-runner/index.ts';
+} from '../features/test-runner/index.ts';
 import {
   promptUiFramework,
   UI_FRAMEWORK_OPTIONS
-} from './features/ui-framework/index.ts';
+} from '../features/ui-framework/index.ts';
 import {
   promptWasmSupport,
   WASM_SUPPORT_OPTIONS
-} from './features/wasm-support/index.ts';
+} from '../features/wasm-support/index.ts';
+import { select } from './clack-select.ts';
+import { text } from './clack-text.ts';
+import { GoBackError } from './clack-utils.ts';
 
 /**
  * The answer every question behind the `Tooling` question takes on "Use recommended defaults".

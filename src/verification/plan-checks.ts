@@ -5,18 +5,18 @@ import {
   join
 } from 'node:path';
 
-import type { Answers } from './answers.ts';
-import type { TemplateBuilder } from './template-builder.ts';
+import type { Answers } from '../answers/answers.ts';
+import type { TemplateBuilder } from '../template-builder.ts';
 
-import { describeCase } from './answer-space.ts';
-import { indexTemplateDir } from './template-index.ts';
+import { describeCase } from '../answers/answer-space.ts';
+import { indexTemplateDir } from '../template-index.ts';
 import {
   ASSET_EXTENSIONS,
   buildTemplate,
   getDestinationPath,
   getScriptDir,
   isPartialTemplatePath
-} from './templates.ts';
+} from '../templates.ts';
 
 /** What one case's plan came to: what is wrong with it, and the dependency set it declared. */
 export interface CaseCheckResult {

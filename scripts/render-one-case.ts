@@ -15,17 +15,17 @@ import process from 'node:process';
 import type {
   Answers,
   StringAnswerKey
-} from '../src/answers.ts';
+} from '../src/answers/answers.ts';
 
 import {
   describeCase,
   makeAnswers
-} from '../src/answer-space.ts';
+} from '../src/answers/answer-space.ts';
 import {
   resolveAnswer,
   toAnswerKey
-} from '../src/cli-args.ts';
-import { listGeneratedFiles } from '../src/plugin-drift-checks.ts';
+} from '../src/answers/cli-args.ts';
+import { listGeneratedFiles } from '../src/verification/plugin-drift-checks.ts';
 import { copyTemplates } from '../src/templates.ts';
 
 /**
@@ -113,7 +113,7 @@ function parseOptions(argv: readonly string[]): Options {
  * render the DEFAULT answer to it and print output that looks like an answer to a question nobody
  * asked. Both halves are checked, so the tool cannot show one case while naming another.
  *
- * The checks are the CLI's own (`src/cli-args.ts`) rather than a second copy. This tool and `gate:case`
+ * The checks are the CLI's own (`src/answers/cli-args.ts`) rather than a second copy. This tool and `gate:case`
  * each carried one, and they had already diverged -- `gate-one-case.ts` validated the key and let any
  * value through. Sharing them also widens what both accept to the free-text answers, so a case can now
  * pin `pluginId` as well as the tooling questions.

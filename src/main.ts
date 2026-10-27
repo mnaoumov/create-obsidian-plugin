@@ -26,8 +26,8 @@ import type {
   Answers,
   GeneratorConfig,
   PackageJson
-} from './answers.ts';
-import type { CliArgs } from './cli-args.ts';
+} from './answers/answers.ts';
+import type { CliArgs } from './answers/cli-args.ts';
 import type { Overlay } from './overlay.ts';
 import type { UpstreamSnapshot } from './upstream-snapshot.ts';
 
@@ -37,22 +37,21 @@ import {
   formatCreateScript,
   getScriptExtension,
   getShellForPlatform
-} from './answers-export.ts';
+} from './answers/answers-export.ts';
 import {
   CONFIG_FILE_NAME,
   Mode
-} from './answers.ts';
-import { assertNotCancelled } from './clack-utils.ts';
+} from './answers/answers.ts';
 import {
   getHelpText,
   parseCliArgs
-} from './cli-args.ts';
-import { findUnlistableManifestAnswers } from './directory-constraints.ts';
+} from './answers/cli-args.ts';
+import { findUnlistableManifestAnswers } from './directory/directory-constraints.ts';
 import {
   fetchCommunityPluginIds,
   makeUnlistedPluginIdValidator,
   validatePluginIdIsUnlisted
-} from './directory-registry.ts';
+} from './directory/directory-registry.ts';
 import { needsInitialFormat } from './features/formatter/index.ts';
 import { INITIAL_COMMIT_MESSAGE } from './features/git-hooks.ts';
 import {
@@ -72,11 +71,12 @@ import {
   toRecordedOverlayPath
 } from './overlay.ts';
 import { createProjectFormatter } from './project-formatter.ts';
+import { assertNotCancelled } from './prompts/clack-utils.ts';
 import {
   getDefaultAnswers,
   makePluginName,
   promptAnswers
-} from './prompts.ts';
+} from './prompts/prompts.ts';
 import {
   buildTemplate,
   copyTemplates,
