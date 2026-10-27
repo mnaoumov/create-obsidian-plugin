@@ -8,7 +8,7 @@ import {
 import {
   S_BAR,
   S_BAR_END,
-  symbol
+  symbol as $symbol
 } from '@clack/prompts';
 import { styleText } from 'node:util';
 
@@ -54,7 +54,7 @@ export async function text(opts: TextWithCompletionOptions): Promise<string> {
   const textOpts: TextOptions = {
     render() {
       const withGuide = settings.withGuide;
-      const header = `${withGuide ? `${styleText('gray', S_BAR)}\n` : ''}${symbol(this.state)}  ${opts.message}\n`;
+      const header = `${withGuide ? `${styleText('gray', S_BAR)}\n` : ''}${$symbol(this.state)}  ${opts.message}\n`;
       const placeholderDisplay = opts.placeholder
         ? styleText('inverse', opts.placeholder[0] ?? '') + styleText('dim', opts.placeholder.slice(1))
         : styleText(['inverse', 'hidden'], '_');

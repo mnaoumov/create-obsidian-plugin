@@ -22,3 +22,15 @@ it('discovers the root config for every script and reports script violations', a
   });
   expect(results.flatMap((result) => result.messages).some((message) => message.ruleId === 'no-console')).toBe(true);
 });
+
+it('rejects keyword bindings while preserving imported names and property keys', async () => {
+  const eslint = new ESLint();
+  const results = await eslint.lintText(
+    'import { symbol as $symbol } from \'@clack/prompts\';\nconst event = $symbol(\'submit\');\nconst $event = { event };\nconsole.error($event.event);\n',
+    { filePath: join(import.meta.dirname, 'lint.ts') }
+  );
+  const messages = results.flatMap((result) => result.messages)
+    .filter((message) => message.ruleId === 'typescript-dev-toolkit/no-keyword-identifiers');
+  expect(messages).toHaveLength(1);
+  expect(messages[0]?.message).toContain('event');
+});

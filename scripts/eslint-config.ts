@@ -4,6 +4,7 @@ import type { Linter } from 'eslint';
 
 import commentsConfigs from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import eslint from '@eslint/js';
+import { noKeywordIdentifiers } from '@mnaoumov/typescript-dev-toolkit/linters/eslint-rules/no-keyword-identifiers';
 // eslint-disable-next-line import-x/no-rename-default -- The default export name `plugin` is too generic.
 import stylistic from '@stylistic/eslint-plugin';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
@@ -35,6 +36,19 @@ export function createEslintConfig(tsconfigRootDir: string): Linter.Config[] {
       'templates/**'
     ]),
     ...getEslintConfigs(),
+    {
+      files: typeScriptFiles,
+      plugins: {
+        'typescript-dev-toolkit': {
+          rules: {
+            'no-keyword-identifiers': noKeywordIdentifiers
+          }
+        }
+      },
+      rules: {
+        'typescript-dev-toolkit/no-keyword-identifiers': 'error'
+      }
+    },
     ...getTseslintConfigs(tsconfigRootDir),
     ...getStylisticConfigs(),
     ...getImportXConfigs(),
@@ -332,7 +346,11 @@ function getImportXConfigs(): Linter.Config[] {
 function getPerfectionistConfigs(): Linter.Config[] {
   return defineConfig([{
     extends: [perfectionistConfigs['recommended-alphabetical']],
-    files: typeScriptFiles
+    files: typeScriptFiles,
+    rules: {
+      // Match dprint's ordering by the imported name, including keyword aliases.
+      'perfectionist/sort-named-imports': ['error', { ignoreAlias: true }]
+    }
   }]);
 }
 

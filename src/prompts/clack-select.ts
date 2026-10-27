@@ -10,7 +10,7 @@ import {
   S_BAR_END,
   S_RADIO_ACTIVE,
   S_RADIO_INACTIVE,
-  symbol
+  symbol as $symbol
 } from '@clack/prompts';
 import { styleText } from 'node:util';
 
@@ -37,7 +37,7 @@ export async function select(opts: SelectWithGoBackOptions): Promise<string> {
     options: opts.options,
     render() {
       const withGuide = settings.withGuide;
-      const header = `${withGuide ? `${styleText('gray', S_BAR)}\n` : ''}${symbol(this.state)}  ${opts.message}\n`;
+      const header = `${withGuide ? `${styleText('gray', S_BAR)}\n` : ''}${$symbol(this.state)}  ${opts.message}\n`;
       const selected = this.options[this.cursor];
 
       switch (this.state) {
