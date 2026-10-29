@@ -13,7 +13,6 @@ export const DEMO_VAULT_TEMPLATE_FILES = [
   'demo-vault/00 Start.md',
   'demo-vault/01 Sample commands.md',
   'demo-vault/02 Settings.md',
-  'demo-vault/Materials/01 Sample commands/Scratch note.md',
   'demo-vault/README.md',
   'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts',
   'demo-vault/_assets/CodeScriptToolkit/startup.ts'

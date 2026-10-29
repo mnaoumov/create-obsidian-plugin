@@ -780,8 +780,8 @@ function importedPackages(source: SourceFile): string[] {
 /**
  * Whether the emitted `.gitignore` files keep a path out of the repository.
  *
- * The generator writes some files it also ignores, such as the demo vault's scratch note, so a file being on
- * disk after a render does not mean a clone has it. Each `.gitignore` from the root down is asked in turn, and
+ * A render can write a file that an emitted `.gitignore` also ignores, so a file being on disk after a render
+ * does not mean a clone has it. Each `.gitignore` from the root down is asked in turn, and
  * the deepest one with an opinion wins, which is how git lets a nested file re-include a path.
  */
 function isGitIgnored(targetDir: string, relativePath: string): boolean {
