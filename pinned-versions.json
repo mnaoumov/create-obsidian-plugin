@@ -10,17 +10,24 @@
     "that is actually present in the declared section; the script reports either mismatch."
   ],
   "pins": {
-    "typescript": {
-      "section": "devDependencies",
-      "why": "TypeScript 7 (tsgo) breaks this toolchain: @typescript-eslint's parser crashes on the native API, so type-aware ESLint cannot run on 7. @typescript-eslint peer-requires the range below, so 6.x is the last usable major. Hold until @mnaoumov/typescript-dev-toolkit migrates.",
-      "check": "node -e \"process.stdout.write(require('typescript-eslint/package.json').peerDependencies.typescript)\"",
-      "expect": ">=4.8.4 <6.1.0"
-    },
     "katex": {
       "section": "overrides",
       "why": "GHSA-238p-pmpm-9mq7 affects KaTeX <0.18.2. micromark-extension-math 3.1.0 still requires ^0.16.0 via markdownlint in the development toolkit. Remove when upstream admits a patched KaTeX release; markdownlint uses math tokenization, not HTML rendering.",
       "check": "npm view micromark-extension-math@latest dependencies.katex",
       "expect": "^0.16.0"
+    },
+    "re2js": {
+      "section": "overrides",
+      "why": "Clears GHSA-gg6h-894w-4m9c (RE2JS quadratic-time denial of service in lookbehind matching, >=2.2.0 <2.8.7). Reached only through markdownlint, whose newest release 0.42.0 pins re2js at the exact 2.8.6, and markdownlint-cli2 0.24.0 pins that markdownlint exactly in turn, so no bump reaches the fix. 2.9.1 is the version markdownlint itself moved to upstream, so the forced minor is the one it is tested against. NEVER take the `npm audit fix --force` remedy: it downgrades the toolkit packages.",
+      "check": "node -e \"const fs=require('node:fs');process.stdout.write(JSON.parse(fs.readFileSync('node_modules/markdownlint/package.json','utf8')).dependencies.re2js)\"",
+      "expect": "2.8.6",
+      "manualCheck": "The check reads the exact re2js pin of the installed markdownlint, which moves only when a markdownlint-cli2 release pins a newer markdownlint. When it reads 2.8.7 or later, drop the override and this entry and re-run `npm audit`."
+    },
+    "typescript": {
+      "section": "devDependencies",
+      "why": "TypeScript 7 (tsgo) breaks this toolchain: @typescript-eslint's parser crashes on the native API, so type-aware ESLint cannot run on 7. @typescript-eslint peer-requires the range below, so 6.x is the last usable major. Hold until @mnaoumov/typescript-dev-toolkit migrates.",
+      "check": "node -e \"process.stdout.write(require('typescript-eslint/package.json').peerDependencies.typescript)\"",
+      "expect": ">=4.8.4 <6.1.0"
     }
   }
 }
