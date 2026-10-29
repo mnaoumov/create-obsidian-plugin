@@ -159,8 +159,8 @@ describe('checkRenderedProject', () => {
     expect(kindsFor('README.md')).toContain('dangling-relative-link');
   });
 
-  // The shape that shipped: the generator emits the demo vault's scratch note and its `.gitignore` ignores it,
-  // So the render has the file and a fresh clone does not, and markdownlint's relative-links rule failed CI.
+  // The shape that shipped: the generator emitted the demo vault's scratch note and its `.gitignore` ignored it,
+  // So the render had the file and a fresh clone did not, and markdownlint's relative-links rule failed CI.
   it('flags a relative link to an emitted file that .gitignore keeps out of the repository', () => {
     put('demo-vault/.gitignore', '.obsidian/plugins/*\nMaterials/01 Sample commands/Scratch note.md\n');
     put('demo-vault/Materials/01 Sample commands/Scratch note.md', '# Scratch note\n');

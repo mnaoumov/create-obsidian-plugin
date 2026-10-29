@@ -27,10 +27,6 @@
       "pluginCount": 0,
       "why": "The scaffold's starter demo vault. Each real plugin's vault documents that plugin's own features, so no note title is common across all of them -- the generator ships a starter set instead of copying one plugin's notes."
     },
-    "demo/layout/extra/demo-vault/Materials/01 Sample commands/Scratch note.md": {
-      "pluginCount": 0,
-      "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
-    },
     "demo/layout/extra/linkinator.config.json": {
       "pluginCount": 0,
       "why": "Skips the links to the plugin's own GitHub repository for the linkinator half of `lint:md`. The scaffold writes those links from the answers, and they 404 until the user creates and pushes the repository and cuts a release, so without it a fresh project fails its own `lint:md`, `gate` and `version`. Every real plugin's repository already exists, so none needs one."
@@ -158,10 +154,6 @@
     "all-in-one/layout/extra/demo-vault/01 Sample commands.md": {
       "pluginCount": 0,
       "why": "The scaffold's starter demo vault. Each real plugin's vault documents that plugin's own features, so no note title is common across all of them -- the generator ships a starter set instead of copying one plugin's notes."
-    },
-    "all-in-one/layout/extra/demo-vault/Materials/01 Sample commands/Scratch note.md": {
-      "pluginCount": 0,
-      "why": "Supporting material for the starter demo vault's sample-commands note; see that entry."
     },
     "all-in-one/layout/extra/linkinator.config.json": {
       "pluginCount": 0,
