@@ -111,10 +111,6 @@
       "pluginCount": 30,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
-    "demo/layout/partial/src/plugin-settings-tab.test.ts": {
-      "pluginCount": 27,
-      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The one true thing to say about the settings tab is that it binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components unless it is spied on -- and jest running ES modules has no `jest` global to spy with, so the test could not be one file across both runners. `src/main.test.ts` and `src/plugin-settings-component.test.ts` are shipped."
-    },
     "demo/layout/partial/src/plugin.android.integration.test.ts": {
       "pluginCount": 24,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
@@ -124,11 +120,11 @@
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "demo/layout/partial/src/screenshots.android-capture.integration.test.ts": {
-      "pluginCount": 28,
+      "pluginCount": 18,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
-      "pluginCount": 30,
+      "pluginCount": 20,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "demo/layout/partial/src/styles/scss.d.ts": {
@@ -211,14 +207,6 @@
       "pluginCount": 30,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
-    "all-in-one/layout/partial/src/plugin-settings-tab.test.ts": {
-      "pluginCount": 27,
-      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The one true thing to say about the settings tab is that it binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components unless it is spied on -- and jest running ES modules has no `jest` global to spy with, so the test could not be one file across both runners. `src/main.test.ts` and `src/plugin-settings-component.test.ts` are shipped."
-    },
-    "all-in-one/layout/partial/src/plugin-settings.test.ts": {
-      "pluginCount": 27,
-      "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. On `all-in-one` the settings class is one default value, and a test of it would only restate the source -- the `1 + 1 === 2` shape the project's AGENTS.md warns about. `demo`, whose `TypedItem.deserialize` is behavior, ships one; the component test covers loading this preset's setting from `data.json`."
-    },
     "all-in-one/layout/partial/src/plugin.android.integration.test.ts": {
       "pluginCount": 24,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
@@ -228,11 +216,11 @@
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. An integration suite that drives a real desktop Obsidian or a provisioned Android emulator. The generator already declines to run those projects from `test:integration` for the same reason -- a fresh project would fail on a machine with neither -- so shipping the suite would mean shipping a test nothing can run."
     },
     "all-in-one/layout/partial/src/screenshots.android-capture.integration.test.ts": {
-      "pluginCount": 28,
+      "pluginCount": 18,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "all-in-one/layout/partial/src/screenshots.desktop-capture.integration.test.ts": {
-      "pluginCount": 30,
+      "pluginCount": 20,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
     },
     "all-in-one/layout/partial/src/styles/scss.d.ts": {
