@@ -216,7 +216,8 @@ export interface MissingPackage {
  * Three hang off webdriverio, which a project reaches either through
  * `obsidian-integration-testing` or through the `wdio-obsidian` end-to-end answer's own
  * `wdio-obsidian-service`. A project with neither -- `standalone` on any other e2e answer -- gets none of
- * them, and audits clean without.
+ * them, and audits clean without. `re2js` hangs off markdownlint, which a project reaches through the toolkits
+ * or through `standalone`'s own markdownlint answer.
  *
  * Three advisories in the same trees are deliberately NOT overridden. `braces` GHSA-vfj7-8cjw-p6xm has no
  * patched release to force. `katex` GHSA-238p-pmpm-9mq7 is `low`, and its fix is 0.18.2 while
@@ -241,6 +242,14 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     requires: ['obsidian-integration-testing'],
     spec: '^8.0.2',
     why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. @wdio/utils declares ^7.0.3 up to 9.30, and obsidian-integration-testing pins webdriverio 9.27.0, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
+  },
+  're2js': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/markdownlint/package.json\',\'utf8\')).dependencies.re2js)"',
+    expect: '2.8.6',
+    manualCheck: 'The check reads the exact re2js pin of the installed markdownlint, which moves only when a markdownlint-cli2 release pins a newer markdownlint. When it reads 2.8.7 or later, drop the override and this entry and re-run `npm audit`.',
+    requires: ['markdownlint', 'markdownlint-cli2', '@mnaoumov/typescript-dev-toolkit', '@mnaoumov/obsidian-dev-toolkit'],
+    spec: '^2.9.1',
+    why: 'Clears GHSA-gg6h-894w-4m9c (RE2JS quadratic-time denial of service in lookbehind matching, >=2.2.0 <2.8.7). Reached only through markdownlint, whose newest release 0.42.0 pins re2js at the exact 2.8.6, and markdownlint-cli2 0.24.0 pins that markdownlint exactly in turn, so no bump reaches the fix. The toolkits reach it through their own markdownlint-cli2. 2.9.1 is the version markdownlint itself moved to upstream, so the forced minor is the one it is tested against. Never take the `npm audit fix --force` remedy: it downgrades the toolkit packages.'
   },
   'serialize-javascript': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/mocha/package.json\',\'utf8\')).dependencies[\'serialize-javascript\'])"',
