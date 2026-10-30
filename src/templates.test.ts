@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
@@ -9,6 +10,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import process from 'node:process';
 import { runInNewContext } from 'node:vm';
 import {
   afterEach,
@@ -28,6 +30,7 @@ import {
   ANSWER_SPACE,
   makeAnswers as makeSpaceAnswers
 } from './answers/answer-space.ts';
+import { Dependency } from './template-builder.ts';
 import {
   buildTemplate,
   copyTemplates,
@@ -37,6 +40,11 @@ import {
   recordHashesOnDisk,
   sortImportStatements
 } from './templates.ts';
+import {
+  ADVISORY_OVERRIDES,
+  buildPinnedVersionsJson,
+  PINNED_VERSIONS
+} from './versions.ts';
 
 describe('buildTemplate', () => {
   const CURRENT_YEAR = 2026;
@@ -2530,6 +2538,29 @@ describe('copyTemplates', () => {
     expect(ignorePaths).toContain('coverage');
     // The pre-commit hook hands cspell the staged dotfiles, which `spellcheck` skips. This one holds file hashes and paths.
     expect(ignorePaths).toContain('.create-obsidian-plugin.json');
+  });
+
+  // `gate()` and `version` spellcheck `pinned-versions.json`, so one unknown word in a pin's reason leaves a fresh
+  // Project red. Each pin reaches only the projects that carry its package, so every pin is spellchecked here at once.
+  it('knows every word of every pin reason that pinned-versions.json can carry', () => {
+    copyTemplates(makeAnswers({ preset: 'all-in-one', spellChecker: 'cspell' }), targetDir, '1.0.0', null);
+    const packageNames = new Set([
+      ...Object.keys(PINNED_VERSIONS),
+      ...Object.values(ADVISORY_OVERRIDES).flatMap((advisoryOverride) => advisoryOverride.requires)
+    ]);
+    const dependencies = [...packageNames].map((packageName) => new Dependency(packageName));
+    // Together every check can run. Alone, a pin whose check reads another package emits its `manualCheck` instead.
+    const files = [{ dependencies, path: 'pinned-versions.json' }, ...dependencies.map((dependency, index) => ({ dependencies: [dependency], path: `pinned-versions-${String(index)}.json` }))];
+    for (const file of files) {
+      writeFileSync(join(targetDir, file.path), buildPinnedVersionsJson(file.dependencies));
+    }
+    const cspellBin = join(process.cwd(), 'node_modules/cspell/bin.mjs');
+    const result = spawnSync(process.execPath, [cspellBin, '--no-progress', '--no-summary', ...files.map((file) => file.path)], {
+      cwd: targetDir,
+      encoding: 'utf-8'
+    });
+    expect(`${result.stdout}${result.stderr}`).toBe('');
+    expect(result.status).toBe(0);
   });
 
   it('creates markdownlint scripts', () => {
