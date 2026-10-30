@@ -425,7 +425,9 @@ GitHub name and `mnaoumov` (the `@mnaoumov` package scope), come from `getCspell
 hands cspell as a staged dotfile although `spellcheck` skips dotfiles. The gate tier re-runs `spellcheck` after
 `test:coverage` and then takes a first commit through the hooks, which is what sees both. The list was measured by rendering
 one case per answer value under each preset and running cspell over all of them, which takes a minute.
-Do that again after adding prose to a template.
+Do that again after adding prose to a template. A pin's reason in `src/versions.ts` is prose too, and each one
+reaches only the projects that carry its package, so `src/templates.test.ts` writes a `pinned-versions.json`
+carrying every pin and runs cspell over it with the emitted config.
 
 ### `.depcheckrc.json` is emitted, measured; `AGENTS.md` is not
 
