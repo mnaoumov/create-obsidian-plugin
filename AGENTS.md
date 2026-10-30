@@ -317,6 +317,15 @@ Two options come before adding a section: change the code so that neither config
 an explicit `addPackage(name, version)` wins, then the pin table, then `^<current latest>` from
 `registry.npmjs.org`; a failed lookup falls back to the literal `latest` so generating offline works.
 
+**A package a toolkit also declares is held inside the toolkit's own range** (`CONSTRAINING_PACKAGES`). The
+toolkits are released one at a time, so a `latest` can be a major the other has not adopted: on 2026-10-30
+typescript-dev-toolkit 6.0.0 reached fresh projects beside the `^5.4.0` obsidian-dev-toolkit 7.4.0 declares,
+and the two copies failed `npm run build` out of the box. So obsidian-dev-toolkit is resolved first, then
+typescript-dev-toolkit inside obsidian-dev-toolkit's range, and every other package either one declares, as a
+dependency or a peer, takes the newest version inside the first toolkit's range that names it. The spec is
+`^<that version>` when the caret range lies wholly inside, otherwise the range verbatim. A pin and an explicit
+version still win, and `standalone`, which declares no toolkit, is untouched.
+
 The pin table is the single source for three things — the exact spec written into `devDependencies`, the
 generated project's `overrides` block (npm's `$<name>` shorthand, only for pins that must also reach
 nested copies), and its `pinned-versions.json`. A pin's `check` is emitted only when the package it

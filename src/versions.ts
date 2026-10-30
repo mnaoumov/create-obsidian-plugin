@@ -1,4 +1,10 @@
 import { log } from '@clack/prompts';
+import {
+  maxSatisfying,
+  minVersion,
+  subset,
+  validRange
+} from 'semver';
 
 import type { Dependency } from './template-builder.ts';
 
@@ -296,12 +302,52 @@ const REGISTRY_CONCURRENCY = 10;
 
 const NOT_FOUND = 404;
 
+/** The registry's small packument, which lists the versions without every version's whole manifest. */
+const ABBREVIATED_PACKUMENT_MEDIA_TYPE = 'application/vnd.npm.install-v1+json';
+
+/**
+ * The toolkits whose own declared ranges hold the project's copy of every package they share with it, first
+ * one first.
+ *
+ * Each toolkit is released on its own, so a package's `latest` can be a major a toolkit has not adopted yet.
+ * Resolving the two independently is how `@mnaoumov/typescript-dev-toolkit` 6.0.0 reached a fresh project
+ * beside the 5.x that obsidian-dev-toolkit 7.4.0 declares: two copies, and `wrapCliTask` from one rejected the
+ * `dev()` typed against the other, so `npm run build` failed out of the box. obsidian-dev-toolkit comes first
+ * because it declares typescript-dev-toolkit, so the second toolkit's version is held by the first.
+ */
+export const CONSTRAINING_PACKAGES: readonly string[] = ['@mnaoumov/obsidian-dev-toolkit', '@mnaoumov/typescript-dev-toolkit'];
+
+interface AbbreviatedPackument {
+  readonly versions?: Record<string, unknown>;
+}
+
 interface DesktopReleasesJson {
   readonly latestVersion?: string;
 }
 
 interface LatestPackument {
   readonly version: string;
+}
+
+interface PackageManifest {
+  readonly dependencies?: Record<string, string>;
+  readonly peerDependencies?: Record<string, string>;
+}
+
+interface Resolution {
+  /** The registry's `latest` when the constraint held the package below it, otherwise `null`. */
+  readonly heldBelow: null | string;
+  /** The toolkit whose range held the package, otherwise `null`. */
+  readonly heldBy: null | string;
+  readonly spec: string;
+  /** The concrete version the spec was built from. */
+  readonly version: string;
+}
+
+/** The range a toolkit declares for a package, and which toolkit declares it. */
+interface VersionConstraint {
+  readonly by: string;
+  readonly range: string;
 }
 
 /**
@@ -465,6 +511,14 @@ export async function findMissingPackages(packageNames: readonly string[]): Prom
   return missing.sort((a, b) => a.packageName.localeCompare(b.packageName));
 }
 
+/**
+ * Resolves every dependency to a concrete `package.json` spec.
+ *
+ * An explicit version passed to `addPackage` wins, then the pin table, then the registry's current
+ * `latest` as a caret range. A package one of the {@link CONSTRAINING_PACKAGES} also declares is held inside
+ * the range that toolkit declares for it, so the project and the toolkit share one copy. A registry lookup that
+ * fails falls back to the literal `latest` so the generator still works offline.
+ */
 export async function resolveVersions(dependencies: readonly Dependency[]): Promise<Map<string, string>> {
   const resolved = new Map<string, string>();
   const unresolved: string[] = [];
@@ -484,17 +538,44 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
     unresolved.push(dependency.packageName);
   }
 
-  const fetched = await Promise.all(unresolved.map(fetchLatestVersion));
   const failed: string[] = [];
+  const constraints = new Map<string, VersionConstraint>();
 
-  for (const [index, version] of fetched.entries()) {
-    const packageName = unresolved[index] ?? '';
-    if (version === null) {
+  function record(packageName: string, resolution: null | Resolution): void {
+    if (resolution === null) {
       failed.push(packageName);
       resolved.set(packageName, FALLBACK_VERSION);
+      return;
+    }
+    resolved.set(packageName, resolution.spec);
+    if (resolution.heldBelow !== null) {
+      log.info(`Holding ${packageName} on ${resolution.spec}, the range ${resolution.heldBy ?? ''} declares, rather than the latest ${resolution.heldBelow}.`);
+    }
+  }
+
+  // The toolkits go first and one at a time, because each one's own version may be held by the one before it,
+  // And the manifest of the version chosen is what holds everything after it.
+  for (const constrainer of CONSTRAINING_PACKAGES) {
+    if (!unresolved.includes(constrainer)) {
       continue;
     }
-    resolved.set(packageName, `^${version}`);
+    const resolution = await resolveWithin(constrainer, constraints.get(constrainer));
+    record(constrainer, resolution);
+    if (resolution === null) {
+      continue;
+    }
+    const manifest = await fetchManifest(constrainer, resolution.version);
+    for (const [packageName, range] of Object.entries({ ...manifest?.peerDependencies, ...manifest?.dependencies })) {
+      if (!constraints.has(packageName)) {
+        constraints.set(packageName, { by: constrainer, range });
+      }
+    }
+  }
+
+  const rest = unresolved.filter((packageName) => !CONSTRAINING_PACKAGES.includes(packageName));
+  const resolutions = await Promise.all(rest.map((packageName) => resolveWithin(packageName, constraints.get(packageName))));
+  for (const [index, resolution] of resolutions.entries()) {
+    record(rest[index] ?? '', resolution);
   }
 
   if (failed.length > 0) {
@@ -502,6 +583,33 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
   }
 
   return resolved;
+}
+
+/** Fetches the `package.json` the registry serves for one published version, or `null` when the lookup fails. */
+async function fetchManifest(packageName: string, version: string): Promise<null | PackageManifest> {
+  try {
+    const response = await fetch(`${REGISTRY_URL}/${packageName}/${version}`);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json() as PackageManifest;
+  } catch {
+    return null;
+  }
+}
+
+/** Every version the registry has published for `packageName`, or `null` when the lookup fails. */
+async function fetchPublishedVersions(packageName: string): Promise<null | string[]> {
+  try {
+    const response = await fetch(`${REGISTRY_URL}/${packageName}`, { headers: { accept: ABBREVIATED_PACKUMENT_MEDIA_TYPE } });
+    if (!response.ok) {
+      return null;
+    }
+    const packument = await response.json() as AbbreviatedPackument;
+    return Object.keys(packument.versions ?? {});
+  } catch {
+    return null;
+  }
 }
 
 function getAdvisoryOverrides(dependencies: readonly Dependency[]): [string, AdvisoryOverride][] {
@@ -521,13 +629,13 @@ function hasPackage(dependencies: readonly Dependency[], packageName: string): b
   return dependencies.some((dependency) => dependency.packageName === packageName);
 }
 
-/**
- * Resolves every dependency to a concrete `package.json` spec.
- *
- * An explicit version passed to `addPackage` wins, then the pin table, then the registry's current
- * `latest` as a caret range. A registry lookup that fails falls back to the literal `latest` so the
- * generator still works offline.
- */
+function isCaretWithin(version: null | string, range: string): boolean {
+  if (version === null || validRange(range) === null) {
+    return false;
+  }
+  return subset(`^${version}`, range);
+}
+
 /** Asks the registry for one package, returning why it is missing or `null` when it is there. */
 async function lookUpPackage(packageName: string): Promise<null | string> {
   try {
@@ -542,4 +650,28 @@ async function lookUpPackage(packageName: string): Promise<null | string> {
   } catch (error: unknown) {
     return `The lookup failed (${error instanceof Error ? error.message : String(error)}); this is inconclusive, not a missing package.`;
   }
+}
+
+/**
+ * Resolves one package to a caret range on its latest version, or, when `constraint` is given, on the newest
+ * version inside the constraint's range.
+ *
+ * The caret range is used only when it lies wholly inside the constraint, so a later `npm update` cannot take
+ * the project out of it either. When no caret range does, the constraint's own range is written verbatim.
+ */
+async function resolveWithin(packageName: string, constraint: undefined | VersionConstraint): Promise<null | Resolution> {
+  const latest = await fetchLatestVersion(packageName);
+  if (constraint === undefined || isCaretWithin(latest, constraint.range)) {
+    return latest === null ? null : { heldBelow: null, heldBy: null, spec: `^${latest}`, version: latest };
+  }
+
+  const versions = await fetchPublishedVersions(packageName);
+  const newest = versions === null ? null : maxSatisfying(versions, constraint.range);
+  if (newest === null) {
+    // Nothing to name a version by. The range itself still installs whatever satisfies it, which is the one
+    // Thing that keeps the project and the toolkit on one copy.
+    return { heldBelow: latest, heldBy: constraint.by, spec: constraint.range, version: minVersion(constraint.range)?.version ?? constraint.range };
+  }
+  const spec = isCaretWithin(newest, constraint.range) ? `^${newest}` : constraint.range;
+  return { heldBelow: latest, heldBy: constraint.by, spec, version: newest };
 }
