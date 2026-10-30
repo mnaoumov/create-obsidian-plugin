@@ -1570,11 +1570,12 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, '.github', 'FUNDING.yml'), 'utf-8')).toBe('# These are supported funding model platforms\n\nbuy_me_a_coffee: someone\n');
   });
 
-  it('emits no FUNDING.yml, funding badge or Support section when the platform is none', () => {
+  // The issue-filing block still opens a Support section of its own, so the funding link is what must be missing.
+  it('emits no FUNDING.yml, funding badge or Support link when the platform is none', () => {
     copyTemplates(makeAnswers({ fundingPlatform: 'none', fundingUrl: 'https://ignored.example.com' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github', 'FUNDING.yml'))).toBe(false);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    expect(readme).not.toContain('## Support');
+    expect(readme).not.toContain('Support this plugin');
     expect(readme).not.toContain('ignored.example.com');
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
     expect(manifest).not.toHaveProperty('fundingUrl');
@@ -1918,10 +1919,10 @@ describe('copyTemplates', () => {
     expect(readme).toContain('https://example.com/sponsor');
   });
 
-  it('excludes Support section from README when fundingUrl is empty', () => {
+  it('excludes the Support link from README when fundingUrl is empty', () => {
     copyTemplates(makeAnswers({ fundingUrl: '' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
-    expect(readme).not.toContain('## Support');
+    expect(readme).not.toContain('Support this plugin');
   });
 
   // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING
@@ -2742,6 +2743,40 @@ describe('copyTemplates', () => {
     const config = readFileSync(join(targetDir, '.github/ISSUE_TEMPLATE/config.yml'), 'utf-8');
     expect(config).toContain('contact_links:');
     expect(config).toContain('url: https://github.com/testuser/obsidian-my-tool/discussions');
+  });
+
+  // `gh issue create --body` and the API skip the forms, so the README and CONTRIBUTING tell an agent filing for a user
+  // To copy the form's fields as headings.
+  describe('issue-filing block', () => {
+    const heading = 'Filing an issue (for AI agents and humans)';
+
+    it('opens its own Support section in the README when there is no funding', () => {
+      copyTemplates(makeAnswers({ fundingUrl: '', gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+      const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      expect(readme).toContain(`\n\n## Support\n\n### ${heading}\n\nOpen issues through the [issue forms](https://github.com/testuser/obsidian-my-tool/issues/new/choose)`);
+      expect(readme).toContain('Always state the plugin version, the Obsidian version and your operating system.\n\n## License\n');
+    });
+
+    it('follows the funding link inside the one Support section when there is funding', () => {
+      copyTemplates(makeAnswers({ fundingUrl: 'https://example.com', gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+      const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      expect(readme.match(/^## Support$/gm)).toHaveLength(1);
+      expect(readme).toContain(`<!-- markdownlint-enable MD033 -->\n\n### ${heading}\n`);
+    });
+
+    it('comes before Prerequisites in CONTRIBUTING', () => {
+      copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+      const contributing = readFileSync(join(targetDir, 'CONTRIBUTING.md'), 'utf-8');
+      expect(contributing).toContain(`Here's how to get started.\n\n## ${heading}\n\n`);
+      expect(contributing).toContain('your operating system.\n\n## Prerequisites\n');
+    });
+
+    it('is absent when gitHubIssueTemplates is none', () => {
+      copyTemplates(makeAnswers({ fundingUrl: '', gitHubIssueTemplates: 'none' }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).not.toContain(heading);
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).not.toContain('## Support');
+      expect(readFileSync(join(targetDir, 'CONTRIBUTING.md'), 'utf-8')).not.toContain(heading);
+    });
   });
 
   it('does not create issue template files when gitHubIssueTemplates is none', () => {

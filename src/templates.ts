@@ -342,6 +342,9 @@ export function copyTemplates(
       packageName: dependency.packageName,
       version: dependency.version ?? resolvedVersions.get(dependency.packageName) ?? PINNED_VERSIONS[dependency.packageName]?.version ?? UNRESOLVED_VERSION
     })),
+    // The README's `support` seam opens `## Support` in the funding partial, so the issue-filing partial
+    // After it opens the section itself only when there is no funding.
+    _hasFunding: partials.has('has-funding'),
     _lintStagedPatterns: builder.lintStagedPatterns,
     _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
