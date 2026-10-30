@@ -2719,6 +2719,23 @@ describe('copyTemplates', () => {
     }
   });
 
+  // GitHub prefills an issue-form field only from a query parameter named after its `id`, and these are the ids
+  // Obsidian-lib's `BugReportIssueFormFieldId` puts in the link its `Report a bug` command opens.
+  it('gives the bug-report fields the ids obsidian-lib prefills', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    const form = readFileSync(join(targetDir, '.github/ISSUE_TEMPLATE/bug_report.yml'), 'utf-8');
+    for (
+      const { id, label, type } of [
+        { id: 'plugin-version', label: 'Plugin version', type: 'input' },
+        { id: 'obsidian-version', label: 'Obsidian version', type: 'input' },
+        { id: 'operating-system', label: 'Operating system', type: 'input' },
+        { id: 'environment', label: 'Environment', type: 'textarea' }
+      ]
+    ) {
+      expect(form).toContain(`  - type: ${type}\n    id: ${id}\n    attributes:\n      label: ${label}\n`);
+    }
+  });
+
   // With blank issues off, the chooser offered only the two forms, so a question had nowhere to go but one of them.
   it('links the repo Discussions from the issue chooser for questions', () => {
     copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
