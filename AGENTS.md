@@ -1208,6 +1208,12 @@ The plugin set is discovered by scanning the parent directory for anything with 
 roster that can drift. A plugin this generator scaffolded is left out, recognized by the `.create-obsidian-plugin.json` it carries: it echoes the generator's output back, so counting it measures the generator against itself. The first three such plugins moved every unanimous count and turned 16 baselined extras into traits "the real plugins" had. It reads the tracked set (`git ls-files`) on the real-plugin side and walks the tree on
 the generated side, because a generated project is not a repository yet.
 
+### The user docs are a site; the README is a landing page
+
+The full reference (options, prompts, presets, the generated project, updating, custom templates, issue forms, agent notes) lives in `docs/`, an Astro + Starlight site served at https://mnaoumov.dev/create-obsidian-plugin/. It uses the same docs-site stack as obsidian-lib, from typescript-dev-toolkit's `docs-site`, except that `scripts/docs-site.ts` skips its API reference: `src/` is the generator's internals, not an API anyone imports. The README keeps only what a newcomer needs on the npm page and links out for the rest, so document a new option or generated file in `docs/src/content/docs/guides/`, not in the README. npm shows the README, so a README change ships in a release.
+
+**Every `npm create` example writes the separator as `"--"`, quoted, and links to `guides/powershell-separator/`.** PowerShell's binder swallows a bare `--` on its way into `npm.ps1`, so the flags reach npm instead of the generator (`EUNKNOWNCONFIG`, or npm's own `--help`). `"--"` is the one spelling that works in PowerShell, `cmd.exe` and POSIX shells alike; `'--'` reaches npm with its quotes from `cmd.exe`. Measured 2026-11-01. The exported `.cmd` / `.sh` recipe keeps a bare `--`, because `cmd` or `sh` runs it, never PowerShell. The `--help` usage line and the answers-file note the wizard prints use `"--"`.
+
 ### Template engine: EJS
 
 Researched all major `create-*` packages. Only create-vue and create-nuxt-app use a template engine (both EJS). The rest use plain file copying. EJS is the only engine used in practice by major scaffolding tools.
