@@ -24,7 +24,8 @@ interface CreateCommand {
  * How each package manager's `create` form takes flags meant for the initializer rather than for itself.
  *
  * npm needs an explicit `--`; the other three forward what follows the package name straight through.
- * The commands themselves mirror the create table in `README.md`.
+ * The commands themselves mirror the create table in the docs' Getting started guide. The separator stays bare:
+ * the script is run by `cmd` or `sh`, never by PowerShell, and `cmd` would pass a single-quoted `'--'` on with its quotes.
  */
 const CREATE_COMMANDS: Readonly<Record<string, CreateCommand>> = {
   bun: { prefix: 'bun create @mnaoumov/obsidian-plugin', separator: '' },

@@ -1,3 +1,5 @@
+import type { CANCEL_SYMBOL } from '@clack/prompts';
+
 import {
   cancel,
   isCancel
@@ -11,7 +13,7 @@ export class GoBackError extends Error {
   }
 }
 
-export function assertNotCancelled<T>(value: symbol | T): asserts value is T {
+export function assertNotCancelled<T>(value: T | typeof CANCEL_SYMBOL): asserts value is T {
   if (isCancel(value)) {
     cancel('Operation cancelled.');
     process.exit(0);
@@ -26,7 +28,7 @@ export function setEscapeCancel(): void {
   lastCancelWasEscape = true;
 }
 
-export function throwGoBackOnCancel<T>(value: symbol | T): T {
+export function throwGoBackOnCancel<T>(value: T | typeof CANCEL_SYMBOL): T {
   if (isCancel(value)) {
     if (lastCancelWasEscape) {
       lastCancelWasEscape = false;

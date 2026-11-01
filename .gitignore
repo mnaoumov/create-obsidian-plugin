@@ -3,3 +3,9 @@ node_modules
 
 .claude/settings.local.json
 coverage
+
+# Astro documentation site
+.astro
+docs/dist
+docs/src/generated-sidebar.json
+docs/public/og

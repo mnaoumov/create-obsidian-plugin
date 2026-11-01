@@ -162,7 +162,11 @@ export function getAnswerableKeys(): StringAnswerKey[] {
 /** The `--help` body, built from the same tables that validate, so it cannot describe a stale CLI. */
 export function getHelpText(): string {
   const lines = [
-    'Usage: npm create @mnaoumov/obsidian-plugin [-- <options>]',
+    'Usage: npm create @mnaoumov/obsidian-plugin ["--" <options>]',
+    '',
+    'npm needs the "--" before the options; pnpm, yarn and bun do not. Keep its quotes: PowerShell',
+    'swallows a bare --. See https://mnaoumov.dev/create-obsidian-plugin/guides/powershell-separator/',
+    'Full documentation: https://mnaoumov.dev/create-obsidian-plugin/',
     '',
     'Options:',
     '  -y, --yes                 Take every default and skip the post-scaffold prompts. Never asks:',

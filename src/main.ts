@@ -417,7 +417,8 @@ async function offerAnswersExport(answers: Answers, customTemplate: string | und
       writeFileSync(join(process.cwd(), answersFileName), formatAnswersJson(answers));
       log.success(`Wrote ${answersFileName}`);
       const overlayFlag = customTemplate ? ` --customTemplate=${customTemplate}` : '';
-      note(`npm create @mnaoumov/obsidian-plugin -- --yes --mode=create --answersFile=${answersFileName}${overlayFlag}`, 'Non-interactive command');
+      // `"--"` is quoted so the command works pasted into PowerShell, which swallows a bare `--`, as well as cmd and sh.
+      note(`npm create @mnaoumov/obsidian-plugin "--" --yes --mode=create --answersFile=${answersFileName}${overlayFlag}`, 'Non-interactive command');
     }
 
     choice = await ask();

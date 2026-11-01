@@ -1,0 +1,45 @@
+---
+title: Create Obsidian Plugin
+description: A scaffolding CLI that generates Obsidian plugin projects from modern templates, and keeps them up to date.
+template: splash
+editUrl: false
+lastUpdated: false
+hero:
+    title: Create Obsidian Plugin
+    tagline: Scaffold an Obsidian plugin project from modern templates with one command, then update it as the templates improve.
+    image:
+        alt: Create Obsidian Plugin logo
+        file: ../../assets/logo.svg
+    actions:
+        - text: Get started
+          link: /create-obsidian-plugin/guides/getting-started/
+          icon: rocket
+        - text: Feature options
+          link: /create-obsidian-plugin/guides/feature-options/
+          icon: open-book
+          variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+```bash
+npm create @mnaoumov/obsidian-plugin
+```
+
+<CardGrid stagger>
+    <Card title="Your tooling, your choice" icon="setting">
+        Pick a [bundler, UI framework, linter, formatter, test runner, styling and more](./guides/feature-options/), or take the recommended set.
+    </Card>
+
+    <Card title="Scriptable" icon="list-format">
+        Answer every question with [flags or an answers file](./guides/command-line/), and save a recipe that regenerates the same project.
+    </Card>
+
+    <Card title="Updates keep your edits" icon="random">
+        Run it again in a project it created to [take the latest templates](./guides/updating/). Files you changed are left alone.
+    </Card>
+
+    <Card title="Ready to publish" icon="rocket">
+        A [project](./guides/generated-project/) with CI, releases, a demo vault, issue forms, and the Community directory's rules checked up front.
+    </Card>
+</CardGrid>
