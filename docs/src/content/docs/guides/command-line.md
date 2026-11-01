@@ -22,7 +22,7 @@ Every question the wizard asks can be answered up front instead, which is what l
 
 ## Passing the flags
 
-npm needs a `--` before the generator's flags, and pnpm, yarn and bun do not:
+`npm` needs a `--` before the generator's flags, and `pnpm`, `yarn` and `bun` do not:
 
 ```bash
 npm create @mnaoumov/obsidian-plugin "--" --yes --pluginId=my-tool --packageManager=yarn
@@ -30,7 +30,7 @@ pnpm create @mnaoumov/obsidian-plugin --yes --pluginId=my-tool --packageManager=
 ```
 
 > [!WARNING]
-> Keep the quotes around `"--"`. A bare `--` is swallowed by PowerShell, so npm reads the flags as its own. See [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/).
+> Keep the quotes around `"--"`. A bare `--` is swallowed by PowerShell, so `npm` reads the flags as its own. See [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/).
 
 ## Which answer wins
 
@@ -56,7 +56,7 @@ Invalid input is refused rather than quietly ignored:
 - an unknown answer;
 - a value outside what a question accepts;
 - a plugin id, name or description the wizard itself would reject;
-- `--currentYear` and `--pluginShortName`, which the generator computes rather than asks for;
+- `--currentYear`, which the generator computes rather than asks for;
 - `--bundler` or `--uiFramework` beside `--preset=demo`, which picks both itself;
 - a tooling flag beside `--preset=official-sample`, which takes upstream's tooling as it is.
 

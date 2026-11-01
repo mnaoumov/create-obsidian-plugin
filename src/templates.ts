@@ -27,7 +27,6 @@ import {
   CONFIG_FILE_NAME,
   getPluginShortName
 } from './answers/answers.ts';
-import { resolveDeprecatedAnswer } from './answers/deprecated-answers.ts';
 import { readDocsShowcaseFiles } from './docs-showcase/docs-showcase-files.ts';
 import { resolveFeature } from './feature-option.ts';
 import { API_SUBSET_OPTIONS } from './features/api-subset/index.ts';
@@ -39,8 +38,7 @@ import { EDITOR_EXTENSIONS_OPTIONS } from './features/editor-extensions/index.ts
 import { FORMATTER_OPTIONS } from './features/formatter/index.ts';
 import {
   FUNDING_PLATFORM_OPTIONS,
-  resolveFunding,
-  validateFundingUsername
+  resolveFunding
 } from './features/funding-platform/index.ts';
 import { addStagedFilesHook } from './features/git-hooks.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
@@ -489,10 +487,7 @@ export function loadConfig(dir: string): GeneratorConfig | null {
   if (!existsSync(configPath)) {
     return null;
   }
-  const parsed: unknown = JSON.parse(readFileSync(configPath, 'utf-8'));
-  const raw = parsed as Record<string, unknown>;
-  migrateAnswers(raw);
-  return parsed as GeneratorConfig;
+  return JSON.parse(readFileSync(configPath, 'utf-8')) as GeneratorConfig;
 }
 
 /**
@@ -802,87 +797,6 @@ function matchesRender(currentHash: string, newHash: string, projectFormatter: n
   }
   const formatted = projectFormatter.formatContent(destinationPath, rendered);
   return formatted !== null && sha256(formatted) === currentHash;
-}
-
-function migrateAnswers(raw: Record<string, unknown>): void {
-  const answers = raw['answers'] as Record<string, unknown> | undefined;
-  if (!answers) {
-    return;
-  }
-  if (answers['framework'] && !answers['uiFramework']) {
-    answers['uiFramework'] = answers['framework'];
-    delete answers['framework'];
-  }
-  if (answers['cssMode'] && !answers['styling']) {
-    answers['styling'] = answers['cssMode'];
-    delete answers['cssMode'];
-  }
-  if (answers['buildSystem'] && !answers['bundler']) {
-    answers['bundler'] = answers['buildSystem'];
-    delete answers['buildSystem'];
-  }
-  // Projects generated before the branch was configurable have no answer to carry forward, and the
-  // Workflow they were emitted with hardcoded `master`. Migrating to that -- not to the new `main`
-  // Default -- is what leaves their `ci.yml` byte-identical, so an update reports no change instead of
-  // Silently retargeting a CI trigger. Re-prompting is how they opt into `main`.
-  answers['defaultBranch'] ??= 'master';
-  migrateFundingAnswers(answers);
-  // Unread unless the platform takes a handle, but every answer set carries one -- the prompt's default.
-  answers['fundingUsername'] ??= answers['authorGitHubName'];
-  // Every project generated before the badge was an answer had none.
-  answers['coverageBadge'] ??= 'none';
-  // Once a stored answer, now derived from `pluginId` at render time; a stale copy must not reach the context.
-  delete answers['pluginShortName'];
-  for (const [key, value] of Object.entries(answers)) {
-    if (typeof value === 'string') {
-      answers[key] = resolveDeprecatedAnswer(key, value, CONFIG_FILE_NAME);
-    }
-  }
-}
-
-/**
- * Turns the old free-text `fundingUrl` plus the `gitHubFunding` on/off switch into a platform and handle.
- *
- * A URL on a known platform becomes that platform and the handle in it; any other URL becomes `custom`,
- * which keeps it verbatim. No URL means `none` whatever `gitHubFunding` said: the `FUNDING.yml` that switch
- * emitted listed every platform blank, which GitHub renders as no funding at all, so there is nothing to
- * carry forward.
- */
-function migrateFundingAnswers(answers: Record<string, unknown>): void {
-  if (answers['fundingPlatform'] !== undefined) {
-    return;
-  }
-  delete answers['gitHubFunding'];
-
-  const url = typeof answers['fundingUrl'] === 'string' ? answers['fundingUrl'] : '';
-  if (!url) {
-    answers['fundingPlatform'] = 'none';
-    answers['fundingUrl'] = '';
-    return;
-  }
-
-  // `www.` is optional on both sides: the old default was `https://buymeacoffee.com/<name>`, and every real
-  // Plugin links to `https://www.buymeacoffee.com/<name>`.
-  function stripWww(value: string): string {
-    return value.replace('://www.', '://');
-  }
-
-  for (const option of FUNDING_PLATFORM_OPTIONS) {
-    const prefix = stripWww(option.getUrl({ fundingUrl: '', fundingUsername: '' } as Answers));
-    const normalizedUrl = stripWww(url);
-    if (!prefix || !normalizedUrl.startsWith(prefix)) {
-      continue;
-    }
-    const handle = normalizedUrl.slice(prefix.length).replace(/\/$/, '');
-    if (!validateFundingUsername(handle)) {
-      answers['fundingPlatform'] = option.settingValue;
-      answers['fundingUsername'] = handle;
-      answers['fundingUrl'] = '';
-      return;
-    }
-  }
-
-  answers['fundingPlatform'] = 'custom';
 }
 
 function sha256(content: Buffer | string): string {

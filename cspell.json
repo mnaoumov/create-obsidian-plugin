@@ -14,7 +14,9 @@
   "dictionaries": [],
   "words": [
     "AETG",
+    "aoout",
     "assemblyscript",
+    "autolinks",
     "Backlinks",
     "baselined",
     "baselining",
@@ -26,6 +28,7 @@
     "creatordate",
     "depcheck",
     "depcheckrc",
+    "dsebastien",
     "Dynalist",
     "edgedriver",
     "ERESOLVE",
@@ -48,6 +51,7 @@
     "Logicless",
     "mnaoumov",
     "Naumov",
+    "nolebase",
     "Notesidian",
     "npmjs",
     "Obsi",
@@ -76,7 +80,8 @@
     "wabt",
     "wdio",
     "wikilink",
-    "wikilinks"
+    "wikilinks",
+    "zephraph"
   ],
   "ignoreRegExpList": [
     "GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}",

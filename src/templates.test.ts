@@ -36,7 +36,6 @@ import {
   copyTemplates,
   getScriptDir,
   isPartialTemplatePath,
-  loadConfig,
   recordHashesOnDisk,
   sortImportStatements
 } from './templates.ts';
@@ -1643,49 +1642,6 @@ describe('copyTemplates', () => {
       '[![GitHub downloads](https://img.shields.io/github/downloads/testuser/obsidian-my-tool/total)](https://github.com/testuser/obsidian-my-tool/releases)',
       '[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/testuser/obsidian-my-tool)'
     ].join(' '));
-  });
-
-  it('carries an old project\'s funding URL forward as a platform and handle', () => {
-    const cases: [string, string, string, string][] = [
-      ['https://buymeacoffee.com/someone', 'buy-me-a-coffee', 'someone', ''],
-      ['https://www.buymeacoffee.com/someone/', 'buy-me-a-coffee', 'someone', ''],
-      ['https://ko-fi.com/someone', 'ko-fi', 'someone', ''],
-      ['https://example.com/pay?a=1', 'custom', 'testuser', 'https://example.com/pay?a=1'],
-      ['', 'none', 'testuser', '']
-    ];
-    for (const [fundingUrl, fundingPlatform, fundingUsername, migratedUrl] of cases) {
-      writeFileSync(
-        join(targetDir, '.create-obsidian-plugin.json'),
-        JSON.stringify({ answers: { authorGitHubName: 'testuser', fundingUrl, gitHubFunding: 'funding-yml' }, fileHashes: {}, generatorVersion: '1.0.0' })
-      );
-      const answers = loadConfig(targetDir)?.answers;
-      expect(answers, fundingUrl).toMatchObject({ coverageBadge: 'none', fundingPlatform, fundingUrl: migratedUrl, fundingUsername });
-      expect(answers, fundingUrl).not.toHaveProperty('gitHubFunding');
-    }
-  });
-
-  // It used to be stored, and the update path that keeps the saved answers kept a copy that went stale once
-  // `pluginId` was re-answered -- while the re-prompt path recomputed it.
-  it('drops an old project\'s stored pluginShortName and derives it from pluginId instead', () => {
-    writeFileSync(
-      join(targetDir, '.create-obsidian-plugin.json'),
-      JSON.stringify({ answers: { ...makeAnswers(), pluginShortName: 'Stale' }, fileHashes: {}, generatorVersion: '1.0.0' })
-    );
-    const answers = loadConfig(targetDir)?.answers;
-    expect(answers).not.toHaveProperty('pluginShortName');
-
-    copyTemplates(makeAnswers({ ...answers }), targetDir, '1.0.0', null);
-    const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
-    expect(plugin).toContain('MyToolSettingTab');
-    expect(plugin).not.toContain('Stale');
-  });
-
-  it('reads an old project\'s preset "enhanced" as "all-in-one"', () => {
-    writeFileSync(
-      join(targetDir, '.create-obsidian-plugin.json'),
-      JSON.stringify({ answers: { ...makeAnswers(), preset: 'enhanced' }, fileHashes: {}, generatorVersion: '1.0.0' })
-    );
-    expect(loadConfig(targetDir)?.answers).toMatchObject({ preset: 'all-in-one' });
   });
 
   // The shared config's `prefer-setting-definitions` warns on a tab without it.

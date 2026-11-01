@@ -120,7 +120,7 @@ function parseOptions(argv: readonly string[]): Options {
 function parseOverride(argument: string, overrides: Partial<Record<StringAnswerKey, string>>): void {
   const separatorIndex = argument.indexOf('=');
   const key = toAnswerKey(argument.slice(0, separatorIndex));
-  overrides[key] = resolveAnswer(key, argument.slice(separatorIndex + 1), argument);
+  overrides[key] = resolveAnswer(key, argument.slice(separatorIndex + 1));
 }
 
 /** Lists what the case emitted, for when the question is which files exist at all. */

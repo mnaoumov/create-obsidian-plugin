@@ -146,7 +146,6 @@ describe('parsing flags', () => {
 
   it('refuses a computed key rather than dropping it', () => {
     expect(() => parseCliArgs(['--currentYear=2026'])).toThrow(/computed by the generator/);
-    expect(() => parseCliArgs(['--pluginShortName=X'])).toThrow(/computed by the generator/);
   });
 
   it('refuses an argument that is not --<answer>=<value>', () => {
@@ -192,17 +191,6 @@ describe('the demo pin', () => {
   });
 });
 
-describe('the deprecated preset "enhanced"', () => {
-  it('is read as "all-in-one" from a flag', () => {
-    expect(parseCliArgs(['--preset=enhanced']).answers).toStrictEqual({ preset: 'all-in-one' });
-  });
-
-  it('is read as "all-in-one" from an answers file', () => {
-    const path = writeAnswersFile('deprecated.json', { preset: 'enhanced' });
-    expect(parseCliArgs([`--answersFile=${path}`]).answers).toStrictEqual({ preset: 'all-in-one' });
-  });
-});
-
 describe('the answers file', () => {
   it('reads a bare answers object', () => {
     const path = writeAnswersFile('bare.json', { linter: 'biome', packageManager: 'pnpm' });
@@ -212,7 +200,7 @@ describe('the answers file', () => {
   // So the file can be pointed straight at an existing project to scaffold another one like it.
   it('reads a whole .create-obsidian-plugin.json, ignoring the computed keys it records', () => {
     const path = writeAnswersFile('config.json', {
-      answers: { currentYear: SAVED_CURRENT_YEAR, packageManager: 'bun', pluginShortName: 'Thing' },
+      answers: { currentYear: SAVED_CURRENT_YEAR, packageManager: 'bun' },
       fileHashes: { 'README.md': 'abc' },
       generatorVersion: '1.2.3'
     });

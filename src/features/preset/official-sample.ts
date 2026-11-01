@@ -31,7 +31,7 @@ export const OFFICIAL_SAMPLE_ANSWER_KEYS: readonly string[] = [
 export class OfficialSample extends FeatureOption {
   public constructor() {
     super({
-      promptHint: 'Exactly obsidianmd/obsidian-sample-plugin, with your plugin\'s id, name, author and description filled in',
+      promptHint: 'Exactly obsidianmd/obsidian-sample-plugin, with your plugin\'s id, name, author, description and license holder filled in',
       promptLabel: 'Official sample plugin',
       settingValue: OFFICIAL_SAMPLE_PRESET
     });

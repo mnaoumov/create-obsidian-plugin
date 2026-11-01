@@ -13,23 +13,24 @@ Every question can also be answered with a flag, `--<answer>=<value>`. `--help` 
 
 | Option               | Description                                                                                                                                                                                                                                                                                                                                           |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. `"preset": "enhanced"` still works as a deprecated alias |
+| All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. |
 | Demo                 | All features enabled for demonstration                                                                                                                                                                                                                                                                                                                |
 | Developer docs showcase | The All-in-one Framework project, plus every code block of the [Obsidian developer docs](https://docs.obsidian.md) as a command you can run. See [Developer docs showcase](#developer-docs-showcase) |
 | Standalone           | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                                                                          |
-| Official sample plugin | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author and description filled in. See [Official sample plugin](#official-sample-plugin) |
+| Official sample plugin | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author, description and `LICENSE` copyright holder filled in. See [Official sample plugin](#official-sample-plugin) |
 
 ### Official sample plugin
 
-`"preset": "official-sample"` gives you Obsidian's own sample plugin as it is, rather than a project built from this tool's templates. No other question is asked: upstream has already chosen its tooling (esbuild, ESLint with `eslint-plugin-obsidianmd`, npm), and a tooling flag beside this preset is refused.
+`"preset": "official-sample"` gives you Obsidian's own sample plugin as it is, rather than a project built from this tool's templates. No other question is asked: upstream has already chosen its tooling (`esbuild`, `eslint` with `eslint-plugin-obsidianmd`, `npm`), and a tooling flag beside this preset is refused.
 
 Only the plugin's identity changes:
 
 - `manifest.json`: `id`, `name`, `description`, `author`, `authorUrl` (your GitHub profile) and `fundingUrl`, which is removed if you choose no funding platform
 - `package.json` and `package-lock.json`: the package name, `obsidian-<id>`
 - `README.md`: the title
+- `LICENSE`: the copyright line, `Copyright (C) <current year> by <author>`, so the plugin is yours; upstream's 0BSD text under it is kept
 
-Every other file is upstream's, byte for byte, including its 0BSD `LICENSE` and its `AGENTS.md`. The generator adds only its own `.create-obsidian-plugin.json`, which is what lets an update work the way it does for every preset.
+Every other file is upstream's, byte for byte, including its `AGENTS.md`. The generator adds only its own `.create-obsidian-plugin.json`, which is what lets an update work the way it does for every preset.
 
 The files come from a snapshot this release ships, pinned to an upstream commit in `upstreams.json`, so generating works offline and gives the same result every time. Pass `--latest` to copy upstream as it is today instead; if upstream cannot be reached, the shipped snapshot is used with a warning.
 
@@ -216,10 +217,10 @@ Asked with the project details, not under Customize. The platform and your usern
 
 | Option | Description                         |
 |--------|-------------------------------------|
-| Bun    | Fast all-in-one JavaScript toolkit  |
-| npm    | Default, comes with Node.js         |
-| pnpm   | Fast, efficient disk space          |
-| Yarn   | Classic alternative with workspaces |
+| `bun`  | Fast all-in-one JavaScript toolkit  |
+| `npm`  | Default, comes with Node.js         |
+| `pnpm` | Fast, efficient disk space          |
+| `yarn` | Classic alternative with workspaces |
 
 ## Platform support
 

@@ -11,7 +11,7 @@ Filing from the CLI or the API (`gh issue create --body`, or an AI agent filing 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (latest LTS recommended)
-- npm (comes with Node.js)
+- `npm` (comes with Node.js)
 
 ## Setup
 
@@ -101,7 +101,7 @@ Worth knowing:
   when it finds none. Every difference it reports has to be either fixed or recorded in
   `plugin-drift-baseline.json` with the reason it is deliberate;
   `npm run verify:plugin-drift -- --print-baseline` prints a skeleton to fill in.
-- `verify:upstream-links` reads the sibling `../obsidian-lib` checkout's git tree, never the network,
+- `verify:upstream-links` reads the sibling `../obsidian-lib` checkout's `git` tree, never the network,
   so `git fetch` that checkout first. `--lib-dir <dir>` or `OBSIDIAN_LIB_DIR` points it elsewhere, and it
   exits 1 when there is no checkout to read.
 
