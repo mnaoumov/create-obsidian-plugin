@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.4.0 (2026-11-01)
+
+### Features
+
+- The `official-sample` preset writes the `LICENSE` copyright line as `Copyright (C) <year> by <author>`, keeping upstream's 0BSD text.
+- A See also section compares similar scaffolders, in the README and on the docs site.
+- `CHANGELOG.md`, back-filled from the tags, linked from the README and the docs site.
+- Tool names are marked as code in all Markdown prose, with a test that catches a bare one.
+
+### Removed
+
+- The `enhanced` preset alias: `--preset=enhanced` now fails validation like any unknown value.
+- Every migration of an older `.create-obsidian-plugin.json` answer shape (`framework`, `cssMode`, `buildSystem`, `gitHubFunding`, a missing `defaultBranch` or `coverageBadge`, a stored `pluginShortName`).
+
+[Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.3.0...1.4.0)
 ## 1.3.0 (2026-11-01)
 
 ### Features
