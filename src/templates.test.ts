@@ -2787,11 +2787,11 @@ describe('copyTemplates', () => {
     it.each(['all-in-one', 'demo'] as const)('is registered, tested and named in the README on %s', (preset) => {
       copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature', preset, testRunner: 'vitest' }), targetDir, '1.0.0', null);
       const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
-      expect(plugin).toContain("import { OpenBugReportCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-bug-report-command-handler';");
+      expect(plugin).toContain('import { OpenBugReportCommandHandler } from \'@mnaoumov/obsidian-lib/command-handlers/open-bug-report-command-handler\';');
       expect(plugin).toContain(
-        "new OpenBugReportCommandHandler({\n        app: this.app,\n        gitHubRepo: 'testuser/obsidian-my-tool',\n        pluginId: this.manifest.id\n      }),\n      new OpenDemoVaultCommandHandler({"
+        'new OpenBugReportCommandHandler({\n        app: this.app,\n        gitHubRepo: \'testuser/obsidian-my-tool\',\n        pluginId: this.manifest.id\n      }),\n      new OpenDemoVaultCommandHandler({'
       );
-      expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain("commands__.has('report-bug')");
+      expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain('commands__.has(\'report-bug\')');
       const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
       expect(readme).toContain(`not as blank issues.\n\n${sentence} It opens the bug form with the plugin version, the Obsidian version and your operating system already filled in.\n\nFiling from the CLI`);
     });
