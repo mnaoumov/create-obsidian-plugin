@@ -72,9 +72,8 @@ export type StringAnswerKey = { [Key in keyof Answers]: Answers[Key] extends str
 /**
  * The PascalCase stem of the plugin's class names (`<Short>Plugin`, `<Short>SettingTab`), derived from the id.
  *
- * Derived at render time rather than stored as an answer. It used to be an {@link Answers} field that the
- * `--yes` path let a caller override and the interactive path recomputed, so one supplied value meant two
- * different things; a stored copy also went stale whenever `pluginId` was re-answered on an update.
+ * Derived at render time and never stored as an answer, so no caller can set it apart from `pluginId` and it
+ * cannot go stale when `pluginId` is re-answered on an update.
  */
 export function getPluginShortName(pluginId: string): string {
   return pluginId.split('-').map((word) => (word[0] ?? '').toUpperCase() + word.slice(1)).join('');

@@ -111,7 +111,7 @@ function parseOptions(argv: readonly string[]): Options {
     // The CLI's own checks (`src/answers/cli-args.ts`), not a second copy. This parser used to validate the key
     // And let ANY value through, so a misspelt ANSWER gated a case it had silently renamed.
     const key = toAnswerKey(rawKey);
-    overrides[key] = resolveAnswer(key, rest.join('='), argument);
+    overrides[key] = resolveAnswer(key, rest.join('='));
   }
 
   return { keep, outRoot, overrides };

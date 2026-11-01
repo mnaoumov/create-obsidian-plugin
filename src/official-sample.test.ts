@@ -23,6 +23,7 @@ import { OFFICIAL_SAMPLE_PRESET } from './features/preset/official-sample.ts';
 import {
   applyOfficialSampleIdentity,
   copyOfficialSample,
+  getOfficialSampleCopyrightLine,
   getUpstreamsPath,
   loadOfficialSampleSnapshot,
   OFFICIAL_SAMPLE_IDENTITY_FILES,
@@ -125,6 +126,16 @@ describe('applyOfficialSampleIdentity', () => {
     expect(generated.get('README.md')?.toString('utf-8').split('\n')[0]).toBe('# My Tool');
   });
 
+  it('makes the LICENSE copyright line the author\'s, this year, and keeps upstream\'s 0BSD text', () => {
+    const license = generated.get('LICENSE')?.toString('utf-8') ?? '';
+    const [firstLine] = license.split(/\r?\n/);
+    expect(firstLine).toBe(`Copyright (C) ${String(answers.currentYear)} by Test User`);
+    expect(getOfficialSampleCopyrightLine(answers)).toBe(firstLine);
+    expect(license).not.toContain('Dynalist');
+    const upstreamLicense = snapshot.files.get('LICENSE')?.toString('utf-8') ?? '';
+    expect(license.slice(license.search(/\r?\n/))).toBe(upstreamLicense.slice(upstreamLicense.search(/\r?\n/)));
+  });
+
   // The test the plan asks for: undo exactly the identity edits, and upstream's tree comes back exactly.
   it('gives the snapshot back exactly once the identity edits are reversed', () => {
     const reversed = new Map(generated);
@@ -144,6 +155,9 @@ describe('applyOfficialSampleIdentity', () => {
 
     const upstreamTitle = snapshot.files.get('README.md')?.toString('utf-8').split('\n')[0] ?? '';
     reversed.set('README.md', Buffer.from(generated.get('README.md')?.toString('utf-8').replace(/^.*$/m, upstreamTitle) ?? '', 'utf-8'));
+
+    const upstreamCopyright = snapshot.files.get('LICENSE')?.toString('utf-8').split(/\r?\n/)[0] ?? '';
+    reversed.set('LICENSE', Buffer.from(generated.get('LICENSE')?.toString('utf-8').replace(getOfficialSampleCopyrightLine(answers), upstreamCopyright) ?? '', 'utf-8'));
 
     for (const [path, content] of snapshot.files) {
       expect(reversed.get(path)?.equals(content), path).toBe(true);

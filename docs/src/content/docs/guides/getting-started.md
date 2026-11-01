@@ -9,18 +9,18 @@ sidebar:
 
 Run the generator with the package manager you use:
 
-| Package manager | Runner | Command                                     |
-|-----------------|--------|---------------------------------------------|
-| npm             | create | `npm create @mnaoumov/obsidian-plugin`      |
-| npm             | npx    | `npx @mnaoumov/create-obsidian-plugin`      |
-| pnpm            | create | `pnpm create @mnaoumov/obsidian-plugin`     |
-| pnpm            | dlx    | `pnpm dlx @mnaoumov/create-obsidian-plugin` |
-| yarn            | create | `yarn create @mnaoumov/obsidian-plugin`     |
-| yarn            | dlx    | `yarn dlx @mnaoumov/create-obsidian-plugin` |
-| bun             | create | `bun create @mnaoumov/obsidian-plugin`      |
-| bun             | bunx   | `bunx @mnaoumov/create-obsidian-plugin`     |
+| Package manager | Runner   | Command                                     |
+|-----------------|----------|---------------------------------------------|
+| `npm`           | `create` | `npm create @mnaoumov/obsidian-plugin`      |
+| `npm`           | `npx`    | `npx @mnaoumov/create-obsidian-plugin`      |
+| `pnpm`          | `create` | `pnpm create @mnaoumov/obsidian-plugin`     |
+| `pnpm`          | `dlx`    | `pnpm dlx @mnaoumov/create-obsidian-plugin` |
+| `yarn`          | `create` | `yarn create @mnaoumov/obsidian-plugin`     |
+| `yarn`          | `dlx`    | `yarn dlx @mnaoumov/create-obsidian-plugin` |
+| `bun`           | `create` | `bun create @mnaoumov/obsidian-plugin`      |
+| `bun`           | `bunx`   | `bunx @mnaoumov/create-obsidian-plugin`     |
 
-This starts an interactive wizard. It asks about your plugin, then about its tooling, and scaffolds the project into a new `obsidian-<plugin id>` folder. At the end it offers to install the dependencies, initialize a git repository and create a GitHub repository for you.
+This starts an interactive wizard. It asks about your plugin, then about its tooling, and scaffolds the project into a new `obsidian-<plugin id>` folder. At the end it offers to install the dependencies, initialize a `git` repository and create a GitHub repository for you.
 
 To pass flags to the generator through `npm create`, put a `"--"` before them, quoted. See [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/) for why the quotes matter.
 

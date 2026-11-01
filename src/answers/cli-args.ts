@@ -25,7 +25,6 @@ import {
 } from '../prompts/prompts.ts';
 import { ANSWER_SPACE } from './answer-space.ts';
 import { Mode } from './answers.ts';
-import { resolveDeprecatedAnswer } from './deprecated-answers.ts';
 
 export interface CliArgs {
   /** Every answer supplied on the command line or in `--answersFile`, with the flags winning. */
@@ -60,16 +59,6 @@ export interface CliArgs {
  * from `FEATURE_REGISTRIES` -- the user states an intention and nothing carries it.
  */
 export const COMPUTED_ANSWER_KEYS: readonly string[] = ['currentYear'];
-
-/**
- * Template-context values derived at render time, which are not {@link Answers} keys at all.
- *
- * `pluginShortName` is derived from `pluginId`. It used to be an answer, so it is refused as a flag for the
- * same reason as {@link COMPUTED_ANSWER_KEYS}, and skipped in an answers file older configs still carry it in.
- */
-const DERIVED_TEMPLATE_KEYS: readonly string[] = ['pluginShortName'];
-
-const REFUSED_KEYS: readonly string[] = [...COMPUTED_ANSWER_KEYS, ...DERIVED_TEMPLATE_KEYS];
 
 const ANSWERS_FILE_PREFIX = '--answersFile=';
 
@@ -242,7 +231,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
 
     const [rawKey, rawValue] = splitFlag(argument);
     const key = toAnswerKey(rawKey);
-    flagAnswers[key] = resolveAnswer(key, rawValue, `--${key}`);
+    flagAnswers[key] = resolveAnswer(key, rawValue);
   }
 
   const fileAnswers = answersFilePath === null ? {} : readAnswersFile(answersFilePath);
@@ -267,20 +256,18 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
 }
 
 /**
- * The value to use for a supplied answer: a deprecated alias mapped to its replacement, then validated.
+ * A supplied answer, validated.
  *
  * Exported for the same reason as {@link assertValidAnswer}, so `render:case` and `gate:case` accept
- * exactly what the CLI accepts, old values included.
+ * exactly what the CLI accepts.
  *
  * @param key - The answer key.
  * @param value - The answer value as supplied.
- * @param source - Where the value came from, named in a deprecation warning.
- * @returns The value to use.
+ * @returns The value.
  */
-export function resolveAnswer(key: StringAnswerKey, value: string, source: string): string {
-  const resolved = resolveDeprecatedAnswer(key, value, source);
-  assertValidAnswer(key, resolved);
-  return resolved;
+export function resolveAnswer(key: StringAnswerKey, value: string): string {
+  assertValidAnswer(key, value);
+  return value;
 }
 
 /**
@@ -291,7 +278,7 @@ export function resolveAnswer(key: StringAnswerKey, value: string, source: strin
  * both consume this.
  */
 export function toAnswerKey(key: string): StringAnswerKey {
-  if (REFUSED_KEYS.includes(key)) {
+  if (COMPUTED_ANSWER_KEYS.includes(key)) {
     throw new Error(`${key} is computed by the generator, not answered, so it cannot be set.`);
   }
 
@@ -359,9 +346,8 @@ function pickOfficialSampleAnswers(answers: Partial<Record<StringAnswerKey, stri
  * Reads `--answersFile`, accepting either a bare answers object or a whole `.create-obsidian-plugin.json`.
  *
  * Taking the wrapped form too means the file can be pointed straight at an existing project to scaffold
- * another one like it. That file records `currentYear` (and, before it was derived, `pluginShortName`), so
- * such a key found HERE is skipped rather than refused -- unlike a flag, which is something the user typed
- * on purpose.
+ * another one like it. That file records `currentYear`, so that key found HERE is skipped rather than
+ * refused -- unlike a flag, which is something the user typed on purpose.
  */
 function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>> {
   if (!existsSync(path)) {
@@ -385,7 +371,7 @@ function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>>
 
   const answers: Partial<Record<StringAnswerKey, string>> = {};
   for (const [rawKey, value] of Object.entries(source)) {
-    if (REFUSED_KEYS.includes(rawKey)) {
+    if (COMPUTED_ANSWER_KEYS.includes(rawKey)) {
       continue;
     }
 
@@ -394,7 +380,7 @@ function readAnswersFile(path: string): Partial<Record<StringAnswerKey, string>>
     }
 
     const key = toAnswerKey(rawKey);
-    answers[key] = resolveAnswer(key, value, path);
+    answers[key] = resolveAnswer(key, value);
   }
 
   return answers;

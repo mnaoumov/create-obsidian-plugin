@@ -8,17 +8,17 @@ Filing from the CLI or the API (`gh issue create --body`, or an AI agent filing 
 
 ## Project Overview
 
-`@mnaoumov/create-obsidian-plugin` — an npm scaffolding CLI that generates Obsidian plugin projects from modern templates. Uses EJS for templating with a partial-based composition system.
+`@mnaoumov/create-obsidian-plugin` — an `npm` scaffolding CLI that generates Obsidian plugin projects from modern templates. Uses EJS for templating with a partial-based composition system.
 
 ## Architecture
 
-- `src/` — Core generator logic (`main.ts`, `templates.ts`, `TemplateBuilder`, versions, overlay), with the vitest unit tests co-located as `foo.test.ts` beside what they test. Grouped by subject: `answers/` (the `Answers` type, the answer space, CLI flags, the exporter, deprecated values), `prompts/` (the interactive questions and their clack wrappers), `directory/` (the Community directory checks) and `verification/` (the plan, render, gate and drift tiers, the covering arrays they sweep, toolkit parity and upstream links)
+- `src/` — Core generator logic (`main.ts`, `templates.ts`, `TemplateBuilder`, versions, overlay), with the vitest unit tests co-located as `foo.test.ts` beside what they test. Grouped by subject: `answers/` (the `Answers` type, the answer space, CLI flags, the exporter), `prompts/` (the interactive questions and their clack wrappers), `directory/` (the Community directory checks) and `verification/` (the plan, render, gate and drift tiers, the covering arrays they sweep, toolkit parity and upstream links)
 - `src/features/` — One kebab-case directory per question (`preset/`, `bundler/`, `ui-framework/`, `linter/`, `formatter/`, `test-runner/`, `styling/`, …), each holding one file per answer plus an `index.ts` exporting its options array. `FEATURE_REGISTRIES` in `src/templates.ts` is the list of them, and its order is the order partials are concatenated in.
 - `templates/default/` — EJS template files (all must have `.ejs` extension), sorted into group folders such as `scripts/(build)/(esbuild)/` that the engine drops from every path (see "A parenthesized folder groups templates and is not part of their path"), plus the one declared exception: a file whose extension is in `ASSET_EXTENSIONS` carries no `.ejs` and is copied byte for byte (see "One template is not EJS")
 - `templates/official-sample/files/` — the vendored snapshot the `official-sample` preset copies, pinned in `upstreams.json` (see "`official-sample` copies upstream")
 - `templates/docs-showcase/` — the `docs-showcase` preset's `src/docs/`: `host/` is hand-written, `files/` and `snippets.json` are what `npm run sync:docs-showcase` generated from the pinned obsidian-developer-docs commit (see "`docs-showcase` is the All-in-one Framework project plus the developer docs' code blocks")
 - `scripts/` — All build/lint/test logic lives here
-- `dist/` — Built output (published to npm, not tracked in git)
+- `dist/` — Built output (published to `npm`, not tracked in `git`)
 - `plugin-drift-baseline.json` — the differences between the emitted framework presets and the real plugins that are deliberate, each with the reason it is (see the fourth-check section below)
 
 ## Design Decisions
@@ -133,16 +133,21 @@ removes.
 
 They must NOT share a partial for anything either one overrides. A registered file with no `.ejs` on disk is composed by concatenating EVERY matching partial, so a file with both an `_all-in-one` and a `_demo` whole-file partial would be emitted twice over — which is exactly what happened while `Demo.configure` also added `all-in-one`. `src/plugin.ts_all-in-one*` and the three `plugin-settings*_all-in-one` files therefore stay keyed on `all-in-one`, which only that preset carries.
 
-### `all-in-one` was `enhanced`, and the old value is an alias
+### The `all-in-one` preset
 
-The preset's label is **All-in-one Framework** and its value `all-in-one`; until 1.1.0 it was `Enhanced` / `enhanced`, and the shared partial and its predicate were `dev-utils` / `isDevUtilsPreset`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters. `enhanced` still works wherever an answer can arrive — a flag, an answers file, a saved `.create-obsidian-plugin.json` — through the one table in `src/answers/deprecated-answers.ts`, which logs a deprecation warning and hands on `all-in-one`, so nothing downstream ever sees the old value. A future rename of an answer value goes in the same table.
+The preset's label is **All-in-one Framework** and its value `all-in-one`. The hint leads with obsidian-lib's helper library, not with modularity: the owner dropped modularity from the description as not what matters.
+
+### No aliases, no migrations
+
+The project is new and has no users to keep working, so it carries no backward compatibility. When an answer value, an answer key, a flag, a file, a partial or a field of `.create-obsidian-plugin.json` is renamed or removed, the old form goes with it: no alias table, no deprecation warning, no `migrate*` step in `loadConfig`, no branch keyed on an older `generatorVersion`. An old value then fails the ordinary validation like any unknown one. Do not add one without the owner's explicit approval. This does not cover the update-in-place feature: comparing each file with the hash the generator recorded is how an update keeps the user's edits, not a compatibility path.
 
 ### `official-sample` copies upstream; it is not a template preset
 
 `preset: official-sample` emits obsidianmd/obsidian-sample-plugin as it is, with only the identity fields filled in
 (`applyOfficialSampleIdentity`, `src/official-sample.ts`): the manifest's `id`, `name`, `description`, `author`,
-`authorUrl` and `fundingUrl`, the package name in `package.json` and `package-lock.json`, and the README title.
-Everything else is upstream's committed bytes.
+`authorUrl` and `fundingUrl`, the package name in `package.json` and `package-lock.json`, the README title, and the
+`LICENSE` copyright line, which becomes `Copyright (C) <current year> by <author>` (`getOfficialSampleCopyrightLine`) because
+the plugin is the user's; upstream's 0BSD text under it is kept. Everything else is upstream's committed bytes.
 
 **It never reaches `buildTemplate`.** `PRESET_OPTIONS` stays the three template presets, which is what
 `FEATURE_REGISTRIES` and `ANSWER_SPACE` read, so none of the tiers sweeps it: there is nothing of ours to compose. The
@@ -186,9 +191,9 @@ considered and refused, because "as is" is the ask.
 
 ### Every upstream is watched by one job, driven by `upstreams.json`
 
-`upstreams.json` lists everything the scaffolder mirrors or holds itself to. A **git** entry (`repo`, `ref`, `commit`, `paths`) follows a branch or tag and is pinned to a commit. An **npm** entry (`npm`, optional `tag`, `version`) follows a dist-tag and is pinned to a version. That is how `obsidian` is followed, because obsidianmd/obsidian-api has no tags or releases and ships only as the npm package. Each entry names a `handler`, the command that turns a newer upstream state into changes here, and may name a `verify`, which overrides the file's top-level one.
+`upstreams.json` lists everything the scaffolder mirrors or holds itself to. A **`git`** entry (`repo`, `ref`, `commit`, `paths`) follows a branch or tag and is pinned to a commit. An **`npm`** entry (`npm`, optional `tag`, `version`) follows a dist-tag and is pinned to a version. That is how `obsidian` is followed, because obsidianmd/obsidian-api has no tags or releases and ships only as the `npm` package. Each entry names a `handler`, the command that turns a newer upstream state into changes here, and may name a `verify`, which overrides the file's top-level one.
 
-`npm run sync:upstreams` (the `sync-upstreams` bin of `@mnaoumov/typescript-dev-toolkit`, from 3.3.0) compares each pin with its upstream. A git entry is compared through GitHub's compare API, filtered by `paths`, so a move that touches no watched path opens nothing and the pin stays where it is. A moved entry gets one PR on `upstream/<name>`. The job resets that branch from the base, runs the handler with `UPSTREAM_NAME` and `UPSTREAM_TARGET` set, writes the pin when the handler did not, and runs `verify`. It then commits everything, force-pushes, and opens or edits the PR. The PR body carries the compare link, the watched files that changed, both commands' results and the diff stat. **A failed handler or verify still opens the PR, as a draft with the output in the body**, and an open PR is turned back into a draft when a later run fails. A branch that already holds the same tree is not pushed again. `--dry-run` prints each PR and runs nothing. `.github/workflows/sync-upstreams.yml` runs it daily and on dispatch, by calling the toolkit's reusable `sync-upstreams.yml` workflow, pinned to its release tag; the caller keeps only the schedule, the dispatch inputs and the permissions, plus a `setup-command` that installs bun, pnpm and yarn. A verify's `gate:case` fills every unset answer with the question's first value, and the first package manager is bun, which a runner does not have; pinning the verify to npm was refused because the gate would then never prove the other three. A package manager the machine lacks is reported by the gate as `could not run: <pm> not installed` (`GateResult.couldNotRun`), never as a failed install. **Nothing auto-merges.** The owner reviews every PR, and whether a green snapshot-only PR may merge itself stays undecided until the job has a track record.
+`npm run sync:upstreams` (the `sync-upstreams` bin of `@mnaoumov/typescript-dev-toolkit`, from 3.3.0) compares each pin with its upstream. A `git` entry is compared through GitHub's compare API, filtered by `paths`, so a move that touches no watched path opens nothing and the pin stays where it is. A moved entry gets one PR on `upstream/<name>`. The job resets that branch from the base, runs the handler with `UPSTREAM_NAME` and `UPSTREAM_TARGET` set, writes the pin when the handler did not, and runs `verify`. It then commits everything, force-pushes, and opens or edits the PR. The PR body carries the compare link, the watched files that changed, both commands' results and the diff stat. **A failed handler or verify still opens the PR, as a draft with the output in the body**, and an open PR is turned back into a draft when a later run fails. A branch that already holds the same tree is not pushed again. `--dry-run` prints each PR and runs nothing. `.github/workflows/sync-upstreams.yml` runs it daily and on dispatch, by calling the toolkit's reusable `sync-upstreams.yml` workflow, pinned to its release tag; the caller keeps only the schedule, the dispatch inputs and the permissions, plus a `setup-command` that installs `bun`, `pnpm` and `yarn`. A verify's `gate:case` fills every unset answer with the question's first value, and the first package manager is `bun`, which a runner does not have; pinning the verify to `npm` was refused because the gate would then never prove the other three. A package manager the machine lacks is reported by the gate as `could not run: <pm> not installed` (`GateResult.couldNotRun`), never as a failed install. **Nothing auto-merges.** The owner reviews every PR, and whether a green snapshot-only PR may merge itself stays undecided until the job has a track record.
 
 The handlers are `sync:official-sample`, `sync:docs-showcase` and `sync:obsidian`. Generated projects resolve `obsidian` at generation time, so `sync:obsidian` moves what is held to it: the `PINNED_VERSIONS` whose `check` reads one of obsidian's peer dependencies (`src/obsidian-peer-pins.ts`), and the docs showcase, regenerated against the new `obsidian` from the pinned docs commit (`sync:docs-showcase --pinned-docs`), so that PR carries the API move alone.
 
@@ -223,7 +228,7 @@ is optional decoration, and each piece was found by a combination that failed wi
 - **The alias is not enough on its own for vitest, and the setup file is not enough either.**
   `obsidian-test-mocks/vitest-setup` calls `vi.mock('obsidian')`, but vite has to *resolve* the specifier
   before the mock is consulted. Both halves ship.
-- **jsdom, not node.** `obsidian-test-mocks`' `setup()` writes to `Document.prototype`,
+- **jsdom, not `node`.** `obsidian-test-mocks`' `setup()` writes to `Document.prototype`,
   `Element.prototype` and `window`. Jest needs `jest-environment-jsdom` installed by name.
 - **Single-file components are stubbed, not compiled** (`scripts/framework-component-stub.ts`).
   Compiling a `.svelte` / `.vue` needs a plugin that is a dependency only of the chosen bundler, and
@@ -313,7 +318,7 @@ Two options come before adding a section: change the code so that neither config
 
 ### addScript single-arg convention
 
-`addScript(name)` defaults to `jiti scripts/{name.replaceAll(':', '-')}.ts`. Each npm script maps 1:1 to a script file. Only pass a second arg for non-standard commands.
+`addScript(name)` defaults to `jiti scripts/{name.replaceAll(':', '-')}.ts`. Each `npm` script maps 1:1 to a script file. Only pass a second arg for non-standard commands.
 
 ### Dependency versions are resolved at generation time
 
@@ -331,7 +336,7 @@ dependency or a peer, takes the newest version inside the first toolkit's range 
 version still win, and `standalone`, which declares no toolkit, is untouched.
 
 The pin table is the single source for three things — the exact spec written into `devDependencies`, the
-generated project's `overrides` block (npm's `$<name>` shorthand, only for pins that must also reach
+generated project's `overrides` block (`npm`'s `$<name>` shorthand, only for pins that must also reach
 nested copies), and its `pinned-versions.json`. A pin's `check` is emitted only when the package it
 reads from is in the project; otherwise its `manualCheck` is, so the file never carries a command that
 cannot run. Two of the pins are load-bearing: `typescript@latest` is outside typescript-eslint's peer
@@ -340,9 +345,9 @@ range, and `@codemirror/*` must match Obsidian's exact peers.
 `copyTemplates` takes the resolved map as an optional argument and stays synchronous — the rendering tests
 call it ~60 times and must not touch the network.
 
-`ADVISORY_OVERRIDES` is a **second, separate** table for overrides that exist only to clear an npm audit
+`ADVISORY_OVERRIDES` is a **second, separate** table for overrides that exist only to clear an `npm` audit
 advisory in a package the project never declares. The pin table cannot express those: there is no
-declared spec for npm's `$<name>` shorthand to reuse. Each entry names the direct dependencies whose
+declared spec for `npm`'s `$<name>` shorthand to reuse. Each entry names the direct dependencies whose
 subtree carries the advisory, so a project gets only the entries its tree needs. `standalone` never
 reaches webdriverio. Each entry still
 emits a `pinned-versions.json` entry with a runnable check. An advisory left un-overridden on purpose
@@ -350,7 +355,7 @@ emits a `pinned-versions.json` entry with a runnable check. An advisory left un-
 sweep does not re-measure it. The gate fails `npm audit` only at `high`, and `braces` stays the one
 `high` until it has a patched release. So the gate tier reads `npm audit --json` and lets through an
 advisory listed in `UNPATCHED_ADVISORIES` (`src/versions.ts`), by its GHSA id rather than by the package
-count: npm marks every package between the advisory and the project `high` too, so `braces` alone reads
+count: `npm` marks every package between the advisory and the project `high` too, so `braces` alone reads
 as seven. Any other `high` still fails. When a patched release ships, the entry moves to an override.
 
 ### `minAppVersion` is fetched, not hardcoded — from the same place the release flow reads it
@@ -373,9 +378,7 @@ starts calling a newer API; never let it sit below what the templates call.
 `git init -b <defaultBranch>` and the CI workflow's `branches:` trigger both read `answers.defaultBranch`.
 They have to: the branch the repo is created on and the branch CI watches are the same thing, and when they
 were independent (a bare `git init` taking `init.defaultBranch`, a workflow hardcoding `master`) the result
-was a generated project whose CI never fired. `migrateAnswers` fills the answer in as `master` for projects
-generated before it existed — that is what leaves their `ci.yml` byte-identical, so an update reports no
-change instead of silently retargeting their CI.
+was a generated project whose CI never fired.
 
 ### A list that partials would end with a trailing comma belongs on the builder
 
@@ -486,7 +489,7 @@ its query is still checked. The author's profile link stays checked too, because
 and is what catches a mistyped GitHub name. No tier runs `lint:md` as a step: it needs the network, and the fixture author
 `testuser` has no GitHub profile. The gate tier's `commit` step reaches it anyway, through the pre-commit hook's
 `lint:md:fix`, so that step first adds the author's profile to the generated `linkinator.config.json`'s `skip`
-(`skipAuthorProfileLink`), a harness opt-out like pnpm's `minimumReleaseAge`. The same step fails `committed-output`
+(`skipAuthorProfileLink`), a harness opt-out like `pnpm`'s `minimumReleaseAge`. The same step fails `committed-output`
 when the commit took in `coverage/`, `dist/` or `node_modules/`.
 
 ### A line that is not really per-answer gets ONE partial, named for what it is
@@ -632,7 +635,7 @@ The built-ins' fall-back of emitting the raw source would hide the user's mistak
 An override of a file the answers do not register is deliberately NOT an error. It applies exactly when the
 built-in it replaces is emitted, which is what lets one overlay serve several answer sets.
 
-Deferred: an overlay published as an npm package (what would make one shareable), and `render:case` /
+Deferred: an overlay published as an `npm` package (what would make one shareable), and `render:case` /
 `gate:case` taking `--customTemplate`.
 
 ### The three manifest answers are checked against the Community directory, at the prompt
@@ -867,7 +870,7 @@ webpack defect and a worse one: it also bundled NO package, so `main.js` require
 `node_modules` no installed plugin has. That hid the first defect, and it hid that parcel had never compiled
 Solid at all — its own transformer emits a React-style runtime import that `solid-js` does not export, and
 nothing resolved the import. The target is now `electron-renderer`, which Parcel treats as both a browser
-context (the `browser` condition) and a node one (builtins stay external, and the resolver may exclude
+context (the `browser` condition) and a `node` one (builtins stay external, and the resolver may exclude
 `obsidian`), plus `includeNodeModules: true` and `@parcel/resolver-default.packageExports`, all in
 `package.json@targets_parcel.ejs`. Parcel + Solid gets a static `babel.config.json` carrying
 `babel-preset-solid`. Vite's lib build was measured and resolves the browser builds already.
@@ -952,7 +955,7 @@ A partial is found by its name beside the file it composes, so `templates/defaul
 
 The groups are by subject (build, rollup, webpack, vite, format, lint, test, plugin per preset, settings, tsconfig per preset, contributing, ...), and a subject over about 20 files splits by its next variant axis. A real folder (`src/wasm/`, `.github/workflows/`) stays a real folder, because it is a folder of the emitted project. A new template goes into the group of its target file, or stays at the top when no group fits.
 
-**The emitted project's `scripts/` stays flat** (decided on 2026-10-26): one file per npm script, named by the script, so `package.json` is the index a reader looks it up in, and a folder whose files a tool names is not one a reader browses. This repo's own `scripts/` follows the same rule.
+**The emitted project's `scripts/` stays flat** (decided on 2026-10-26): one file per `npm` script, named by the script, so `package.json` is the index a reader looks it up in, and a folder whose files a tool names is not one a reader browses. This repo's own `scripts/` follows the same rule.
 
 ### addFiles uses array syntax, no .ejs suffix
 
@@ -976,7 +979,7 @@ Three other places had to learn about it, and each would otherwise have failed s
   text checks *by accident* — not empty, no `<%`, no `[object Object]`. Assets go to `checkAsset`
   instead, which runs `WebAssembly.validate` over the bytes (Node has one built in, so this costs no
   dependency) and reports `invalid-wasm`. That is the positive check the copy path exists to earn.
-- **`.gitattributes`, in both repos.** `* text=auto eol=lf` leaves a binary to git's NUL-byte heuristic.
+- **`.gitattributes`, in both repos.** `* text=auto eol=lf` leaves a binary to `git`'s NUL-byte heuristic.
   It would very probably spare 39 bytes full of NULs — but "probably" is the wrong guarantee for a file
   a line-ending conversion silently destroys, so `*.wasm binary` is explicit in this repo and in what the
   generator emits.
@@ -1006,7 +1009,7 @@ whose value collides needs the same.
 
 The platform is asked with the project details, not under Customize. It is a fact about the author, and choosing `none` there is the only opt-out the recommended-defaults path has.
 
-Not always-include, not `<% if`. When `resolveFunding` finds a URL, `buildTemplate` registers `.github/FUNDING.yml`, the funding badge and the `has-funding` partial (`manifest.json@funding_has-funding.ejs`, `README.md@support_has-funding.ejs`). Before this, `FUNDING.yml` was GitHub's stock template with all 13 platforms blank, which GitHub renders as no funding at all. `migrateAnswers` turns an old project's `fundingUrl` into the platform and handle it names, turns any other URL into `custom`, and turns no URL into `none`.
+Not always-include, not `<% if`. When `resolveFunding` finds a URL, `buildTemplate` registers `.github/FUNDING.yml`, the funding badge and the `has-funding` partial (`manifest.json@funding_has-funding.ejs`, `README.md@support_has-funding.ejs`). GitHub's stock `FUNDING.yml` lists all 13 platforms blank, which GitHub renders as no funding at all, so a project without funding gets no file.
 
 ### On the framework presets every workflow calls obsidian-dev-toolkit's
 
@@ -1036,7 +1039,7 @@ three, each covering as much as its per-case cost allows.
 | --- | --- | --- | --- |
 | plan (`src/verification/plan-checks.ts`) | ~32 us | strength-2 in `npm test`; `npm run verify:answer-space` | 5M-case stride sample + a strength-3 interaction pass, ~35 s |
 | render (`src/verification/render-checks.ts`) | ~215 ms | strength-2 in `npm test`; `npm run verify:rendering` | strength 3, 265 cases, ~40 s across processes |
-| install and gate (`src/verification/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under npm, ~50 cases, plus one case each for bun/pnpm/yarn |
+| install and gate (`src/verification/generated-project-checks.ts`) | minutes | `npm run verify:projects` | strength 2 under `npm`, ~50 cases, plus one case each for bun/pnpm/yarn |
 
 None of them answers the question asked while actually editing a template — *what does this one
 combination emit?* — because all three sweep. `npm run render:case -- <question>=<answer> …
@@ -1077,7 +1080,7 @@ single-threaded and ~178 on ten workers, and the flag prints that projection bef
    (lib mode inlines them only for `umd` / `iife`, not `cjs`) each turned them into sibling chunks that
    `main.js` loads by name at runtime — so every path reaching one failed in an installed plugin. The same
    step also fails a bundle that `require()`s a package Obsidian does not supply, which is what parcel's
-   node context did for every dependency. Each bundler is told to keep one file: rollup
+   `node` context did for every dependency. Each bundler is told to keep one file: rollup
    `inlineDynamicImports`, vite `rollupOptions.output.inlineDynamicImports`, webpack
    `output.asyncChunks: false`; esbuild writes one `outfile`. Parcel has no such option: its default
    bundler makes every `import()` a bundle root. So `parcel-transformer-inline-imports.cjs` runs before its
@@ -1141,7 +1144,7 @@ for exactly that case, and nothing ever ran it: `pinned-versions.json` was writt
 dependency sweep. `npm run verify:tarball` (`scripts/verify-tarball.ts`, also `prepublishOnly`) packs the
 repo, installs the tarball, runs `dist/main.js --yes --pluginId=smoke-test`, then in the output runs
 `npm install`, every pin check (`findStalePins`), `npm run build` and the project's own `npm run gate`.
-The gate tier carries the same pin re-check as its `pins` step, under npm only.
+The gate tier carries the same pin re-check as its `pins` step, under `npm` only.
 
 Its first run found two more defects that every tier had passed. The gate tier ran `format` before
 `format:check`, which hid an empty `customEsbuildPlugins` list that dprint rejects, and a `--yes` project is
@@ -1210,9 +1213,9 @@ the generated side, because a generated project is not a repository yet.
 
 ### The user docs are a site; the README is a landing page
 
-The full reference (options, prompts, presets, the generated project, updating, custom templates, issue forms, agent notes) lives in `docs/`, an Astro + Starlight site served at https://mnaoumov.dev/create-obsidian-plugin/. It uses the same docs-site stack as obsidian-lib, from typescript-dev-toolkit's `docs-site`, except that `scripts/docs-site.ts` skips its API reference: `src/` is the generator's internals, not an API anyone imports. The README keeps only what a newcomer needs on the npm page and links out for the rest, so document a new option or generated file in `docs/src/content/docs/guides/`, not in the README. npm shows the README, so a README change ships in a release.
+The full reference (options, prompts, presets, the generated project, updating, custom templates, issue forms, agent notes) lives in `docs/`, an Astro + Starlight site served at https://mnaoumov.dev/create-obsidian-plugin/. It uses the same docs-site stack as obsidian-lib, from typescript-dev-toolkit's `docs-site`, except that `scripts/docs-site.ts` skips its API reference: `src/` is the generator's internals, not an API anyone imports. The README keeps only what a newcomer needs on the `npm` page and links out for the rest, so document a new option or generated file in `docs/src/content/docs/guides/`, not in the README. `npm` shows the README, so a README change ships in a release.
 
-**Every `npm create` example writes the separator as `"--"`, quoted, and links to `guides/powershell-separator/`.** PowerShell's binder swallows a bare `--` on its way into `npm.ps1`, so the flags reach npm instead of the generator (`EUNKNOWNCONFIG`, or npm's own `--help`). `"--"` is the one spelling that works in PowerShell, `cmd.exe` and POSIX shells alike; `'--'` reaches npm with its quotes from `cmd.exe`. Measured 2026-11-01. The exported `.cmd` / `.sh` recipe keeps a bare `--`, because `cmd` or `sh` runs it, never PowerShell. The `--help` usage line and the answers-file note the wizard prints use `"--"`.
+**Every `npm create` example writes the separator as `"--"`, quoted, and links to `guides/powershell-separator/`.** PowerShell's binder swallows a bare `--` on its way into `npm.ps1`, so the flags reach `npm` instead of the generator (`EUNKNOWNCONFIG`, or `npm`'s own `--help`). `"--"` is the one spelling that works in PowerShell, `cmd.exe` and POSIX shells alike; `'--'` reaches `npm` with its quotes from `cmd.exe`. Measured 2026-11-01. The exported `.cmd` / `.sh` recipe keeps a bare `--`, because `cmd` or `sh` runs it, never PowerShell. The `--help` usage line and the answers-file note the wizard prints use `"--"`.
 
 ### Template engine: EJS
 
@@ -1230,3 +1233,18 @@ Interface and object type alias properties are readonly by default, enforced by 
 - ESLint with `@eslint/js` + `typescript-eslint`
 - Conventional commits (commitlint)
 - Tests with vitest, co-located next to the source they test — `foo.ts` → `foo.test.ts` (G10h); no `__tests__/` or `test/` directories
+
+### A tool name in Markdown prose is code
+
+Write "`pnpm`, `yarn` and `bun` work too", never the bare names: a reader has to tell a name they would type from an ordinary word, and `bun`, `yarn` and `node` are ordinary words. `scripts/bare-tool-names.test.ts` fails on a bare `npm`, `pnpm`, `yarn`, `bun`, `npx`, `node` or `git` in the prose of the README, `CONTRIBUTING.md`, this file, the docs site and the generated READMEs. It skips code, links, headings and front matter, and matches lowercase only, so `Node.js` the project stays plain. Other tool and package names follow the same rule by hand.
+
+### Releasing is by hand, and the release commit carries the CHANGELOG entry
+
+This repo has no `version` script, so a release is these steps, in order:
+
+1. `npm version <x.y.z> --no-git-tag-version`.
+2. Add the `## <x.y.z> (<YYYY-MM-DD>)` entry at the top of `CHANGELOG.md`, newest first, with the release's features and fixes and the compare link. Never skip this: a release whose notes exist only on its GitHub release page is drift.
+3. Commit both as `chore: release <x.y.z>` and create the annotated tag `<x.y.z>`.
+4. Push the default branch and the tag, then `gh release create <x.y.z> --title <x.y.z> --generate-notes --verify-tag`. The release triggers `publish-npm.yml` and the Pages deploy of the docs site.
+
+The README's `## Changelog` section and the docs site link `CHANGELOG.md`; neither keeps a copy of it.

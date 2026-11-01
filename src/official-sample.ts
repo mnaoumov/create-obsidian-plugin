@@ -40,7 +40,7 @@ type JsonObject = Record<string, unknown>;
  * `package-lock.json` is here because it repeats the package name twice, and a lockfile naming another package
  * is what `npm install` rewrites on its first run -- a diff in a project nobody has touched yet.
  */
-export const OFFICIAL_SAMPLE_IDENTITY_FILES: readonly string[] = ['manifest.json', 'package.json', 'package-lock.json', 'README.md'];
+export const OFFICIAL_SAMPLE_IDENTITY_FILES: readonly string[] = ['LICENSE', 'manifest.json', 'package.json', 'package-lock.json', 'README.md'];
 
 /**
  * The official sample, filled in with these answers: the identity edits applied to every file of the snapshot.
@@ -49,6 +49,8 @@ export const OFFICIAL_SAMPLE_IDENTITY_FILES: readonly string[] = ['manifest.json
  *   which is removed when the answers link to no funding -- upstream's points at Obsidian's own pricing page.
  * - `package.json` and the two names in `package-lock.json`: the package name, `obsidian-<id>`.
  * - `README.md`: the first `# ` heading becomes the plugin's name.
+ * - `LICENSE`: the copyright line becomes `Copyright (C) <current year> by <author>`, so the plugin is the user's. The
+ *   0BSD text under it stays upstream's.
  *
  * Each JSON file is re-serialized with the indentation and final newline it came with, which leaves every untouched
  * line as upstream wrote it: upstream's JSON is exactly what `JSON.stringify` with a tab produces.
@@ -102,6 +104,11 @@ export function applyOfficialSampleIdentity(files: ReadonlyMap<string, Buffer>, 
     result.set('README.md', Buffer.from(readme.toString('utf-8').replace(/^# .*$/m, `# ${answers.pluginName}`), 'utf-8'));
   }
 
+  const license = result.get('LICENSE');
+  if (license) {
+    result.set('LICENSE', Buffer.from(license.toString('utf-8').replace(/^Copyright \(C\) [^\r\n]*/m, getOfficialSampleCopyrightLine(answers)), 'utf-8'));
+  }
+
   return result;
 }
 
@@ -131,6 +138,16 @@ export function copyOfficialSample(
     existingConfig
   );
   return { ...config, upstreamCommit: snapshot.commit };
+}
+
+/**
+ * The copyright line the official sample's `LICENSE` carries: this year, and the author the manifest names.
+ *
+ * @param answers - The answers.
+ * @returns The line, with no line ending.
+ */
+export function getOfficialSampleCopyrightLine(answers: Answers): string {
+  return `Copyright (C) ${String(answers.currentYear)} by ${answers.authorName}`;
 }
 
 /**

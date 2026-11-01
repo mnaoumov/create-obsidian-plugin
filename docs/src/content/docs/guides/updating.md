@@ -5,6 +5,8 @@ sidebar:
   order: 6
 ---
 
+What changed in each release is in the [CHANGELOG](https://github.com/mnaoumov/create-obsidian-plugin/blob/main/CHANGELOG.md).
+
 Run the same command inside a project previously created with this tool:
 
 ```bash
