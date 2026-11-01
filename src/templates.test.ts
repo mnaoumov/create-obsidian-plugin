@@ -2779,6 +2779,37 @@ describe('copyTemplates', () => {
     });
   });
 
+  // Obsidian-lib's `Report a bug` command opens the bug form prefilled, so it exists exactly where the form does, and
+  // The README names it between the two filing paragraphs. `standalone` has no obsidian-lib to register it from.
+  describe('Report a bug command', () => {
+    const sentence = 'To report a bug from inside Obsidian, run the **`My Tool`: Report a bug** command.';
+
+    it.each(['all-in-one', 'demo'] as const)('is registered, tested and named in the README on %s', (preset) => {
+      copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature', preset, testRunner: 'vitest' }), targetDir, '1.0.0', null);
+      const plugin = readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8');
+      expect(plugin).toContain("import { OpenBugReportCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-bug-report-command-handler';");
+      expect(plugin).toContain(
+        "new OpenBugReportCommandHandler({\n        app: this.app,\n        gitHubRepo: 'testuser/obsidian-my-tool',\n        pluginId: this.manifest.id\n      }),\n      new OpenDemoVaultCommandHandler({"
+      );
+      expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain("commands__.has('report-bug')");
+      const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      expect(readme).toContain(`not as blank issues.\n\n${sentence} It opens the bug form with the plugin version, the Obsidian version and your operating system already filled in.\n\nFiling from the CLI`);
+    });
+
+    it('is absent without the issue forms', () => {
+      copyTemplates(makeAnswers({ gitHubIssueTemplates: 'none', preset: 'all-in-one', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8')).not.toContain('OpenBugReportCommandHandler');
+      expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).not.toContain('report-bug');
+    });
+
+    it('is absent on standalone, which keeps the two filing paragraphs alone', () => {
+      copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, 'src/plugin.ts'), 'utf-8')).not.toContain('OpenBugReportCommandHandler');
+      expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).not.toContain('report-bug');
+      expect(readFileSync(join(targetDir, 'README.md'), 'utf-8')).toContain('not as blank issues.\n\nFiling from the CLI');
+    });
+  });
+
   it('does not create issue template files when gitHubIssueTemplates is none', () => {
     copyTemplates(makeAnswers({ gitHubIssueTemplates: 'none' }), targetDir, '1.0.0', null);
     expect(existsSync(join(targetDir, '.github/ISSUE_TEMPLATE'))).toBe(false);

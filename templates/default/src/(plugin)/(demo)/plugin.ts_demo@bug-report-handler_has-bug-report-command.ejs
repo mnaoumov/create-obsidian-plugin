@@ -1,0 +1,7 @@
+      // `OpenBugReportCommandHandler` opens the bug form in `.github/ISSUE_TEMPLATE/` with the plugin version, the
+      // Obsidian version and the operating system already filled in, which is why it is registered only with the forms.
+      new OpenBugReportCommandHandler({
+        app: this.app,
+        gitHubRepo: '<%- authorGitHubName %>/obsidian-<%- pluginId %>',
+        pluginId: this.manifest.id
+      }),
