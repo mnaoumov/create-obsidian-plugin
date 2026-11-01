@@ -1,0 +1,78 @@
+name: Build GitHub Pages
+
+# Builds the Astro + Starlight documentation site and deploys it to GitHub Pages, served at
+# https://mnaoumov.dev/create-obsidian-plugin/. Requires Pages to be enabled with "GitHub Actions" as the source
+# (repo Settings -> Pages -> Build and deployment -> Source: GitHub Actions).
+
+on:
+  # A release event runs from its tag, which the github-pages environment does not allow to deploy.
+  # Dispatch a second invocation on `main` so the deployment uses the protected branch instead.
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  dispatch-from-main:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch deployment from main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  build-and-deploy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      # `npm ci` runs the `prepare` script, which installs husky -- pointless in CI.
+      HUSKY: 0
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The satori Open Graph cards are slow to render; their content-hash manifest reuses the unchanged ones.
+      - name: Restore generated docs cache
+        uses: actions/cache@v6
+        with:
+          path: docs/public/og
+          key: docs-og-${{ hashFiles('docs/src/content/docs/**/*.md', 'docs/src/content/docs/**/*.mdx', 'docs/public/favicon.svg', 'package-lock.json') }}
+          restore-keys: |
+            docs-og-
+
+      # The token lets the build read the repository's homepage and report one that is not the site's URL.
+      - name: Build documentation site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run docs:build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
