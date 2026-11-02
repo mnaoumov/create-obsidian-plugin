@@ -11,7 +11,7 @@ body:
 
         > [!WARNING]
         >
-        > A video and is required for bug reproduction. Incomplete, vague, or poorly described bug reports will be closed.
+        > A video is optional, but strongly encouraged: it is often the fastest way for the maintainer to reproduce the bug. Incomplete, vague, or poorly described bug reports will be closed.
         >
         > The bug report and all attachments (screenshots, videos, sample vaults) must be in English. Exception: the bug is directly related to non-English language usage. Non-English bug reports will be closed.
   - type: textarea
@@ -58,16 +58,15 @@ body:
   - type: textarea
     attributes:
       label: Attachments
-      description: Attach a video.
+      description: Optional, but strongly encouraged. Attach a video.
       placeholder: Drag and drop files here.
   - type: dropdown
     attributes:
       label: Video
+      description: Optional, but strongly encouraged.
       options:
-        - "Not attached. ⚠️ The bug report will be closed if the maintainer is unable to reproduce it without the attachment."
+        - "Not attached. ⚠️ If the maintainer is unable to reproduce the bug without it, you may be asked for one."
         - "Attached"
-    validations:
-      required: true
   - type: checkboxes
     attributes:
       label: Confirmations

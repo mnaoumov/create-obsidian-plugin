@@ -2693,6 +2693,23 @@ describe('copyTemplates', () => {
     }
   });
 
+  // A form that requires a video and a sample vault costs a reporter more than the report is worth to them, and
+  // Experienced reporters gave up on it, so both are encouraged and never required.
+  it('requires neither a video nor a sample vault in either issue form', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    for (const name of ['bug_report.yml', 'feature_request.yml']) {
+      const form = readFileSync(join(targetDir, '.github/ISSUE_TEMPLATE', name), 'utf-8');
+      const fields = form.split('\n  - type: ');
+      for (const label of ['Attachments', 'Video', 'Sample vault']) {
+        for (const field of fields.filter((block) => block.includes(`\n      label: ${label}\n`))) {
+          expect(field, `${name}: ${label}`).not.toContain('required: true');
+        }
+      }
+      expect(form, name).not.toMatch(/(?:video|sample vault)[^\n]* (?:is|are) required/i);
+      expect(form, name).not.toContain('I attached');
+    }
+  });
+
   // With blank issues off, the chooser offered only the two forms, so a question had nowhere to go but one of them.
   it('links the repo Discussions from the issue chooser for questions', () => {
     copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
