@@ -67,7 +67,7 @@ The screenshot harness of the real plugins is left out, and `npm run test:integr
 
 On the framework presets, `demo-vault/` is the plugin's documentation: a real Obsidian vault whose notes explain each feature and demonstrate it with buttons run by [CodeScript Toolkit](https://github.com/mnaoumov/obsidian-codescript-toolkit). Start at `demo-vault/00 Start.md`.
 
-`npm run version` archives it into each GitHub release, with the freshly built plugin added, and the plugin's **Open demo vault** command downloads and opens that copy. Two suites check it: `npm run test:integration:no-app` reads the notes without launching Obsidian, and `npm run test:integration:demo-vault` clicks every button in a real one.
+`npm run version` archives it into each `GitHub` release, with the freshly built plugin added, and the plugin's **Open demo vault** command downloads and opens that copy. Two suites check it: `npm run test:integration:no-app` reads the notes without launching Obsidian, and `npm run test:integration:demo-vault` clicks every button in a real one.
 
 The Standalone preset has no release flow to archive the vault into, so it has no demo vault.
 

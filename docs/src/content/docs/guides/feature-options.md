@@ -11,13 +11,13 @@ Every question can also be answered with a flag, `--<answer>=<value>`. `--help` 
 
 ## Preset
 
-| Option               | Description                                                                                                                                                                                                                                                                                                                                           |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| All-in-one Framework | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. |
-| Demo                 | All features enabled for demonstration                                                                                                                                                                                                                                                                                                                |
-| Developer docs showcase | The All-in-one Framework project, plus every code block of the [Obsidian developer docs](https://docs.obsidian.md) as a command you can run. See [Developer docs showcase](#developer-docs-showcase) |
-| Standalone           | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                                                                          |
-| Official sample plugin | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author, description and `LICENSE` copyright holder filled in. See [Official sample plugin](#official-sample-plugin) |
+| Option                  | Description                                                                                                                                                                                                                                                                                  |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| All-in-one Framework    | Recommended. The author's framework: [@mnaoumov/obsidian-lib](https://github.com/mnaoumov/obsidian-lib), a library of ready-made helpers for settings, commands, modals, notices, file and link handling, and more, plus the @mnaoumov toolkits for building, linting, testing and releases. |
+| Demo                    | All features enabled for demonstration                                                                                                                                                                                                                                                       |
+| Developer docs showcase | The All-in-one Framework project, plus every code block of the [Obsidian developer docs](https://docs.obsidian.md) as a command you can run. See [Developer docs showcase](#developer-docs-showcase)                                                                                         |
+| Standalone              | Standalone plugin without the @mnaoumov library dependencies                                                                                                                                                                                                                                 |
+| Official sample plugin  | Exactly [obsidianmd/obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin), with your plugin's id, name, author, description and `LICENSE` copyright holder filled in. See [Official sample plugin](#official-sample-plugin)                                          |
 
 ### Official sample plugin
 
@@ -25,7 +25,7 @@ Every question can also be answered with a flag, `--<answer>=<value>`. `--help` 
 
 Only the plugin's identity changes:
 
-- `manifest.json`: `id`, `name`, `description`, `author`, `authorUrl` (your GitHub profile) and `fundingUrl`, which is removed if you choose no funding platform
+- `manifest.json`: `id`, `name`, `description`, `author`, `authorUrl` (your `GitHub` profile) and `fundingUrl`, which is removed if you choose no funding platform
 - `package.json` and `package-lock.json`: the package name, `obsidian-<id>`
 - `README.md`: the title
 - `LICENSE`: the copyright line, `Copyright (C) <current year> by <author>`, so the plugin is yours; upstream's 0BSD text under it is kept
@@ -44,78 +44,78 @@ Each block is kept as the docs show it. The generator adds only what the docs le
 
 `src/docs/README.md` lists every block of the docs. A block that does not compile against the `obsidian` API, or that is not plugin code (shell commands, JSON samples, diagrams), is listed there with the reason rather than left out silently.
 
-The blocks are type-checked by `src/docs/tsconfig.json`, which carries the official sample plugin's compiler options, so the project's own stricter `tsconfig.json`, linter, formatter and spell checker leave the folder alone. With the vitest answer, `npm run test:integration:desktop` runs every `Docs:` command in a real Obsidian and fails on any that throws.
+The blocks are type-checked by `src/docs/tsconfig.json`, which carries the official sample plugin's compiler options, so the project's own stricter `tsconfig.json`, linter, formatter and spell checker leave the folder alone. With the `vitest` answer, `npm run test:integration:desktop` runs every `Docs:` command in a real Obsidian and fails on any that throws.
 
 The blocks come from a snapshot this release ships, pinned to an upstream commit in `upstreams.json`. Maintainers refresh it with `npm run sync:docs-showcase`.
 
 ## Bundler
 
-| Option  | Description                              |
-|---------|------------------------------------------|
-| esbuild | Fast and simple (recommended)            |
-| Parcel  | Zero-config bundler                      |
-| Rollup  | Flexible with plugin ecosystem           |
-| Vite    | Modern dev server with HMR               |
-| Webpack | Mature bundler with broad plugin support |
+| Option    | Description                              |
+|-----------|------------------------------------------|
+| `esbuild` | Fast and simple (recommended)            |
+| `Parcel`  | Zero-config bundler                      |
+| `Rollup`  | Flexible with plugin ecosystem           |
+| `Vite`    | Modern dev server with HMR               |
+| `Webpack` | Mature bundler with broad plugin support |
 
 ## UI framework
 
-| Option | Description                               |
-|--------|-------------------------------------------|
-| (none) | Plain TypeScript, no UI framework         |
-| Lit    | Web Components with declarative templates |
-| Preact | Lightweight React alternative (3kB)       |
-| React  | Component-based UI with JSX               |
-| Solid  | Fine-grained reactivity, no virtual DOM   |
-| Svelte | Lightweight reactive components           |
-| Vue    | Progressive framework with SFC            |
+| Option   | Description                               |
+|----------|-------------------------------------------|
+| (none)   | Plain TypeScript, no UI framework         |
+| `Lit`    | Web Components with declarative templates |
+| `Preact` | Lightweight `React` alternative (3kB)     |
+| `React`  | Component-based UI with JSX               |
+| `Solid`  | Fine-grained reactivity, no virtual DOM   |
+| `Svelte` | Lightweight reactive components           |
+| `Vue`    | Progressive framework with SFC            |
 
 ## Linter
 
-| Option | Description                                 |
-|--------|---------------------------------------------|
-| (none) | No linting                                  |
-| Biome  | Fast linter and formatter                   |
-| ESLint | Industry standard for JavaScript/TypeScript |
+| Option   | Description                                 |
+|----------|---------------------------------------------|
+| (none)   | No linting                                  |
+| `Biome`  | Fast linter and formatter                   |
+| `ESLint` | Industry standard for JavaScript/TypeScript |
 
 ## Formatter
 
-| Option   | Description                              |
-|----------|------------------------------------------|
-| (none)   | No formatting                            |
-| Biome    | Fast formatter (pairs with Biome linter) |
-| dprint   | Fast, pluggable, written in Rust         |
-| Prettier | Opinionated, widely adopted              |
+| Option     | Description                                |
+|------------|--------------------------------------------|
+| (none)     | No formatting                              |
+| `Biome`    | Fast formatter (pairs with `Biome` linter) |
+| `dprint`   | Fast, pluggable, written in Rust           |
+| `Prettier` | Opinionated, widely adopted                |
 
 ## Spell checker
 
-| Option | Description                         |
-|--------|-------------------------------------|
-| (none) | No spell checking                   |
-| cspell | Configurable spell checker for code |
+| Option   | Description                         |
+|----------|-------------------------------------|
+| (none)   | No spell checking                   |
+| `cspell` | Configurable spell checker for code |
 
 ## Markdown linter
 
-| Option       | Description                                   |
-|--------------|-----------------------------------------------|
-| (none)       | No Markdown linting                           |
-| markdownlint | Lint Markdown files for style and consistency |
+| Option         | Description                                   |
+|----------------|-----------------------------------------------|
+| (none)         | No Markdown linting                           |
+| `markdownlint` | Lint Markdown files for style and consistency |
 
 ## Unit testing
 
-| Option | Description                  |
-|--------|------------------------------|
-| (none) | No unit testing              |
-| Jest   | Feature-rich, widely adopted |
-| Vitest | Fast, Vite-native, ESM-first |
+| Option   | Description                  |
+|----------|------------------------------|
+| (none)   | No unit testing              |
+| `Jest`   | Feature-rich, widely adopted |
+| `Vitest` | Fast, Vite-native, ESM-first |
 
 ## E2E testing
 
-| Option        | Description                                               |
-|---------------|-----------------------------------------------------------|
-| (none)        | No E2E testing                                            |
-| obsidian-test | Tests run inside Obsidian with real app APIs              |
-| wdio-obsidian | WebdriverIO service for Obsidian, multi-version and CI/CD |
+| Option        | Description                                                 |
+|---------------|-------------------------------------------------------------|
+| (none)        | No E2E testing                                              |
+| obsidian-test | Tests run inside Obsidian with real app APIs                |
+| wdio-obsidian | `WebdriverIO` service for Obsidian, multi-version and CI/CD |
 
 ## Editor extensions
 
@@ -126,50 +126,50 @@ The blocks come from a snapshot this release ships, pinned to an upstream commit
 
 ## Styling
 
-| Option       | Description                              |
-|--------------|------------------------------------------|
-| (none)       | No custom styles                         |
-| CSS          | Plain CSS styles                         |
-| CSS Modules  | Scoped CSS with .module.css files        |
-| PostCSS      | CSS with plugins (autoprefixer, nesting) |
-| SCSS         | Sass/SCSS preprocessor                   |
-| Tailwind CSS | Utility-first CSS framework              |
+| Option         | Description                                |
+|----------------|--------------------------------------------|
+| (none)         | No custom styles                           |
+| CSS            | Plain CSS styles                           |
+| `CSS Modules`  | Scoped CSS with `.module.css` files        |
+| `PostCSS`      | CSS with plugins (`autoprefixer`, nesting) |
+| `SCSS`         | `Sass`/`SCSS` preprocessor                 |
+| `Tailwind CSS` | Utility-first CSS framework                |
 
 ## WebAssembly support
 
-| Option | Description                  |
-|--------|------------------------------|
-| (none) | No WASM                      |
-| WASM   | Import and use .wasm modules |
+| Option | Description                    |
+|--------|--------------------------------|
+| (none) | No WASM                        |
+| WASM   | Import and use `.wasm` modules |
 
 ## Commit linting
 
-| Option               | Description                      |
-|----------------------|----------------------------------|
-| (none)               | No commit linting                |
-| Conventional Commits | commitlint + husky + lint-staged |
+| Option               | Description                                 |
+|----------------------|---------------------------------------------|
+| (none)               | No commit linting                           |
+| Conventional Commits | `commitlint` on a `husky` `commit-msg` hook |
 
 ## Hot reload
 
-| Option            | Description                                                                             |
-|-------------------|-----------------------------------------------------------------------------------------|
-| (none)            | No hot reload support                                                                   |
+| Option            | Description                                                                                    |
+|-------------------|------------------------------------------------------------------------------------------------|
+| (none)            | No hot reload support                                                                          |
 | Hot Reload Plugin | Creates `.hotreload` marker for [Hot Reload](https://community.obsidian.md/plugins/hot-reload) |
-| Obsidian CLI      | Reloads via `obsidian plugin:reload` CLI command                                        |
+| Obsidian CLI      | Reloads via `obsidian plugin:reload` CLI command                                               |
 
 ## Internationalization
 
-| Option        | Description                                   |
-|---------------|-----------------------------------------------|
-| (none)        | No internationalization                       |
-| i18next       | Popular i18n framework with JSON translations |
-| typesafe-i18n | Type-safe i18n with auto-generated types      |
+| Option          | Description                                   |
+|-----------------|-----------------------------------------------|
+| (none)          | No internationalization                       |
+| `i18next`       | Popular i18n framework with JSON translations |
+| `typesafe-i18n` | Type-safe i18n with auto-generated types      |
 
 ## GitHub Actions
 
 | Option       | Description                          |
 |--------------|--------------------------------------|
-| (none)       | No GitHub Actions workflows          |
+| (none)       | No `GitHub Actions` workflows        |
 | CI + Release | CI + automated release on tag push   |
 | CI           | CI workflow only (lint, test, build) |
 
@@ -193,18 +193,18 @@ See [Issue forms and Report a bug](/create-obsidian-plugin/guides/issue-forms/) 
 
 Asked with the project details, not under Customize. The platform and your username on it produce the `fundingUrl` in `manifest.json`, the README's badge and `## Support` link, and a `.github/FUNDING.yml` with that one platform's line. `(none)` emits none of them.
 
-| Option          | Description                                                |
-|-----------------|------------------------------------------------------------|
-| (none)          | No funding link, FUNDING.yml or badge                      |
-| Buy Me a Coffee | buymeacoffee.com/&lt;username&gt;                          |
-| GitHub Sponsors | github.com/sponsors/&lt;username&gt;                       |
-| Ko-fi           | ko-fi.com/&lt;username&gt;                                 |
-| Liberapay       | liberapay.com/&lt;username&gt;                             |
-| Open Collective | opencollective.com/&lt;username&gt;                        |
-| Patreon         | patreon.com/&lt;username&gt;                               |
-| Polar           | polar.sh/&lt;username&gt;                                  |
-| thanks.dev      | thanks.dev/&lt;username&gt;, e.g. `u/gh/<GitHub username>` |
-| Custom URL      | Any other URL, asked for as a URL rather than a username   |
+| Option            | Description                                                |
+|-------------------|------------------------------------------------------------|
+| (none)            | No funding link, FUNDING.yml or badge                      |
+| Buy Me a Coffee   | buymeacoffee.com/&lt;username&gt;                          |
+| `GitHub Sponsors` | github.com/sponsors/&lt;username&gt;                       |
+| Ko-fi             | ko-fi.com/&lt;username&gt;                                 |
+| Liberapay         | liberapay.com/&lt;username&gt;                             |
+| Open Collective   | opencollective.com/&lt;username&gt;                        |
+| Patreon           | patreon.com/&lt;username&gt;                               |
+| Polar             | polar.sh/&lt;username&gt;                                  |
+| thanks.dev        | thanks.dev/&lt;username&gt;, e.g. `u/gh/<GitHub username>` |
+| Custom URL        | Any other URL, asked for as a URL rather than a username   |
 
 ## Obsidian API subset
 

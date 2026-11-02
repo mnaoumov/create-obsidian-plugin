@@ -1,11 +1,15 @@
 /**
- * Finds a command-line tool named in Markdown prose without backticks.
+ * Finds a command, tool, library, package or service named in Markdown prose without backticks.
  *
- * `npm`, `pnpm`, `yarn`, `bun`, `npx`, `node` and `git` are what a reader types, and three of them are ordinary
- * English words, so prose marks them as code. Only lowercase is matched: `Node.js` the project and `Git` at the
- * start of a sentence about the system are names, not commands. Skipped: front matter, fenced code, inline code,
- * headings (code there would change the anchor), link labels and destinations, autolinks and HTML tags.
+ * The names are `TOOL_NAMES` (`./tool-names.ts`), each matched exactly as spelled there, so a name that is also an
+ * ordinary word is found only in the case that is not. A name glued to a path, a scope, a file extension or a
+ * longer hyphenated name (`vite.config.ts`, `@rollup/plugin-babel`, `eslint-plugin-obsidianmd`) is not the name
+ * alone and is not reported. Skipped: front matter, fenced code, inline code, headings (code there would change
+ * the anchor), link labels and destinations, autolinks, HTML tags, EJS tags, and quoted text, which stays as it
+ * was written (a heading named in quotes has to match the heading).
  */
+
+import { TOOL_NAMES } from './tool-names.ts';
 
 /** A bare tool name, with its 1-based line and 0-based column. */
 export interface BareToolName {
@@ -15,7 +19,19 @@ export interface BareToolName {
   readonly text: string;
 }
 
-const TOOL_NAME_PATTERN = /(?<![\w./@\\-])(?<Name>npm|pnpm|yarn|bun|npx|node|git)(?![\w/@\\-]|\.\w)/g;
+/**
+ * The pattern that finds any of `names` standing alone: not glued to a path, a scope, a file extension or a longer
+ * hyphenated name. The longest name is tried first, so `GitHub Actions` wins over `GitHub`.
+ */
+function buildPattern(names: readonly string[]): RegExp {
+  const alternatives = [...names]
+    .sort((a, b) => b.length - a.length)
+    .map((name) => name.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  return new RegExp(`(?<![\\w./@\\\\-])(?<Name>${alternatives})(?![\\w/@\\\\-]|\\.\\w)`, 'g');
+}
+
+const TOOL_NAME_PATTERN = buildPattern(TOOL_NAMES);
 
 const FENCE_PATTERN = /^\s*(?:```|~~~)/;
 
@@ -25,11 +41,14 @@ const BACKTICKS_PER_SPAN = 2;
  * Every bare tool name in a Markdown document.
  *
  * @param markdown - The document.
+ * @param names - The spellings to look for; `TOOL_NAMES` by default.
  * @returns The bare names, in document order.
  */
-export function findBareToolNames(markdown: string): BareToolName[] {
+export function findBareToolNames(markdown: string, names?: readonly string[]): BareToolName[] {
+  const pattern = names === undefined ? TOOL_NAME_PATTERN : buildPattern(names);
   const found: BareToolName[] = [];
-  const lines = markdown.split(/\r?\n/);
+  const lines = blankEjsTags(markdown).split(/\r?\n/);
+  const originalLines = markdown.split(/\r?\n/);
   let inFence = false;
   let inFrontMatter = lines[0] === '---';
   // An inline code span may wrap onto the next line, so an unclosed backtick carries over.
@@ -67,12 +86,20 @@ export function findBareToolNames(markdown: string): BareToolName[] {
     }
 
     const prose = stripNonProse(text);
-    for (const match of prose.matchAll(TOOL_NAME_PATTERN)) {
-      found.push({ column: match.index, line: index + 1, name: match.groups?.['Name'] ?? '', text: line.trim() });
+    for (const match of prose.matchAll(pattern)) {
+      found.push({ column: match.index, line: index + 1, name: match.groups?.['Name'] ?? '', text: (originalLines[index] ?? '').trim() });
     }
   }
 
   return found;
+}
+
+/**
+ * Blanks out every EJS tag, which may hold `>`, keeping every column where it was. A tag is closed on its own
+ * line: a `<%` quoted in prose would otherwise run on to the next `%>` and blank a whole section.
+ */
+function blankEjsTags(markdown: string): string {
+  return markdown.replace(/<%[^\r\n]*?%>/g, (tag) => ' '.repeat(tag.length));
 }
 
 /** Blanks out everything on the line that is not prose, keeping every column where it was. */
@@ -84,5 +111,6 @@ function stripNonProse(line: string): string {
     .replace(/`[^`]*`/g, blank)
     .replace(/<[^>]*>/g, blank)
     .replace(/!?\[[^\]]*\]\([^)]*\)/g, blank)
-    .replace(/\[[^\]]*\]/g, blank);
+    .replace(/\[[^\]]*\]/g, blank)
+    .replace(/"[^"]*"|“[^”]*”/g, blank);
 }

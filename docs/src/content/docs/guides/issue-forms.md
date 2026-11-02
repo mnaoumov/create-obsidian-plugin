@@ -5,7 +5,7 @@ sidebar:
   order: 8
 ---
 
-The **GitHub issue templates** question (`--gitHubIssueTemplates=bug-and-feature`) gives your plugin's repository GitHub issue forms instead of blank issues.
+The **`GitHub` issue templates** question (`--gitHubIssueTemplates=bug-and-feature`) gives your plugin's repository `GitHub` issue forms instead of blank issues.
 
 ## The forms
 
@@ -25,4 +25,4 @@ On the framework presets, the forms come with a **Report a bug** command. It is 
 
 `src/plugin.test.ts` gets a case that loads the plugin and checks the command is registered.
 
-The Standalone preset has no obsidian-lib, so it gets the forms but not the command.
+The Standalone preset has no `obsidian-lib`, so it gets the forms but not the command.

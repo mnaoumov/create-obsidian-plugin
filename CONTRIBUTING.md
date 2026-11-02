@@ -135,14 +135,14 @@ unresolved partial writes the file **empty** rather than failing, and an empty `
 
 ### Documentation site
 
-The user documentation is an Astro + Starlight site in `docs/`, served at <https://mnaoumov.dev/create-obsidian-plugin/>. The README stays short and links there, so a new option, prompt or generated file is documented in `docs/src/content/docs/guides/`.
+The user documentation is an `Astro` + `Starlight` site in `docs/`, served as the [documentation site](https://mnaoumov.dev/create-obsidian-plugin/). The README stays short and links there, so a new option, prompt or generated file is documented in `docs/src/content/docs/guides/`.
 
 ```bash
 npm run docs:dev      # serve it locally while editing
 npm run docs:build    # build it into docs/dist and check every link
 ```
 
-Every example that passes flags through `npm create` writes the separator quoted, as `"--"`, and links to the [PowerShell separator page](https://mnaoumov.dev/create-obsidian-plugin/guides/powershell-separator/): PowerShell swallows a bare `--`. The `Build GitHub Pages` workflow deploys the site on every published release, or when dispatched by hand.
+Every example that passes flags through `npm create` writes the separator quoted, as `"--"`, and links to the [PowerShell separator page](https://mnaoumov.dev/create-obsidian-plugin/guides/powershell-separator/): `PowerShell` swallows a bare `--`. The `Build GitHub Pages` workflow deploys the site on every published release, or when dispatched by hand.
 
 ## Pull Requests
 

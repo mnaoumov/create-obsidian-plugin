@@ -20,7 +20,7 @@ Run the generator with the package manager you use:
 | `bun`           | `create` | `bun create @mnaoumov/obsidian-plugin`      |
 | `bun`           | `bunx`   | `bunx @mnaoumov/create-obsidian-plugin`     |
 
-This starts an interactive wizard. It asks about your plugin, then about its tooling, and scaffolds the project into a new `obsidian-<plugin id>` folder. At the end it offers to install the dependencies, initialize a `git` repository and create a GitHub repository for you.
+This starts an interactive wizard. It asks about your plugin, then about its tooling, and scaffolds the project into a new `obsidian-<plugin id>` folder. At the end it offers to install the dependencies, initialize a `git` repository and create a `GitHub` repository for you.
 
 To pass flags to the generator through `npm create`, put a `"--"` before them, quoted. See [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/) for why the quotes matter.
 
@@ -29,7 +29,7 @@ To pass flags to the generator through `npm create`, put a `"--"` before them, q
 First, the project's own details:
 
 - the plugin id, name and description;
-- your name and GitHub username;
+- your name and `GitHub` username;
 - the default branch, `main` unless you say otherwise. `git init` creates it, and the CI workflow runs on it;
 - where people can support you: a funding platform and your username on it, or any URL;
 - the path to a test vault's `.obsidian` folder, which each build copies the plugin into. It is written to the project's `.env` as `OBSIDIAN_CONFIG_FOLDER`.

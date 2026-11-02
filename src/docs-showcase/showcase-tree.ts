@@ -128,7 +128,7 @@ export function buildReadme(entries: readonly ShowcaseEntry[], source: ShowcaseS
     '',
     `${String(runnableCount)} blocks are runnable. ${String(failedCount)} do not compile against the \`obsidian\` API, and ${String(notRunnableCount)} are not plugin code. Both kinds are listed below with the reason, so nothing is dropped silently.`,
     '',
-    'Each module holds the block as the docs show it, plus what create-obsidian-plugin generated around it: the imports the block leaves out, an export list for the blocks after it on the same page, and a `run(context)` function. `host.ts` supplies what the docs leave to the reader: a plugin to register things on, a scratch note to work with, an editor, an element to draw into.',
+    'Each module holds the block as the docs show it, plus what `create-obsidian-plugin` generated around it: the imports the block leaves out, an export list for the blocks after it on the same page, and a `run(context)` function. `host.ts` supplies what the docs leave to the reader: a plugin to register things on, a scratch note to work with, an editor, an element to draw into.',
     '',
     'The modules are type-checked by `tsconfig.json` in this folder, which carries the compiler options of the official sample plugin, rather than by the project\'s own stricter `tsconfig.json`. They are upstream\'s code, so the project\'s linter, formatter and spell checker skip this folder.',
     ''
@@ -141,7 +141,8 @@ export function buildReadme(entries: readonly ShowcaseEntry[], source: ShowcaseS
   for (const entry of entries) {
     if (entry.page !== page) {
       page = entry.page;
-      lines.push(`## ${entry.page.replaceAll('/', ' > ')}`, '', `Docs page: <${docsUrl(entry.page, [])}>`, '');
+      const pageTitle = entry.page.split('/').at(-1) ?? entry.page;
+      lines.push(`## ${entry.page.replaceAll('/', ' > ')}`, '', `[${pageTitle} in the Obsidian developer docs](${docsUrl(entry.page, [])})`, '');
     }
     lines.push(`- ${describeEntry(entry, source)}`);
     const nextEntry = entries[entries.indexOf(entry) + 1];
