@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.4.1 (2026-11-01)
+
+### Fixes
+
+- Every tool, library, framework, package, shell and service name is marked as code in the README, the docs site and every Markdown file and issue form a generated project gets: `esbuild`, `React`, `Vitest`, `ESLint`, `PostCSS`, `EJS`, `PowerShell`, `GitHub`, `GitHub Actions` and the rest.
+- Bare URLs are titled links, and the docs showcase README links each developer docs page by its title.
+- The check that catches a bare name reads one shared list, covers the templates too, and leaves a name that is also an ordinary word alone in lowercase.
+
+[Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.4.0...1.4.1)
+
 ## 1.4.0 (2026-11-01)
 
 ### Features
