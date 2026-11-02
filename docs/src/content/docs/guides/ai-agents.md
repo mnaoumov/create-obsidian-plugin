@@ -17,7 +17,7 @@ npm create @mnaoumov/obsidian-plugin "--" --yes --mode=create --pluginId=my-tool
 - `--mode=create` or `--mode=update` is required under `--yes` when the current directory already holds a generated project, and `--force` when the target folder already exists.
 - `--yes` installs, formats and commits nothing. The closing `Next steps` line lists what is left to run.
 - `--help` prints every answer and the values it accepts, so the agent can read the options rather than guess them.
-- Agents on Windows often run commands through PowerShell. Keep the quotes around `"--"`, or `npm` reads the flags as its own; see [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/).
+- Agents on Windows often run commands through `PowerShell`. Keep the quotes around `"--"`, or `npm` reads the flags as its own; see [The -- separator in PowerShell](/create-obsidian-plugin/guides/powershell-separator/).
 
 ## Filing an issue against this generator
 

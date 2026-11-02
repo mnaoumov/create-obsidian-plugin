@@ -659,7 +659,7 @@
       "line": 37,
       "name": "Use React in your plugin > Create a React component",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -674,7 +674,7 @@
       "line": 47,
       "name": "Use React in your plugin > Mount the React component",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -689,7 +689,7 @@
       "line": 97,
       "name": "Use React in your plugin > Create an App context",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -704,7 +704,7 @@
       "line": 106,
       "name": "Use React in your plugin > Create an App context (2)",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -719,7 +719,7 @@
       "line": 117,
       "name": "Use React in your plugin > Create an App context (3)",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -734,7 +734,7 @@
       "line": 128,
       "name": "Use React in your plugin > Create an App context (4)",
       "page": "Plugins/Getting started/Use React in your plugin",
-      "reason": "JSX for React, which this preset does not install",
+      "reason": "JSX for `React`, which this preset does not install",
       "status": "not-runnable"
     },
     {
@@ -824,7 +824,7 @@
       "line": 83,
       "name": "Use Svelte in your plugin > Create a Svelte component",
       "page": "Plugins/Getting started/Use Svelte in your plugin",
-      "reason": "a Svelte component, which this preset does not compile",
+      "reason": "a `Svelte` component, which this preset does not compile",
       "status": "not-runnable"
     },
     {
@@ -1728,7 +1728,7 @@
       "line": 5,
       "name": "Release your plugin with GitHub Actions",
       "page": "Plugins/Releasing/Release your plugin with GitHub Actions",
-      "reason": "a YAML file (a GitHub Actions workflow), not plugin code",
+      "reason": "a YAML file (a `GitHub Actions` workflow), not plugin code",
       "status": "not-runnable"
     },
     {
@@ -3488,7 +3488,7 @@
       "line": 5,
       "name": "Release your theme with GitHub Actions",
       "page": "Themes/App themes/Release your theme with GitHub Actions",
-      "reason": "a YAML file (a GitHub Actions workflow), not plugin code",
+      "reason": "a YAML file (a `GitHub Actions` workflow), not plugin code",
       "status": "not-runnable"
     },
     {

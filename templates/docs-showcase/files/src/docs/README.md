@@ -4,7 +4,7 @@ Every code block of the [Obsidian developer docs](https://docs.obsidian.md), tak
 
 114 blocks are runnable. 62 do not compile against the `obsidian` API, and 49 are not plugin code. Both kinds are listed below with the reason, so nothing is dropped silently.
 
-Each module holds the block as the docs show it, plus what create-obsidian-plugin generated around it: the imports the block leaves out, an export list for the blocks after it on the same page, and a `run(context)` function. `host.ts` supplies what the docs leave to the reader: a plugin to register things on, a scratch note to work with, an editor, an element to draw into.
+Each module holds the block as the docs show it, plus what `create-obsidian-plugin` generated around it: the imports the block leaves out, an export list for the blocks after it on the same page, and a `run(context)` function. `host.ts` supplies what the docs leave to the reader: a plugin to register things on, a scratch note to work with, an editor, an element to draw into.
 
 The modules are type-checked by `tsconfig.json` in this folder, which carries the compiler options of the official sample plugin, rather than by the project's own stricter `tsconfig.json`. They are upstream's code, so the project's linter, formatter and spell checker skip this folder.
 
@@ -12,13 +12,13 @@ The code blocks are licensed under 0BSD (code examples of obsidianmd/obsidian-de
 
 ## Community directory > Frequently asked questions
 
-Docs page: <https://docs.obsidian.md/Community+directory/Frequently+asked+questions>
+[Frequently asked questions in the Obsidian developer docs](https://docs.obsidian.md/Community+directory/Frequently+asked+questions)
 
 - [block at line 76](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Community%20directory/Frequently%20asked%20questions.md?plain=1#L76) under "Reviews and scanning > Why are my test or development files being included in the scan?": not runnable, a block with no language: plain text, not plugin code.
 
 ## Plugins > Editor > Communicating with editor extensions
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/Communicating+with+editor+extensions>
+[Communicating with editor extensions in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/Communicating+with+editor+extensions)
 
 - [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Communicating%20with%20editor%20extensions.md?plain=1#L5): command `Docs: Communicating with editor extensions`, module `plugins/editor/communicating-with-editor-extensions/01-intro.ts`.
 - [block at line 16](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Communicating%20with%20editor%20extensions.md?plain=1#L16) under "View plugin": does not compile, `TS2339: Property 'addPointerToSelection' does not exist on type 'ExamplePlugin'.`, at line 11 of the block (line 27 of the page).
@@ -26,7 +26,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/Communicating+with+editor+ex
 
 ## Plugins > Editor > Decorations
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/Decorations>
+[Decorations in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/Decorations)
 
 - [block at line 60](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Decorations.md?plain=1#L60) under "Providing decorations > Widgets": command `Docs: Decorations > Providing decorations > Widgets`, module `plugins/editor/decorations/01-widgets.ts`.
 - [block at line 76](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Decorations.md?plain=1#L76) under "Providing decorations > Widgets": command `Docs: Decorations > Providing decorations > Widgets (2)`, module `plugins/editor/decorations/02-widgets.ts`.
@@ -36,13 +36,13 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/Decorations>
 
 ## Plugins > Editor > Editor extensions
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/Editor+extensions>
+[Editor extensions in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/Editor+extensions)
 
 - [block at line 24](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Editor%20extensions.md?plain=1#L24) under "Registering editor extensions": does not compile, `TS2304: Cannot find name 'exampleField'.`, at line 2 of the block (line 26 of the page).
 
 ## Plugins > Editor > Editor
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/Editor>
+[Editor in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/Editor)
 
 - [block at line 7](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Editor.md?plain=1#L7): command `Docs: Editor`, module `plugins/editor/editor/01-intro.ts`.
 - [block at line 27](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Editor.md?plain=1#L27) under "Insert text at cursor position": does not compile, `TS2349: This expression is not callable.`, at line 10 of the block (line 37 of the page).
@@ -50,7 +50,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/Editor>
 
 ## Plugins > Editor > Markdown post processing
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/Markdown+post+processing>
+[Markdown post processing in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/Markdown+post+processing)
 
 - [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Markdown%20post%20processing.md?plain=1#L5): command `Docs: Markdown post processing`, module `plugins/editor/markdown-post-processing/01-intro.ts`.
 - [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/Markdown%20post%20processing.md?plain=1#L37) under "Post-process Markdown code blocks": not runnable, Markdown, not plugin code.
@@ -59,7 +59,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/Markdown+post+processing>
 
 ## Plugins > Editor > State fields
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/State+fields>
+[State fields in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/State+fields)
 
 - [block at line 20](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/State%20fields.md?plain=1#L20) under "Defining state effects": command `Docs: State fields > Defining state effects`, module `plugins/editor/state-fields/01-defining-state-effects.ts`.
 - [block at line 34](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/State%20fields.md?plain=1#L34) under "Defining a state field": command `Docs: State fields > Defining a state field`, module `plugins/editor/state-fields/02-defining-a-state-field.ts`.
@@ -68,7 +68,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/State+fields>
 
 ## Plugins > Editor > State management
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/State+management>
+[State management in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/State+management)
 
 - [block at line 10](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/State%20management.md?plain=1#L10) under "State changes": command `Docs: State management > State changes`, module `plugins/editor/state-management/01-state-changes.ts`.
 - [block at line 28](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/State%20management.md?plain=1#L28) under "State changes": command `Docs: State management > State changes (2)`, module `plugins/editor/state-management/02-state-changes.ts`.
@@ -76,27 +76,27 @@ Docs page: <https://docs.obsidian.md/Plugins/Editor/State+management>
 
 ## Plugins > Editor > View plugins
 
-Docs page: <https://docs.obsidian.md/Plugins/Editor/View+plugins>
+[View plugins in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Editor/View+plugins)
 
 - [block at line 19](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Editor/View%20plugins.md?plain=1#L19) under "Creating a view plugin": command `Docs: View plugins > Creating a view plugin`, module `plugins/editor/view-plugins/01-creating-a-view-plugin.ts`.
 
 ## Plugins > Events
 
-Docs page: <https://docs.obsidian.md/Plugins/Events>
+[Events in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Events)
 
 - [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Events.md?plain=1#L5): command `Docs: Events`, module `plugins/events/01-intro.ts`.
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Events.md?plain=1#L23) under "Timing events": does not compile, `TS2564: Property 'statusBar' has no initializer and is not definitely assigned in the constructor.`, at line 4 of the block (line 27 of the page).
 
 ## Plugins > Getting started > Anatomy of a plugin
 
-Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Anatomy+of+a+plugin>
+[Anatomy of a plugin in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Getting+started/Anatomy+of+a+plugin)
 
 - [block at line 3](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Anatomy%20of%20a%20plugin.md?plain=1#L3): command `Docs: Anatomy of a plugin`, module `plugins/getting-started/anatomy-of-a-plugin/01-intro.ts`.
 - [block at line 29](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Anatomy%20of%20a%20plugin.md?plain=1#L29) under "Plugin lifecycle": command `Docs: Anatomy of a plugin > Plugin lifecycle`, module `plugins/getting-started/anatomy-of-a-plugin/02-plugin-lifecycle.ts`.
 
 ## Plugins > Getting started > Build a plugin
 
-Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin>
+[Build a plugin in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin)
 
 - [block at line 35](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Build%20a%20plugin.md?plain=1#L35) under "Step 1: Download the sample plugin": not runnable, shell commands, not plugin code.
 - [block at line 43](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Build%20a%20plugin.md?plain=1#L43) under "Step 1: Download the sample plugin": not runnable, shell commands, not plugin code.
@@ -108,7 +108,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin>
 
 ## Plugins > Getting started > Mobile development
 
-Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Mobile+development>
+[Mobile development in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Getting+started/Mobile+development)
 
 - [block at line 11](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Mobile%20development.md?plain=1#L11) under "Emulate mobile device on desktop": does not compile, `TS2339: Property 'emulateMobile' does not exist on type 'App'.`, at line 1 of the block (line 12 of the page).
 - [block at line 17](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Mobile%20development.md?plain=1#L17) under "Emulate mobile device on desktop": does not compile, `TS2339: Property 'emulateMobile' does not exist on type 'App'.`, at line 1 of the block (line 18 of the page).
@@ -116,33 +116,33 @@ Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Mobile+development>
 
 ## Plugins > Getting started > Use React in your plugin
 
-Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Use+React+in+your+plugin>
+[Use React in your plugin in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Getting+started/Use+React+in+your+plugin)
 
 - [block at line 13](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L13) under "Configure your plugin": not runnable, shell commands, not plugin code.
 - [block at line 19](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L19) under "Configure your plugin": not runnable, shell commands, not plugin code.
 - [block at line 25](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L25) under "Configure your plugin": command `Docs: Use React in your plugin > Configure your plugin (3)`, module `plugins/getting-started/use-react-in-your-plugin/03-configure-your-plugin.ts`.
-- [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L37) under "Create a React component": not runnable, JSX for React, which this preset does not install.
-- [block at line 47](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L47) under "Mount the React component": not runnable, JSX for React, which this preset does not install.
-- [block at line 97](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L97) under "Create an App context": not runnable, JSX for React, which this preset does not install.
-- [block at line 106](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L106) under "Create an App context": not runnable, JSX for React, which this preset does not install.
-- [block at line 117](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L117) under "Create an App context": not runnable, JSX for React, which this preset does not install.
-- [block at line 128](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L128) under "Create an App context": not runnable, JSX for React, which this preset does not install.
+- [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L37) under "Create a React component": not runnable, JSX for `React`, which this preset does not install.
+- [block at line 47](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L47) under "Mount the React component": not runnable, JSX for `React`, which this preset does not install.
+- [block at line 97](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L97) under "Create an App context": not runnable, JSX for `React`, which this preset does not install.
+- [block at line 106](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L106) under "Create an App context": not runnable, JSX for `React`, which this preset does not install.
+- [block at line 117](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L117) under "Create an App context": not runnable, JSX for `React`, which this preset does not install.
+- [block at line 128](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20React%20in%20your%20plugin.md?plain=1#L128) under "Create an App context": not runnable, JSX for `React`, which this preset does not install.
 
 ## Plugins > Getting started > Use Svelte in your plugin
 
-Docs page: <https://docs.obsidian.md/Plugins/Getting+started/Use+Svelte+in+your+plugin>
+[Use Svelte in your plugin in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Getting+started/Use+Svelte+in+your+plugin)
 
 - [block at line 19](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L19) under "Configure your plugin": not runnable, shell commands, not plugin code.
 - [block at line 32](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L32) under "Configure your plugin": not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
 - [block at line 48](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L48) under "Configure your plugin": not runnable, JavaScript for the build script (`esbuild.config.mjs`), not plugin code.
 - [block at line 55](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L55) under "Configure your plugin": not runnable, JavaScript for the build script (`esbuild.config.mjs`), not plugin code.
 - [block at line 69](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L69) under "Configure your plugin": not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
-- [block at line 83](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L83) under "Create a Svelte component": not runnable, a Svelte component, which this preset does not compile.
+- [block at line 83](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L83) under "Create a Svelte component": not runnable, a `Svelte` component, which this preset does not compile.
 - [block at line 115](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Getting%20started/Use%20Svelte%20in%20your%20plugin.md?plain=1#L115) under "Mount the Svelte component": does not compile, `TS2307: Cannot find module './Counter.svelte' or its corresponding type declarations.`, at line 2 of the block (line 117 of the page).
 
 ## Plugins > Guides > Build a Bases view
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Build+a+Bases+view>
+[Build a Bases view in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Build+a+Bases+view)
 
 - [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Build%20a%20Bases%20view.md?plain=1#L37) under "Step 1: Sample plugin setup": command `Docs: Build a Bases view > Step 1: Sample plugin setup`, module `plugins/guides/build-a-bases-view/01-step-1-sample-plugin-setup.ts`.
 - [block at line 48](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Build%20a%20Bases%20view.md?plain=1#L48) under "Step 2: Create and register the Bases view": command `Docs: Build a Bases view > Step 2: Create and register the Bases view`, module `plugins/guides/build-a-bases-view/02-step-2-create-and-register-the-bases-vie.ts`.
@@ -151,7 +151,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Guides/Build+a+Bases+view>
 
 ## Plugins > Guides > Defer views
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Defer+views>
+[Defer views in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Defer+views)
 
 - [block at line 14](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Defer%20views.md?plain=1#L14) under "Accessing `leaf.view`": not runnable, does not parse as TypeScript: Declaration or statement expected. (line 5 of the block).
 - [block at line 31](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Defer%20views.md?plain=1#L31) under "Accessing `leaf.view`": not runnable, does not parse as TypeScript: Declaration or statement expected. (line 6 of the block).
@@ -160,7 +160,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Guides/Defer+views>
 
 ## Plugins > Guides > Manage plugin lifecycle
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Manage+plugin+lifecycle>
+[Manage plugin lifecycle in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Manage+plugin+lifecycle)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Manage%20plugin%20lifecycle.md?plain=1#L23) under "Overview": command `Docs: Manage plugin lifecycle > Overview`, module `plugins/guides/manage-plugin-lifecycle/01-overview.ts`.
 - [block at line 40](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Manage%20plugin%20lifecycle.md?plain=1#L40) under "Overview": command `Docs: Manage plugin lifecycle > Overview (2)`, module `plugins/guides/manage-plugin-lifecycle/02-overview.ts`.
@@ -179,7 +179,7 @@ Docs page: <https://docs.obsidian.md/Plugins/Guides/Manage+plugin+lifecycle>
 
 ## Plugins > Guides > Migrate to declarative settings
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Migrate+to+declarative+settings>
+[Migrate to declarative settings in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Migrate+to+declarative+settings)
 
 - [block at line 33](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Migrate%20to%20declarative%20settings.md?plain=1#L33) under "The starting point": does not compile, `TS2571: Object is of type 'unknown'.`, at line 26 of the block (line 59 of the page).
 - [block at line 118](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Migrate%20to%20declarative%20settings.md?plain=1#L118) under "Migrate the tab > Path A: clean 1.13-only migration > After": does not compile, `TS2416: Property 'getSettingDefinitions' in type 'MySettingTab' is not assignable to the same property in base type 'PluginSettingTab'.`, at line 18 of the block (line 136 of the page).
@@ -187,14 +187,14 @@ Docs page: <https://docs.obsidian.md/Plugins/Guides/Migrate+to+declarative+setti
 
 ## Plugins > Guides > Optimize plugin load time
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Optimize+plugin+load+time>
+[Optimize plugin load time in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Optimize+plugin+load+time)
 
 - [block at line 36](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Optimize%20plugin%20load%20time.md?plain=1#L36) under "Pitfalls > Listening to `vault.on('create')` > Option A. Check if the layout is ready": command `Docs: Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option A. Check if the layout is ready`, module `plugins/guides/optimize-plugin-load-time/01-option-a-check-if-the-layout-is-ready.ts`.
 - [block at line 54](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Optimize%20plugin%20load%20time.md?plain=1#L54) under "Pitfalls > Listening to `vault.on('create')` > Option B. Register the handler once the layout is ready": command `Docs: Optimize plugin load time > Pitfalls > Listening to vault.on('create') > Option B. Register the handler once the layout is ready`, module `plugins/guides/optimize-plugin-load-time/02-option-b-register-the-handler-once-the-l.ts`.
 
 ## Plugins > Guides > Store secrets
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Store+secrets>
+[Store secrets in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Store+secrets)
 
 - [block at line 38](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Store%20secrets.md?plain=1#L38) under "Step 1: Update your settings interface": does not compile, `TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 2 of the block (line 40 of the page).
 - [block at line 51](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Store%20secrets.md?plain=1#L51) under "Step 2: Add the SecretComponent to your settings tab": does not compile, `TS2307: Cannot find module './main' or its corresponding type declarations.`, at line 2 of the block (line 53 of the page).
@@ -203,14 +203,14 @@ Docs page: <https://docs.obsidian.md/Plugins/Guides/Store+secrets>
 
 ## Plugins > Guides > Support pop-out windows
 
-Docs page: <https://docs.obsidian.md/Plugins/Guides/Support+pop-out+windows>
+[Support pop-out windows in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Guides/Support+pop-out+windows)
 
 - [block at line 14](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Support%20pop-out%20windows.md?plain=1#L14): not runnable, does not parse as TypeScript: Expression expected. (line 1 of the block).
 - [block at line 42](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Guides/Support%20pop-out%20windows.md?plain=1#L42): not runnable, does not parse as TypeScript: Expression expected. (line 1 of the block).
 
 ## Plugins > Releasing > Plugin guidelines
 
-Docs page: <https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines>
+[Plugin guidelines in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines)
 
 - [block at line 73](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Plugin%20guidelines.md?plain=1#L73) under "UI text > Use `setHeading` instead of a `<h1>`, `<h2>`": command `Docs: Plugin guidelines > UI text > Use setHeading instead of a <h1>, <h2>`, module `plugins/releasing/plugin-guidelines/01-use-setheading-instead-of-a-h1-h2.ts`.
 - [block at line 84](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Plugin%20guidelines.md?plain=1#L84) under "Security > Avoid `innerHTML`, `outerHTML` and `insertAdjacentHTML`": does not compile, `TS18047: 'containerElement' is possibly 'null'.`, at line 4 of the block (line 88 of the page).
@@ -234,15 +234,15 @@ Docs page: <https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines>
 
 ## Plugins > Releasing > Release your plugin with GitHub Actions
 
-Docs page: <https://docs.obsidian.md/Plugins/Releasing/Release+your+plugin+with+GitHub+Actions>
+[Release your plugin with GitHub Actions in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Releasing/Release+your+plugin+with+GitHub+Actions)
 
-- [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Release%20your%20plugin%20with%20GitHub%20Actions.md?plain=1#L5): not runnable, a YAML file (a GitHub Actions workflow), not plugin code.
+- [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Release%20your%20plugin%20with%20GitHub%20Actions.md?plain=1#L5): not runnable, a YAML file (a `GitHub Actions` workflow), not plugin code.
 - [block at line 57](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Release%20your%20plugin%20with%20GitHub%20Actions.md?plain=1#L57): not runnable, shell commands, not plugin code.
 - [block at line 67](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Releasing/Release%20your%20plugin%20with%20GitHub%20Actions.md?plain=1#L67): not runnable, shell commands, not plugin code.
 
 ## Plugins > User interface > Commands
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Commands>
+[Commands in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Commands)
 
 - [block at line 7](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Commands.md?plain=1#L7): command `Docs: Commands`, module `plugins/user-interface/commands/01-intro.ts`.
 - [block at line 38](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Commands.md?plain=1#L38) under "Conditional commands": does not compile, `TS2304: Cannot find name 'getRequiredValue'.`, at line 6 of the block (line 44 of the page).
@@ -252,14 +252,14 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Commands>
 
 ## Plugins > User interface > Context menus
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Context+menus>
+[Context menus in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Context+menus)
 
 - [block at line 3](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Context%20menus.md?plain=1#L3): command `Docs: Context menus`, module `plugins/user-interface/context-menus/01-intro.ts`.
 - [block at line 46](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Context%20menus.md?plain=1#L46): does not compile, `TS18047: 'view.file' is possibly 'null'.`, at line 25 of the block (line 71 of the page).
 
 ## Plugins > User interface > HTML elements
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/HTML+elements>
+[HTML elements in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/HTML+elements)
 
 - [block at line 3](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/HTML%20elements.md?plain=1#L3): does not compile, `TS2304: Cannot find name 'ExamplePlugin'.`, at line 4 of the block (line 7 of the page).
 - [block at line 31](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/HTML%20elements.md?plain=1#L31) under "Create HTML elements using `createEl()`": command `Docs: HTML elements > Create HTML elements using createEl()`, module `plugins/user-interface/html-elements/02-create-html-elements-using-createel.ts`.
@@ -270,7 +270,7 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/HTML+elements>
 
 ## Plugins > User interface > Icons
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Icons>
+[Icons in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Icons)
 
 - [block at line 13](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Icons.md?plain=1#L13) under "Use icons": command `Docs: Icons > Use icons`, module `plugins/user-interface/icons/01-use-icons.ts`.
 - [block at line 26](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Icons.md?plain=1#L26) under "Use icons": command `Docs: Icons > Use icons (2)`, module `plugins/user-interface/icons/02-use-icons.ts`.
@@ -278,7 +278,7 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Icons>
 
 ## Plugins > User interface > Modals
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Modals>
+[Modals in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Modals)
 
 - [block at line 3](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Modals.md?plain=1#L3): command `Docs: Modals`, module `plugins/user-interface/modals/01-intro.ts`.
 - [block at line 16](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Modals.md?plain=1#L16): command `Docs: Modals (2)`, module `plugins/user-interface/modals/02-intro.ts`.
@@ -290,13 +290,13 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Modals>
 
 ## Plugins > User interface > Ribbon actions
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Ribbon+actions>
+[Ribbon actions in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Ribbon+actions)
 
 - [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Ribbon%20actions.md?plain=1#L5): command `Docs: Ribbon actions`, module `plugins/user-interface/ribbon-actions/01-intro.ts`.
 
 ## Plugins > User interface > Right-to-left
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Right-to-left>
+[Right-to-left in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Right-to-left)
 
 - [block at line 69](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Right-to-left.md?plain=1#L69) under "Make plugins and themes agnostic of language direction > Use fallback values when necessary": command `Docs: Right-to-left > Make plugins and themes agnostic of language direction > Use fallback values when necessary`, module `plugins/user-interface/right-to-left/01-use-fallback-values-when-necessary.ts`.
 - [block at line 98](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Right-to-left.md?plain=1#L98) under "Obsidian CSS helpers and rules for RTL > Selectors for language direction > Global selectors": command `Docs: Right-to-left > Obsidian CSS helpers and rules for RTL > Selectors for language direction > Global selectors`, module `plugins/user-interface/right-to-left/02-global-selectors.ts`.
@@ -304,7 +304,7 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Right-to-left>
 
 ## Plugins > User interface > Settings
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Settings>
+[Settings in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Settings)
 
 - [block at line 12](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Settings.md?plain=1#L12): does not compile, `TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.`, at line 13 of the block (line 25 of the page).
 - [block at line 49](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Settings.md?plain=1#L49) under "Create a settings definition": does not compile, `TS2564: Property 'settings' has no initializer and is not definitely assigned in the constructor.`, at line 6 of the block (line 55 of the page).
@@ -350,21 +350,21 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Settings>
 
 ## Plugins > User interface > Status bar
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Status+bar>
+[Status bar in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Status+bar)
 
 - [block at line 6](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Status%20bar.md?plain=1#L6): command `Docs: Status bar`, module `plugins/user-interface/status-bar/01-intro.ts`.
 - [block at line 22](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Status%20bar.md?plain=1#L22): command `Docs: Status bar (2)`, module `plugins/user-interface/status-bar/02-intro.ts`.
 
 ## Plugins > User interface > Views
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Views>
+[Views in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Views)
 
 - [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Views.md?plain=1#L5): command `Docs: Views`, module `plugins/user-interface/views/01-intro.ts`.
 - [block at line 47](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Views.md?plain=1#L47): does not compile, `TS2322: Type 'WorkspaceLeaf | undefined' is not assignable to type 'WorkspaceLeaf | null'.`, at line 27 of the block (line 74 of the page).
 
 ## Plugins > User interface > Workspace
 
-Docs page: <https://docs.obsidian.md/Plugins/User+interface/Workspace>
+[Workspace in the Obsidian developer docs](https://docs.obsidian.md/Plugins/User+interface/Workspace)
 
 - [block at line 7](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Workspace.md?plain=1#L7): not runnable, a Mermaid diagram, not plugin code.
 - [block at line 25](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/User%20interface/Workspace.md?plain=1#L25): not runnable, a Mermaid diagram, not plugin code.
@@ -375,7 +375,7 @@ Docs page: <https://docs.obsidian.md/Plugins/User+interface/Workspace>
 
 ## Plugins > Vault
 
-Docs page: <https://docs.obsidian.md/Plugins/Vault>
+[Vault in the Obsidian developer docs](https://docs.obsidian.md/Plugins/Vault)
 
 - [block at line 12](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Vault.md?plain=1#L12): does not compile, `TS2532: Object is possibly 'undefined'.`, at line 4 of the block (line 16 of the page).
 - [block at line 35](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Plugins/Vault.md?plain=1#L35) under "Read files": command `Docs: Vault > Read files`, module `plugins/vault/02-read-files.ts`.
@@ -385,88 +385,88 @@ Docs page: <https://docs.obsidian.md/Plugins/Vault>
 
 ## Reference > CSS variables > About styling
 
-Docs page: <https://docs.obsidian.md/Reference/CSS+variables/About+styling>
+[About styling in the Obsidian developer docs](https://docs.obsidian.md/Reference/CSS+variables/About+styling)
 
 - [block at line 11](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/CSS%20variables/About%20styling.md?plain=1#L11) under "For plugins": command `Docs: About styling > For plugins`, module `reference/css-variables/about-styling/01-for-plugins.ts`.
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/CSS%20variables/About%20styling.md?plain=1#L23) under "For themes and snippets": command `Docs: About styling > For themes and snippets`, module `reference/css-variables/about-styling/02-for-themes-and-snippets.ts`.
 
 ## Reference > CSS variables > Foundations > Colors
 
-Docs page: <https://docs.obsidian.md/Reference/CSS+variables/Foundations/Colors>
+[Colors in the Obsidian developer docs](https://docs.obsidian.md/Reference/CSS+variables/Foundations/Colors)
 
 - [block at line 55](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/CSS%20variables/Foundations/Colors.md?plain=1#L55) under "Extended colors": not runnable, a CSS fragment with no selector, so there is no rule to apply.
 
 ## Reference > CSS variables > Publish > Site fonts
 
-Docs page: <https://docs.obsidian.md/Reference/CSS+variables/Publish/Site+fonts>
+[Site fonts in the Obsidian developer docs](https://docs.obsidian.md/Reference/CSS+variables/Publish/Site+fonts)
 
 - [block at line 8](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/CSS%20variables/Publish/Site%20fonts.md?plain=1#L8): command `Docs: Site fonts`, module `reference/css-variables/publish/site-fonts/01-intro.ts`.
 
 ## Reference > Manifest
 
-Docs page: <https://docs.obsidian.md/Reference/Manifest>
+[Manifest in the Obsidian developer docs](https://docs.obsidian.md/Reference/Manifest)
 
 - [block at line 53](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/Manifest.md?plain=1#L53) under "fundingUrl": not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
 - [block at line 61](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/Manifest.md?plain=1#L61) under "fundingUrl": not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
 
 ## Reference > TypeScript API > Command > callback
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/Command/callback>
+[callback in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/Command/callback)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/Command/callback.md?plain=1#L23) under "Example": command `Docs: callback > Example`, module `reference/typescript-api/command/callback/01-example.ts`.
 
 ## Reference > TypeScript API > Command > checkCallback
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/Command/checkCallback>
+[checkCallback in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/Command/checkCallback)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/Command/checkCallback.md?plain=1#L23) under "Example": does not compile, `TS2304: Cannot find name 'getRequiredValue'.`, at line 5 of the block (line 28 of the page).
 
 ## Reference > TypeScript API > Command > editorCallback
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/Command/editorCallback>
+[editorCallback in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/Command/editorCallback)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/Command/editorCallback.md?plain=1#L23) under "Example": does not compile, `TS2322: Type '(editor: Editor, view: MarkdownView) => void' is not assignable to type '(editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any'.`, at line 4 of the block (line 27 of the page).
 
 ## Reference > TypeScript API > Command > editorCheckCallback
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/Command/editorCheckCallback>
+[editorCheckCallback in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/Command/editorCheckCallback)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/Command/editorCheckCallback.md?plain=1#L23) under "Example": does not compile, `TS2322: Type '(checking: boolean, editor: Editor, view: MarkdownView) => boolean' is not assignable to type '(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => boolean | void'.`, at line 4 of the block (line 27 of the page).
 
 ## Reference > TypeScript API > debounce
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/debounce>
+[debounce in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/debounce)
 
 - [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/debounce.md?plain=1#L37) under "Example": command `Docs: debounce > Example`, module `reference/typescript-api/debounce/01-example.ts`.
 
 ## Reference > TypeScript API > FileManager > processFrontMatter
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/FileManager/processFrontMatter>
+[processFrontMatter in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/FileManager/processFrontMatter)
 
 - [block at line 43](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/FileManager/processFrontMatter.md?plain=1#L43) under "Example": does not compile, `TS2304: Cannot find name 'value'.`, at line 2 of the block (line 45 of the page).
 
 ## Reference > TypeScript API > Vault > process
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/Vault/process>
+[process in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/Vault/process)
 
 - [block at line 37](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/Vault/process.md?plain=1#L37) under "Example": command `Docs: process > Example`, module `reference/typescript-api/vault/process/01-example.ts`.
 
 ## Reference > TypeScript API > View > scope
 
-Docs page: <https://docs.obsidian.md/Reference/TypeScript+API/View/scope>
+[scope in the Obsidian developer docs](https://docs.obsidian.md/Reference/TypeScript+API/View/scope)
 
 - [block at line 23](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/TypeScript%20API/View/scope.md?plain=1#L23) under "Example": does not compile, `TS2339: Property 'scope' does not exist on type 'DocsThis'.`, at line 1 of the block (line 24 of the page).
 
 ## Reference > Versions
 
-Docs page: <https://docs.obsidian.md/Reference/Versions>
+[Versions in the Obsidian developer docs](https://docs.obsidian.md/Reference/Versions)
 
 - [block at line 15](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/Versions.md?plain=1#L15): not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
 - [block at line 28](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Reference/Versions.md?plain=1#L28): not runnable, a JSON sample (a manifest, `versions.json`, `data.json` or a config file), not plugin code.
 
 ## Themes > App themes > Build a theme
 
-Docs page: <https://docs.obsidian.md/Themes/App+themes/Build+a+theme>
+[Build a theme in the Obsidian developer docs](https://docs.obsidian.md/Themes/App+themes/Build+a+theme)
 
 - [block at line 26](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Build%20a%20theme.md?plain=1#L26) under "Step 1: Download the sample theme": not runnable, shell commands, not plugin code.
 - [block at line 32](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Build%20a%20theme.md?plain=1#L32) under "Step 1: Download the sample theme": not runnable, shell commands, not plugin code.
@@ -479,33 +479,33 @@ Docs page: <https://docs.obsidian.md/Themes/App+themes/Build+a+theme>
 
 ## Themes > App themes > Embed fonts and images in your theme
 
-Docs page: <https://docs.obsidian.md/Themes/App+themes/Embed+fonts+and+images+in+your+theme>
+[Embed fonts and images in your theme in the Obsidian developer docs](https://docs.obsidian.md/Themes/App+themes/Embed+fonts+and+images+in+your+theme)
 
 - [block at line 12](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Embed%20fonts%20and%20images%20in%20your%20theme.md?plain=1#L12) under "Use data URLs": not runnable, a CSS fragment with no selector, so there is no rule to apply.
 - [block at line 21](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Embed%20fonts%20and%20images%20in%20your%20theme.md?plain=1#L21) under "Use data URLs": command `Docs: Embed fonts and images in your theme > Use data URLs (2)`, module `themes/app-themes/embed-fonts-and-images-in-your-theme/02-use-data-urls.ts`.
 
 ## Themes > App themes > Release your theme with GitHub Actions
 
-Docs page: <https://docs.obsidian.md/Themes/App+themes/Release+your+theme+with+GitHub+Actions>
+[Release your theme with GitHub Actions in the Obsidian developer docs](https://docs.obsidian.md/Themes/App+themes/Release+your+theme+with+GitHub+Actions)
 
-- [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Release%20your%20theme%20with%20GitHub%20Actions.md?plain=1#L5): not runnable, a YAML file (a GitHub Actions workflow), not plugin code.
+- [block at line 5](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Release%20your%20theme%20with%20GitHub%20Actions.md?plain=1#L5): not runnable, a YAML file (a `GitHub Actions` workflow), not plugin code.
 - [block at line 35](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Release%20your%20theme%20with%20GitHub%20Actions.md?plain=1#L35): not runnable, shell commands, not plugin code.
 - [block at line 43](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Release%20your%20theme%20with%20GitHub%20Actions.md?plain=1#L43): not runnable, shell commands, not plugin code.
 
 ## Themes > App themes > Theme guidelines
 
-Docs page: <https://docs.obsidian.md/Themes/App+themes/Theme+guidelines>
+[Theme guidelines in the Obsidian developer docs](https://docs.obsidian.md/Themes/App+themes/Theme+guidelines)
 
 - [block at line 11](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/App%20themes/Theme%20guidelines.md?plain=1#L11) under "Use CSS variables": command `Docs: Theme guidelines > Use CSS variables`, module `themes/app-themes/theme-guidelines/01-use-css-variables.ts`.
 
 ## Themes > Obsidian Publish themes > Best practices for Publish themes
 
-Docs page: <https://docs.obsidian.md/Themes/Obsidian+Publish+themes/Best+practices+for+Publish+themes>
+[Best practices for Publish themes in the Obsidian developer docs](https://docs.obsidian.md/Themes/Obsidian+Publish+themes/Best+practices+for+Publish+themes)
 
 - [block at line 41](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/Obsidian%20Publish%20themes/Best%20practices%20for%20Publish%20themes.md?plain=1#L41) under "Small screens and mobile devices": command `Docs: Best practices for Publish themes > Small screens and mobile devices`, module `themes/obsidian-publish-themes/best-practices-for-publish-themes/01-small-screens-and-mobile-devices.ts`.
 
 ## Themes > Obsidian Publish themes > Build a Publish theme
 
-Docs page: <https://docs.obsidian.md/Themes/Obsidian+Publish+themes/Build+a+Publish+theme>
+[Build a Publish theme in the Obsidian developer docs](https://docs.obsidian.md/Themes/Obsidian+Publish+themes/Build+a+Publish+theme)
 
 - [block at line 13](https://github.com/obsidianmd/obsidian-developer-docs/blob/1c26772ac13d6e9870c865936d389fdfe694e742/en/Themes/Obsidian%20Publish%20themes/Build%20a%20Publish%20theme.md?plain=1#L13): command `Docs: Build a Publish theme`, module `themes/obsidian-publish-themes/build-a-publish-theme/01-intro.ts`.

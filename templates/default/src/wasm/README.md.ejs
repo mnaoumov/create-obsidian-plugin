@@ -1,18 +1,18 @@
 # WebAssembly
 
-This folder holds a working WebAssembly module and the code that calls it. It is a sample: replace it with your own, and this note with what yours does.
+This folder holds a working `WebAssembly` module and the code that calls it. It is a sample: replace it with your own, and this note with what yours does.
 
-WebAssembly is how you use code written in Rust, C, Go or AssemblyScript from a plugin. Unlike a native Node binary it runs on **mobile** too, so it is the portable route — which is why it is worth a sample rather than a paragraph of instructions.
+`WebAssembly` is how you use code written in Rust, C, Go or AssemblyScript from a plugin. Unlike a native Node binary it runs on **mobile** too, so it is the portable route — which is why it is worth a sample rather than a paragraph of instructions.
 
 ## What is here
 
 | File | What it is |
 | --- | --- |
 | `module.wasm` | The compiled module: 39 bytes, one export, `answer()`, returning `42`. |
-| `module.wat` | The same module in WebAssembly's text format, so the binary is not opaque. Documentation only — nothing in the build reads it. |
+| `module.wat` | The same module in `WebAssembly`'s text format, so the binary is not opaque. Documentation only — nothing in the build reads it. |
 | `answer.ts` | Loads the module and exposes `getWasmAnswer()`. Written against the bundler you chose. |
 
-`src/plugin.ts` registers a **Sample WASM answer** command that calls `getWasmAnswer()` and shows the result. That call is not decoration: a bundler tree-shakes an export nothing uses, so without a real call site the module would be dropped from `main.js` and the whole WebAssembly integration would be dead with the build still green.
+`src/plugin.ts` registers a **Sample WASM answer** command that calls `getWasmAnswer()` and shows the result. That call is not decoration: a bundler tree-shakes an export nothing uses, so without a real call site the module would be dropped from `main.js` and the whole `WebAssembly` integration would be dead with the build still green.
 
 ## Replacing it with your own
 

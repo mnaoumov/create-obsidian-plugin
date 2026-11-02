@@ -164,8 +164,8 @@ const NOT_PLUGIN_CODE: Readonly<Record<string, string>> = {
   'mermaid': 'a Mermaid diagram, not plugin code',
   'sh': 'shell commands, not plugin code',
   'shell': 'shell commands, not plugin code',
-  'yaml': 'a YAML file (a GitHub Actions workflow), not plugin code',
-  'yml': 'a YAML file (a GitHub Actions workflow), not plugin code'
+  'yaml': 'a YAML file (a `GitHub Actions` workflow), not plugin code',
+  'yml': 'a YAML file (a `GitHub Actions` workflow), not plugin code'
 };
 
 /** The names a snippet's `export` list carries, and the list itself. */
@@ -236,7 +236,7 @@ export function wrapSnippet(snippet: DocsSnippet, knownModules: KnownModuleExpor
     case 'typescript':
       break;
     case 'tsx':
-      return notRunnable(snippet.code.includes('<script') ? 'a Svelte component, which this preset does not compile' : 'JSX for React, which this preset does not install');
+      return notRunnable(snippet.code.includes('<script') ? 'a `Svelte` component, which this preset does not compile' : 'JSX for `React`, which this preset does not install');
     default:
       return notRunnable(`a \`${snippet.lang}\` block, not plugin code`);
   }
