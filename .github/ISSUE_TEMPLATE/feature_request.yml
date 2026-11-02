@@ -48,16 +48,15 @@ body:
   - type: textarea
     attributes:
       label: Attachments
-      description: Attach a video.
+      description: Optional, but strongly encouraged. Attach a video.
       placeholder: Drag and drop files here.
   - type: dropdown
     attributes:
       label: Video
+      description: Optional, but strongly encouraged.
       options:
         - "Not attached. ⚠️ Providing a video helps the maintainer understand the request and speeds up implementation."
         - "Attached"
-    validations:
-      required: true
   - type: checkboxes
     attributes:
       label: Confirmations

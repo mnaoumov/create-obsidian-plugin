@@ -11,8 +11,8 @@ The **`GitHub` issue templates** question (`--gitHubIssueTemplates=bug-and-featu
 
 `.github/ISSUE_TEMPLATE/` gets three files:
 
-- `bug_report.yml`, the **Bug report** form, titled `[BUG] ...` and labelled `bug`. It asks for a description, the steps to reproduce, the expected and actual behavior, the plugin version, the Obsidian version, the operating system and environment, attachments, a video, a sample vault and a bug isolation check, and ends with confirmations;
-- `feature_request.yml`, the **Feature request** form, titled `[FR] ...` and labelled `enhancement`. It asks for a description, the details, the desired and current behavior, and attachments, with its own confirmations;
+- `bug_report.yml`, the **Bug report** form, titled `[BUG] ...` and labelled `bug`. It asks for a description, the steps to reproduce, the expected and actual behavior, the plugin version, the Obsidian version, the operating system and environment, attachments, a video, a sample vault and a bug isolation check, and ends with confirmations. The video and the sample vault are strongly encouraged but optional, because a form that demands both loses reports from people who will not record and package one;
+- `feature_request.yml`, the **Feature request** form, titled `[FR] ...` and labelled `enhancement`. It asks for a description, the details, the desired and current behavior, and optional attachments, with its own confirmations;
 - `config.yml`, which turns blank issues off and sends questions to the repository's Discussions instead.
 
 The README and `CONTRIBUTING.md` each get a **Filing an issue (for AI agents and humans)** section that points at the forms. See [Notes for AI agents](/create-obsidian-plugin/guides/ai-agents/).
