@@ -30,7 +30,7 @@ Keep the quotes around `"--"`: in `PowerShell` a bare `--` is swallowed before `
 
 ## See also
 
-[My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
+[My other Obsidian resources](https://mnaoumov.dev/obsidian/)
 
 | Tool | Features | How `create-obsidian-plugin` differs |
 | --- | --- | --- |
