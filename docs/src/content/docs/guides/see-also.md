@@ -5,7 +5,7 @@ sidebar:
   order: 10
 ---
 
-[My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
+[My other Obsidian resources](https://mnaoumov.dev/obsidian/)
 
 | Tool | Features | How `create-obsidian-plugin` differs |
 | --- | --- | --- |
