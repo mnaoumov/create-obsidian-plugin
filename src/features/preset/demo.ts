@@ -33,6 +33,7 @@ export class Demo extends FeatureOption {
       .addScript('build')
       .addScript('build:clean')
       .addScript('build:compile')
+      .addScript('check')
       // The over-exposure linter from typescript-dev-toolkit, which every plugin compared here runs. It reports
       // Members exported more widely than anything imports them, so it needs no configuration here.
       .addScript('find-overexposed')
@@ -48,6 +49,7 @@ export class Demo extends FeatureOption {
         'scripts/build.ts',
         'scripts/build-clean.ts',
         'scripts/build-compile.ts',
+        'scripts/check.ts',
         'scripts/find-overexposed.ts',
         'scripts/find-overexposed-fix.ts',
         'scripts/dev.ts',

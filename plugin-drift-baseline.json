@@ -234,6 +234,30 @@
     "all-in-one/scripts/partial/capture:screenshots": {
       "pluginCount": 30,
       "why": "Decided on 2026-09-24: the scaffold ships the sample unit tests and not the screenshot or integration harness. The screenshot-capture harness needs a provisioned desktop Obsidian and an Android emulator to do anything, which is exactly why the generator already declines to run those vitest projects from `test:integration`: shipping it would ship tests nothing on a fresh machine can run, and teach the user to ignore a red aggregate. The per-project scripts the real plugins reach it through are emitted; the harness is added once the machine is set up."
+    },
+    "all-in-one/framework-modules/extra/scripts/check.ts": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
+    },
+    "all-in-one/layout/extra/scripts/check.ts": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
+    },
+    "all-in-one/scripts/extra/check": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
+    },
+    "demo/framework-modules/extra/scripts/check.ts": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
+    },
+    "demo/layout/extra/scripts/check.ts": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
+    },
+    "demo/scripts/extra/check": {
+      "pluginCount": 0,
+      "why": "The scaffold exposes check-plugin --scanner through its own check script so new plugins can reproduce Community directory scanner findings locally. The compared plugins have not adopted this command yet; the toolkit already supplies its CLI."
     }
   }
 }

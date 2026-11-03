@@ -65,6 +65,10 @@ and `standalone` runs a plain `execSync`. Splitting on the preset first is what 
 `dprint` runner whatever was chosen — installing `prettier` or `biome`, emitting its config, then running `dprint` over it,
 with `dprint` not even a dependency.
 
+### The framework presets expose the Community directory scanner locally
+
+`npm run check` runs `check-plugin --scanner` through `scripts/check.ts`, using the CLI supplied by `@mnaoumov/obsidian-dev-toolkit`. It runs manifest and release checks plus the Community directory scanner; the README and `CONTRIBUTING.md` describe it and its network requirement. `all-in-one`, `demo` and `docs-showcase` all carry it. `standalone` keeps its self-contained scripts, and `official-sample` keeps upstream's scripts.
+
 ### The chosen formatter runs once at generation time
 
 The templates are authored in one style, the real plugins'. `dprint` is configured to match it; `prettier` and
