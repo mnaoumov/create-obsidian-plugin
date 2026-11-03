@@ -1,3 +1,11 @@
+import type { LintError } from 'markdownlint';
+
+import {
+  TOOL_NAME_AS_CODE_RULE_NAME,
+  toolNameAsCodeRule
+} from '@mnaoumov/obsidian-dev-toolkit/linters/markdownlint-rules/tool-name-as-code';
+import { TOOL_NAMES } from '@mnaoumov/obsidian-dev-toolkit/linters/tool-names';
+import { lint } from 'markdownlint/sync';
 import {
   readdirSync,
   readFileSync
@@ -11,11 +19,35 @@ import {
   expect,
   it
 } from 'vitest';
-
-import { findBareToolNames } from './bare-tool-names.ts';
-import { TOOL_NAMES } from './tool-names.ts';
+import {
+  parseDocument,
+  visit
+} from 'yaml';
 
 const ROOT = join(import.meta.dirname, '..');
+
+/** Decode issue-form prose before linting: YAML quotes and block indentation are not Markdown code. */
+function issueFormStrings(source: string): string[] {
+  const document = parseDocument(source);
+  expect(document.errors).toStrictEqual([]);
+  const strings: string[] = [];
+  visit(document, {
+    Scalar(_key, scalar) {
+      if (typeof scalar.value === 'string') {
+        strings.push(scalar.value);
+      }
+    }
+  });
+  return strings;
+}
+
+function lintToolNames(markdown: string): LintError[] {
+  return lint({
+    config: { default: false, [TOOL_NAME_AS_CODE_RULE_NAME]: true },
+    customRules: [toolNameAsCodeRule],
+    strings: { content: markdown }
+  })['content'] ?? [];
+}
 
 function listFiles(dir: string, isProse: (path: string) => boolean): string[] {
   return readdirSync(join(ROOT, dir), { recursive: true, withFileTypes: true })
@@ -25,13 +57,17 @@ function listFiles(dir: string, isProse: (path: string) => boolean): string[] {
 }
 
 function namesIn(markdown: string): string[] {
-  return findBareToolNames(markdown).map((found) => found.name);
+  const lines = markdown.split(/\r?\n/);
+  return lintToolNames(markdown).map((error) => {
+    const [column = 1, length = 0] = error.errorRange ?? [];
+    return lines[error.lineNumber - 1]?.slice(column - 1, column - 1 + length) ?? '';
+  });
 }
 
-describe('findBareToolNames', () => {
+describe('shared tool-name-as-code rule', () => {
   it('finds a tool named in prose without backticks', () => {
     expect(namesIn('pnpm, yarn and bun work too.')).toStrictEqual(['pnpm', 'yarn', 'bun']);
-    expect(findBareToolNames('Then run npm install.').map((found) => found.line)).toStrictEqual([1]);
+    expect(lintToolNames('Then run npm install.').map((found) => found.lineNumber)).toStrictEqual([1]);
   });
 
   it('finds libraries, frameworks, services and shells', () => {
@@ -74,7 +110,12 @@ describe('findBareToolNames', () => {
       'A span that wraps, `npm run',
       'build`, is code too.'
     ].join('\n');
-    expect(findBareToolNames(markdown)).toStrictEqual([]);
+    expect(lintToolNames(markdown)).toStrictEqual([]);
+  });
+
+  it('checks quoted and block issue-form prose while preserving Markdown and EJS syntax', () => {
+    const strings = issueFormStrings('description: "Use npm"\nbody:\n  - type: markdown\n    attributes:\n      value: |\n        Install with Vite.\n        Keep `npm` and <%= authorGitHubName %>.\n');
+    expect(strings.flatMap(namesIn)).toStrictEqual(['npm', 'Vite']);
   });
 
   it('keeps every spelling unique', () => {
@@ -89,9 +130,14 @@ it('marks every tool name as code in the repository\'s own Markdown and in every
     'AGENTS.md',
     'CHANGELOG.md',
     'templates/docs-showcase/files/src/docs/README.md',
+    ...listFiles(join('.github', 'ISSUE_TEMPLATE'), (path) => /\.ya?ml$/.test(path)),
     ...listFiles(join('docs', 'src'), (path) => /\.mdx?$/.test(path)),
     ...listFiles(join('templates', 'default'), (path) => /\.md(?:@[^/]*)?\.ejs$/.test(path) || /\/ISSUE_TEMPLATE\/[^/]+\.yml\.ejs$/.test(path))
   ];
-  const offenders = files.flatMap((file) => findBareToolNames(readFileSync(join(ROOT, file), 'utf-8')).map((found) => `${file}:${String(found.line)}: ${found.name} in "${found.text}"`));
+  const offenders = files.flatMap((file) => {
+    const source = readFileSync(join(ROOT, file), 'utf-8');
+    const documents = /\.ya?ml(?:\.ejs)?$/.test(file) ? issueFormStrings(source) : [source];
+    return documents.flatMap((markdown, index) => lintToolNames(markdown).map((error) => `${file} (prose ${String(index + 1)}):${String(error.lineNumber)}: ${String(error.errorDetail)}`));
+  });
   expect(offenders).toStrictEqual([]);
 });

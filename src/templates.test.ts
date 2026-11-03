@@ -1,3 +1,6 @@
+import { obsidianMarkdownlintCli2Config } from '@mnaoumov/obsidian-dev-toolkit/linters/markdownlint-cli2-config';
+import { TOOL_NAME_AS_CODE_RULE_NAME } from '@mnaoumov/obsidian-dev-toolkit/linters/markdownlint-rules/tool-name-as-code';
+import { lint as lintMarkdown } from 'markdownlint/sync';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
@@ -2878,6 +2881,24 @@ describe('copyTemplates', () => {
     const config = readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8');
     expect(config).toContain('from \'markdownlint-rule-relative-links\'');
     expect(config).not.toContain('@mnaoumov/');
+  });
+
+  it.each(['all-in-one', 'demo', 'docs-showcase'] as const)('inherits the shared tool-name rule in generated %s Markdown configuration', (preset) => {
+    copyTemplates(makeAnswers({ markdownLinter: 'markdownlint', preset }), targetDir, '1.0.0', null);
+    const source = readFileSync(join(targetDir, 'scripts/markdownlint-cli2-config.ts'), 'utf-8');
+    expect(source).toContain('from \'@mnaoumov/obsidian-dev-toolkit/linters/markdownlint-cli2-config\'');
+    // Evaluate the emitted config body against the installed shared config, including its nested spread.
+    // This catches a template overriding config/customRules and silently losing the inherited rule.
+    const body = source.slice(source.indexOf('export const config'))
+      .replace('export const config: MarkdownlintCli2ConfigurationSchema =', 'const config =');
+    const config = runInNewContext(`${body}\nconfig;`, { obsidianMarkdownlintCli2Config }) as typeof obsidianMarkdownlintCli2Config;
+    expect(config.config?.[TOOL_NAME_AS_CODE_RULE_NAME]).toBe(true);
+    const errors = lintMarkdown({
+      config: { default: false, [TOOL_NAME_AS_CODE_RULE_NAME]: config.config?.[TOOL_NAME_AS_CODE_RULE_NAME] },
+      customRules: (config.customRules ?? []).flatMap((rule) => typeof rule === 'string' ? [] : [rule]).filter((rule) => rule.names.includes(TOOL_NAME_AS_CODE_RULE_NAME)),
+      strings: { content: '# Example\n\nInstall with npm.\n' }
+    })['content'] ?? [];
+    expect(errors.filter((error) => error.ruleNames.includes(TOOL_NAME_AS_CODE_RULE_NAME)).map((error) => error.errorDetail)).toStrictEqual(['Wrap `npm` in backticks']);
   });
 
   it('inlines the whole config on the standalone preset, which depends on nothing from the ecosystem', () => {
