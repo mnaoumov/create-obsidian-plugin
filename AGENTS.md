@@ -25,7 +25,7 @@ Filing from the CLI or the API (`gh issue create --body`, or an AI agent filing 
 
 ### No obsidian ecosystem dependencies in the generator
 
-The generator project itself must NOT depend on `obsidian`, `obsidian-typings` or the `@mnaoumov/obsidian-*` packages (nor on `obsidian-dev-utils`, which they replaced). These are only used in the *generated* plugin projects.
+The generator's runtime must NOT depend on `obsidian`, `obsidian-typings` or the `@mnaoumov/obsidian-*` packages (nor on `obsidian-dev-utils`, which they replaced). These are only used in the *generated* plugin projects. The one development-only exception is `@mnaoumov/obsidian-dev-toolkit`: the repository's Markdown checks consume its shared tool-name rule and list, so they stay consistent with generated framework projects without maintaining a private checker.
 
 ### Two-tier script strategy
 
@@ -1244,9 +1244,9 @@ Interface and object type alias properties are readonly by default, enforced by 
 
 Write "`pnpm`, `yarn` and `bun` work too", never the bare names: a reader has to tell a name they would type from an ordinary word, and `bun`, `yarn` and `node` are ordinary words. The same holds for every command, shell, library, framework, package and service: `esbuild`, `React`, `Vitest`, `ESLint`, `PostCSS`, `EJS`, `PowerShell`, `GitHub`, `GitHub Actions`, `Discord`.
 
-The names live in one list, `TOOL_NAMES` in `scripts/tool-names.ts`, and `scripts/bare-tool-names.test.ts` fails on any of them bare in the prose of the README, `CONTRIBUTING.md`, this file, the docs site, and every Markdown template and issue form under `templates/default/`, so generated projects comply too. Each spelling is matched exactly as listed. A name that is also an ordinary word in lowercase (`Jest`, `Lit`, `Solid`, `Parcel`, `Rollup`, `Sass`, `React`, `Prettier`) is listed capitalized only, so "a solid default" stays prose; write the tool as `jest` or `prettier` in backticks all the same. The check skips code, links, headings, quoted text, `EJS` tags, front matter and names glued to a path or a longer name (`vite.config.ts`, `@rollup/plugin-babel`, `github.com`). `TypeScript` is not listed, because it names the language at least as often as the compiler; mark it by hand where it means the compiler. Add a new tool to the list when prose first names it.
+The names come from `TOOL_NAMES` in `@mnaoumov/obsidian-dev-toolkit/linters/tool-names`, and the shared `tool-name-as-code` rule owns all matching and fixes. `scripts/bare-tool-names.test.ts` runs that rule over the README, `CONTRIBUTING.md`, this file, the changelog, the docs site, the showcase README, and every Markdown template and issue form under `templates/default/`, plus the repository's own issue forms. Issue-form strings are decoded from YAML first so quoting and block indentation cannot hide prose. The shared parser skips non-prose, headings, code fence labels, quoted text, `EJS` tags, URLs, handles and path/package fragments. Each spelling matches exactly, longest first; ordinary lowercase words such as "solid" stay prose. `TypeScript` is not listed because it also names the language; mark it by hand where it means the compiler. Add spellings in the toolkit's shared list, never a private copy here. Generated framework projects inherit the default-on rule through their existing shared Markdown configuration.
 
-A generated project's own `lint:md` does not run this check: the framework presets take `obsidian-dev-toolkit`'s `markdownlint` config byte for byte, so the rule belongs in that toolkit first.
+A generated framework project's own `lint:md` runs the toolkit's shared rule too. `standalone` retains its self-contained configuration, and `official-sample` retains upstream's tooling.
 
 ### Releasing is by hand, and the release commit carries the CHANGELOG entry
 

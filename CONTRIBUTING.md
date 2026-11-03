@@ -57,6 +57,8 @@ npm run format
 npm run test
 ```
 
+The tests also check tool names in repository Markdown, Markdown/`EJS` templates and decoded issue-form prose with the shared `obsidian-dev-toolkit` rule. Add new spellings to the toolkit's shared list. Generated framework projects inherit the same default-on rule through their Markdown configuration.
+
 ### Verify the answer space
 
 The 24 questions multiply out to over 150 billion combinations, so `npm run test` covers every *pair*
