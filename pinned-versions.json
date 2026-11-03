@@ -10,11 +10,23 @@
     "that is actually present in the declared section; the script reports either mismatch."
   ],
   "pins": {
+    "fflate@<0.7.5": {
+      "section": "overrides",
+      "why": "GHSA-px8p-9vwx-vf98 affects fflate 0.7.3 pinned by satori and @shuding/opentype.js. Use the patched 0.7 line only for older copies; preserve toolkit fflate 0.8.3. Remove when both parents admit patched versions.",
+      "check": "npm view satori@latest dependencies.fflate",
+      "expect": "0.7.3"
+    },
     "katex": {
       "section": "overrides",
       "why": "GHSA-238p-pmpm-9mq7 affects KaTeX <0.18.2. micromark-extension-math 3.1.0 still requires ^0.16.0 via markdownlint in the development toolkit. Remove when upstream admits a patched KaTeX release; markdownlint uses math tokenization, not HTML rendering.",
       "check": "npm view micromark-extension-math@latest dependencies.katex",
       "expect": "^0.16.0"
+    },
+    "moment": {
+      "section": "overrides",
+      "why": "GHSA-4p3w-j4w9-5jqw affects moment <2.31.0. eslint-plugin-obsidianmd brings obsidian 1.12.3, which pins moment 2.29.4. Use the patched compatible 2.x release; remove when that dependency path admits a patched release.",
+      "check": "node -e \"process.stdout.write(require('./node_modules/eslint-plugin-obsidianmd/node_modules/obsidian/package.json').dependencies.moment)\"",
+      "expect": "2.29.4"
     },
     "re2js": {
       "section": "overrides",
