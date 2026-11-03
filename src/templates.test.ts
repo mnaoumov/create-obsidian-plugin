@@ -1357,6 +1357,25 @@ describe('copyTemplates', () => {
     expect(pkg['description']).toBe('A test plugin.');
   });
 
+  it.each(['all-in-one', 'demo', 'docs-showcase', 'standalone'] as const)('exposes the local scanner only with the toolkit on %s', (preset) => {
+    copyTemplates(makeAnswers({ preset }), targetDir, '1.0.0', null);
+    const pkg = JSON.parse(readFileSync(join(targetDir, 'package.json'), 'utf-8')) as ParsedPackageJson;
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    const contributing = readFileSync(join(targetDir, 'CONTRIBUTING.md'), 'utf-8');
+    if (preset === 'standalone') {
+      expect(pkg.scripts['check']).toBeUndefined();
+      expect(existsSync(join(targetDir, 'scripts/check.ts'))).toBe(false);
+      expect(readme).not.toContain('npm run check');
+      expect(contributing).not.toContain('npm run check');
+    } else {
+      expect(pkg.scripts['check']).toBe('jiti scripts/check.ts');
+      expect(readFileSync(join(targetDir, 'scripts/check.ts'), 'utf-8')).toContain('await execFromRoot(\'check-plugin --scanner\')');
+      expect(pkg.devDependencies).toHaveProperty('@mnaoumov/obsidian-dev-toolkit');
+      expect(readme).toContain('npm run check');
+      expect(contributing).toContain('check-plugin --scanner');
+    }
+  });
+
   it('creates manifest.json with correct fields', () => {
     copyTemplates(makeAnswers(), targetDir, '1.0.0', null);
     const manifest = JSON.parse(readFileSync(join(targetDir, 'manifest.json'), 'utf-8')) as Record<string, unknown>;
@@ -1676,6 +1695,7 @@ describe('copyTemplates', () => {
       'Demo vault',
       'See also',
       'Installation',
+      'Development checks',
       'Debugging',
       'Contributing',
       'Support',
