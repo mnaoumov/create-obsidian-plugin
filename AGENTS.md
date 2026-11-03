@@ -274,6 +274,8 @@ from a `test-imports` section.
 
 `obsidian-lib`'s `OpenBugReportCommandHandler` (`report-bug`) opens the bug form prefilled, so it is registered exactly when `gitHubIssueTemplates: bug-and-feature` emits that form, as every real plugin that ships the forms does. `BugAndFeature.configure` adds the `has-bug-report-command` partial on a framework preset, and that one partial drives all three pieces: the handler before `OpenDemoVaultCommandHandler` in `plugin.ts`, the README sentence naming the command between the two filing paragraphs (the real plugins' wording), and a `src/plugin.test.ts` case that runs the plugin's `onload` against `obsidian-test-mocks` and reads the mock plugin's `commands__`. That case uses no `vi` / `jest` API, so it is the same under both runners. `standalone` has no `obsidian-lib`, so it gets none of it.
 
+The feature-request form's optional **Plugin version** input carries id `plugin-version`, matching `obsidian-lib`'s `FeatureRequestIssueFormFieldId.PluginVersion`. Its `OpenFeatureRequestCommandHandler` prefills only that version; environment fields stay exclusive to the bug form. `src/templates.test.ts` asserts this contract on the rendered form.
+
 The screenshot-capture harness, its images and the desktop / Android integration suites are left out
 on purpose, for the reason `test:integration` already declines to run those projects: they need a
 provisioned Obsidian or emulator, so a fresh project would ship tests nothing can run.

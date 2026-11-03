@@ -2693,6 +2693,20 @@ describe('copyTemplates', () => {
     }
   });
 
+  it('lets obsidian-lib prefill an optional feature-request plugin version without bug-report environment fields', () => {
+    copyTemplates(makeAnswers({ gitHubIssueTemplates: 'bug-and-feature' }), targetDir, '1.0.0', null);
+    const form = readFileSync(join(targetDir, '.github/ISSUE_TEMPLATE/feature_request.yml'), 'utf-8');
+    const fields = form.split('\n  - type: ');
+    const versionFields = fields.filter((field) => field.includes('\n    id: plugin-version\n'));
+    expect(versionFields).toHaveLength(1);
+    expect(versionFields[0]).toContain('input\n    id: plugin-version\n    attributes:\n      label: Plugin version\n');
+    expect(versionFields[0]).not.toContain('required: true');
+    for (const id of ['obsidian-version', 'operating-system', 'environment']) {
+      expect(form).not.toContain(`\n    id: ${id}\n`);
+    }
+    expect(form).not.toContain('label: Environment');
+  });
+
   // A form that requires a video and a sample vault costs a reporter more than the report is worth to them, and
   // Experienced reporters gave up on it, so both are encouraged and never required.
   it('requires neither a video nor a sample vault in either issue form', () => {
