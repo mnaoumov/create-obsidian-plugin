@@ -2650,6 +2650,14 @@ describe('copyTemplates', () => {
     }
   });
 
+  // The toolkit's `testCoverage` defaulted to a 0% threshold, so a script that named none ran a gate that never failed.
+  it.each(['jest', 'vitest'])('holds the %s coverage run at the full threshold', (testRunner) => {
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner }), targetDir, '1.0.0', null);
+    const script = readFileSync(join(targetDir, 'scripts/test-coverage.ts'), 'utf-8');
+    expect(script).toContain('const FULL_COVERAGE_IN_PERCENTS = 100;');
+    expect(script).toContain('minCoverageInPercents: FULL_COVERAGE_IN_PERCENTS');
+  });
+
   it('creates commitlint config for conventional-commits', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
