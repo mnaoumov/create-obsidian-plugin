@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.5.1 (2026-11-14)
+
+1.5.0 was tagged and released on `GitHub` but never reached `npm`: its publish failed the packed-tarball smoke test. This release carries everything 1.5.0 announced, plus the fixes below.
+
+### Fixes
+
+- Generated projects no longer pin `re2js` through an override: `markdownlint` now pins a patched version itself, and the stale override failed the pin check.
+- A fresh scaffold passes its own 100% `test:coverage` gate: the generated `src/plugin.test.ts` loads the plugin once and runs the sample commands, and the All-in-one Framework preset gets a `src/plugin-settings-tab.test.ts`.
+- Framework projects on `Jest` can load the plugin: `jest.config.ts` loads `scripts/jest-node-globals.ts`, which provides the `TextEncoder` that `jsdom` lacks.
+
+[Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.5.0...1.5.1)
 ## 1.5.0 (2026-11-13)
 
 ### Features
