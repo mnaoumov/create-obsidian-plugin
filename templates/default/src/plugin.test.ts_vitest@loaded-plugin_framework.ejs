@@ -1,0 +1,20 @@
+  let plugin: Plugin;
+
+  // The plugin's own `onload` runs once here, so the tests below prove what it registers, not only what it imports.
+  beforeAll(async () => {
+    const manifest: PluginManifest = {
+      author: 'test',
+      description: 'test',
+      id: 'test-plugin',
+      minAppVersion: '0.0.0',
+      name: 'Test Plugin',
+      version: '0.0.0'
+    };
+    plugin = new Plugin(App.createConfigured__().asOriginalType__(), manifest);
+    await plugin.onload();
+  });
+
+  afterAll(() => {
+    plugin.unload();
+  });
+

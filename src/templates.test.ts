@@ -2658,6 +2658,24 @@ describe('copyTemplates', () => {
     expect(script).toContain('minCoverageInPercents: FULL_COVERAGE_IN_PERCENTS');
   });
 
+  // The threshold is only honest if the sample tests reach the sample code: before these, a fresh scaffold covered 61.5%.
+  it.each(['jest', 'vitest'])('covers the sample commands and settings tab under %s', (testRunner) => {
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner }), targetDir, '1.0.0', null);
+    const pluginTest = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
+    expect(pluginTest).toContain('await plugin.onload();');
+    expect(pluginTest).toContain('commands__.get(\'sample\')');
+    expect(pluginTest).toContain('commands__.get(\'sample-editor\')');
+    const tabTest = readFileSync(join(targetDir, 'src/plugin-settings-tab.test.ts'), 'utf-8');
+    expect(tabTest).toContain('expect(boundPropertyNames).toEqual([\'textSetting\']);');
+  });
+
+  it('keeps the plugin test free of the framework helpers on standalone', () => {
+    copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
+    const pluginTest = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
+    expect(pluginTest).not.toContain('@mnaoumov/typescript-lib');
+    expect(existsSync(join(targetDir, 'src/plugin-settings-tab.test.ts'))).toBe(false);
+  });
+
   it('creates commitlint config for conventional-commits', () => {
     copyTemplates(makeAnswers({ commitLinting: 'conventional-commits' }), targetDir, '1.0.0', null);
     const config = readFileSync(join(targetDir, 'scripts/commitlint-config.ts'), 'utf-8');
