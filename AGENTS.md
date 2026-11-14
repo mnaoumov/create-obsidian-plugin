@@ -281,7 +281,10 @@ template takes from a `test-imports` section.
 runners' `src/plugin.test.ts` take a `framework` partial that loads the plugin once in `beforeAll` and runs
 the `Sample` and `Sample editor` commands. A scaffold of the default answers then covers every line it emits.
 One `onload` per file, not one per test: under coverage on a loaded machine the first cold `onload` took
-over `vitest`'s 5 s test timeout. The modules that other answers add, and `demo`'s whole tab, are not
+over `vitest`'s 5 s test timeout. `beforeAll` takes a named `async` function, because `jest` types its hooks as
+returning `any` and the shared config rejects an inline `async` callback there. Running `onload` under `jest`
+also needs `scripts/jest-node-globals.ts`, which `jest.config.ts` loads: the plugin encodes text, and `jest`'s
+`jsdom` environment has no `TextEncoder`, unlike `vitest`'s. The modules that other answers add, and `demo`'s whole tab, are not
 covered yet, so a project with them fails its own gate until each answer ships a test of its own.
 
 ### The `Report a bug` command comes with the issue forms, on the framework presets

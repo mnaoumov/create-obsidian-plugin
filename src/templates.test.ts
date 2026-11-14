@@ -2669,6 +2669,13 @@ describe('copyTemplates', () => {
     expect(tabTest).toContain('expect(boundPropertyNames).toEqual([\'textSetting\']);');
   });
 
+  // Without it the plugin's `onload` throws `TextEncoder is not defined` under jest's jsdom, failing the sample tests above.
+  it('gives the framework jest setup Node\'s TextEncoder', () => {
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'jest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('setupFilesAfterEnv: [\'<rootDir>/scripts/jest-node-globals.ts\']');
+    expect(readFileSync(join(targetDir, 'scripts/jest-node-globals.ts'), 'utf-8')).toContain('Object.assign(globalThis, { TextDecoder, TextEncoder });');
+  });
+
   it('keeps the plugin test free of the framework helpers on standalone', () => {
     copyTemplates(makeAnswers({ preset: 'standalone', testRunner: 'vitest' }), targetDir, '1.0.0', null);
     const pluginTest = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
