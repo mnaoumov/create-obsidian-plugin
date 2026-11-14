@@ -1,7 +1,9 @@
-<%- render('bug-report-type-import') -%>
+<%- render('type-import') -%>
+<%- render('lib-import') -%>
 import { Plugin as ObsidianPlugin } from 'obsidian';
-<%- render('bug-report-import') -%>
+<%- render('mock-import') -%>
 import {
+<%- render('hook-import') -%>
   describe,
   expect,
   it
@@ -10,8 +12,10 @@ import {
 import { Plugin } from './plugin.ts';
 
 describe('<%= pluginShortName %>', () => {
+<%- render('loaded-plugin') -%>
   it('extends the Obsidian Plugin class', () => {
     expect(Plugin.prototype).toBeInstanceOf(ObsidianPlugin);
   });
 <%- render('bug-report-test') -%>
+<%- render('sample-commands-test') -%>
 });

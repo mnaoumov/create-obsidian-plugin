@@ -16,9 +16,14 @@ import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
  * - `src/plugin-settings.test.ts` on `demo` only, where `TypedItem.deserialize` is behavior. On
  *   `all-in-one` the settings class is one default value, and a test of it would restate the source.
  *
- * There is no `src/plugin-settings-tab.test.ts`. The one true thing to say about the tab is that it
- * binds every setting, and rendering a row reaches `bind`, which throws on the test-mocks components
- * unless it is spied on -- and jest running ES modules has no `jest` global to spy with.
+ * - `src/plugin-settings-tab.test.ts` on `all-in-one`: rendering each row binds it to its setting. The
+ *   test replaces `bind` on the instance rather than spying on it, because the real one throws on the
+ *   test-mocks components and jest running ES modules has no `jest` global to spy with. `demo`'s tab
+ *   builds every `SettingEx` component there is through `displayLegacy()`, so its test belongs with the
+ *   rest of what `demo` forces in.
+ *
+ * On these presets `src/plugin.test.ts` loads the plugin once and runs its two sample commands, and with
+ * the tab test that holds a scaffold of the default answers at the 100% `test:coverage` threshold.
  *
  * Both runners call this, so the two cannot drift apart. The per-runner difference is only the
  * `vitest` import, which each template takes from a `test-imports` section.
@@ -38,10 +43,13 @@ export function addSampleUnitTests(builder: TemplateBuilder, answers: Answers): 
     // The settings-component test drives the component through `AsyncEvents` and `noopAsync`.
     .addPackage('@mnaoumov/typescript-lib');
 
-  if (answers.preset === 'demo') {
-    builder
-      .addFiles(['src/plugin-settings.test.ts'])
-      // `strictProxy` stands in for the plugin the demo settings-component test hands the component.
-      .addPackage('@mnaoumov/typescript-test-toolkit');
+  if (answers.preset !== 'demo') {
+    builder.addFiles(['src/plugin-settings-tab.test.ts']);
+    return;
   }
+
+  builder
+    .addFiles(['src/plugin-settings.test.ts'])
+    // `strictProxy` stands in for the plugin the demo settings-component test hands the component.
+    .addPackage('@mnaoumov/typescript-test-toolkit');
 }

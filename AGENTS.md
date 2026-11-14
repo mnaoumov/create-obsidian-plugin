@@ -271,10 +271,21 @@ the real plugins carry, and only those with something true to assert: `src/main.
 (the default export Obsidian loads is the plugin class), `src/plugin-settings-component.test.ts` on the
 framework presets (driven through `loadWithPromises()`, the lifecycle Obsidian runs), and
 `src/plugin-settings.test.ts` on `demo` only. `all-in-one`'s settings class is one default value, and a
-test of it would only restate the source. There is no settings-tab test: rendering a row reaches `bind`,
-which throws on the test-mocks components unless spied on, and `jest` under ES modules has no `jest`
-global to spy with. The per-runner difference is only the `vitest` import, which each template takes
-from a `test-imports` section.
+test of it would only restate the source. `src/plugin-settings-tab.test.ts` ships on `all-in-one` (and so on
+`docs-showcase`): it renders each row and records the `bind` calls. It replaces `bind` on the instance
+rather than spying on it, because the real `bind` throws on the test-mocks components and `jest` under ES
+modules has no `jest` global to spy with. The per-runner difference is only the `vitest` import, which each
+template takes from a `test-imports` section.
+
+**On the framework presets those tests hold the generated `test:coverage` at its 100% threshold.** Both
+runners' `src/plugin.test.ts` take a `framework` partial that loads the plugin once in `beforeAll` and runs
+the `Sample` and `Sample editor` commands. A scaffold of the default answers then covers every line it emits.
+One `onload` per file, not one per test: under coverage on a loaded machine the first cold `onload` took
+over `vitest`'s 5 s test timeout. `beforeAll` takes a named `async` function, because `jest` types its hooks as
+returning `any` and the shared config rejects an inline `async` callback there. Running `onload` under `jest`
+also needs `scripts/jest-node-globals.ts`, which `jest.config.ts` loads: the plugin encodes text, and `jest`'s
+`jsdom` environment has no `TextEncoder`, unlike `vitest`'s. The modules that other answers add, and `demo`'s whole tab, are not
+covered yet, so a project with them fails its own gate until each answer ships a test of its own.
 
 ### The `Report a bug` command comes with the issue forms, on the framework presets
 

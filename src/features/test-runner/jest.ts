@@ -48,7 +48,9 @@ export class Jest extends FeatureOption {
         .addDepcheckIgnore('@jest/globals', 'imported by `@mnaoumov/obsidian-dev-toolkit/jest-setup`, which `defineObsidianPluginJestConfig` loads.')
         // The gate runs it in place of `test`, and its `coverage/lcov.info` is what the CI workflow's coverage badge reads.
         .addScript('test:coverage')
-        .addFiles(['scripts/test-coverage.ts']);
+        .addFiles(['scripts/test-coverage.ts'])
+        // `src/plugin.test.ts` runs the plugin's `onload` here, which encodes text, and jest's `jsdom` lacks `TextEncoder`.
+        .addFiles(['scripts/jest-node-globals.ts']);
     }
 
     addSampleUnitTests(builder, answers);

@@ -1,0 +1,73 @@
+import type { DataHandler } from '@mnaoumov/obsidian-lib/data-handler';
+import type { PluginEventMap } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
+import type {
+  PluginManifest,
+  SettingGroup
+} from 'obsidian';
+
+import { SettingEx } from '@mnaoumov/obsidian-lib/setting-ex';
+import { AsyncEvents } from '@mnaoumov/typescript-lib/async-events';
+import { noopAsync } from '@mnaoumov/typescript-lib/function';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { App } from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { PluginSettingsComponent } from './plugin-settings-component.ts';
+import { PluginSettingsTab } from './plugin-settings-tab.ts';
+import { Plugin } from './plugin.ts';
+
+/**
+ * What the test reads back from each `bind` call a row makes.
+ */
+interface BindParams {
+  readonly propertyName: string;
+  readonly valueComponent: unknown;
+}
+
+describe('PluginSettingsTab', () => {
+  // Each row is rendered the way Obsidian renders it, with `bind` recorded rather than run: the real one wires the
+  // Component to the settings in both directions, which is the library's behavior and not this tab's.
+  it('binds every row to its setting', () => {
+    const tab = createTab();
+    const boundPropertyNames: string[] = [];
+    tab.bind = (params: BindParams): unknown => {
+      boundPropertyNames.push(params.propertyName);
+      return params.valueComponent;
+    };
+
+    for (const definition of tab.getSettingDefinitions()) {
+      if ('render' in definition) {
+        definition.render(new SettingEx(tab.containerEl), castTo<SettingGroup>(null));
+      }
+    }
+
+    expect(boundPropertyNames).toEqual(['textSetting']);
+  });
+});
+
+function createTab(): PluginSettingsTab {
+  const manifest: PluginManifest = {
+    author: 'test',
+    description: 'test',
+    id: 'test-plugin',
+    minAppVersion: '0.0.0',
+    name: 'Test Plugin',
+    version: '0.0.0'
+  };
+  const dataHandler: DataHandler = {
+    loadData(): Promise<unknown> {
+      return Promise.resolve(undefined);
+    },
+    saveData(): Promise<void> {
+      return noopAsync();
+    }
+  };
+
+  return new PluginSettingsTab({
+    plugin: new Plugin(App.createConfigured__().asOriginalType__(), manifest),
+    pluginSettingsComponent: new PluginSettingsComponent({
+      dataHandler,
+      pluginEventSource: new AsyncEvents<PluginEventMap>()
+    })
+  });
+}

@@ -1,0 +1,19 @@
+
+  it('runs the Sample command', () => {
+    const command = PluginHost.fromOriginalType2__(plugin).commands__.get('sample');
+    expect(() => {
+      command?.callback?.();
+    }).not.toThrow();
+  });
+
+  it('replaces the selection with the Sample editor command', () => {
+    const command = PluginHost.fromOriginalType2__(plugin).commands__.get('sample-editor');
+    const replacements: string[] = [];
+    const editor = castTo<Editor>({
+      replaceSelection(replacement: string): void {
+        replacements.push(replacement);
+      }
+    });
+    command?.editorCallback?.(editor, castTo<MarkdownView>({}));
+    expect(replacements).toEqual(['Sample Editor Command']);
+  });
