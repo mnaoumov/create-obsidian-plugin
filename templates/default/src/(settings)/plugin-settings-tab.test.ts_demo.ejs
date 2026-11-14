@@ -1,0 +1,165 @@
+import type { DataHandler } from '@mnaoumov/obsidian-lib/data-handler';
+import type { PluginEventMap } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
+import type { PluginManifest } from 'obsidian';
+
+import { AsyncEvents } from '@mnaoumov/typescript-lib/async-events';
+import { noopAsync } from '@mnaoumov/typescript-lib/function';
+import {
+  App,
+  Notice
+} from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { PluginSettingsComponent } from './plugin-settings-component.ts';
+import { PluginSettingsTab } from './plugin-settings-tab.ts';
+import { TypedItem } from './plugin-settings.ts';
+import { Plugin } from './plugin.ts';
+
+/**
+ * What the test reads back from each `bind` call a row makes.
+ */
+interface BindParams {
+  readonly componentToPluginSettingsValueConverter?: (uiValue: string) => string;
+  readonly onChanged?: (newValue: unknown, oldValue: unknown) => void;
+  readonly pluginSettingsToComponentValueConverter?: (pluginSettingsValue: string) => string;
+  readonly propertyName: string;
+  readonly valueComponent: unknown;
+}
+
+/**
+ * A tab rendered by {@link displayTab}, with what its rows bound.
+ */
+interface DisplayedTab {
+  readonly boundParams: BindParams[];
+  readonly tab: PluginSettingsTab;
+}
+
+describe('PluginSettingsTab', () => {
+  // Each row is rendered the way Obsidian renders it, with `bind` recorded rather than run: the real one wires the
+  // Component to the settings in both directions, which is the library's behavior and not this tab's.
+  it('binds every row to its setting', () => {
+    const { boundParams } = displayTab();
+    expect(boundParams.map((params) => params.propertyName)).toEqual([
+      'checkboxSetting',
+      'codeHighlighterSetting',
+      'colorSetting',
+      'dateSetting',
+      'dateTimeSetting',
+      'dropdownSetting',
+      'emailSetting',
+      'momentFormatSetting',
+      'monthSetting',
+      'multipleDropdownSetting',
+      'multipleEmailSetting',
+      'multipleTextSetting',
+      'numberSetting',
+      'searchSetting',
+      'sliderSetting',
+      'textSetting',
+      'textAreaSetting',
+      'timeSetting',
+      'toggleSetting',
+      'triStateCheckboxSetting',
+      'typedDropdownSetting',
+      'typedMultipleDropdownSetting',
+      'urlSetting',
+      'weekSetting',
+      'textSetting'
+    ]);
+  });
+
+  it('converts the advanced text setting both ways and announces its changes', () => {
+    const notices = recordNotices();
+    const advancedTextParams = displayTab().boundParams.at(-1);
+    expect(advancedTextParams?.pluginSettingsToComponentValueConverter?.('value')).toBe('value (converted)');
+    expect(advancedTextParams?.componentToPluginSettingsValueConverter?.('value (converted)')).toBe('value');
+    advancedTextParams?.onChanged?.('new', 'old');
+    expect(notices).toEqual(['Advanced text setting changed']);
+  });
+
+  it('logs the changes of the typed dropdowns', () => {
+    const warnings: unknown[][] = [];
+    const warn = console.warn;
+    console.warn = (...data: unknown[]): void => {
+      warnings.push(data);
+    };
+    try {
+      for (const params of displayTab().boundParams) {
+        if (params.propertyName.startsWith('typed')) {
+          params.onChanged?.(TypedItem.Bar, TypedItem.Foo);
+        }
+      }
+    } finally {
+      console.warn = warn;
+    }
+    expect(warnings.map(([message]) => message)).toEqual(['Typed Dropdown setting changed', 'Typed Multiple Dropdown setting changed']);
+  });
+
+  it('answers its buttons and file pickers with a notice', () => {
+    const notices = recordNotices();
+    const { tab } = displayTab();
+    for (const el of tab.containerEl.querySelectorAll<HTMLElement>('button, .extra-setting-button')) {
+      el.click();
+    }
+
+    const file = new File([''], 'Picked.txt');
+    for (const files of [[], [file]]) {
+      for (const input of tab.containerEl.querySelectorAll<HTMLInputElement>('input[type="file"]')) {
+        Object.defineProperty(input, 'files', { configurable: true, value: files });
+        input.dispatchEvent(new Event('input'));
+        input.dispatchEvent(new Event('change'));
+      }
+    }
+
+    expect(notices).toEqual([
+      'Button clicked',
+      'Extra button clicked',
+      'File selected: (None)',
+      'Files selected: ',
+      'File selected: Picked.txt',
+      'Files selected: Picked.txt'
+    ]);
+  });
+});
+
+function displayTab(): DisplayedTab {
+  const manifest: PluginManifest = {
+    author: 'test',
+    description: 'test',
+    id: 'test-plugin',
+    minAppVersion: '0.0.0',
+    name: 'Test Plugin',
+    version: '0.0.0'
+  };
+  const dataHandler: DataHandler = {
+    loadData(): Promise<unknown> {
+      return Promise.resolve(undefined);
+    },
+    saveData(): Promise<void> {
+      return noopAsync();
+    }
+  };
+
+  const tab = new PluginSettingsTab({
+    plugin: new Plugin(App.createConfigured__().asOriginalType__(), manifest),
+    pluginSettingsComponent: new PluginSettingsComponent({
+      dataHandler,
+      pluginEventSource: new AsyncEvents<PluginEventMap>()
+    })
+  });
+  const boundParams: BindParams[] = [];
+  tab.bind = (params: BindParams): unknown => {
+    boundParams.push(params);
+    return params.valueComponent;
+  };
+  tab.displayLegacy();
+  return { boundParams, tab };
+}
+
+function recordNotices(): string[] {
+  const notices: string[] = [];
+  Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+    notices.push(typeof message === 'string' ? message : message.textContent);
+  };
+  return notices;
+}

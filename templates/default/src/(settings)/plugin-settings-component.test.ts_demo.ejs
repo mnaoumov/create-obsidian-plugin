@@ -4,6 +4,7 @@ import type { PluginEventMap } from '@mnaoumov/obsidian-lib/plugin/plugin-event-
 import { AsyncEvents } from '@mnaoumov/typescript-lib/async-events';
 import { noopAsync } from '@mnaoumov/typescript-lib/function';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
+import { Notice } from 'obsidian-test-mocks/obsidian';
 <%- render('test-imports') -%>
 
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
@@ -46,4 +47,51 @@ describe('PluginSettingsComponent', () => {
     expect(component.settings.typedDropdownSetting).toBe(TypedItem.Baz);
     expect(savedRecords.at(-1)).toMatchObject({ typedDropdownSetting: TypedItem.Baz.name });
   });
+
+  it('loads a typed multiple setting saved by names as the same items', async () => {
+    const component = createComponent({ typedMultipleDropdownSetting: [TypedItem.Foo.name, TypedItem.Baz.name] });
+    await component.loadWithPromises();
+    expect(component.settings.typedMultipleDropdownSetting).toEqual([TypedItem.Foo, TypedItem.Baz]);
+  });
+
+  it('announces a text setting loaded as bar and then changed to baz, and no other change to baz', async () => {
+    const notices: string[] = [];
+    Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+      notices.push(typeof message === 'string' ? message : message.textContent);
+    };
+    const component = createComponent({ textSetting: 'bar' });
+    await component.loadWithPromises();
+    await component.editAndSave((settings) => {
+      settings.textSetting = 'baz';
+    });
+
+    const otherComponent = createComponent({ textSetting: 'qux' });
+    await otherComponent.loadWithPromises();
+    await otherComponent.editAndSave((settings) => {
+      settings.textSetting = 'baz';
+    });
+
+    expect(notices).toEqual(['Sample text setting is bar', 'Sample text setting is changed from bar to baz']);
+  });
+
+  it('rejects foo as the text setting', async () => {
+    const component = createComponent({});
+    await component.loadWithPromises();
+    expect(await component.setProperty('textSetting', 'foo')).toBe('Foo is not allowed');
+    expect(await component.setProperty('textSetting', 'bar')).toBe('');
+  });
 });
+
+function createComponent(data: object): PluginSettingsComponent {
+  return new PluginSettingsComponent({
+    dataHandler: {
+      loadData(): Promise<unknown> {
+        return Promise.resolve(data);
+      },
+      saveData(): Promise<void> {
+        return noopAsync();
+      }
+    },
+    pluginEventSource: new AsyncEvents<PluginEventMap>()
+  });
+}

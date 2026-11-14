@@ -1,0 +1,12 @@
+
+  // Runs last, because it unloads the plugin every test above shares. The plugin was loaded through the `onload` the
+  // Tests await, not through `load`, so the mock's `unload` would find it never loaded and skip. Its cleanups run here
+  // As `unload` runs them, last registered first.
+  it('shows a notice when it unloads', async () => {
+    const host = PluginHost.fromOriginalType2__(plugin);
+    expect(await collectNotices(() => {
+      for (const cleanup of [...host.cleanups__].reverse()) {
+        cleanup();
+      }
+    })).toEqual(['Sample plugin is being unloaded']);
+  });

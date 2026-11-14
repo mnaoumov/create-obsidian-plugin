@@ -337,7 +337,6 @@ export function copyTemplates(
     _buildOptionsArgument: hasBuildOptions ? 'buildOptions' : '',
     _buildOptionsImport: hasBuildOptions ? '\nimport { buildOptions } from \'./build-options.ts\';\n' : '',
     _buildOptionsLiteral: toObjectLiteral(builder.buildOptions),
-    _coverageExcludes: builder.coverageExcludes,
     _cspellIdentityWords: getCspellIdentityWords(answers),
     _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
@@ -358,6 +357,7 @@ export function copyTemplates(
     _sentenceCaseBrands: builder.sentenceCaseBrands,
     _toolkitWorkflowRef: TOOLKIT_WORKFLOW_REF,
     _tsconfigExtendsJson: toTsconfigExtendsJson(builder.tsconfigExtends),
+    _vitestCoverageExcludePush: toVitestCoverageExcludePush(builder.coverageExcludes),
     pluginShortName: getPluginShortName(answers.pluginId),
     render(options?: RenderOptions | string): string {
       const { indentLevel, section } = typeof options === 'string'
@@ -833,4 +833,18 @@ function toTsconfigExtendsJson(extraConfigs: readonly string[]): string {
   const base = JSON.stringify('@tsconfig/strictest/tsconfig.json');
   // One entry per line: dprint keeps a list as it is written, and the base and two presets overflow one line.
   return extraConfigs.length === 0 ? base : `[\n${[base, ...extraConfigs.map((config) => JSON.stringify(config))].map((config) => `    ${config}`).join(',\n')}\n  ]`;
+}
+
+/**
+ * The framework vitest config's `context.coverageExclude.push(...)` statement, or `''` when nothing is left out.
+ *
+ * One call carrying every entry, each under its reason: two consecutive `push` calls fail the shared config's
+ * `unicorn/prefer-single-call`, and the list must not end in a comma.
+ */
+function toVitestCoverageExcludePush(excludes: readonly CoverageExclude[]): string {
+  if (excludes.length === 0) {
+    return '';
+  }
+  const entries = excludes.map((exclude) => `      // ${exclude.reason}\n      '${exclude.glob}'`);
+  return `    context.coverageExclude.push(\n${entries.join(',\n')}\n    );\n`;
 }

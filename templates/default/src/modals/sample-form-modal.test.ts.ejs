@@ -1,0 +1,29 @@
+import {
+  App,
+  Notice
+} from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { SampleFormModal } from './sample-form-modal.ts';
+
+describe('SampleFormModal', () => {
+  it('greets the name typed into the form, or the world when none is', () => {
+    const notices: string[] = [];
+    Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+      notices.push(typeof message === 'string' ? message : message.textContent);
+    };
+
+    for (const name of ['Alice', '']) {
+      const modal = new SampleFormModal(App.createConfigured__().asOriginalType__());
+      modal.onOpen();
+      const input = modal.contentEl.querySelector('input');
+      if (input) {
+        input.value = name;
+        input.dispatchEvent(new Event('input'));
+      }
+      modal.contentEl.querySelector('button')?.click();
+    }
+
+    expect(notices).toEqual(['Hello, Alice!', 'Hello, world!']);
+  });
+});

@@ -1,0 +1,32 @@
+import {
+  App,
+  Notice
+} from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { SampleSuggestModal } from './sample-suggest-modal.ts';
+
+describe('SampleSuggestModal', () => {
+  it('offers the sample items by name, renders each with its icon and names the one chosen', () => {
+    const notices: string[] = [];
+    Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+      notices.push(typeof message === 'string' ? message : message.textContent);
+    };
+
+    const modal = new SampleSuggestModal(App.createConfigured__().asOriginalType__());
+    const items = modal.getItems();
+    expect(items.map((item) => modal.getItemText(item))).toEqual(['Note', 'Folder', 'Bookmark', 'Pin', 'Tag']);
+
+    const renderedTexts = items.map((item) => {
+      const el = createDiv();
+      modal.renderSuggestion({ item, match: { matches: [], score: 0 } }, el);
+      return el.textContent;
+    });
+    expect(renderedTexts).toEqual(['📝 Note', '📁 Folder', '🔖 Bookmark', '📌 Pin', '🏷️ Tag']);
+
+    for (const item of items) {
+      modal.onChooseItem(item, new KeyboardEvent('keydown'));
+    }
+    expect(notices).toEqual(items.map((item) => `Selected: ${item.icon} ${item.name} (keydown)`));
+  });
+});

@@ -34,14 +34,16 @@ export function addAnswerUnitTests(builder: TemplateBuilder, answers: Answers, f
  * - `src/plugin-settings.test.ts` on `demo` only, where `TypedItem.deserialize` is behavior. On
  *   `all-in-one` the settings class is one default value, and a test of it would restate the source.
  *
- * - `src/plugin-settings-tab.test.ts` on `all-in-one`: rendering each row binds it to its setting. The
- *   test replaces `bind` on the instance rather than spying on it, because the real one throws on the
- *   test-mocks components and jest running ES modules has no `jest` global to spy with. `demo`'s tab
- *   builds every `SettingEx` component there is through `displayLegacy()`, so its test belongs with the
- *   rest of what `demo` forces in.
+ * - `src/plugin-settings-tab.test.ts` on the toolkit presets: rendering each row binds it to its setting.
+ *   The test replaces `bind` on the instance rather than spying on it, because the real one throws on the
+ *   test-mocks components and jest running ES modules has no `jest` global to spy with. On `demo`, whose
+ *   tab builds every `SettingEx` component there is through `displayLegacy()`, it also runs each row's
+ *   own callbacks: its buttons, file pickers, converters and change handlers.
+ * - On `demo`, a test for each of its sample modals and for its sample view.
  *
- * On these presets `src/plugin.test.ts` loads the plugin once and runs its two sample commands, and with
- * the tab test that holds a scaffold of the default answers at the 100% `test:coverage` threshold.
+ * On these presets `src/plugin.test.ts` loads the plugin once and runs its sample commands, and on `demo`
+ * drives every handler the plugin registers. With the tests above that holds a scaffold at the 100%
+ * `test:coverage` threshold.
  *
  * Both runners call this, so the two cannot drift apart. The per-runner difference is only the
  * `vitest` import, which each template takes from a `test-imports` section.
@@ -57,17 +59,21 @@ export function addSampleUnitTests(builder: TemplateBuilder, answers: Answers): 
   }
 
   builder
-    .addFiles(['src/plugin-settings-component.test.ts'])
+    .addFiles(['src/plugin-settings-component.test.ts', 'src/plugin-settings-tab.test.ts'])
     // The settings-component test drives the component through `AsyncEvents` and `noopAsync`.
     .addPackage('@mnaoumov/typescript-lib');
 
   if (answers.preset !== 'demo') {
-    builder.addFiles(['src/plugin-settings-tab.test.ts']);
     return;
   }
 
   builder
-    .addFiles(['src/plugin-settings.test.ts'])
+    .addFiles([
+      'src/modals/sample-form-modal.test.ts',
+      'src/modals/sample-suggest-modal.test.ts',
+      'src/plugin-settings.test.ts',
+      'src/views/sample-view.test.ts'
+    ])
     // `strictProxy` stands in for the plugin the demo settings-component test hands the component.
     .addPackage('@mnaoumov/typescript-test-toolkit');
 }
