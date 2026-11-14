@@ -21,7 +21,10 @@ import type {
 import type { FeatureOption } from './feature-option.ts';
 import type { Overlay } from './overlay.ts';
 import type { ProjectFormatter } from './project-formatter.ts';
-import type { BuildOption } from './template-builder.ts';
+import type {
+  BuildOption,
+  CoverageExclude
+} from './template-builder.ts';
 
 import {
   CONFIG_FILE_NAME,
@@ -334,6 +337,7 @@ export function copyTemplates(
     _buildOptionsArgument: hasBuildOptions ? 'buildOptions' : '',
     _buildOptionsImport: hasBuildOptions ? '\nimport { buildOptions } from \'./build-options.ts\';\n' : '',
     _buildOptionsLiteral: toObjectLiteral(builder.buildOptions),
+    _coverageExcludes: builder.coverageExcludes,
     _cspellIdentityWords: getCspellIdentityWords(answers),
     _depcheckIgnores: builder.depcheckIgnores,
     _dependencies: dependencies.map((dependency) => ({
@@ -343,6 +347,7 @@ export function copyTemplates(
     // The README's `support` seam opens `## Support` in the funding partial, so the issue-filing partial
     // After it opens the section itself only when there is no funding.
     _hasFunding: partials.has('has-funding'),
+    _jestCoveragePathIgnorePatterns: toJestCoveragePathIgnorePatterns(builder.coverageExcludes),
     _lintStagedPatterns: builder.lintStagedPatterns,
     _minAppVersion: minAppVersion,
     _overrides: Object.entries(buildOverrides(dependencies)).map(([packageName, spec]) => ({ packageName, spec })),
@@ -801,6 +806,23 @@ function matchesRender(currentHash: string, newHash: string, projectFormatter: n
 
 function sha256(content: Buffer | string): string {
   return createHash('sha256').update(content).digest('hex');
+}
+
+/**
+ * The framework jest config's `coveragePathIgnorePatterns` property, or `''` when nothing is left out.
+ *
+ * Built here because the property exists only with entries, and its list must not end in a comma. Jest's own default
+ * is restated first, because the option replaces it.
+ */
+function toJestCoveragePathIgnorePatterns(excludes: readonly CoverageExclude[]): string {
+  if (excludes.length === 0) {
+    return '';
+  }
+  const entries = [
+    '    \'/node_modules/\'',
+    ...excludes.map((exclude) => `    // ${exclude.reason}\n    '${exclude.jestPattern.replaceAll('\\', '\\\\')}'`)
+  ];
+  return `  // Replaces jest's default, which is why \`/node_modules/\` is listed.\n  coveragePathIgnorePatterns: [\n${entries.join(',\n')}\n  ],\n`;
 }
 
 function toObjectLiteral(options: readonly BuildOption[]): string {

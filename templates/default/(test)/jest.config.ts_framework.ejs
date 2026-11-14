@@ -3,6 +3,7 @@ import { defineObsidianPluginJestConfig } from '@mnaoumov/obsidian-dev-toolkit/t
 // The toolkit's config runs ts-jest as ESM under jsdom, maps `obsidian` onto `obsidian-test-mocks` and loads
 // Both setup files. What is left here is what only this project knows.
 export default defineObsidianPluginJestConfig({
+<%- _jestCoveragePathIgnorePatterns -%>
   moduleNameMapper: {
     // `src/main.ts` imports the stylesheet for its side effect, and jest would parse it as JavaScript.
     '\\.(css|scss)$': '<rootDir>/scripts/stylesheet-stub.ts',

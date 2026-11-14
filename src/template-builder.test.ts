@@ -135,6 +135,17 @@ describe('TemplateBuilder', () => {
     });
   });
 
+  describe('addCoverageExclude', () => {
+    it('derives the vitest glob and the anchored jest pattern of a file and a directory, sorted by path', () => {
+      const builder = new TemplateBuilder();
+      builder.addCoverageExclude('src/views/a-view.ts', 'file').addCoverageExclude('src/docs/', 'dir');
+      expect(builder.coverageExcludes).toEqual([
+        { glob: 'src/docs/**', jestPattern: '<rootDir>/src/docs/', path: 'src/docs/', reason: 'dir' },
+        { glob: 'src/views/a-view.ts', jestPattern: String.raw`<rootDir>/src/views/a-view\.ts$`, path: 'src/views/a-view.ts', reason: 'file' }
+      ]);
+    });
+  });
+
   describe('addDepcheckIgnore', () => {
     it('records the package with its reason', () => {
       const builder = new TemplateBuilder();

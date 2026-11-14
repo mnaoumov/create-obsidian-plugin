@@ -36,7 +36,8 @@ export class DocsShowcase extends FeatureOption {
       .addPackage('@codemirror/view')
       // The toolkit's `build:compile` runs this script in place of its own TypeScript step when the project has one.
       .addScript('build:compile:typescript')
-      .addFiles(['scripts/build-compile-typescript.ts']);
+      .addFiles(['scripts/build-compile-typescript.ts'])
+      .addCoverageExclude('src/docs/', 'The docs\' code blocks run in a real Obsidian, through the desktop integration suite.');
 
     // The suite that runs every block's command in a real Obsidian is a vitest suite of the desktop integration
     // Project, which only the vitest answer configures.

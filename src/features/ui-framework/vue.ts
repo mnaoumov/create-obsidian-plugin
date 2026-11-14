@@ -3,6 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { SFC_VIEW_COVERAGE_REASON } from './sfc-view-coverage.ts';
 
 const BUILD_PLUGINS: Record<string, string> = {
   esbuild: 'esbuild-plugin-vue3',
@@ -33,6 +34,7 @@ export class Vue extends FeatureOption {
     if (isFrameworkPreset(answers.preset)) {
       builder
         .addBuildFramework('vue')
+        .addCoverageExclude('src/views/sample-vue-view.ts', SFC_VIEW_COVERAGE_REASON)
         .addPackage('unplugin-vue')
         .addDepcheckIgnore('unplugin-vue', 'loaded by obsidian-dev-toolkit to compile `.vue` components.');
       if (answers.bundler === 'parcel') {
