@@ -2,7 +2,7 @@ import type { Answers } from '../../answers/answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
-import { DEMO_VAULT_TEMPLATE_FILES } from './demo-vault.ts';
+import { configureDemoVault } from './demo-vault.ts';
 
 export class AllInOne extends FeatureOption {
   public constructor() {
@@ -57,10 +57,10 @@ export class AllInOne extends FeatureOption {
         'scripts/version.ts',
         'src/plugin-settings.ts',
         'src/plugin-settings-component.ts',
-        'src/plugin-settings-tab.ts',
-        ...DEMO_VAULT_TEMPLATE_FILES
+        'src/plugin-settings-tab.ts'
       ])
       .addPartial('framework');
+    configureDemoVault(builder);
 
     // This attests the assets of a release `npm run version` published, and every plugin compared here ships it.
     // `ci-and-release` publishes from a tag push with obsidian-dev-toolkit's release workflow instead, which attests

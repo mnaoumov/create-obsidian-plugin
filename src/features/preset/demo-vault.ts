@@ -1,3 +1,5 @@
+import type { TemplateBuilder } from '../../template-builder.ts';
+
 /**
  * The starter demo vault every toolkit preset ships.
  *
@@ -15,5 +17,22 @@ export const DEMO_VAULT_TEMPLATE_FILES = [
   'demo-vault/02 Settings.md',
   'demo-vault/README.md',
   'demo-vault/_assets/CodeScriptToolkit/demoSetup.ts',
-  'demo-vault/_assets/CodeScriptToolkit/startup.ts'
+  'demo-vault/_assets/CodeScriptToolkit/startup.ts',
+  'demo-vault/_assets/CodeScriptToolkit/tsconfig.json'
 ];
+
+/**
+ * Registers the starter demo vault: its files, and the typings its setup code is type-checked against.
+ *
+ * The setup code runs inside Obsidian through `CodeScript Toolkit`, not inside the plugin, so the plugin's
+ * `apiSubset` answer does not bind it: running a command needs `app.commands`, which only `obsidian-typings`
+ * declares. The vault's own `tsconfig.json` names those typings, so the plugin's program still sees only the API
+ * subset that was chosen.
+ *
+ * @param builder - The template builder.
+ */
+export function configureDemoVault(builder: TemplateBuilder): void {
+  builder
+    .addPackage('@obsidian-typings/obsidian-public-latest')
+    .addFiles(DEMO_VAULT_TEMPLATE_FILES);
+}
