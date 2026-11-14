@@ -1,0 +1,69 @@
+import type {
+  Command,
+  Plugin
+} from 'obsidian';
+
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { Notice } from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import classNames from './main.module.css';
+import { registerSampleCssModuleCommand } from './sample-css-module-command.ts';
+
+/**
+ * The class-name map the CSS module import yields. The unit runners hand every stylesheet import the same empty
+ * object instead of compiling it, so the test writes the scoped name the bundler would have produced into it.
+ */
+const writableClassNames = castTo<Record<string, string>>(classNames);
+
+describe('registerSampleCssModuleCommand', () => {
+  afterEach(() => {
+    delete writableClassNames['sampleNotice'];
+  });
+
+  it('shows a notice styled by the module\'s scoped class', () => {
+    writableClassNames['sampleNotice'] = 'sampleNotice_scoped';
+    const span = runCommand();
+    expect(span?.className).toBe('sampleNotice_scoped');
+    expect(span?.textContent).toBe('Styled by a CSS module');
+  });
+
+  it('still shows the notice when the module has no such class', () => {
+    expect(runCommand()?.className).toBe('');
+  });
+});
+
+/**
+ * Records every notice shown into `notices`, through the mock's construction hook.
+ *
+ * @param notices - Where the notices go.
+ * @returns A function that puts the original hook back.
+ */
+function recordNotices(notices: Notice[]): () => void {
+  const originalHook = Notice.prototype.constructor__;
+  Notice.prototype.constructor__ = function constructor__(this: Notice): void {
+    notices.push(this);
+  };
+  return (): void => {
+    Notice.prototype.constructor__ = originalHook;
+  };
+}
+
+function runCommand(): HTMLElement | null {
+  const commands: Command[] = [];
+  registerSampleCssModuleCommand(castTo<Plugin>({
+    addCommand(command: Command): Command {
+      commands.push(command);
+      return command;
+    }
+  }));
+
+  const notices: Notice[] = [];
+  const restoreNoticeHook = recordNotices(notices);
+  try {
+    commands[0]?.callback?.();
+  } finally {
+    restoreNoticeHook();
+  }
+  return notices[0]?.messageEl.querySelector('span') ?? null;
+}

@@ -1,13 +1,15 @@
+import type { Answers } from '../../answers/answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { addAnswerUnitTests } from '../test-runner/sample-unit-tests.ts';
 
 export class TypesafeI18n extends FeatureOption {
   public constructor() {
     super({ promptHint: 'Type-safe i18n with auto-generated types', promptLabel: 'typesafe-i18n', settingValue: 'typesafe-i18n' });
   }
 
-  public override configure(builder: TemplateBuilder): void {
+  public override configure(builder: TemplateBuilder, answers: Answers): void {
     builder
       .addPackage('typesafe-i18n')
       .addFiles([
@@ -15,5 +17,6 @@ export class TypesafeI18n extends FeatureOption {
         'src/i18n/en/index.ts',
         '.typesafe-i18n.json'
       ]);
+    addAnswerUnitTests(builder, answers, ['src/i18n/index.test.ts']);
   }
 }

@@ -1,0 +1,33 @@
+import type { DecorationSet } from '@codemirror/view';
+
+import { EditorState } from '@codemirror/state';
+<%- render('test-imports') -%>
+
+import { sampleStateField } from './sample-state-field.ts';
+
+describe('sampleStateField', () => {
+  it('puts a word count after every line that has words', () => {
+    const state = EditorState.create({ doc: 'one two\n\nthree', extensions: [sampleStateField] });
+    expect(countWidgets(state.field(sampleStateField))).toBe(2);
+  });
+
+  it('recounts when the document changes', () => {
+    const state = EditorState.create({ doc: 'one', extensions: [sampleStateField] });
+    const changed = state.update({ changes: { from: 3, insert: '\ntwo' } }).state;
+    expect(countWidgets(changed.field(sampleStateField))).toBe(2);
+  });
+
+  it('keeps its decorations when only the selection moves', () => {
+    const state = EditorState.create({ doc: 'one two', extensions: [sampleStateField] });
+    const moved = state.update({ selection: { anchor: 1 } }).state;
+    expect(moved.field(sampleStateField)).toBe(state.field(sampleStateField));
+  });
+});
+
+function countWidgets(decorations: DecorationSet): number {
+  let count = 0;
+  decorations.between(0, Number.MAX_SAFE_INTEGER, () => {
+    count++;
+  });
+  return count;
+}

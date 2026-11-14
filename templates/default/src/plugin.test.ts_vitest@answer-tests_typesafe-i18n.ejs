@@ -1,0 +1,7 @@
+
+  it('runs the Greeting command, which reads its message from the translations', () => {
+    const command = PluginHost.fromOriginalType2__(plugin).commands__.get('greeting');
+    expect(() => {
+      command?.callback?.();
+    }).not.toThrow();
+  });

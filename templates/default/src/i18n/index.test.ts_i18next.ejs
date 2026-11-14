@@ -1,0 +1,13 @@
+<%- render('test-imports') -%>
+import {
+  initI18n,
+  t
+} from './index.ts';
+import en from './locales/en.json';
+
+describe('i18n', () => {
+  it('translates a key from the English resources once initialized', async () => {
+    await initI18n();
+    expect(t('greeting')).toBe(en.greeting);
+  });
+});

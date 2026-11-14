@@ -1,0 +1,9 @@
+<%- render('test-imports') -%>
+import en from './en/index.ts';
+import { t } from './index.ts';
+
+describe('i18n', () => {
+  it('translates a key from the English messages', () => {
+    expect(t('greeting')).toBe(en.greeting);
+  });
+});

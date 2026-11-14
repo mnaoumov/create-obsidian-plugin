@@ -1,0 +1,79 @@
+import type {
+  Command,
+  Plugin
+} from 'obsidian';
+
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { readFileSync } from 'node:fs';
+import { Notice } from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { getWasmAnswer } from './answer.ts';
+import { registerSampleWasmCommand } from './sample-command.ts';
+
+/**
+ * Relative to the project root, which both unit runners run from.
+ */
+const MODULE_PATH = 'src/wasm/module.wasm';
+
+describe('registerSampleWasmCommand', () => {
+  // The unit runners stand a stub in for the `.wasm` import, so this hands `WebAssembly.compile` the module's real
+  // Bytes, which is what the build inlines into `main.js`. Everything after that is the real module running.
+  it('shows the answer the WebAssembly module returns', async () => {
+    const commands: Command[] = [];
+    registerSampleWasmCommand(castTo<Plugin>({
+      addCommand(command: Command): Command {
+        commands.push(command);
+        return command;
+      }
+    }));
+
+    const notices: Notice[] = [];
+    const restoreCompile = compileRealModuleBytes();
+    const restoreNoticeHook = recordNotices(notices);
+    try {
+      await commands[0]?.callback?.();
+    } finally {
+      restoreNoticeHook();
+      restoreCompile();
+    }
+
+    expect(notices.map((notice) => notice.messageEl.textContent)).toEqual(['WebAssembly says: 42']);
+  });
+
+  // Without the real bytes the import is the stub, which no WebAssembly engine accepts. A unit test reaching the
+  // Module by accident fails loudly rather than reading a wrong answer.
+  it('cannot load the module from the stub the unit runners import', async () => {
+    await expect(getWasmAnswer()).rejects.toThrow();
+  });
+});
+
+/**
+ * Makes `WebAssembly.compile` compile the sample module's real bytes, whatever it is handed.
+ *
+ * @returns A function that puts the original back.
+ */
+function compileRealModuleBytes(): () => void {
+  const bytes = readFileSync(MODULE_PATH);
+  const originalCompile = WebAssembly.compile;
+  WebAssembly.compile = (): Promise<WebAssembly.Module> => originalCompile(bytes);
+  return (): void => {
+    WebAssembly.compile = originalCompile;
+  };
+}
+
+/**
+ * Records every notice shown into `notices`, through the mock's construction hook.
+ *
+ * @param notices - Where the notices go.
+ * @returns A function that puts the original hook back.
+ */
+function recordNotices(notices: Notice[]): () => void {
+  const originalHook = Notice.prototype.constructor__;
+  Notice.prototype.constructor__ = function constructor__(this: Notice): void {
+    notices.push(this);
+  };
+  return (): void => {
+    Notice.prototype.constructor__ = originalHook;
+  };
+}
