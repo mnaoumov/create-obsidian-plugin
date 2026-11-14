@@ -284,8 +284,19 @@ One `onload` per file, not one per test: under coverage on a loaded machine the 
 over `vitest`'s 5 s test timeout. `beforeAll` takes a named `async` function, because `jest` types its hooks as
 returning `any` and the shared config rejects an inline `async` callback there. Running `onload` under `jest`
 also needs `scripts/jest-node-globals.ts`, which `jest.config.ts` loads: the plugin encodes text, and `jest`'s
-`jsdom` environment has no `TextEncoder`, unlike `vitest`'s. The modules that other answers add, and `demo`'s whole tab, are not
-covered yet, so a project with them fails its own gate until each answer ships a test of its own.
+`jsdom` environment has no `TextEncoder`, unlike `vitest`'s.
+
+**An answer that emits a module of its own also emits its test.** It calls `addAnswerUnitTests`
+(`src/features/test-runner/sample-unit-tests.ts`) from its `configure`, which registers the tests on a framework preset
+with a test runner, beside the modules they test. `codemirror`, `i18next`, `typesafe-i18n`, `wasm`, `css-modules` and `lit`
+do this today. Some answers run code from `plugin.ts` itself. Their cases go in `src/plugin.test.ts` through an
+`answer-tests` section nested in its `framework` partial: the `typesafe-i18n` Greeting command, and the `ui-view` reveal,
+which records `ensureSideLeaf` instead of opening the view and builds each revealed view through its registered creator.
+Two of these tests stand in for the bundler. The `wasm` test hands `WebAssembly.compile` the real `module.wasm` bytes,
+because the runners stub the import, and checks that the command shows 42. The `css-modules` test writes a scoped class
+name into the empty map that the stylesheet stub exports. Both runners count only `src/**/*.ts`, so the `.tsx` views of
+`react`, `preact` and `solid` are outside the gate. The `svelte` and `vue` views and `demo`'s `plugin.ts`, settings tab,
+modals and sample view are not covered yet, so a project with them still fails its own gate.
 
 ### The `Report a bug` command comes with the issue forms, on the framework presets
 

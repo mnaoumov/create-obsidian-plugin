@@ -1,15 +1,21 @@
 
-  // Revealing the view is recorded rather than run: opening it renders the UI framework's component, which is the
-  // View's own test, and on Svelte and Vue a component the unit runners do not compile.
-  it('reveals its view in the right sidebar once the layout is ready', () => {
-    const workspace = App.fromOriginalType__(plugin.app).workspace;
-    const leaf = castTo<Awaited<ReturnType<typeof workspace.ensureSideLeaf>>>({});
-    const sides: string[] = [];
-    workspace.ensureSideLeaf = (_viewType, side): Promise<typeof leaf> => {
-      sides.push(side);
+  // Revealing a view is recorded rather than run: opening it renders the UI framework's component, which is the view's
+  // Own test, and on Svelte and Vue a component the unit runners do not compile. Each revealed view is still built
+  // Through the creator the plugin registered, so the registration and the reveal are known to name the same view.
+  it('reveals its views in the right sidebar once the layout is ready', () => {
+    const app = App.fromOriginalType__(plugin.app);
+    const leaf = app.workspace.getLeaf();
+    const revealed: [viewType: string, side: string][] = [];
+    app.workspace.ensureSideLeaf = (viewType, side): Promise<typeof leaf> => {
+      revealed.push([viewType, side]);
       return Promise.resolve(leaf);
     };
-    workspace.setLayoutReady__();
-    expect(sides.length).toBeGreaterThan(0);
-    expect(new Set(sides)).toEqual(new Set(['right']));
+    app.workspace.setLayoutReady__();
+
+    expect(revealed.length).toBeGreaterThan(0);
+    for (const [viewType, side] of revealed) {
+      expect(side).toBe('right');
+      const view = app.viewRegistry.getViewCreatorByType(viewType)?.(leaf.asOriginalType3__());
+      expect(view?.getViewType()).toBe(viewType);
+    }
   });

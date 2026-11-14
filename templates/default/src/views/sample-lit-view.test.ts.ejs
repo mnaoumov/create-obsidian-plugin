@@ -1,0 +1,33 @@
+import {
+  App,
+  WorkspaceLeaf
+} from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import {
+  SAMPLE_LIT_VIEW_TYPE,
+  SampleLitView
+} from './sample-lit-view.ts';
+
+describe('SampleLitView', () => {
+  it('names its view type and display text', () => {
+    const view = createView();
+    expect(view.getViewType()).toBe(SAMPLE_LIT_VIEW_TYPE);
+    expect(view.getDisplayText()).toBe('Sample Lit view');
+  });
+
+  it('renders the Lit element with the vault name on open, and removes it on close', async () => {
+    const view = createView();
+    await view.onOpen();
+    const element = view.contentEl.querySelector('sample-lit-element');
+    expect(element?.count).toBe(10);
+    expect(element?.vaultName).toBe(view.app.vault.getName());
+
+    await view.onClose();
+    expect(view.contentEl.childElementCount).toBe(0);
+  });
+});
+
+function createView(): SampleLitView {
+  return new SampleLitView(WorkspaceLeaf.create2__(App.createConfigured__()).asOriginalType3__());
+}

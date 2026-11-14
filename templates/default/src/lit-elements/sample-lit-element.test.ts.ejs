@@ -1,0 +1,23 @@
+<%- render('test-imports') -%>
+import { SampleLitElement } from './sample-lit-element.ts';
+
+describe('SampleLitElement', () => {
+  it('shows its count and vault name, and counts up when the button is clicked', async () => {
+    const element = document.body.createEl('sample-lit-element');
+    try {
+      element.count = 1;
+      element.vaultName = 'Vault';
+      await element.updateComplete;
+      expect(element).toBeInstanceOf(SampleLitElement);
+      expect(element.shadowRoot?.textContent).toContain('My number is 1!');
+      expect(element.shadowRoot?.textContent).toContain('Vault name: Vault');
+
+      element.shadowRoot?.querySelector('button')?.click();
+      await element.updateComplete;
+      expect(element.count).toBe(2);
+      expect(element.shadowRoot?.textContent).toContain('My number is 2!');
+    } finally {
+      element.remove();
+    }
+  });
+});
