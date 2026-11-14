@@ -1,4 +1,5 @@
   let plugin: Plugin;
+<%- render('before-load') -%>
 
   // The plugin's own `onload` runs once here, so the tests below prove what it registers, not only what it imports.
   // A named function rather than an inline `async` callback, because jest types its hooks as returning `any`.

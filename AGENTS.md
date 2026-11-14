@@ -271,11 +271,22 @@ the real plugins carry, and only those with something true to assert: `src/main.
 (the default export Obsidian loads is the plugin class), `src/plugin-settings-component.test.ts` on the
 framework presets (driven through `loadWithPromises()`, the lifecycle Obsidian runs), and
 `src/plugin-settings.test.ts` on `demo` only. `all-in-one`'s settings class is one default value, and a
-test of it would only restate the source. `src/plugin-settings-tab.test.ts` ships on `all-in-one` (and so on
-`docs-showcase`): it renders each row and records the `bind` calls. It replaces `bind` on the instance
+test of it would only restate the source. `src/plugin-settings-tab.test.ts` ships on every framework preset:
+it renders each row and records the `bind` calls. It replaces `bind` on the instance
 rather than spying on it, because the real `bind` throws on the test-mocks components and `jest` under ES
-modules has no `jest` global to spy with. The per-runner difference is only the `vitest` import, which each
+modules has no `jest` global to spy with. On `demo` it also runs what each row wires up itself: the buttons, the
+file pickers, and the converters and change handlers it handed `bind`. `demo` adds a test for each sample modal and
+for the sample view. The per-runner difference is only the `vitest` import, which each
 template takes from a `test-imports` section.
+
+**`demo`'s `src/plugin.test.ts` drives every handler the plugin registers**, through the `demo` partial in its
+`answer-tests` section, and imports the extra mocks it needs through a `mock-names` section inside the `framework`
+mock import. Notices and modals are recorded by pointing the mocks' `constructor__` hooks at two lists for the whole
+file. The ribbon icon's callback and the interval's handler are kept by nothing the mocks expose, so one test loads a
+second plugin into its own app with `addRibbonIcon` and `window.setInterval` replaced. It runs that plugin's recorded
+cleanups itself, because a plugin loaded through an awaited `onload` rather than `load` is one the mock's `unload`
+skips. The `alert` / `confirm` / `prompt` / `selectItem` commands return before their modal closes, which the mocks
+do on a zero-delay timeout, so the tests wait one more timeout before asserting.
 
 **On the framework presets those tests hold the generated `test:coverage` at its 100% threshold.** Both
 runners' `src/plugin.test.ts` take a `framework` partial that loads the plugin once in `beforeAll` and runs
@@ -298,10 +309,9 @@ name into the empty map that the stylesheet stub exports. Both runners count onl
 `react`, `preact` and `solid` are outside the gate. The `svelte` and `vue` views are left out too, because the component
 stub throws at their `mount` and that contract is deliberate, and so is `docs-showcase`'s `src/docs/`, which the desktop
 integration suite runs. Each is registered with its reason by `TemplateBuilder.addCoverageExclude` beside the files it
-names, and both runners' configs render the list: `context.coverageExclude` in `scripts/vitest-config.ts`, and a
-`coveragePathIgnorePatterns` property in `jest.config.ts` that exists only with entries and restates jest's
-`/node_modules/` default, which the option replaces. `demo`'s `plugin.ts`, settings tab, modals and sample view are not
-covered yet, so a `demo` project still fails its own gate.
+names, and both runners' configs render the list: one `context.coverageExclude.push` call in `scripts/vitest-config.ts`
+(two in a row fail `unicorn/prefer-single-call`), and a `coveragePathIgnorePatterns` property in `jest.config.ts` that
+exists only with entries and restates jest's `/node_modules/` default, which the option replaces.
 
 ### The `Report a bug` command comes with the issue forms, on the framework presets
 

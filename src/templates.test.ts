@@ -2410,7 +2410,10 @@ describe('copyTemplates', () => {
       for (const uiFramework of ['svelte', 'vue']) {
         const view = `src/views/sample-${uiFramework}-view`;
         copyTemplates(makeAnswers({ preset, testRunner: 'vitest', uiFramework }), targetDir, '1.0.0', null);
-        expect(readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8'), `${preset} ${uiFramework}`).toContain(`context.coverageExclude.push('${view}.ts');`);
+        const vitestConfig = readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8');
+        expect(vitestConfig, `${preset} ${uiFramework}`).toContain(`      '${view}.ts'`);
+        // One call for every entry: two in a row fail the shared config's `unicorn/prefer-single-call`.
+        expect(vitestConfig.split('context.coverageExclude.push(').length - 1, `${preset} ${uiFramework}`).toBe(1);
         copyTemplates(makeAnswers({ preset, testRunner: 'jest', uiFramework }), targetDir, '1.0.0', null);
         const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
         expect(jestConfig, `${preset} ${uiFramework}`).toContain(`'<rootDir>/${view}\\\\.ts$'`);
@@ -2687,6 +2690,24 @@ describe('copyTemplates', () => {
     expect(pluginTest).toContain('commands__.get(\'sample-editor\')');
     const tabTest = readFileSync(join(targetDir, 'src/plugin-settings-tab.test.ts'), 'utf-8');
     expect(tabTest).toContain('expect(boundPropertyNames).toEqual([\'textSetting\']);');
+  });
+
+  // Before these, a `demo` scaffold covered 49.8% of its lines and failed its own 100% gate.
+  it.each(['jest', 'vitest'])('covers the demo plugin\'s handlers, settings tab, modals and view under %s', (testRunner) => {
+    copyTemplates(makeAnswers({ preset: 'demo', testRunner }), targetDir, '1.0.0', null);
+    const pluginTest = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
+    expect(pluginTest).toContain('  App,\n  FuzzySuggestModal,\n  Menu,\n  Modal,\n  Notice,\n  Plugin as PluginHost\n');
+    expect(pluginTest).toContain('PluginHost.prototype.addRibbonIcon = ');
+    expect(pluginTest).toContain('it(\'shows a notice when it unloads\'');
+    expect(pluginTest).toContain('runCommand(\'show-prompt-modal\');');
+    expect(pluginTest).not.toMatch(/\}\);\}\);/u);
+    for (const testPath of ['src/plugin-settings-tab.test.ts', 'src/modals/sample-form-modal.test.ts', 'src/modals/sample-suggest-modal.test.ts', 'src/views/sample-view.test.ts']) {
+      expect(existsSync(join(targetDir, testPath)), testPath).toBe(true);
+    }
+    expect(readFileSync(join(targetDir, 'src/plugin-settings-tab.test.ts'), 'utf-8')).toContain('tab.displayLegacy();');
+
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain('  App,\n  Plugin as PluginHost\n');
   });
 
   // Without it the plugin's `onload` throws `TextEncoder is not defined` under jest's jsdom, failing the sample tests above.

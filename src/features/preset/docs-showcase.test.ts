@@ -101,7 +101,8 @@ describe('the docs-showcase preset', () => {
     expect(read('scripts/eslint-config.ts')).toContain('\'src/docs/**\'');
     expect(read('dprint.json')).toContain('"src/docs"');
     expect(read('cspell.json')).toContain('"src/docs"');
-    expect(read('scripts/vitest-config.ts')).toContain('context.coverageExclude.push(\'src/docs/**\');');
+    expect(read('scripts/vitest-config.ts')).toContain('context.coverageExclude.push(\n');
+    expect(read('scripts/vitest-config.ts')).toContain('      \'src/docs/**\'\n');
   });
 
   it('keeps the showcase folder out of jest coverage too', () => {

@@ -1,0 +1,41 @@
+import { App } from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import {
+  SAMPLE_VIEW_TYPE,
+  SampleView
+} from './sample-view.ts';
+
+describe('SampleView', () => {
+  it('names its type and its tab', () => {
+    const view = createView(0);
+    expect(view.getViewType()).toBe(SAMPLE_VIEW_TYPE);
+    expect(view.getDisplayText()).toBe('Sample view');
+  });
+
+  it('lists every Markdown file of a small vault', async () => {
+    const view = createView(2);
+    await view.onOpen();
+    expect(getListedTexts(view)).toEqual(['Note 1.md', 'Note 2.md']);
+  });
+
+  it('lists the first ten Markdown files of a larger vault and counts the rest', async () => {
+    const view = createView(12);
+    await view.onOpen();
+    const texts = getListedTexts(view);
+    expect(texts).toHaveLength(11);
+    expect(texts.at(-1)).toBe('... and 2 more');
+  });
+});
+
+function createView(markdownFileCount: number): SampleView {
+  const app = App.createConfigured__();
+  for (const index of Array.from({ length: markdownFileCount }, (_, offset) => offset + 1)) {
+    app.vault.createSync__(`Note ${String(index)}.md`, '');
+  }
+  return new SampleView(app.workspace.getLeaf().asOriginalType3__());
+}
+
+function getListedTexts(view: SampleView): string[] {
+  return Array.from(view.contentEl.querySelectorAll('li'), (li) => li.textContent);
+}

@@ -1,0 +1,49 @@
+
+  // The demo plugin registers one of everything, and the tests drive each handler through what it registered on the
+  // `obsidian-test-mocks` plugin host and app. What the mocks keep no hold of is recorded instead, by hooks installed
+  // Before the plugin loads: every notice and modal through the mocks' construction hooks, and the ribbon icon's
+  // Callback and the interval's handler as they are registered, so the interval never really starts.
+  const notices: string[] = [];
+  const modals: Modal[] = [];
+  const ribbonCallbacks: (($event: MouseEvent) => unknown)[] = [];
+  const intervalHandlers: (() => void)[] = [];
+  const setInterval = window.setInterval;
+
+  beforeAll(() => {
+    Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+      notices.push(typeof message === 'string' ? message : message.textContent);
+    };
+    Modal.prototype.constructor__ = function constructor__(this: Modal): void {
+      modals.push(this);
+    };
+    PluginHost.prototype.addRibbonIcon = (_icon: string, _title: string, callback: ($event: MouseEvent) => unknown): HTMLElement => {
+      ribbonCallbacks.push(callback);
+      return createDiv();
+    };
+    window.setInterval = castTo((handler: () => void): number => {
+      intervalHandlers.push(handler);
+      return 0;
+    });
+  });
+
+  afterAll(() => {
+    window.setInterval = setInterval;
+  });
+
+  async function collectNotices(action: () => Promise<void> | void): Promise<string[]> {
+    notices.length = 0;
+    await action();
+    return [...notices];
+  }
+
+  function runCommand(id: string): void {
+    PluginHost.fromOriginalType2__(plugin).commands__.get(id)?.callback?.();
+  }
+
+  // A modal in the mocks closes itself on a zero-delay timeout, and the commands that await one return before it
+  // does. A timeout queued after it runs once the modal has closed and its promise has settled.
+  async function waitForModalsToClose(): Promise<void> {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+  }

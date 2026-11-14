@@ -86,7 +86,7 @@ export class Plugin extends PluginBase {
 
     this.addStatusBarItem().setText('Sample status bar item');
 
-    this.registerDomEvent(document, 'dblclick', this.handleSampleDomEvent.bind(this));
+    this.registerDomEvent(activeDocument, 'dblclick', this.handleSampleDomEvent.bind(this));
 
     this.registerEditorExtension([sampleViewPlugin, sampleStateField]);
 
@@ -171,7 +171,9 @@ export class Plugin extends PluginBase {
   }
 
   private handleSampleDomEvent($event: MouseEvent): void {
-    const tagName = $event.target instanceof HTMLElement ? $event.target.tagName : '';
+    // `targetNode` and `instanceOf` rather than `target instanceof`: a node in another window has that window's own `HTMLElement`.
+    const target = $event.targetNode;
+    const tagName = target?.instanceOf(HTMLElement) ? target.tagName : '';
     new Notice(`Sample DOM event: ${tagName}`);
   }
 

@@ -1,0 +1,125 @@
+
+  it('runs the Sample with check command only while a Markdown view is active', async () => {
+    const workspace = App.fromOriginalType__(plugin.app).workspace;
+    const command = PluginHost.fromOriginalType2__(plugin).commands__.get('sample-with-check');
+    expect(command?.checkCallback?.(true)).toBe(false);
+
+    const getActiveViewOfType = workspace.getActiveViewOfType.bind(workspace);
+    workspace.getActiveViewOfType = castTo(() => ({}));
+    try {
+      expect(await collectNotices(() => {
+        expect(command?.checkCallback?.(true)).toBe(true);
+      })).toEqual([]);
+      expect(await collectNotices(() => {
+        expect(command?.checkCallback?.(false)).toBe(true);
+      })).toEqual(['Sample command with check']);
+    } finally {
+      workspace.getActiveViewOfType = getActiveViewOfType;
+    }
+  });
+
+  it('adds its actions to the file and editor menus', async () => {
+    const workspace = App.fromOriginalType__(plugin.app).workspace;
+    const fileMenu = Menu.create2__();
+    workspace.trigger('file-menu', fileMenu.asOriginalType2__(), { name: 'Note.md' });
+    const editorMenu = Menu.create2__();
+    workspace.trigger('editor-menu', editorMenu.asOriginalType2__(), { lineCount: (): number => 3 });
+
+    const items = [...fileMenu.menuItems__, ...editorMenu.menuItems__];
+    expect(items.map((item) => item.title__)).toEqual(['Sample file action', 'Sample editor action']);
+    expect(await collectNotices(() => {
+      for (const item of items) {
+        item.onClick__?.(new MouseEvent('click'));
+      }
+    })).toEqual(['File: Note.md', 'Editor has 3 lines']);
+  });
+
+  it('shows the tag name of a double-clicked element', async () => {
+    expect(await collectNotices(() => {
+      document.body.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      document.dispatchEvent(new MouseEvent('dblclick'));
+    })).toEqual(['Sample DOM event: BODY', 'Sample DOM event: ']);
+  });
+
+  it('renders its code blocks and level 6 headings', async () => {
+    const host = PluginHost.fromOriginalType2__(plugin);
+    const codeBlockEl = createDiv();
+    host.markdownCodeBlockProcessors__.get('sample-code-block-processor')?.('source', codeBlockEl, castTo({}));
+    expect(codeBlockEl.textContent).toBe('Sample code block processor');
+
+    const headingEl = createDiv('el-h6');
+    const paragraphEl = createDiv('el-p');
+    for (const postProcessor of host.markdownPostProcessors__) {
+      await postProcessor(headingEl, castTo({}));
+      await postProcessor(paragraphEl, castTo({}));
+    }
+    expect(headingEl.textContent).toBe('Sample markdown post processor');
+    expect(paragraphEl.textContent).toBe('');
+  });
+
+  it('handles its obsidian:// action', async () => {
+    const handler = PluginHost.fromOriginalType2__(plugin).obsidianProtocolHandlers__.get('sample-action');
+    expect(await collectNotices(() => {
+      handler?.({ action: 'sample-action' });
+    })).toEqual(['Sample obsidian protocol handler: sample-action']);
+  });
+
+  it('shows its ribbon icon and interval notices', async () => {
+    expect(await collectNotices(() => {
+      for (const callback of ribbonCallbacks) {
+        callback(new MouseEvent('click'));
+      }
+      for (const handler of intervalHandlers) {
+        handler();
+      }
+    })).toEqual(['Sample ribbon icon command', 'Sample interval tick']);
+  });
+
+  it('shows a notice for a new file only once the layout is ready', async () => {
+    const { vault, workspace } = App.fromOriginalType__(plugin.app);
+    const isLayoutReady = workspace.layoutReady;
+    expect(await collectNotices(() => {
+      workspace.layoutReady = false;
+      vault.trigger('create', { name: 'Before.md' });
+      workspace.layoutReady = true;
+      vault.trigger('create', { name: 'After.md' });
+      workspace.layoutReady = isLayoutReady;
+    })).toEqual(['Sample event: After.md']);
+  });
+
+  it('opens the sample form and suggest modals', () => {
+    modals.length = 0;
+    runCommand('show-sample-modal');
+    runCommand('show-suggest-modal');
+    expect(modals.map((modal) => modal.constructor.name)).toEqual(['SampleFormModal', 'SampleSuggestModal']);
+  });
+
+  it('shows the alert, confirm and select item modals', async () => {
+    modals.length = 0;
+    expect(await collectNotices(async () => {
+      runCommand('show-alert-modal');
+      runCommand('show-confirm-modal');
+      runCommand('show-select-item-modal');
+      await waitForModalsToClose();
+    })).toEqual(['Sample confirm result: false']);
+    expect(modals.map((modal) => modal.titleEl.textContent)).toEqual(['Sample alert title', 'Sample confirm title', '']);
+
+    const selectItemModals = modals.filter((modal) => modal instanceof FuzzySuggestModal).map((modal) => castTo<FuzzySuggestModal<string>>(modal));
+    expect(selectItemModals.flatMap((modal) => modal.getItems().map((item) => modal.getItemText(item)))).toEqual(['Item 1', 'Item 2', 'Item 3']);
+  });
+
+  it('asks for a prompt value of at least 30 characters', async () => {
+    modals.length = 0;
+    runCommand('show-prompt-modal');
+    await waitForModalsToClose();
+
+    const input = modals[0]?.contentEl.querySelector('input');
+    expect(input?.validationMessage).toBe('Value must be at least 30 characters long');
+
+    if (input) {
+      input.value = 'A value long enough to be accepted';
+      input.dispatchEvent(new Event('input'));
+    }
+    await waitForModalsToClose();
+    expect(input?.validationMessage).toBe('');
+  });

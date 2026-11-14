@@ -8,6 +8,7 @@ import type { MaybeReturn } from '@mnaoumov/typescript-lib/type';
 import type { GenericObject } from '@mnaoumov/typescript-lib/type-guards';
 
 import { PluginSettingsComponentBase } from '@mnaoumov/obsidian-lib/components/plugin-settings-component';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { Notice } from 'obsidian';
 
 import {
@@ -66,16 +67,11 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
 
   protected override async onSavingRecord(record: GenericObject): Promise<void> {
     await super.onSavingRecord(record);
-    const serializedSettings = record as Partial<SerializedSettings>;
-    const pluginSettings = record as Partial<PluginSettings>;
-
-    if (pluginSettings.typedDropdownSetting) {
-      serializedSettings.typedDropdownSetting = pluginSettings.typedDropdownSetting.name;
-    }
-
-    if (pluginSettings.typedMultipleDropdownSetting) {
-      serializedSettings.typedMultipleDropdownSetting = pluginSettings.typedMultipleDropdownSetting.map((item) => item.name);
-    }
+    // Unlike a loaded record, which is whatever `data.json` held, the record being saved carries every setting.
+    const serializedSettings = castTo<SerializedSettings>(record);
+    const pluginSettings = castTo<PluginSettings>(record);
+    serializedSettings.typedDropdownSetting = pluginSettings.typedDropdownSetting.name;
+    serializedSettings.typedMultipleDropdownSetting = pluginSettings.typedMultipleDropdownSetting.map((item) => item.name);
   }
 
   protected override registerValidators(): void {
