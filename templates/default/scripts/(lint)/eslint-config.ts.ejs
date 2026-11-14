@@ -13,8 +13,8 @@ export const configs: Linter.Config[] = defineEslintConfigs({
         // `defineEslintConfigs` ignores whatever `.gitignore` names, which already covers `main.js`,
         // `dist` and `node_modules`. These four it cannot: the three extensions are not TypeScript and so
         // Are governed by no config object of its own, and `demo-vault/` is COMMITTED, so it is in no
-        // Ignore file. The demo scripts show unusual module and `require` styles on purpose; a linter that
-        // "fixes" them breaks the lesson.
+        // Ignore file. The shared config re-includes the vault's own setup code after this list
+        // (`_assets/CodeScriptToolkit/demoSetup.ts` and `startup.ts`), so that code is linted like `src/`.
         '**/*.cjs',
         '**/*.js',
         '**/*.mjs',
