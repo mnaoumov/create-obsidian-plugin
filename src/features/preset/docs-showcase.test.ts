@@ -104,6 +104,16 @@ describe('the docs-showcase preset', () => {
     expect(read('scripts/vitest-config.ts')).toContain('context.coverageExclude.push(\'src/docs/**\');');
   });
 
+  it('keeps the showcase folder out of jest coverage too', () => {
+    const jestDir = mkdtempSync(join(tmpdir(), 'cop-docs-showcase-jest-'));
+    try {
+      copyTemplates(makeAnswers({ preset: 'docs-showcase', testRunner: 'jest' }), jestDir, '1.0.0', null);
+      expect(readFileSync(join(jestDir, 'jest.config.ts'), 'utf-8')).toContain('\'<rootDir>/src/docs/\'');
+    } finally {
+      rmSync(jestDir, { force: true, recursive: true });
+    }
+  });
+
   it('type-checks the showcase folder under its own tsconfig as part of build:compile', () => {
     const packageJson = JSON.parse(read('package.json')) as PackageJson;
     expect(packageJson.scripts['build:compile:typescript']).toBe('jiti scripts/build-compile-typescript.ts');

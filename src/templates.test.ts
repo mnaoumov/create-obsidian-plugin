@@ -2403,6 +2403,26 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('\'^svelte$\'');
   });
 
+  // The stub throws, so a unit test cannot get past a Svelte or Vue view's `mount`, and the framework project's own
+  // 100% `test:coverage` gate would fail on the two views. Both runners leave them out, each with its reason.
+  it('leaves the single-file component views out of coverage under both runners', () => {
+    for (const preset of ['all-in-one', 'demo']) {
+      for (const uiFramework of ['svelte', 'vue']) {
+        const view = `src/views/sample-${uiFramework}-view`;
+        copyTemplates(makeAnswers({ preset, testRunner: 'vitest', uiFramework }), targetDir, '1.0.0', null);
+        expect(readFileSync(join(targetDir, 'scripts/vitest-config.ts'), 'utf-8'), `${preset} ${uiFramework}`).toContain(`context.coverageExclude.push('${view}.ts');`);
+        copyTemplates(makeAnswers({ preset, testRunner: 'jest', uiFramework }), targetDir, '1.0.0', null);
+        const jestConfig = readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8');
+        expect(jestConfig, `${preset} ${uiFramework}`).toContain(`'<rootDir>/${view}\\\\.ts$'`);
+        // The option replaces jest's default, so the default is restated.
+        expect(jestConfig, `${preset} ${uiFramework}`).toContain('coveragePathIgnorePatterns: [\n    \'/node_modules/\',\n');
+      }
+    }
+
+    copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'jest' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('coveragePathIgnorePatterns');
+  });
+
   // Solid compiles its JSX with `babel-preset-solid`, so its `tsconfig.json` says `jsx: 'preserve'` --
   // Which neither unit runner can consume. ts-jest emits the JSX untouched ("Unexpected token '<'") and
   // Vite refuses to parse it at all. Both get the automatic runtime from `solid-js/h`, the entry point

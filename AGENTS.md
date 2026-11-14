@@ -295,8 +295,13 @@ which records `ensureSideLeaf` instead of opening the view and builds each revea
 Two of these tests stand in for the bundler. The `wasm` test hands `WebAssembly.compile` the real `module.wasm` bytes,
 because the runners stub the import, and checks that the command shows 42. The `css-modules` test writes a scoped class
 name into the empty map that the stylesheet stub exports. Both runners count only `src/**/*.ts`, so the `.tsx` views of
-`react`, `preact` and `solid` are outside the gate. The `svelte` and `vue` views and `demo`'s `plugin.ts`, settings tab,
-modals and sample view are not covered yet, so a project with them still fails its own gate.
+`react`, `preact` and `solid` are outside the gate. The `svelte` and `vue` views are left out too, because the component
+stub throws at their `mount` and that contract is deliberate, and so is `docs-showcase`'s `src/docs/`, which the desktop
+integration suite runs. Each is registered with its reason by `TemplateBuilder.addCoverageExclude` beside the files it
+names, and both runners' configs render the list: `context.coverageExclude` in `scripts/vitest-config.ts`, and a
+`coveragePathIgnorePatterns` property in `jest.config.ts` that exists only with entries and restates jest's
+`/node_modules/` default, which the option replaces. `demo`'s `plugin.ts`, settings tab, modals and sample view are not
+covered yet, so a `demo` project still fails its own gate.
 
 ### The `Report a bug` command comes with the issue forms, on the framework presets
 

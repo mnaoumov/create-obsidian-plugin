@@ -4,6 +4,19 @@ export interface BuildOption {
   readonly value: string;
 }
 
+/**
+ * One path the unit test coverage report leaves out, with why no unit test can reach it.
+ *
+ * `path` is relative to the project root, and a trailing `/` marks a directory. `glob` is the form vitest's
+ * `coverage.exclude` takes and `jestPattern` the form jest's `coveragePathIgnorePatterns` takes.
+ */
+export interface CoverageExclude {
+  readonly glob: string;
+  readonly jestPattern: string;
+  readonly path: string;
+  readonly reason: string;
+}
+
 /** One `.depcheckrc.json` entry: a declared package depcheck cannot see used, and the reference proving it is. */
 export interface DepcheckIgnore {
   readonly packageName: string;
@@ -77,6 +90,17 @@ export class TemplateBuilder {
       .sort((a, b) => a.key.localeCompare(b.key));
   }
 
+  public get coverageExcludes(): CoverageExclude[] {
+    return [...this._coverageExcludes.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([path, reason]) => ({
+        glob: path.endsWith('/') ? `${path}**` : path,
+        jestPattern: `<rootDir>/${path.replaceAll('.', String.raw`\.`)}${path.endsWith('/') ? '' : '$'}`,
+        path,
+        reason
+      }));
+  }
+
   public get depcheckIgnores(): DepcheckIgnore[] {
     return [...this._depcheckIgnores.entries()]
       .map(([packageName, reason]) => ({ packageName, reason }))
@@ -123,6 +147,8 @@ export class TemplateBuilder {
   private readonly _buildOptions = new Map<string, string>();
 
   private _buildStyles: null | Set<string> = null;
+
+  private readonly _coverageExcludes = new Map<string, string>();
 
   private readonly _depcheckIgnores = new Map<string, string>();
 
@@ -185,6 +211,21 @@ export class TemplateBuilder {
   }
 
   /**
+   * Registers a path the unit test coverage report leaves out, on the framework presets' vitest and jest configs.
+   *
+   * Only for code no unit test can run, such as the glue that mounts a single-file component the unit runners stub.
+   * Collected here rather than composed from partials for the same reason as {@link addLintStagedCommand}: jest takes
+   * the paths as one list, and the last partial would leave a trailing comma.
+   *
+   * @param path - Relative to the project root; a trailing `/` marks a directory.
+   * @param reason - Why no unit test reaches it, written beside the entry in both configs.
+   */
+  public addCoverageExclude(path: string, reason: string): this {
+    this._coverageExcludes.set(path, reason);
+    return this;
+  }
+
+  /**
    * Registers a declared package that depcheck reports as unused although it is not -- one only ever
    * invoked as a CLI, named as a string in a config, or reached by a compiler option.
    *
@@ -200,7 +241,7 @@ export class TemplateBuilder {
     return this;
   }
 
-  public addFiles(paths: string[]): this {
+  public addFiles(paths: readonly string[]): this {
     for (const p of paths) {
       this._templateFiles.add(p);
     }

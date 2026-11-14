@@ -3,6 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { SFC_VIEW_COVERAGE_REASON } from './sfc-view-coverage.ts';
 
 /**
  * The package each bundler needs to compile Svelte, or `null` where the project ships its own.
@@ -52,6 +53,7 @@ export class Svelte extends FeatureOption {
       builder
         .addBuildFramework('svelte')
         .addTsconfigExtends('@mnaoumov/obsidian-dev-toolkit/tsconfig/svelte.json')
+        .addCoverageExclude('src/views/sample-svelte-view.ts', SFC_VIEW_COVERAGE_REASON)
         .addDepcheckIgnore('svelte-check', 'run as a CLI by typescript-dev-toolkit\'s `build:compile`, which refuses to build without it declared.');
       return;
     }
