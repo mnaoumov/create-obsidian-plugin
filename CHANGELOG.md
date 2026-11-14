@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.5.0 (2026-11-13)
+
+### Features
+
+- The demo vault's `demoSetup.ts` and `startup.ts` are type-checked and linted like `src/`. They are a project of their own, `demo-vault/_assets/CodeScriptToolkit/tsconfig.json`, referenced from the root `tsconfig.json`, and they take `@obsidian-typings/obsidian-public-latest` whichever API subset the plugin chose, since the vault runs commands through `app.commands`.
+- The framework presets get `npm run check`, which runs the release checks and the Community directory scanner locally through `check-plugin --scanner`.
+
+### Fixes
+
+- The generated `test:coverage` script holds coverage at 100%; it passed no threshold before, so it never failed.
+- The issue forms prefill the plugin version in feature requests, and the video and sample vault fields are optional.
+- `fflate` and `moment` are patched in the development tooling, and the `re2js` override is gone now that `markdownlint` pins a fixed version.
+
+[Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.4.1...1.5.0)
+
 ## 1.4.1 (2026-11-01)
 
 ### Fixes
