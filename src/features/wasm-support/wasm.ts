@@ -3,6 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { addAnswerUnitTests } from '../test-runner/sample-unit-tests.ts';
 
 /**
  * The package each bundler needs to import `.wasm`, or `null` where the bundler needs none.
@@ -73,6 +74,9 @@ export class Wasm extends FeatureOption {
       'src/wasm/sample-command.ts',
       'src/wasm/README.md'
     ]);
+    // The test hands `WebAssembly.compile` the module's real bytes, as the toolkit's build does, so it is written for the
+    // Framework presets' one `answer.ts`, which is the only place the helper registers it.
+    addAnswerUnitTests(builder, answers, ['src/wasm/sample-command.test.ts']);
 
     // Only the toolkit presets ship a demo vault. The rows and the button helper the note
     // Needs in `00 Start.md`, `01 Sample commands.md` and `demoSetup.ts` are `wasm` partials, which render

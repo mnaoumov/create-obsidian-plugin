@@ -3,6 +3,7 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
+import { addAnswerUnitTests } from '../test-runner/sample-unit-tests.ts';
 import { addToolkitStyles } from './toolkit-styles.ts';
 
 export class CssModules extends FeatureOption {
@@ -18,6 +19,7 @@ export class CssModules extends FeatureOption {
     builder.addFiles(['src/styles/css-modules.d.ts', 'src/styles/main.module.css', 'src/styles/sample-css-module-command.ts']);
     if (isFrameworkPreset(answers.preset)) {
       addToolkitStyles(builder, answers.bundler, 'cssModules');
+      addAnswerUnitTests(builder, answers, ['src/styles/sample-css-module-command.test.ts']);
       return;
     }
 

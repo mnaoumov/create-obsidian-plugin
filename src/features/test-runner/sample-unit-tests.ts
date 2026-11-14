@@ -4,6 +4,24 @@ import type { TemplateBuilder } from '../../template-builder.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
+ * Registers the unit tests of an answer's own modules, beside the modules they test.
+ *
+ * Only the framework presets register `test:coverage`, whose threshold is 100%, so an answer that emits a module
+ * there and no test for it leaves the project failing its own gate. Each answer calls this from its `configure`,
+ * which also runs when `demo` forces the answer in. The tests are written for both runners: the only difference is
+ * the `vitest` import, which each template takes from a `test-imports` section.
+ *
+ * @param builder - The template builder.
+ * @param answers - The answers.
+ * @param files - The test files, by their emitted paths.
+ */
+export function addAnswerUnitTests(builder: TemplateBuilder, answers: Answers, files: readonly string[]): void {
+  if (isFrameworkPreset(answers.preset) && answers.testRunner !== 'none') {
+    builder.addFiles(files);
+  }
+}
+
+/**
  * Registers the sample unit tests beside `src/plugin.test.ts`, which each runner registers itself.
  *
  * Each one asserts wiring the emitted plugin really has, never a restatement of a literal: a test that

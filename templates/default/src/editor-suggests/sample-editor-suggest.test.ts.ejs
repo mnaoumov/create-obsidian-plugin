@@ -1,0 +1,71 @@
+import type {
+  Editor,
+  EditorPosition,
+  EditorSuggestContext,
+  TFile
+} from 'obsidian';
+
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { App } from 'obsidian-test-mocks/obsidian';
+<%- render('test-imports') -%>
+
+import { SampleEditorSuggest } from './sample-editor-suggest.ts';
+
+const CURSOR: EditorPosition = { ch: 6, line: 0 };
+
+describe('SampleEditorSuggest', () => {
+  it('triggers on a line reading Sample, naming the file in its query', () => {
+    const suggest = createSuggest();
+    expect(suggest.onTrigger(CURSOR, createEditor('Sample'), castTo<TFile>({ name: 'Note.md' }))).toEqual({
+      end: CURSOR,
+      query: 'Query Note.md',
+      start: CURSOR
+    });
+    expect(suggest.onTrigger(CURSOR, createEditor('Sample'), null)?.query).toBe('Query ');
+  });
+
+  it('stays closed on any other line', () => {
+    expect(createSuggest().onTrigger(CURSOR, createEditor('Other'), null)).toBeNull();
+  });
+
+  it('suggests three variants of the query', () => {
+    const context = castTo<EditorSuggestContext>({ query: 'Q' });
+    expect(createSuggest().getSuggestions(context)).toEqual(['Q 1', 'Q 2', 'Q 3']);
+  });
+
+  it('renders a suggestion in bold', () => {
+    const el = createDiv();
+    createSuggest().renderSuggestion('Q 1', el);
+    expect(el.find('strong').textContent).toBe('Q 1');
+  });
+
+  it('replaces the trigger with the chosen suggestion', () => {
+    const suggest = createSuggest();
+    const replacements: string[] = [];
+    const editor = createEditor('Sample', replacements);
+    suggest.onTrigger(CURSOR, editor, null);
+    suggest.selectSuggestion('Q 1', new MouseEvent('click'));
+    expect(replacements).toEqual(['Transformed Q 1 click']);
+  });
+
+  it('writes nothing when chosen before it was ever triggered', () => {
+    expect(() => {
+      createSuggest().selectSuggestion('Q 1', new KeyboardEvent('keydown'));
+    }).not.toThrow();
+  });
+});
+
+function createEditor(line: string, replacements: string[] = []): Editor {
+  return castTo<Editor>({
+    getLine(): string {
+      return line;
+    },
+    replaceRange(replacement: string): void {
+      replacements.push(replacement);
+    }
+  });
+}
+
+function createSuggest(): SampleEditorSuggest {
+  return new SampleEditorSuggest(App.createConfigured__().asOriginalType__());
+}

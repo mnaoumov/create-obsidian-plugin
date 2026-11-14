@@ -1,0 +1,16 @@
+<%- render('test-imports') -%>
+import { SampleWidget } from './sample-widget.ts';
+
+describe('SampleWidget', () => {
+  it('renders the word count', () => {
+    const element = new SampleWidget(3).toDOM();
+    expect(element.textContent).toBe(' [3 words]');
+    expect(element.hasClass('cm-sample-word-count')).toBe(true);
+  });
+
+  // CodeMirror reuses a widget's DOM when the new widget is equal to the old one, so equality is the count.
+  it('is equal to a widget with the same count only', () => {
+    expect(new SampleWidget(2).eq(new SampleWidget(2))).toBe(true);
+    expect(new SampleWidget(2).eq(new SampleWidget(3))).toBe(false);
+  });
+});

@@ -1,0 +1,15 @@
+
+  // Revealing the view is recorded rather than run: opening it renders the UI framework's component, which is the
+  // View's own test, and on Svelte and Vue a component the unit runners do not compile.
+  it('reveals its view in the right sidebar once the layout is ready', () => {
+    const workspace = App.fromOriginalType__(plugin.app).workspace;
+    const leaf = castTo<Awaited<ReturnType<typeof workspace.ensureSideLeaf>>>({});
+    const sides: string[] = [];
+    workspace.ensureSideLeaf = (_viewType, side): Promise<typeof leaf> => {
+      sides.push(side);
+      return Promise.resolve(leaf);
+    };
+    workspace.setLayoutReady__();
+    expect(sides.length).toBeGreaterThan(0);
+    expect(new Set(sides)).toEqual(new Set(['right']));
+  });

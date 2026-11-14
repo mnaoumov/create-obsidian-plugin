@@ -1,0 +1,27 @@
+import { EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
+<%- render('test-imports') -%>
+
+import { sampleViewPlugin } from './sample-view-plugin.ts';
+
+describe('sampleViewPlugin', () => {
+  it('puts a word count after every visible line that has words, and recounts on an edit', () => {
+    const view = new EditorView({
+      parent: document.body,
+      state: EditorState.create({ doc: 'one two\n\nthree', extensions: [sampleViewPlugin] })
+    });
+    try {
+      expect(view.contentDOM.querySelectorAll('.cm-sample-word-count')).toHaveLength(2);
+
+      // A selection change alone leaves the decorations as they were.
+      view.dispatch({ selection: { anchor: 1 } });
+      expect(view.contentDOM.querySelectorAll('.cm-sample-word-count')).toHaveLength(2);
+
+      view.dispatch({ changes: { from: view.state.doc.length, insert: '\nfour five' } });
+      const counts = [...view.contentDOM.querySelectorAll('.cm-sample-word-count')].map((element) => element.textContent);
+      expect(counts).toEqual([' [2 words]', ' [1 words]', ' [2 words]']);
+    } finally {
+      view.destroy();
+    }
+  });
+});
