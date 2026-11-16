@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Framework projects on `Jest` can load the plugin: `jest.config.ts` loads `scripts/jest-node-globals.ts`, which provides the `TextEncoder` that `jsdom` lacks.
 
 [Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.5.0...1.5.1)
+
 ## 1.5.0 (2026-11-13)
 
 ### Features
@@ -53,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - Every migration of an older `.create-obsidian-plugin.json` answer shape (`framework`, `cssMode`, `buildSystem`, `gitHubFunding`, a missing `defaultBranch` or `coverageBadge`, a stored `pluginShortName`).
 
 [Full diff](https://github.com/mnaoumov/create-obsidian-plugin/compare/1.3.0...1.4.0)
+
 ## 1.3.0 (2026-11-01)
 
 ### Features
