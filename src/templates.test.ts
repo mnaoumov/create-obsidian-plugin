@@ -1725,6 +1725,31 @@ describe('copyTemplates', () => {
     }
   });
 
+  // `obsidian-lib`'s Open demo vault command is desktop-only. A plugin that also runs on mobile must say so and send
+  // A mobile user to the zip; a desktop-only plugin is never installed on mobile, so the clause would be noise there.
+  it('says the Open demo vault command is desktop-only exactly when the plugin also runs on mobile', () => {
+    for (const preset of ['all-in-one', 'demo']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ platformSupport: 'desktop-and-mobile', preset }), targetDir, '1.0.0', null);
+      let readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      let vaultReadme = readFileSync(join(targetDir, 'demo-vault/README.md'), 'utf-8');
+      expect(readme, preset).toContain(
+        'Open demo vault** command, on desktop. The command is not available on mobile, so use the next option there.\n'
+      );
+      expect(vaultReadme, preset).toContain('**If you already have the plugin installed on desktop**, run the');
+      expect(vaultReadme, preset).toContain('**Otherwise, and always on mobile, where the command is not available**, download');
+
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ platformSupport: 'desktop-only', preset }), targetDir, '1.0.0', null);
+      readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+      vaultReadme = readFileSync(join(targetDir, 'demo-vault/README.md'), 'utf-8');
+      expect(readme, preset).toContain('Open demo vault** command.\n');
+      expect(readme, preset).not.toContain('mobile');
+      expect(vaultReadme, preset).toContain('**If you already have the plugin installed**, run the');
+      expect(vaultReadme, preset).toContain('**Otherwise**, download');
+    }
+  });
+
   // `lint:md` runs linkinator over every Markdown file, and the README and the demo vault link to the plugin's
   // Own repository and its releases. Those 404 until the user pushes, so a fresh project failed its own
   // `lint:md`, `gate` and `version` for a reason nothing local could fix.
