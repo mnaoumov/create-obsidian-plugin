@@ -1294,6 +1294,6 @@ This repo has no `version` script, so a release is these steps, in order:
 1. `npm version <x.y.z> --no-git-tag-version`.
 2. Add the `## <x.y.z> (<YYYY-MM-DD>)` entry at the top of `CHANGELOG.md`, newest first, with the release's features and fixes and the compare link. Never skip this: a release whose notes exist only on its `GitHub` release page is drift.
 3. Commit both as `chore: release <x.y.z>` and create the annotated tag `<x.y.z>`.
-4. Push the default branch and the tag, then `gh release create <x.y.z> --title <x.y.z> --generate-notes --verify-tag`. The release triggers `publish-npm.yml` and the Pages deploy of the docs site.
+4. Write the body of that `CHANGELOG.md` entry, everything under its `## <x.y.z>` heading, to a file. Push the default branch and the tag, then run `gh release create <x.y.z> --title <x.y.z> --notes-file <that file> --verify-tag`. The release body is the changelog entry. Never use `--generate-notes`: it writes only a compare link, which is not release notes. The release triggers `publish-npm.yml` and the Pages deploy of the docs site.
 
 The README's `## Changelog` section and the docs site link `CHANGELOG.md`; neither keeps a copy of it.
