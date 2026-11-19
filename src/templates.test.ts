@@ -2735,11 +2735,12 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain('  App,\n  Plugin as PluginHost\n');
   });
 
-  // Without it the plugin's `onload` throws `TextEncoder is not defined` under jest's jsdom, failing the sample tests above.
-  it('gives the framework jest setup Node\'s TextEncoder', () => {
+  // `obsidian-dev-toolkit` 12.2.0's `setup()` restores Node's `TextEncoder` / `TextDecoder` under jest's jsdom, so the
+  // Framework jest project carries no setup file of its own for them.
+  it('leaves the framework jest text codecs to the toolkit\'s setup', () => {
     copyTemplates(makeAnswers({ preset: 'all-in-one', testRunner: 'jest' }), targetDir, '1.0.0', null);
-    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).toContain('setupFilesAfterEnv: [\'<rootDir>/scripts/jest-node-globals.ts\']');
-    expect(readFileSync(join(targetDir, 'scripts/jest-node-globals.ts'), 'utf-8')).toContain('Object.assign(globalThis, { TextDecoder, TextEncoder });');
+    expect(readFileSync(join(targetDir, 'jest.config.ts'), 'utf-8')).not.toContain('setupFilesAfterEnv');
+    expect(existsSync(join(targetDir, 'scripts/jest-node-globals.ts'))).toBe(false);
   });
 
   it('keeps the plugin test free of the framework helpers on standalone', () => {
