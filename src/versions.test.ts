@@ -183,6 +183,35 @@ describe('resolveVersions under the toolkits\' own ranges', () => {
     expect(resolved.get('esbuild')).toBe('>=0.27.0 <0.28.1');
   });
 
+  it('holds a package inside every range obsidian-dev-toolkit and obsidian-lib declare for it', async () => {
+    // The shape of 2026-11-19: the toolkit admits obsidian-integration-testing 17 or 18, obsidian-lib only 17.
+    stubPackages({
+      ...SKEWED_REGISTRY,
+      '@mnaoumov/obsidian-dev-toolkit': {
+        latest: '12.2.0',
+        manifests: {
+          '12.2.0': {
+            peerDependencies: { '@mnaoumov/obsidian-lib': '^10.0.0 || ^11.0.0', 'obsidian-integration-testing': '^17.8.0 || ^18.0.0' }
+          }
+        },
+        versions: ['12.2.0']
+      },
+      '@mnaoumov/obsidian-lib': {
+        latest: '11.0.0',
+        manifests: { '11.0.0': { peerDependencies: { 'obsidian-integration-testing': '^17.7.4' } } },
+        versions: ['10.0.0', '11.0.0']
+      },
+      'obsidian-integration-testing': { latest: '18.1.0', versions: ['17.7.4', '17.10.0', '18.0.0', '18.1.0'] }
+    });
+    const resolved = await resolveVersions([
+      new Dependency('obsidian-integration-testing'),
+      new Dependency('@mnaoumov/obsidian-lib'),
+      new Dependency(OBSIDIAN_DEV_TOOLKIT)
+    ]);
+    expect(resolved.get('@mnaoumov/obsidian-lib')).toBe('^11.0.0');
+    expect(resolved.get('obsidian-integration-testing')).toBe('^17.10.0');
+  });
+
   it('leaves a package unconstrained when no toolkit is in the project', async () => {
     stubPackages(SKEWED_REGISTRY);
     const resolved = await resolveVersions([new Dependency(TYPESCRIPT_DEV_TOOLKIT), new Dependency('vitest')]);

@@ -376,8 +376,12 @@ toolkits are released one at a time, so a `latest` can be a major the other has 
 `typescript-dev-toolkit` 6.0.0 reached fresh projects beside the `^5.4.0` `obsidian-dev-toolkit` 7.4.0 declares,
 and the two copies failed `npm run build` out of the box. So `obsidian-dev-toolkit` is resolved first, then
 `typescript-dev-toolkit` inside `obsidian-dev-toolkit`'s range, and every other package either one declares, as a
-dependency or a peer, takes the newest version inside the first toolkit's range that names it. The spec is
-`^<that version>` when the caret range lies wholly inside, otherwise the range verbatim. A pin and an explicit
+dependency or a peer, takes the newest version inside the first toolkit's range that names it. `@mnaoumov/obsidian-lib`
+is resolved third, inside `obsidian-dev-toolkit`'s range, and its peer ranges hold the rest too: a package several of the
+three declare takes the newest version inside every range. On 2026-11-19 the toolkit admitted
+`obsidian-integration-testing` 17 or 18 and `obsidian-lib` 11.0.0 only 17, so taking the toolkit's range alone gave 18.1.0
+and every `npm` scaffold failed install with ERESOLVE. The spec is `^<that version>` when the caret range lies wholly
+inside every range, otherwise the one range verbatim, or the exact version when several ranges hold it. A pin and an explicit
 version still win, and `standalone`, which declares no toolkit, is untouched.
 
 The pin table is the single source for three things — the exact spec written into `devDependencies`, the

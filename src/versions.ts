@@ -2,6 +2,7 @@ import { log } from '@clack/prompts';
 import {
   maxSatisfying,
   minVersion,
+  satisfies,
   subset,
   validRange
 } from 'semver';
@@ -305,8 +306,17 @@ const ABBREVIATED_PACKUMENT_MEDIA_TYPE = 'application/vnd.npm.install-v1+json';
  * beside the 5.x that obsidian-dev-toolkit 7.4.0 declares: two copies, and `wrapCliTask` from one rejected the
  * `dev()` typed against the other, so `npm run build` failed out of the box. obsidian-dev-toolkit comes first
  * because it declares typescript-dev-toolkit, so the second toolkit's version is held by the first.
+ *
+ * obsidian-lib is the third: obsidian-dev-toolkit holds its version, and its own peer ranges hold the rest. On
+ * 2026-11-19 obsidian-dev-toolkit 12.2.0 admitted `obsidian-integration-testing` 17 or 18 while obsidian-lib 11.0.0
+ * admitted only 17, so taking the toolkit's range alone gave 18.1.0 and every npm install failed ERESOLVE. A package
+ * several of them declare is held inside every range declared for it.
  */
-export const CONSTRAINING_PACKAGES: readonly string[] = ['@mnaoumov/obsidian-dev-toolkit', '@mnaoumov/typescript-dev-toolkit'];
+export const CONSTRAINING_PACKAGES: readonly string[] = [
+  '@mnaoumov/obsidian-dev-toolkit',
+  '@mnaoumov/typescript-dev-toolkit',
+  '@mnaoumov/obsidian-lib'
+];
 
 interface AbbreviatedPackument {
   readonly versions?: Record<string, unknown>;
@@ -530,7 +540,7 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
   }
 
   const failed: string[] = [];
-  const constraints = new Map<string, VersionConstraint>();
+  const constraints = new Map<string, readonly VersionConstraint[]>();
 
   function record(packageName: string, resolution: null | Resolution): void {
     if (resolution === null) {
@@ -540,7 +550,7 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
     }
     resolved.set(packageName, resolution.spec);
     if (resolution.heldBelow !== null) {
-      log.info(`Holding ${packageName} on ${resolution.spec}, the range ${resolution.heldBy ?? ''} declares, rather than the latest ${resolution.heldBelow}.`);
+      log.info(`Holding ${packageName} on ${resolution.spec}, inside the range declared by ${resolution.heldBy ?? ''}, rather than the latest ${resolution.heldBelow}.`);
     }
   }
 
@@ -557,9 +567,7 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
     }
     const manifest = await fetchManifest(constrainer, resolution.version);
     for (const [packageName, range] of Object.entries({ ...manifest?.peerDependencies, ...manifest?.dependencies })) {
-      if (!constraints.has(packageName)) {
-        constraints.set(packageName, { by: constrainer, range });
-      }
+      constraints.set(packageName, [...constraints.get(packageName) ?? [], { by: constrainer, range }]);
     }
   }
 
@@ -650,19 +658,28 @@ async function lookUpPackage(packageName: string): Promise<null | string> {
  * The caret range is used only when it lies wholly inside the constraint, so a later `npm update` cannot take
  * the project out of it either. When no caret range does, the constraint's own range is written verbatim.
  */
-async function resolveWithin(packageName: string, constraint: undefined | VersionConstraint): Promise<null | Resolution> {
+async function resolveWithin(packageName: string, constraints: readonly VersionConstraint[] = []): Promise<null | Resolution> {
   const latest = await fetchLatestVersion(packageName);
-  if (constraint === undefined || isCaretWithin(latest, constraint.range)) {
+  if (constraints.every((constraint) => isCaretWithin(latest, constraint.range))) {
     return latest === null ? null : { heldBelow: null, heldBy: null, spec: `^${latest}`, version: latest };
   }
 
+  const heldBy = constraints.map((constraint) => constraint.by).join(' and ');
+  const [first] = constraints;
   const versions = await fetchPublishedVersions(packageName);
-  const newest = versions === null ? null : maxSatisfying(versions, constraint.range);
-  if (newest === null) {
+  const satisfying = versions?.filter((version) => constraints.every((constraint) => satisfies(version, constraint.range))) ?? [];
+  const newest = maxSatisfying(satisfying, '*');
+  if (newest === null || first === undefined) {
     // Nothing to name a version by. The range itself still installs whatever satisfies it, which is the one
     // Thing that keeps the project and the toolkit on one copy.
-    return { heldBelow: latest, heldBy: constraint.by, spec: constraint.range, version: minVersion(constraint.range)?.version ?? constraint.range };
+    const range = first?.range ?? FALLBACK_VERSION;
+    return { heldBelow: latest, heldBy, spec: range, version: minVersion(range)?.version ?? range };
   }
-  const spec = isCaretWithin(newest, constraint.range) ? `^${newest}` : constraint.range;
-  return { heldBelow: latest, heldBy: constraint.by, spec, version: newest };
+  if (constraints.every((constraint) => isCaretWithin(newest, constraint.range))) {
+    return { heldBelow: latest, heldBy, spec: `^${newest}`, version: newest };
+  }
+  // No caret range fits: one declared range is written as it is, and several are held to the one version they share,
+  // Because a single spec string cannot state the intersection of ranges with alternatives.
+  const spec = constraints.length === 1 ? first.range : newest;
+  return { heldBelow: latest, heldBy, spec, version: newest };
 }

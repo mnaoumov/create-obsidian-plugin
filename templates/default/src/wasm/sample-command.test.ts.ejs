@@ -17,6 +17,14 @@ import { registerSampleWasmCommand } from './sample-command.ts';
 const MODULE_PATH = 'src/wasm/module.wasm';
 
 describe('registerSampleWasmCommand', () => {
+  // Without the real bytes the import is the stub, which no WebAssembly engine accepts. A unit test reaching the
+  // Module by accident fails loudly rather than reading a wrong answer. This runs first on purpose: obsidian-lib's
+  // `compileWasmModule` keeps the compiled module per bytes object, and the test below compiles the real module under
+  // The stub's key, so after it this import would load.
+  it('cannot load the module from the stub the unit runners import', async () => {
+    await expect(getWasmAnswer()).rejects.toThrow();
+  });
+
   // The unit runners stand a stub in for the `.wasm` import, so this hands `WebAssembly.compile` the module's real
   // Bytes, which is what the build inlines into `main.js`. Everything after that is the real module running.
   it('shows the answer the WebAssembly module returns', async () => {
@@ -39,12 +47,6 @@ describe('registerSampleWasmCommand', () => {
     }
 
     expect(notices.map((notice) => notice.messageEl.textContent)).toEqual(['WebAssembly says: 42']);
-  });
-
-  // Without the real bytes the import is the stub, which no WebAssembly engine accepts. A unit test reaching the
-  // Module by accident fails loudly rather than reading a wrong answer.
-  it('cannot load the module from the stub the unit runners import', async () => {
-    await expect(getWasmAnswer()).rejects.toThrow();
   });
 });
 

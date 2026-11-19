@@ -1,18 +1,22 @@
+import { instantiateWasmModule } from '@mnaoumov/obsidian-lib/wasm';
+
 import bytes from './module.wasm';
+
+/**
+ * The sample module's exports: one function, `answer()`, returning 42.
+ */
+interface SampleWasmExports extends WebAssembly.Exports {
+  readonly answer: () => number;
+}
 
 /**
  * Instantiates the sample WebAssembly module and calls its one export.
  *
  * obsidian-dev-toolkit's `wasm` build option inlines the module into `main.js` and makes its import the module's
- * bytes, whichever bundler builds the plugin.
+ * bytes, whichever bundler builds the plugin. obsidian-lib's `instantiateWasmModule` compiles those bytes once, however
+ * many times the command runs, and types the exports.
  */
 export async function getWasmAnswer(): Promise<number> {
-  // `compile` then `instantiate`, rather than `instantiate(bytes)` in one call: `WebAssembly.Module` is
-  // Declared as an EMPTY interface, so a `Uint8Array` satisfies it too and the one-call form resolves to
-  // The overload taking an already-compiled module -- whose result is a bare `Instance` with no
-  // `instance` property on it, which is TS2339 rather than anything about WebAssembly.
-  const compiled = await WebAssembly.compile(bytes);
-  const instance = await WebAssembly.instantiate(compiled);
-  const answer = instance.exports['answer'] as () => number;
-  return answer();
+  const { exports } = await instantiateWasmModule<SampleWasmExports>(bytes);
+  return exports.answer();
 }
