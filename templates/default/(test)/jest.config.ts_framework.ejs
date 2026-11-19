@@ -18,8 +18,6 @@ export default defineObsidianPluginJestConfig({
     // The `mount` / `unmount` the generated view uses.
     '^svelte$': '<rootDir>/scripts/framework-component-stub.ts'
   },
-  // Appended to the toolkit's own setup files.
-  setupFilesAfterEnv: ['<rootDir>/scripts/jest-node-globals.ts'],
   tsJestOptions: {
     // Merged over `tsconfig.json`. `rootDir` is here rather than there because that file declares `noEmit: true`
     // And is also read by the bundler, while ts-jest compiles WITH emit and so raises TS5011 on an inferred

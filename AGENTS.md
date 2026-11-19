@@ -294,8 +294,9 @@ the `Sample` and `Sample editor` commands. A scaffold of the default answers the
 One `onload` per file, not one per test: under coverage on a loaded machine the first cold `onload` took
 over `vitest`'s 5 s test timeout. `beforeAll` takes a named `async` function, because `jest` types its hooks as
 returning `any` and the shared config rejects an inline `async` callback there. Running `onload` under `jest`
-also needs `scripts/jest-node-globals.ts`, which `jest.config.ts` loads: the plugin encodes text, and `jest`'s
-`jsdom` environment has no `TextEncoder`, unlike `vitest`'s.
+encodes text, and `jest`'s `jsdom` environment has no `TextEncoder`, unlike `vitest`'s. `obsidian-dev-toolkit`'s
+`setup()`, which `defineObsidianPluginJestConfig` loads, restores Node's codecs from 12.2.0, which generated projects
+resolve to, so the project carries no setup file of its own for them.
 
 **An answer that emits a module of its own also emits its test.** It calls `addAnswerUnitTests`
 (`src/features/test-runner/sample-unit-tests.ts`) from its `configure`, which registers the tests on a framework preset

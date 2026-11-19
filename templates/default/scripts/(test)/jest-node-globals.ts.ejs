@@ -1,8 +1,0 @@
-import {
-  TextDecoder,
-  TextEncoder
-} from 'node:util';
-
-// The plugin's `onload` encodes text, and jest's `jsdom` environment, unlike vitest's, does not expose Node's
-// `TextEncoder` / `TextDecoder`. `jest.config.ts` loads this before every test file.
-Object.assign(globalThis, { TextDecoder, TextEncoder });
