@@ -1587,6 +1587,11 @@ describe('copyTemplates', () => {
     expect(manifest['fundingUrl']).toBe('https://www.buymeacoffee.com/someone');
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).toContain('<a href="https://www.buymeacoffee.com/someone"');
+    // The Support section draws Buy Me a Coffee's own button, never the plain text link.
+    expect(readme).toContain(
+      '<a href="https://www.buymeacoffee.com/someone" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217"></a>'
+    );
+    expect(readme).not.toContain('Support this plugin');
     // Exactly the line every real plugin carries -- not GitHub's stock template with every platform blank.
     expect(readFileSync(join(targetDir, '.github', 'FUNDING.yml'), 'utf-8')).toBe('# These are supported funding model platforms\n\nbuy_me_a_coffee: someone\n');
   });
@@ -1920,13 +1925,22 @@ describe('copyTemplates', () => {
     copyTemplates(makeAnswers({ fundingUrl: 'https://example.com/sponsor' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).toContain('## Support');
-    expect(readme).toContain('https://example.com/sponsor');
+    // A platform that publishes no button of its own gets a text link.
+    expect(readme).toContain('<a href="https://example.com/sponsor" target="_blank">Support this plugin</a>');
+  });
+
+  // The link is HTML, so the README's `href` is escaped there and only there.
+  it('HTML-escapes a custom funding URL in the README Support link', () => {
+    copyTemplates(makeAnswers({ fundingPlatform: 'custom', fundingUrl: 'https://example.com/pay?a=1&b="2"' }), targetDir, '1.0.0', null);
+    const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
+    expect(readme).toContain('<a href="https://example.com/pay?a=1&amp;b=&quot;2&quot;" target="_blank">Support this plugin</a>');
   });
 
   it('excludes the Support link from README when fundingUrl is empty', () => {
     copyTemplates(makeAnswers({ fundingUrl: '' }), targetDir, '1.0.0', null);
     const readme = readFileSync(join(targetDir, 'README.md'), 'utf-8');
     expect(readme).not.toContain('Support this plugin');
+    expect(readme).not.toContain('cdn.buymeacoffee.com/buttons');
   });
 
   // Every generated project's `scripts/` imports `node:fs` and friends, and with no `types` entry NOTHING

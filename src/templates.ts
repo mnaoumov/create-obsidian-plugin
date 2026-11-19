@@ -738,6 +738,7 @@ function getCspellIdentityWords(answers: Answers): string[] {
 function getFundingTemplateContext(answers: Answers): Record<string, string> {
   const funding = resolveFunding(answers);
   return {
+    _fundingSupportLink: funding?.getSupportLink(answers) ?? '',
     _fundingYmlKey: funding?.fundingYmlKey ?? '',
     _fundingYmlValue: funding?.getFundingYmlValue(answers) ?? '',
     fundingUrl: funding?.getUrl(answers) ?? ''

@@ -17,7 +17,25 @@ export interface FundingPlatformConfig {
   readonly promptHint: string;
   readonly promptLabel: string;
   readonly settingValue: string;
+  /** The platform's own published button, drawn as the README's `## Support` link where the platform has one. */
+  readonly supportButton?: FundingSupportButton;
 }
+
+/** A button image a funding platform publishes for linking to it, and the size it is meant to be drawn at. */
+export interface FundingSupportButton {
+  readonly alt: string;
+  readonly height: number;
+  readonly imageUrl: string;
+  readonly width: number;
+}
+
+const HTML_ESCAPES: Readonly<Record<string, string>> = {
+  '\'': '&#39;',
+  '"': '&quot;',
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;'
+};
 
 /**
  * One platform GitHub's `FUNDING.yml` understands, and everything the generator derives from it.
@@ -32,6 +50,7 @@ export abstract class FundingPlatformOption extends FeatureOption {
   public readonly badgeLogo: string | undefined;
   public readonly badgeLogoColor: string | undefined;
   public readonly fundingYmlKey: string;
+  public readonly supportButton: FundingSupportButton | undefined;
 
   public constructor(config: FundingPlatformConfig) {
     super({ promptHint: config.promptHint, promptLabel: config.promptLabel, settingValue: config.settingValue });
@@ -40,6 +59,7 @@ export abstract class FundingPlatformOption extends FeatureOption {
     this.badgeLogo = config.badgeLogo;
     this.badgeLogoColor = config.badgeLogoColor;
     this.fundingYmlKey = config.fundingYmlKey;
+    this.supportButton = config.supportButton;
   }
 
   /** The shields.io badge, as one markdown image link to {@link getUrl}. */
@@ -61,6 +81,25 @@ export abstract class FundingPlatformOption extends FeatureOption {
     return answers.fundingUsername;
   }
 
+  /**
+   * The README's `## Support` call to action, as one HTML link to {@link getUrl}.
+   *
+   * It is the platform's own button where the platform publishes one, so the section reads as an invitation rather
+   * than as a line of body text, and a text link only where there is no button to draw.
+   */
+  public getSupportLink(answers: Answers): string {
+    const href = escapeHtml(this.getUrl(answers));
+    if (this.supportButton === undefined) {
+      return `<a href="${href}" target="_blank">Support this plugin</a>`;
+    }
+    const { alt, height, imageUrl, width } = this.supportButton;
+    return `<a href="${href}" target="_blank"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(alt)}" height="${String(height)}" width="${String(width)}"></a>`;
+  }
+
   /** The page a supporter is sent to, or `''` when there is none to send them to. */
   public abstract getUrl(answers: Answers): string;
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll(/["&'<>]/g, (character) => HTML_ESCAPES[character] ?? character);
 }
