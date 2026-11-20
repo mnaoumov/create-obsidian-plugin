@@ -1,6 +1,6 @@
 # Create Obsidian Plugin
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov) [![npm version](https://img.shields.io/npm/v/@mnaoumov/create-obsidian-plugin)](https://www.npmjs.com/package/@mnaoumov/create-obsidian-plugin) [![npm downloads](https://img.shields.io/npm/dm/@mnaoumov/create-obsidian-plugin)](https://www.npmjs.com/package/@mnaoumov/create-obsidian-plugin) [![License](https://img.shields.io/github/license/mnaoumov/create-obsidian-plugin)](https://github.com/mnaoumov/create-obsidian-plugin/blob/main/LICENSE)
 
 A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin projects from modern templates. Supports creating new plugins and updating existing ones.
 

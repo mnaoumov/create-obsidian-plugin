@@ -1666,9 +1666,25 @@ describe('copyTemplates', () => {
     expect(badgeLine).toBe([
       '[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/testuser)',
       '[![GitHub release](https://img.shields.io/github/v/release/testuser/obsidian-my-tool)](https://github.com/testuser/obsidian-my-tool/releases)',
-      '[![GitHub downloads](https://img.shields.io/github/downloads/testuser/obsidian-my-tool/total)](https://github.com/testuser/obsidian-my-tool/releases)',
+      '[![Obsidian downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json&query=%24%5B%27my-tool%27%5D.downloads&label=Obsidian%20downloads)](https://community.obsidian.md/plugins/my-tool)',
+      '[![Minimum Obsidian version](https://img.shields.io/github/manifest-json/minAppVersion/testuser/obsidian-my-tool?label=Obsidian)](https://github.com/testuser/obsidian-my-tool/blob/main/manifest.json)',
       '[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/testuser/obsidian-my-tool)'
     ].join(' '));
+  });
+
+  it('adds the CI badge before the coverage badge exactly when the project ships ci.yml', () => {
+    for (const gitHubActions of ['none', 'ci', 'ci-and-release']) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ coverageBadge: 'coverage-badge', defaultBranch: 'trunk', gitHubActions }), targetDir, '1.0.0', null);
+      const [, , badgeLine = ''] = readFileSync(join(targetDir, 'README.md'), 'utf-8').split('\n');
+      const ciBadge = '[![CI](https://img.shields.io/github/actions/workflow/status/testuser/obsidian-my-tool/ci.yml?branch=trunk&label=CI)](https://github.com/testuser/obsidian-my-tool/actions/workflows/ci.yml)';
+      if (gitHubActions === 'none') {
+        expect(badgeLine, gitHubActions).not.toContain('[![CI]');
+      } else {
+        expect(badgeLine.indexOf(ciBadge), gitHubActions).toBeGreaterThan(badgeLine.indexOf('[![Minimum Obsidian version]'));
+        expect(badgeLine.indexOf(ciBadge), gitHubActions).toBeLessThan(badgeLine.indexOf('[![Coverage'));
+      }
+    }
   });
 
   // The shared config's `prefer-setting-definitions` warns on a tab without it.

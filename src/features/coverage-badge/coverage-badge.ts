@@ -2,6 +2,7 @@ import type { Answers } from '../../answers/answers.ts';
 import type { TemplateBuilder } from '../../template-builder.ts';
 
 import { FeatureOption } from '../../feature-option.ts';
+import { shipsCiWorkflow } from '../git-hub-actions/ships-ci-workflow.ts';
 import { isFrameworkPreset } from '../preset/is-framework-preset.ts';
 
 /**
@@ -33,7 +34,6 @@ export class CoverageBadge extends FeatureOption {
   }
 }
 
-const CI_ANSWERS = new Set(['ci', 'ci-and-release']);
 const MEASURING_TEST_RUNNERS = new Set(['jest', 'vitest']);
 
 /**
@@ -43,5 +43,5 @@ const MEASURING_TEST_RUNNERS = new Set(['jest', 'vitest']);
  * @returns Whether obsidian-dev-toolkit's CI workflow runs and the gate writes a coverage report.
  */
 function isMeasured(answers: Answers): boolean {
-  return isFrameworkPreset(answers.preset) && CI_ANSWERS.has(answers.gitHubActions) && MEASURING_TEST_RUNNERS.has(answers.testRunner);
+  return isFrameworkPreset(answers.preset) && shipsCiWorkflow(answers.gitHubActions) && MEASURING_TEST_RUNNERS.has(answers.testRunner);
 }

@@ -45,6 +45,7 @@ import {
 } from './features/funding-platform/index.ts';
 import { addStagedFilesHook } from './features/git-hooks.ts';
 import { GITHUB_ACTIONS_OPTIONS } from './features/git-hub-actions/index.ts';
+import { shipsCiWorkflow } from './features/git-hub-actions/ships-ci-workflow.ts';
 import { GITHUB_ISSUE_TEMPLATES_OPTIONS } from './features/git-hub-issue-templates/index.ts';
 import { HOT_RELOAD_OPTIONS } from './features/hot-reload/index.ts';
 import { INTERNATIONALIZATION_OPTIONS } from './features/internationalization/index.ts';
@@ -225,8 +226,8 @@ export function buildTemplate(givenAnswers: Answers, overlay: null | Overlay = n
     .addSentenceCaseBrand(answers.pluginName)
     .addPartial('common');
 
-  // The funding badge comes first on the line, then release and downloads, then the coverage badge its
-  // Own answer adds from the registry loop below -- the order every real plugin's README has.
+  // The funding badge comes first on the line, then the release, the Obsidian downloads, the minimum Obsidian
+  // Version and CI, then the coverage badge its own answer adds from the registry loop below -- the real plugins' order.
   const funding = resolveFunding(answers);
   if (funding) {
     builder
@@ -235,10 +236,24 @@ export function buildTemplate(givenAnswers: Answers, overlay: null | Overlay = n
       .addPartial('has-funding');
   }
 
-  const repoUrl = `https://github.com/${answers.authorGitHubName}/obsidian-${answers.pluginId}`;
+  const repoSlug = `${answers.authorGitHubName}/obsidian-${answers.pluginId}`;
+  const repoUrl = `https://github.com/${repoSlug}`;
+  // `$['<id>'].downloads`, percent-encoded as shields.io's dynamic JSON badge takes it. A plugin id is kebab-case, so it
+  // Needs no encoding of its own.
+  const downloadsQuery = `%24%5B%27${answers.pluginId}%27%5D.downloads`;
   builder
-    .addBadge(`[![GitHub release](https://img.shields.io/github/v/release/${answers.authorGitHubName}/obsidian-${answers.pluginId})](${repoUrl}/releases)`)
-    .addBadge(`[![GitHub downloads](https://img.shields.io/github/downloads/${answers.authorGitHubName}/obsidian-${answers.pluginId}/total)](${repoUrl}/releases)`);
+    .addBadge(`[![GitHub release](https://img.shields.io/github/v/release/${repoSlug})](${repoUrl}/releases)`)
+    .addBadge(
+      `[![Obsidian downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json&query=${downloadsQuery}&label=Obsidian%20downloads)](https://community.obsidian.md/plugins/${answers.pluginId})`
+    )
+    .addBadge(
+      `[![Minimum Obsidian version](https://img.shields.io/github/manifest-json/minAppVersion/${repoSlug}?label=Obsidian)](${repoUrl}/blob/${answers.defaultBranch}/manifest.json)`
+    );
+  if (shipsCiWorkflow(answers.gitHubActions)) {
+    builder.addBadge(
+      `[![CI](https://img.shields.io/github/actions/workflow/status/${repoSlug}/ci.yml?branch=${answers.defaultBranch}&label=CI)](${repoUrl}/actions/workflows/ci.yml)`
+    );
+  }
 
   if (answers.obsidianConfigFolder) {
     builder.addPartial('has-vault-true');
