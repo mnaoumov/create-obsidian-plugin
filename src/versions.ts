@@ -114,52 +114,52 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
   '@wdio/cli': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
     checkRequires: 'wdio-obsidian-service',
-    expect: '^9.18.1',
+    expect: '>=9.18.1',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
     version: '^9.32.0',
-    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
   },
   '@wdio/globals': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
     checkRequires: 'wdio-obsidian-service',
-    expect: '^9.18.1',
+    expect: '>=9.18.1',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
     version: '^9.31.3',
-    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
   },
   '@wdio/local-runner': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
     checkRequires: 'wdio-obsidian-service',
-    expect: '^9.18.1',
+    expect: '>=9.18.1',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
     version: '^9.32.0',
-    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
   },
   '@wdio/mocha-framework': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
     checkRequires: 'wdio-obsidian-service',
-    expect: '^9.18.1',
+    expect: '>=9.18.1',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
     version: '^9.32.0',
-    why: 'wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
   },
   'expect-webdriverio': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
     checkRequires: 'wdio-obsidian-service',
-    expect: '^9.18.1',
+    expect: '>=9.18.1',
     manualCheck: null,
     needsOverride: false,
     section: 'devDependencies',
     version: '^6.1.0',
-    why: 'Held on 6.x with the wdio packages: expect-webdriverio 7 and later peer on `webdriverio ^10`, and @wdio/globals 9 peers on `expect-webdriverio ^6`. wdio-obsidian-service peers on `webdriverio ^9.18.1`, while the registry tags wdio 10 as latest. Resolving latest installed a webdriverio 10 tree beside the service and failed `npm install` with ERESOLVE. The wdio packages move as one set, and the check reads the service\'s own peer range, so the pin retires itself when that moves to ^10.'
+    why: 'Held on 6.x with the wdio packages: expect-webdriverio 7 and later peer on `webdriverio ^10`, and @wdio/globals 9 peers on `expect-webdriverio ^6`. wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
   },
   'moment': {
     check: null,
