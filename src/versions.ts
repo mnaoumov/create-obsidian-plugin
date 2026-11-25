@@ -111,56 +111,6 @@ export const PINNED_VERSIONS: Record<string, PinnedVersion> = {
     version: '6.43.13',
     why: 'obsidian peers on this exact version. Anything else fails npm install with ERESOLVE, and a second copy in the tree breaks editor extensions at runtime.'
   },
-  '@wdio/cli': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
-    checkRequires: 'wdio-obsidian-service',
-    expect: '>=9.18.1',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^9.32.0',
-    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
-  },
-  '@wdio/globals': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
-    checkRequires: 'wdio-obsidian-service',
-    expect: '>=9.18.1',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^9.31.3',
-    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
-  },
-  '@wdio/local-runner': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
-    checkRequires: 'wdio-obsidian-service',
-    expect: '>=9.18.1',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^9.32.0',
-    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
-  },
-  '@wdio/mocha-framework': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
-    checkRequires: 'wdio-obsidian-service',
-    expect: '>=9.18.1',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^9.32.0',
-    why: 'wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
-  },
-  'expect-webdriverio': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/wdio-obsidian-service/package.json\',\'utf8\')).peerDependencies.webdriverio)"',
-    checkRequires: 'wdio-obsidian-service',
-    expect: '>=9.18.1',
-    manualCheck: null,
-    needsOverride: false,
-    section: 'devDependencies',
-    version: '^6.1.0',
-    why: 'Held on 6.x with the wdio packages: expect-webdriverio 7 and later peer on `webdriverio ^10`, and @wdio/globals 9 peers on `expect-webdriverio ^6`. wdio-obsidian-service peered on `webdriverio ^9.18.1` until 3.5.0, so resolving the registry\'s latest, wdio 10, failed `npm install` with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, but obsidian-integration-testing, which every framework preset declares, pins webdriverio 9.27.0 exactly, and wdio 10 is a major nobody has verified here: @wdio/globals 10 peers on expect-webdriverio ^8. So the wdio packages stay on 9 as one set until that move is made on purpose. The check reads the service\'s own peer range, so any change to it brings the pin back for review.'
-  },
   'moment': {
     check: null,
     checkRequires: null,
@@ -199,10 +149,10 @@ export interface AdvisoryOverride {
    * The direct dependencies whose subtree carries the advisory; the override is emitted when the project
    * declares ANY of them, and omitted entirely when it declares none.
    *
-   * A list, not one name: the same wdio subtree is reachable two independent ways -- through
-   * `obsidian-integration-testing`, which the toolkit presets declare, and through the `wdio-obsidian` end-to-end
-   * answer's own `wdio-obsidian-service`. Naming only the first left every `standalone` + wdio project
-   * with no overrides at all and a permanently red `npm audit`.
+   * A list, not one name, because a vulnerable subtree can be reachable through more than one direct
+   * dependency. While the `wdio-obsidian` answer was held on wdio 9, the wdio 9 subtree was reachable both
+   * through `obsidian-integration-testing` and through `wdio-obsidian-service`, and naming only the first left
+   * every `standalone` + wdio project with a permanently red `npm audit`.
    */
   readonly requires: readonly string[];
   /** The spec to force every copy in the tree onto. */
@@ -220,11 +170,12 @@ export interface MissingPackage {
 /**
  * Overrides that clear an advisory reached only transitively, keyed by package name.
  *
- * All four hang off webdriverio, which a project reaches either through
- * `obsidian-integration-testing` or through the `wdio-obsidian` end-to-end answer's own
- * `wdio-obsidian-service`. A project with neither -- `standalone` on any other e2e answer -- gets none of
- * them, and audits clean without. `puppeteer-core` is needed only on the `wdio-obsidian` answer, whose newer
- * top-level webdriverio installs the 24.x line as an optional peer.
+ * Both hang off the webdriverio 9.27.0 that `obsidian-integration-testing` pins exactly. The `wdio-obsidian`
+ * end-to-end answer brings its own wdio 10 tree, and wdio 10 needs none of them: its @wdio/utils declares
+ * `@puppeteer/browsers ^3.2.1` and `deepmerge-ts ^8.0.0`. The same move retired the `puppeteer-core` and
+ * `serialize-javascript` overrides that wdio 9 needed, because webdriverio 10's optional `puppeteer-core` peer
+ * admits 25 and @wdio/mocha-framework 10's mocha 12 declares `serialize-javascript ^7.1.1`. A project without
+ * `obsidian-integration-testing` gets none of them, and audits clean without.
  *
  * Three advisories in the same trees are deliberately NOT overridden. `braces` GHSA-vfj7-8cjw-p6xm has no
  * patched release to force. `katex` GHSA-238p-pmpm-9mq7 is `low`, and its fix is 0.18.2 while
@@ -235,12 +186,12 @@ export interface MissingPackage {
  */
 export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
   '@puppeteer/browsers': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/@wdio/utils/package.json\',\'utf8\')).dependencies[\'@puppeteer/browsers\'])"',
+    check: 'node -e "const fs=require(\'node:fs\');const path=[\'node_modules/obsidian-integration-testing/node_modules/@wdio/utils/package.json\',\'node_modules/@wdio/utils/package.json\'].find((candidate)=>fs.existsSync(candidate));process.stdout.write(JSON.parse(fs.readFileSync(path,\'utf8\')).dependencies[\'@puppeteer/browsers\'])"',
     expect: '^2.2.0',
-    manualCheck: 'The check reads @wdio/utils\'s own declared range, not a version, because that range is what makes the override necessary. When it moves to ^3 or later, @wdio/utils no longer pulls extract-zip in and both this override and this entry can go.',
-    requires: ['obsidian-integration-testing', 'wdio-obsidian-service'],
+    manualCheck: 'The check reads the range declared by the @wdio/utils that obsidian-integration-testing reaches, nested under it when the project also has the wdio-obsidian answer\'s wdio 10, not a version, because that range is what makes the override necessary. When it moves to ^3 or later, @wdio/utils no longer pulls extract-zip in and both this override and this entry can go.',
+    requires: ['obsidian-integration-testing'],
     spec: '^3.2.1',
-    why: 'Clears GHSA-jmr9-qjv8-65gv (extract-zip unvalidated symlink path traversal). extract-zip is vulnerable at every published version, so there is nothing to override it to, and the direct dependency cannot be bumped either: even the newest webdriverio reaches extract-zip through @wdio/utils -> @puppeteer/browsers ^2.x. @puppeteer/browsers@3 replaced extract-zip with modern-tar, so forcing 3.x on @wdio/utils, the only consumer left on 2.x, removes the subtree. @wdio/utils imports only install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, computeExecutablePath and the InstallOptions type, all still exported by 3.x, and both packages are ESM-only. Never take the `npm audit fix --force` remedy: it downgrades obsidian-integration-testing to 1.1.2.'
+    why: 'Clears GHSA-jmr9-qjv8-65gv (extract-zip unvalidated symlink path traversal). extract-zip is vulnerable at every published version, so there is nothing to override it to, and the direct dependency cannot be bumped either: obsidian-integration-testing pins webdriverio 9.27.0 exactly, whose @wdio/utils reaches extract-zip through @puppeteer/browsers ^2.x. @puppeteer/browsers@3 replaced extract-zip with modern-tar, so forcing 3.x on @wdio/utils, the only consumer left on 2.x, removes the subtree. @wdio/utils imports only install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel, computeExecutablePath and the InstallOptions type, all still exported by 3.x, and both packages are ESM-only. Never take the `npm audit fix --force` remedy: it downgrades obsidian-integration-testing to 1.1.2.'
   },
   'deepmerge-ts': {
     check: 'node -e "const fs=require(\'node:fs\');const path=[\'node_modules/obsidian-integration-testing/node_modules/@wdio/utils/package.json\',\'node_modules/@wdio/utils/package.json\'].find((candidate)=>fs.existsSync(candidate));process.stdout.write(JSON.parse(fs.readFileSync(path,\'utf8\')).dependencies[\'deepmerge-ts\'])"',
@@ -249,22 +200,6 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     requires: ['obsidian-integration-testing'],
     spec: '^8.0.2',
     why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. @wdio/utils declares ^7.0.3 up to 9.30, and obsidian-integration-testing pins webdriverio 9.27.0, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
-  },
-  'puppeteer-core': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/webdriverio/package.json\',\'utf8\')).peerDependencies[\'puppeteer-core\'])"',
-    expect: '>=22.x <=24.x',
-    manualCheck: 'The check reads the optional puppeteer-core peer range of the top-level webdriverio, which the wdio-obsidian answer brings in through @wdio/cli, because that range is what installs puppeteer-core 24. When it admits 25, or a puppeteer-core 24 release depends on a chromium-bidi that takes zod 4.6.6 or later, the override and this entry can go.',
-    requires: ['wdio-obsidian-service'],
-    spec: '^25.18.1',
-    why: 'Clears GHSA-mrhx-c7xc-m3w5 (high, zod below 4.6.6). The top-level webdriverio 9.32 declares puppeteer-core as an optional peer `>=22.x <=24.x`, npm installs 24.43.1, and every puppeteer-core 24 release pins chromium-bidi 14.0.0, which declares zod ^3.24.1. zod has no patched 3.x, so no zod override is safe: chromium-bidi 14 is written against the zod 3 API. puppeteer-core 25.18.1 pins chromium-bidi 157.0.8090-0, which takes zod ^4.6.5. The forced major is what the tree already runs: obsidian-integration-testing declares puppeteer-core ^25.11.0 and its own webdriverio 9.27.0, whose peer range `>=22.x || <=24.x` admits 25, already drives it.'
-  },
-  'serialize-javascript': {
-    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/mocha/package.json\',\'utf8\')).dependencies[\'serialize-javascript\'])"',
-    expect: '^6.0.2',
-    manualCheck: 'The check reads mocha\'s own declared range, not a version, because that range is what makes the override necessary. When mocha moves to ^7 or later the override and this entry can go.',
-    requires: ['@wdio/mocha-framework'],
-    spec: '^7.1.1',
-    why: 'Clears GHSA-5c6j-r48x-rmvq (RCE via RegExp.flags and Date.prototype.toISOString) and GHSA-qj8w-gfj5-8c6v (CPU-exhaustion denial of service via crafted array-likes), both fixed in 7.0.5. No direct bump reaches it: mocha declares `serialize-javascript@^6.0.2` at every published version including 11.8.0, and the only consumer here is @wdio/mocha-framework -> mocha. `npm audit fix --force` offers a DOWNGRADE to @wdio/mocha-framework@7.7.3 instead. The forced major is safe for the one call site that exists: mocha\'s `buffered-worker-pool.js` calls `serializeJavascript(opts, { unsafe: true, ignoreFunction: true })`, and 6.0.2 and 7.1.1 were measured to return byte-identical output for that exact option pair across RegExp, Date, Map, Set, undefined, BigInt, functions and a script-tag string. Note the call is on mocha\'s parallel-run path, which wdio does not take.'
   }
 };
 

@@ -746,11 +746,17 @@ Putting a directory into the program is not free: it starts being type-checked. 
 `defineWdioObsidianConfig`), which the root `./*.ts` glob misses, so the `wdio-obsidian` answer names it in
 the `include` itself.
 
-The `wdio-obsidian` answer holds `@wdio/*` and `expect-webdriverio` on `wdio` 9 (`PINNED_VERSIONS`). Until 3.5.0
-`wdio-obsidian-service` peered on `webdriverio ^9.18.1`, and the registry's `latest`, `wdio` 10, failed `npm install`
-with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, so the pins' `expect` is that range. The hold stays
-because `obsidian-integration-testing` pins `webdriverio` 9.27.0 exactly and `wdio` 10 (with `expect-webdriverio` 8)
-has not been verified here; moving to it is a migration of its own, not a pin refresh.
+The `wdio-obsidian` answer resolves `@wdio/*` and `expect-webdriverio` to the latest `wdio`, 10 with `expect-webdriverio` 8,
+with no pin. It was held on `wdio` 9 while `wdio-obsidian-service` peered on `webdriverio ^9.18.1`, and its 3.5.0 peers on
+`>=9.18.1`. The move was verified on 2026-11-25 with one `gate:case` per preset kind: `standalone` passed install, audit,
+compile, build and bundle, and `all-in-one` with `ESLint` and `vitest` passed install, build, lint, test and audit, with
+`e2e/` and `wdio.conf.mts` in the type-checked and linted program. On a framework preset the tree then holds two `wdio`
+versions: the answer's 10 at the top, and the `webdriverio` 9.27.0 that `obsidian-integration-testing` pins exactly, nested
+under it. That is why the `@puppeteer/browsers` and `deepmerge-ts` advisory overrides read the nested `@wdio/utils` first
+and are emitted only for `obsidian-integration-testing`: `wdio` 10 declares the patched ranges itself. The same move retired
+the `puppeteer-core` and `serialize-javascript` overrides, which only `wdio` 9 needed. `wdio` 10 declares
+`node >=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1`, so an older Node minor only warns `EBADENGINE` under `npm`, and the
+emitted `.nvmrc` gives CI the current release of the major.
 
 ### Where the linters and the compiler disagree, the compiler wins
 
