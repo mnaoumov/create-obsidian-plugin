@@ -190,7 +190,7 @@ const COMMAND_TIMEOUT_MS = 900_000;
 const BUILD_DIST_FOLDER = 'dist/build';
 
 /** What the gate's own steps write into the project, none of which belongs in its first commit. */
-const COMMITTED_OUTPUT_FOLDERS: readonly string[] = ['coverage', 'dist', 'node_modules'];
+const COMMITTED_OUTPUT_FOLDERS: readonly string[] = ['.parcel-cache', 'coverage', 'dist', 'node_modules'];
 
 const LINKINATOR_CONFIG_FILE = 'linkinator.config.json';
 
