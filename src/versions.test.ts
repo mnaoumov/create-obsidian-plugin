@@ -9,6 +9,7 @@ import {
 
 import { Dependency } from './template-builder.ts';
 import {
+  ADVISORY_OVERRIDES,
   buildOverrides,
   buildPinnedVersionsJson,
   buildResolutions,
@@ -244,21 +245,15 @@ describe('buildOverrides', () => {
     expect(overrides['deepmerge-ts']).toBe('^8.0.2');
   });
 
-  it('moves puppeteer-core off the zod 3 line only on the wdio-obsidian answer', () => {
-    // The top-level webdriverio that wdio-obsidian-service brings installs puppeteer-core 24 as an optional peer,
-    // And every 24.x reaches zod 3 (GHSA-mrhx-c7xc-m3w5, high) through chromium-bidi 14.
-    const withWdio = buildOverrides([new Dependency('obsidian-integration-testing'), new Dependency('wdio-obsidian-service')]);
-    expect(withWdio['puppeteer-core']).toBe('^25.18.1');
-    // Obsidian-integration-testing alone declares puppeteer-core ^25 itself, so there is nothing to force.
-    expect(buildOverrides([new Dependency('obsidian-integration-testing')])).not.toHaveProperty('puppeteer-core');
-  });
-
   it('leaves a project without obsidian-integration-testing free of advisory overrides', () => {
-    // The standalone preset never reaches webdriverio, so it audits clean on its own; overriding a package
-    // Absent from its tree would pull one in.
-    const overrides = buildOverrides([new Dependency('typescript')]);
-    expect(overrides).not.toHaveProperty('@puppeteer/browsers');
-    expect(overrides).not.toHaveProperty('deepmerge-ts');
+    // Only the webdriverio 9.27.0 that obsidian-integration-testing pins needs them. The wdio-obsidian answer's
+    // Own wdio 10 tree audits clean without any, so a standalone + wdio project gets none either.
+    for (const dependencies of [[new Dependency('typescript')], [new Dependency('wdio-obsidian-service'), new Dependency('@wdio/mocha-framework')]]) {
+      const overrides = buildOverrides(dependencies);
+      for (const packageName of Object.keys(ADVISORY_OVERRIDES)) {
+        expect(overrides).not.toHaveProperty(packageName);
+      }
+    }
   });
 
   // Yarn ignores `overrides` outright, so a yarn project got no forcing at all and `@codemirror/view`
@@ -299,18 +294,12 @@ describe('buildPinnedVersionsJson', () => {
     expect(parsed.pins['typescript']?.manualCheck).toBeTruthy();
   });
 
-  it('holds the wdio packages as one set, inside the peer range wdio-obsidian-service declares', () => {
-    // The pins check prints the service's peer range verbatim and compares it as a string, so the five
-    // Entries must agree on one command and one value. wdio-obsidian-service 3.5.0 widened that range
-    // From ^9.18.1 to >=9.18.1, and every generated wdio project then failed its pins step.
-    const wdioPins = ['@wdio/cli', '@wdio/globals', '@wdio/local-runner', '@wdio/mocha-framework', 'expect-webdriverio'];
-    const [first] = wdioPins;
-    for (const packageName of wdioPins) {
-      expect(PINNED_VERSIONS[packageName]?.check, packageName).toBe(PINNED_VERSIONS[first ?? '']?.check);
-      expect(PINNED_VERSIONS[packageName]?.expect, packageName).toBe('>=9.18.1');
-    }
-    for (const packageName of wdioPins.filter((name) => name.startsWith('@wdio/'))) {
-      expect(subset(PINNED_VERSIONS[packageName]?.version ?? '', '>=9.18.1 <10.0.0'), packageName).toBe(true);
+  it('leaves the wdio packages unpinned, so they resolve to the latest wdio as one set', () => {
+    // They were held on wdio 9 while wdio-obsidian-service peered on `webdriverio ^9.18.1`. Its 3.5.0 admits
+    // 10, and a gate case of both preset kinds passed on wdio 10, so they resolve like any package. A pin on
+    // One of them alone would split the set: @wdio/globals 10 peers on expect-webdriverio ^8.
+    for (const packageName of ['@wdio/cli', '@wdio/globals', '@wdio/local-runner', '@wdio/mocha-framework', 'expect-webdriverio']) {
+      expect(PINNED_VERSIONS, packageName).not.toHaveProperty(packageName);
     }
   });
 
