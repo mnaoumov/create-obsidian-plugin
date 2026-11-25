@@ -9,6 +9,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -2329,6 +2330,37 @@ describe('copyTemplates', () => {
         const expected = preset === 'standalone' ? 'preferDouble' : undefined;
         expect(config.typescript?.['jsx.quoteStyle'], `${preset}/${uiFramework}`).toBe(expected);
       }
+    }
+  });
+
+  // Eight renders, each with a real dprint run: well past the 5 s default on a loaded machine.
+  const DPRINT_CHECK_TIMEOUT_IN_MILLISECONDS = 120_000;
+
+  it('emits files that already pass dprint check', { timeout: DPRINT_CHECK_TIMEOUT_IN_MILLISECONDS }, () => {
+    // A `--yes` project is never formatted, and dprint is not in `needsInitialFormat`, so the templates themselves
+    // Have to be in dprint's style. Three escaped: the typesafe-i18n test without its final newline, the docs-showcase
+    // Exclude pushing biome.jsonc's `includes` past the line width, and the demo plugin test's `expect(await ...)`.
+    const dprintBin = join(process.cwd(), 'node_modules/dprint/bin.cjs');
+    const cases: Partial<Answers>[] = [];
+    for (const preset of ['standalone', 'all-in-one', 'demo', 'docs-showcase']) {
+      cases.push(
+        { internationalization: 'typesafe-i18n', linter: 'eslint', preset, testRunner: 'vitest' },
+        { internationalization: 'i18next', linter: 'biome', preset, testRunner: 'jest' }
+      );
+    }
+    for (const overrides of cases) {
+      rmSync(targetDir, { force: true, recursive: true });
+      copyTemplates(makeAnswers({ ...overrides, formatter: 'dprint' }), targetDir, '1.0.0', null);
+      // The framework presets' dprint.json extends the toolkit's copy under `node_modules`.
+      symlinkSync(join(process.cwd(), 'node_modules'), join(targetDir, 'node_modules'), 'junction');
+      const result = spawnSync(process.execPath, [dprintBin, 'check', '--config', 'dprint.json'], {
+        cwd: targetDir,
+        encoding: 'utf-8'
+      });
+      const label = JSON.stringify(overrides);
+      expect(`${result.stdout}${result.stderr}`, label).toBe('');
+      expect(result.status, label).toBe(0);
+      rmSync(join(targetDir, 'node_modules'), { force: true });
     }
   });
 

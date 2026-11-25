@@ -4,9 +4,10 @@
   // As `unload` runs them, last registered first.
   it('shows a notice when it unloads', async () => {
     const host = PluginHost.fromOriginalType2__(plugin);
-    expect(await collectNotices(() => {
+    const notices = await collectNotices(() => {
       for (const cleanup of [...host.cleanups__].reverse()) {
         cleanup();
       }
-    })).toEqual(['Sample plugin is being unloaded']);
+    });
+    expect(notices).toEqual(['Sample plugin is being unloaded']);
   });

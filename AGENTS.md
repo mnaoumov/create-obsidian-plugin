@@ -91,7 +91,9 @@ post-scaffold steps — so the closing `Next steps` line puts `<pm> run format` 
 `dev` whenever `needsInitialFormat` (`src/features/formatter/index.ts`) names the formatter and the format
 did not run. The gate tier's `checkFormat` reads the same predicate, so the format it runs before
 `format:check` is exactly the step the user is told to run. `dprint` is not in it: the templates already
-pass its check, and formatting first under `dprint` is what hid a template it rejected.
+pass its check, and formatting first under `dprint` is what hid a template it rejected. `src/templates.test.ts`
+holds them to that: it renders eight cases across the four presets, both unit test runners, both i18n answers and
+both linters, and runs the real `dprint check` over each.
 
 Their configs still carry the project's excludes, because a formatter that actually runs will otherwise
 rewrite `demo-vault/` — including `.obsidian/community-plugins.json`, which the demo-vault coverage
