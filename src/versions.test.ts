@@ -290,6 +290,21 @@ describe('buildPinnedVersionsJson', () => {
     expect(parsed.pins['typescript']?.manualCheck).toBeTruthy();
   });
 
+  it('holds the wdio packages as one set, inside the peer range wdio-obsidian-service declares', () => {
+    // The pins check prints the service's peer range verbatim and compares it as a string, so the five
+    // Entries must agree on one command and one value. wdio-obsidian-service 3.5.0 widened that range
+    // From ^9.18.1 to >=9.18.1, and every generated wdio project then failed its pins step.
+    const wdioPins = ['@wdio/cli', '@wdio/globals', '@wdio/local-runner', '@wdio/mocha-framework', 'expect-webdriverio'];
+    const [first] = wdioPins;
+    for (const packageName of wdioPins) {
+      expect(PINNED_VERSIONS[packageName]?.check, packageName).toBe(PINNED_VERSIONS[first ?? '']?.check);
+      expect(PINNED_VERSIONS[packageName]?.expect, packageName).toBe('>=9.18.1');
+    }
+    for (const packageName of wdioPins.filter((name) => name.startsWith('@wdio/'))) {
+      expect(subset(PINNED_VERSIONS[packageName]?.version ?? '', '>=9.18.1 <10.0.0'), packageName).toBe(true);
+    }
+  });
+
   it('documents every advisory override it emits', () => {
     // An override and its justification correspond one to one, so an override that outlives
     // The advisory is visible rather than permanent.

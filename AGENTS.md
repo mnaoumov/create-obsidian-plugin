@@ -744,9 +744,11 @@ Putting a directory into the program is not free: it starts being type-checked. 
 `defineWdioObsidianConfig`), which the root `./*.ts` glob misses, so the `wdio-obsidian` answer names it in
 the `include` itself.
 
-The `wdio-obsidian` answer holds `@wdio/*` and `expect-webdriverio` on `wdio` 9 (`PINNED_VERSIONS`), because
-`wdio-obsidian-service` 3.3.0 peers on `webdriverio ^9.18.1` and the registry's `latest` is `wdio` 10, which fails
-`npm install` with ERESOLVE.
+The `wdio-obsidian` answer holds `@wdio/*` and `expect-webdriverio` on `wdio` 9 (`PINNED_VERSIONS`). Until 3.5.0
+`wdio-obsidian-service` peered on `webdriverio ^9.18.1`, and the registry's `latest`, `wdio` 10, failed `npm install`
+with ERESOLVE. From 3.5.0 it peers on `>=9.18.1`, which admits 10, so the pins' `expect` is that range. The hold stays
+because `obsidian-integration-testing` pins `webdriverio` 9.27.0 exactly and `wdio` 10 (with `expect-webdriverio` 8)
+has not been verified here; moving to it is a migration of its own, not a pin refresh.
 
 ### Where the linters and the compiler disagree, the compiler wins
 
