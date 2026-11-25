@@ -1,0 +1,14 @@
+    Notice.prototype.constructor__ = (message: DocumentFragment | string): void => {
+      notices.push(typeof message === 'string' ? message : message.textContent);
+    };
+    Modal.prototype.constructor__ = function constructor__(this: Modal): void {
+      modals.push(this);
+    };
+    PluginHost.prototype.addRibbonIcon = (_icon: string, _title: string, callback: ($event: MouseEvent) => unknown): HTMLElement => {
+      ribbonCallbacks.push(callback);
+      return createDiv();
+    };
+    window.setInterval = castTo((handler: () => void): number => {
+      intervalHandlers.push(handler);
+      return 0;
+    });

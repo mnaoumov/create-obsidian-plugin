@@ -2767,6 +2767,18 @@ describe('copyTemplates', () => {
     expect(readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8')).toContain('  App,\n  Plugin as PluginHost\n');
   });
 
+  // Biome's `noDuplicateTestHooks` fails a describe with two `beforeAll` or two `afterAll`, which demo once emitted:
+  // Its recorders took a hook pair of their own beside the framework's load and unload.
+  it.each(['jest', 'vitest'])('emits one beforeAll and one afterAll in the demo plugin test under %s', (testRunner) => {
+    copyTemplates(makeAnswers({ preset: 'demo', testRunner }), targetDir, '1.0.0', null);
+    const pluginTest = readFileSync(join(targetDir, 'src/plugin.test.ts'), 'utf-8');
+    expect(pluginTest.match(/^\s*beforeAll\(/gmu)).toHaveLength(1);
+    expect(pluginTest.match(/^\s*afterAll\(/gmu)).toHaveLength(1);
+    // The recorders are installed before the plugin's `onload` runs, and the interval is restored after it unloads.
+    expect(pluginTest.indexOf('PluginHost.prototype.addRibbonIcon = ')).toBeLessThan(pluginTest.indexOf('await plugin.onload();'));
+    expect(pluginTest).toContain('    plugin.unload();\n    window.setInterval = setInterval;\n  });');
+  });
+
   // `obsidian-dev-toolkit` 12.2.0's `setup()` restores Node's `TextEncoder` / `TextDecoder` under jest's jsdom, so the
   // Framework jest project carries no setup file of its own for them.
   it('leaves the framework jest text codecs to the toolkit\'s setup', () => {
