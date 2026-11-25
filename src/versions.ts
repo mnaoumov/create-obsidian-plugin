@@ -220,10 +220,11 @@ export interface MissingPackage {
 /**
  * Overrides that clear an advisory reached only transitively, keyed by package name.
  *
- * Three hang off webdriverio, which a project reaches either through
+ * All four hang off webdriverio, which a project reaches either through
  * `obsidian-integration-testing` or through the `wdio-obsidian` end-to-end answer's own
  * `wdio-obsidian-service`. A project with neither -- `standalone` on any other e2e answer -- gets none of
- * them, and audits clean without.
+ * them, and audits clean without. `puppeteer-core` is needed only on the `wdio-obsidian` answer, whose newer
+ * top-level webdriverio installs the 24.x line as an optional peer.
  *
  * Three advisories in the same trees are deliberately NOT overridden. `braces` GHSA-vfj7-8cjw-p6xm has no
  * patched release to force. `katex` GHSA-238p-pmpm-9mq7 is `low`, and its fix is 0.18.2 while
@@ -248,6 +249,14 @@ export const ADVISORY_OVERRIDES: Record<string, AdvisoryOverride> = {
     requires: ['obsidian-integration-testing'],
     spec: '^8.0.2',
     why: 'Clears GHSA-ggr8-5vv4-36mx (stack exhaustion merging recursive object graphs), patched in 8.0.0. @wdio/utils declares ^7.0.3 up to 9.30, and obsidian-integration-testing pins webdriverio 9.27.0, so no direct bump reaches it and `npm audit fix --force` only offers a downgrade of obsidian-integration-testing to 1.1.2. The forced major is safe for these consumers: 8.0.0 breaks by renaming the mergeInfo system and aligning the customization shorthand, and both surfaces were measured to behave identically on 7.1.6 and 8.0.1 in the exact shapes the tree uses -- @wdio/config\'s `deepmergeCustom` with a `mergeArrays` handler reading `meta.key` and returning `utils.actions.defaultMerge`, and webdriver\'s `deepmergeCustom({ mergeArrays: false })`. A scan of the whole installed tree found no other binding than `deepmerge` and `deepmergeCustom`.'
+  },
+  'puppeteer-core': {
+    check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/webdriverio/package.json\',\'utf8\')).peerDependencies[\'puppeteer-core\'])"',
+    expect: '>=22.x <=24.x',
+    manualCheck: 'The check reads the optional puppeteer-core peer range of the top-level webdriverio, which the wdio-obsidian answer brings in through @wdio/cli, because that range is what installs puppeteer-core 24. When it admits 25, or a puppeteer-core 24 release depends on a chromium-bidi that takes zod 4.6.6 or later, the override and this entry can go.',
+    requires: ['wdio-obsidian-service'],
+    spec: '^25.18.1',
+    why: 'Clears GHSA-mrhx-c7xc-m3w5 (high, zod below 4.6.6). The top-level webdriverio 9.32 declares puppeteer-core as an optional peer `>=22.x <=24.x`, npm installs 24.43.1, and every puppeteer-core 24 release pins chromium-bidi 14.0.0, which declares zod ^3.24.1. zod has no patched 3.x, so no zod override is safe: chromium-bidi 14 is written against the zod 3 API. puppeteer-core 25.18.1 pins chromium-bidi 157.0.8090-0, which takes zod ^4.6.5. The forced major is what the tree already runs: obsidian-integration-testing declares puppeteer-core ^25.11.0 and its own webdriverio 9.27.0, whose peer range `>=22.x || <=24.x` admits 25, already drives it.'
   },
   'serialize-javascript': {
     check: 'node -e "const fs=require(\'node:fs\');process.stdout.write(JSON.parse(fs.readFileSync(\'node_modules/mocha/package.json\',\'utf8\')).dependencies[\'serialize-javascript\'])"',
