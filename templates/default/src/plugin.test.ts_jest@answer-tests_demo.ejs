@@ -60,7 +60,7 @@
   it('handles its obsidian:// action', async () => {
     const handler = PluginHost.fromOriginalType2__(plugin).obsidianProtocolHandlers__.get('sample-action');
     expect(await collectNotices(() => {
-      handler?.({ action: 'sample-action' });
+      handler?.(castTo({ action: 'sample-action' }));
     })).toEqual(['Sample obsidian protocol handler: sample-action']);
   });
 

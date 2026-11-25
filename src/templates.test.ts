@@ -2755,6 +2755,8 @@ describe('copyTemplates', () => {
     expect(pluginTest).toContain('PluginHost.prototype.addRibbonIcon = ');
     expect(pluginTest).toContain('it(\'shows a notice when it unloads\'');
     expect(pluginTest).toContain('runCommand(\'show-prompt-modal\');');
+    // `obsidian-typings` declares a required `index__` on `ObsidianProtocolData`, so a bare literal fails `tsc` on `with-unofficial`.
+    expect(pluginTest).toContain('handler?.(castTo({ action: \'sample-action\' }));');
     expect(pluginTest).not.toMatch(/\}\);\}\);/u);
     for (const testPath of ['src/plugin-settings-tab.test.ts', 'src/modals/sample-form-modal.test.ts', 'src/modals/sample-suggest-modal.test.ts', 'src/views/sample-view.test.ts']) {
       expect(existsSync(join(targetDir, testPath)), testPath).toBe(true);
