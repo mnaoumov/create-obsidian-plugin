@@ -2637,6 +2637,11 @@ describe('copyTemplates', () => {
       copyTemplates(makeAnswers({ bundler: 'parcel', preset }), targetDir, '1.0.0', null);
       expect(readFileSync(join(targetDir, '.gitignore'), 'utf-8').split('\n'), preset).toContain('.parcel-cache');
     }
+    // The hook also hands cspell `.depcheckrc.json`, whose parcel reasons name `.parcelrc`.
+    copyTemplates(makeAnswers({ bundler: 'parcel', spellChecker: 'cspell' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, '.depcheckrc.json'), 'utf-8')).toContain('.parcelrc');
+    const { words } = JSON.parse(readFileSync(join(targetDir, 'cspell.json'), 'utf-8')) as CspellConfig;
+    expect(words).toContain('parcelrc');
     copyTemplates(makeAnswers({ bundler: 'esbuild' }), targetDir, '1.0.0', null);
     expect(readFileSync(join(targetDir, '.gitignore'), 'utf-8')).not.toContain('.parcel-cache');
   });
