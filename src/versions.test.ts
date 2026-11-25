@@ -244,6 +244,15 @@ describe('buildOverrides', () => {
     expect(overrides['deepmerge-ts']).toBe('^8.0.2');
   });
 
+  it('moves puppeteer-core off the zod 3 line only on the wdio-obsidian answer', () => {
+    // The top-level webdriverio that wdio-obsidian-service brings installs puppeteer-core 24 as an optional peer,
+    // And every 24.x reaches zod 3 (GHSA-mrhx-c7xc-m3w5, high) through chromium-bidi 14.
+    const withWdio = buildOverrides([new Dependency('obsidian-integration-testing'), new Dependency('wdio-obsidian-service')]);
+    expect(withWdio['puppeteer-core']).toBe('^25.18.1');
+    // Obsidian-integration-testing alone declares puppeteer-core ^25 itself, so there is nothing to force.
+    expect(buildOverrides([new Dependency('obsidian-integration-testing')])).not.toHaveProperty('puppeteer-core');
+  });
+
   it('leaves a project without obsidian-integration-testing free of advisory overrides', () => {
     // The standalone preset never reaches webdriverio, so it audits clean on its own; overriding a package
     // Absent from its tree would pull one in.
