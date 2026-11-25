@@ -2630,6 +2630,17 @@ describe('copyTemplates', () => {
     expect(ignorePaths).toContain('.create-obsidian-plugin.json');
   });
 
+  // Parcel writes its cache into the project on every build, on every preset, and the pre-commit hook's cspell then
+  // Read the staged cache files. `demo` is left out because it pins `esbuild`.
+  it('keeps the parcel cache out of git on every preset that builds with parcel', () => {
+    for (const preset of ['standalone', 'all-in-one', 'docs-showcase'] as const) {
+      copyTemplates(makeAnswers({ bundler: 'parcel', preset }), targetDir, '1.0.0', null);
+      expect(readFileSync(join(targetDir, '.gitignore'), 'utf-8').split('\n'), preset).toContain('.parcel-cache');
+    }
+    copyTemplates(makeAnswers({ bundler: 'esbuild' }), targetDir, '1.0.0', null);
+    expect(readFileSync(join(targetDir, '.gitignore'), 'utf-8')).not.toContain('.parcel-cache');
+  });
+
   // `gate()` and `version` spellcheck `pinned-versions.json`, so one unknown word in a pin's reason leaves a fresh
   // Project red. Each pin reaches only the projects that carry its package, so every pin is spellchecked here at once.
   it('knows every word of every pin reason that pinned-versions.json can carry', () => {
