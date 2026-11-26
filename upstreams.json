@@ -16,7 +16,7 @@
       "name": "obsidian-developer-docs",
       "repo": "obsidianmd/obsidian-developer-docs",
       "ref": "main",
-      "commit": "1c26772ac13d6e9870c865936d389fdfe694e742",
+      "commit": "da382ee87130bc0aba10f6309ebc0f67a4ed4da0",
       "paths": [
         "en/**/*.md",
         "LICENSE"
