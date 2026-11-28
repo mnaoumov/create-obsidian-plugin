@@ -30,6 +30,7 @@ import type {
 import type { CliArgs } from './answers/cli-args.ts';
 import type { Overlay } from './overlay.ts';
 import type { UpstreamSnapshot } from './upstream-snapshot.ts';
+import type { VersionNote } from './versions.ts';
 
 import {
   formatAnswersJson,
@@ -91,7 +92,9 @@ import {
 import {
   fetchLatestObsidianVersion,
   fetchLatestVersion,
+  logVersionNote,
   resolveVersions
+
 } from './versions.ts';
 
 interface ExecError extends Error {
@@ -431,11 +434,18 @@ async function offerAnswersExport(answers: Answers, customTemplate: string | und
 async function resolveExternalVersions(answers: Answers, overlay: null | Overlay): Promise<ResolvedExternalVersions> {
   const s = spinner();
   s.start('Resolving versions...');
+  // A log line written over the running spinner leaves its frame on the line above, so the notes wait for `stop`.
+  const versionNotes: VersionNote[] = [];
   const [resolvedVersions, minAppVersion] = await Promise.all([
-    resolveVersions(buildTemplate(answers, overlay).dependencies),
+    resolveVersions(buildTemplate(answers, overlay).dependencies, (versionNote) => {
+      versionNotes.push(versionNote);
+    }),
     fetchLatestObsidianVersion()
   ]);
   s.stop('Versions resolved.');
+  for (const versionNote of versionNotes) {
+    logVersionNote(versionNote);
+  }
   return { minAppVersion, resolvedVersions };
 }
 

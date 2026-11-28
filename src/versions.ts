@@ -262,6 +262,15 @@ export const CONSTRAINING_PACKAGES: readonly string[] = [
   '@mnaoumov/obsidian-lib'
 ];
 
+/** One thing {@link resolveVersions} has to tell the user. */
+export interface VersionNote {
+  readonly level: 'info' | 'warn';
+  readonly message: string;
+}
+
+/** Where {@link resolveVersions} sends its {@link VersionNote}s. */
+export type VersionNoteReporter = (note: VersionNote) => void;
+
 interface AbbreviatedPackument {
   readonly versions?: Record<string, unknown>;
 }
@@ -456,6 +465,11 @@ export async function findMissingPackages(packageNames: readonly string[]): Prom
   return missing.sort((a, b) => a.packageName.localeCompare(b.packageName));
 }
 
+/** Logs one {@link VersionNote} through `clack` at its level. */
+export function logVersionNote(note: VersionNote): void {
+  log[note.level](note.message);
+}
+
 /**
  * Resolves every dependency to a concrete `package.json` spec.
  *
@@ -463,8 +477,15 @@ export async function findMissingPackages(packageNames: readonly string[]): Prom
  * `latest` as a caret range. A package one of the {@link CONSTRAINING_PACKAGES} also declares is held inside
  * the range that toolkit declares for it, so the project and the toolkit share one copy. A registry lookup that
  * fails falls back to the literal `latest` so the generator still works offline.
+ *
+ * What it has to say about a held package or a failed lookup goes to `report`, which logs it at once by default.
+ * A caller running a spinner around the call collects the notes and logs them after the spinner stops instead:
+ * a log line written over a running spinner leaves the spinner's frame on the line above it.
  */
-export async function resolveVersions(dependencies: readonly Dependency[]): Promise<Map<string, string>> {
+export async function resolveVersions(
+  dependencies: readonly Dependency[],
+  report: VersionNoteReporter = logVersionNote
+): Promise<Map<string, string>> {
   const resolved = new Map<string, string>();
   const unresolved: string[] = [];
 
@@ -494,7 +515,10 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
     }
     resolved.set(packageName, resolution.spec);
     if (resolution.heldBelow !== null) {
-      log.info(`Holding ${packageName} on ${resolution.spec}, inside the range declared by ${resolution.heldBy ?? ''}, rather than the latest ${resolution.heldBelow}.`);
+      report({
+        level: 'info',
+        message: `Holding ${packageName} on ${resolution.spec}, inside the range declared by ${resolution.heldBy ?? ''}, rather than the latest ${resolution.heldBelow}.`
+      });
     }
   }
 
@@ -522,7 +546,7 @@ export async function resolveVersions(dependencies: readonly Dependency[]): Prom
   }
 
   if (failed.length > 0) {
-    log.warn(`Could not look up the latest version of ${failed.join(', ')}. Falling back to "${FALLBACK_VERSION}".`);
+    report({ level: 'warn', message: `Could not look up the latest version of ${failed.join(', ')}. Falling back to "${FALLBACK_VERSION}".` });
   }
 
   return resolved;
