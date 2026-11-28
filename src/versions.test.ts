@@ -7,6 +7,8 @@ import {
   vi
 } from 'vitest';
 
+import type { VersionNote } from './versions.ts';
+
 import { Dependency } from './template-builder.ts';
 import {
   ADVISORY_OVERRIDES,
@@ -15,6 +17,7 @@ import {
   buildResolutions,
   PINNED_VERSIONS,
   resolveVersions
+
 } from './versions.ts';
 
 interface ParsedPin {
@@ -218,6 +221,33 @@ describe('resolveVersions under the toolkits\' own ranges', () => {
     const resolved = await resolveVersions([new Dependency(TYPESCRIPT_DEV_TOOLKIT), new Dependency('vitest')]);
     expect(resolved.get(TYPESCRIPT_DEV_TOOLKIT)).toBe('^6.0.0');
     expect(resolved.get('vitest')).toBe('^6.0.0');
+  });
+
+  it('sends a held package\'s note to the reporter rather than logging it', async () => {
+    stubPackages(SKEWED_REGISTRY);
+    const notes: VersionNote[] = [];
+    await resolveVersions([new Dependency(TYPESCRIPT_DEV_TOOLKIT), new Dependency(OBSIDIAN_DEV_TOOLKIT)], (note) => {
+      notes.push(note);
+    });
+    expect(notes).toStrictEqual([{
+      level: 'info',
+      message: `Holding ${TYPESCRIPT_DEV_TOOLKIT} on ^5.4.2, inside the range declared by ${OBSIDIAN_DEV_TOOLKIT}, rather than the latest 6.0.0.`
+    }]);
+  });
+});
+
+describe('resolveVersions reporting', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sends a failed lookup\'s warning to the reporter', async () => {
+    vi.stubGlobal('fetch', () => Promise.reject(new Error('offline')));
+    const notes: VersionNote[] = [];
+    await resolveVersions([new Dependency('esbuild')], (note) => {
+      notes.push(note);
+    });
+    expect(notes).toStrictEqual([{ level: 'warn', message: 'Could not look up the latest version of esbuild. Falling back to "latest".' }]);
   });
 });
 
