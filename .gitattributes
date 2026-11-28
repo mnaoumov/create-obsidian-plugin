@@ -6,6 +6,9 @@
 # that a line-ending conversion would silently corrupt.
 *.wasm binary
 
+# The README's recording of the wizard.
+*.gif binary
+
 # The vendored snapshot of obsidianmd/obsidian-sample-plugin is upstream's committed bytes, and the official-sample
 # preset promises them byte for byte. Upstream's own .gitignore is CRLF, so a line-ending conversion would break that.
 templates/official-sample/files/** -text

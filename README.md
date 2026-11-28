@@ -6,6 +6,10 @@ A scaffolding CLI that generates [Obsidian](https://obsidian.md/) plugin project
 
 **[Documentation site](https://mnaoumov.dev/create-obsidian-plugin/)** — every option and prompt, the generated project, updating, custom templates and more.
 
+<!-- markdownlint-disable MD033 -->
+<a href="https://github.com/mnaoumov/create-obsidian-plugin/blob/HEAD/images/wizard.gif"><img src="images/wizard.gif" alt="The interactive wizard scaffolding a plugin with the recommended tooling" width="800"></a>
+<!-- markdownlint-enable MD033 -->
+
 ## Create a new plugin
 
 ```bash
